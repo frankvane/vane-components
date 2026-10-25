@@ -1,0 +1,37 @@
+{
+  "name": "PerformanceMonitorPlugin",
+  "description": "性能监控：统计加载耗时并可选覆盖层实时展示。",
+  "since": "2.0.0",
+  "tags": [
+    "monitor",
+    "监控"
+  ],
+  "config": [
+    {
+      "name": "showOverlay",
+      "type": "boolean",
+      "description": ""
+    },
+    {
+      "name": "overlayPosition",
+      "type": "\"top-left\" | \"top-right\" | \"bottom-left\" | \"bottom-right\"",
+      "description": ""
+    },
+    {
+      "name": "color",
+      "type": "string",
+      "description": ""
+    },
+    {
+      "name": "background",
+      "type": "string",
+      "description": ""
+    },
+    {
+      "name": "onReport",
+      "type": "(data: { src: string; durationMs: number; network?: LazyImageContext[...",
+      "description": ""
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createPerformanceMonitorPlugin()]);"
+}

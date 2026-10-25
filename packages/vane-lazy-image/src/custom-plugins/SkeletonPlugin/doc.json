@@ -1,0 +1,42 @@
+{
+  "name": "SkeletonPlugin",
+  "description": "骨架屏占位：加载期显示 shimmer/pulse 骨架动画。",
+  "since": "2.0.0",
+  "tags": [
+    "visual",
+    "视觉"
+  ],
+  "config": [
+    {
+      "name": "type",
+      "type": "\"shimmer\" | \"pulse\"",
+      "description": ""
+    },
+    {
+      "name": "backgroundColor",
+      "type": "string",
+      "description": ""
+    },
+    {
+      "name": "highlightColor",
+      "type": "string",
+      "description": "shimmer 高亮色"
+    },
+    {
+      "name": "borderRadius",
+      "type": "number",
+      "description": ""
+    },
+    {
+      "name": "zIndex",
+      "type": "number",
+      "description": ""
+    },
+    {
+      "name": "showWhen",
+      "type": "\"always\" | \"loading\"",
+      "description": ""
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createSkeletonPlugin()]);"
+}

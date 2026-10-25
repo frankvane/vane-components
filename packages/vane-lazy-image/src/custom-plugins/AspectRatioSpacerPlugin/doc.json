@@ -1,0 +1,18 @@
+{
+  "name": "AspectRatioSpacerPlugin",
+  "description": "宽高比占位：按 ratio 预留空间，避免加载造成的布局抖动（CLS）。",
+  "since": "2.0.0",
+  "tags": [
+    "visual",
+    "视觉"
+  ],
+  "config": [
+    {
+      "name": "ratio",
+      "type": "number",
+      "default": "4 / 3",
+      "description": "如 4/3、16/9，或直接传数字（宽/高）"
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createAspectRatioSpacerPlugin()]);"
+}

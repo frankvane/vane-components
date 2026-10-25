@@ -1,0 +1,18 @@
+{
+  "name": "FetchLoaderPlugin",
+  "description": "fetch 流式加载器：将图片以 blob/objectURL 形式加载，支持进度上报（speed/ETA）、超时、指数退避重试、请求去重与 objectURL 自动回收。高优先级（domain priority 10），先于其他插件执行。",
+  "since": "2.0.0",
+  "tags": ["loading", "加载策略"],
+  "config": [
+    { "name": "enabled", "type": "boolean", "default": "true", "description": "是否启用 fetch 加载（关闭后走浏览器默认加载）" },
+    { "name": "cacheKeyFn", "type": "(src: string) => string", "description": "自定义去重键，默认使用 src" },
+    { "name": "maxCacheSize", "type": "number", "description": "in-flight 请求缓存最大条目数" },
+    { "name": "maxControllers", "type": "number", "description": "AbortController 缓存上限，淘汰时自动 abort" },
+    { "name": "maxObjectUrls", "type": "number", "description": "objectURL 缓存上限，淘汰时自动 revokeObjectURL" },
+    { "name": "timeout", "type": "number", "default": "30000", "description": "单次请求超时（毫秒）" },
+    { "name": "maxRetries", "type": "number", "default": "3", "description": "最大重试次数（4xx 不重试）" },
+    { "name": "retryDelay", "type": "number", "default": "1000", "description": "首次重试延迟（毫秒）" },
+    { "name": "retryBackoff", "type": "number", "default": "2", "description": "重试退避倍数" }
+  ],
+  "example": "const Img = withPlugins(LazyLoadImageCore, [createFetchLoaderPlugin({ maxRetries: 5 })]);"
+}

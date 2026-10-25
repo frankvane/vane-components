@@ -1,0 +1,43 @@
+{
+  "name": "AdaptiveQualityPlugin",
+  "description": "网络自适应画质：按 effectiveType/saveData 调整质量参数，支持实时监听。",
+  "since": "2.0.0",
+  "tags": [
+    "network",
+    "网络"
+  ],
+  "config": [
+    {
+      "name": "lowQ",
+      "type": "number",
+      "description": "低速网络质量值"
+    },
+    {
+      "name": "highQ",
+      "type": "number",
+      "description": "高速网络质量值"
+    },
+    {
+      "name": "saveDataQuality",
+      "type": "number",
+      "description": "省流模式质量值"
+    },
+    {
+      "name": "overrideEffectiveType",
+      "type": "EffectiveType",
+      "description": "Demo/测试覆盖"
+    },
+    {
+      "name": "overrideSaveData",
+      "type": "boolean",
+      "description": "Demo/测试覆盖"
+    },
+    {
+      "name": "mode",
+      "type": "\"once\" | \"realtime\"",
+      "default": "\"once\"",
+      "description": ""
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createAdaptiveQualityPlugin()]);"
+}

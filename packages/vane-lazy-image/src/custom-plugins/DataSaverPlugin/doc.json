@@ -1,0 +1,36 @@
+{
+  "name": "DataSaverPlugin",
+  "description": "省流模式：saveData 开启时降低质量参数并禁用预加载。",
+  "since": "2.0.0",
+  "tags": [
+    "loading",
+    "加载策略"
+  ],
+  "config": [
+    {
+      "name": "respectSaveData",
+      "type": "boolean",
+      "default": "true",
+      "description": ""
+    },
+    {
+      "name": "fallbackQuality",
+      "type": "number",
+      "default": "0.6",
+      "description": "0..1"
+    },
+    {
+      "name": "disablePreload",
+      "type": "boolean",
+      "default": "true",
+      "description": ""
+    },
+    {
+      "name": "qualityParam",
+      "type": "string",
+      "default": "\"quality\"",
+      "description": "query param name, e.g. \"quality\" or \"q\""
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createDataSaverPlugin()]);"
+}

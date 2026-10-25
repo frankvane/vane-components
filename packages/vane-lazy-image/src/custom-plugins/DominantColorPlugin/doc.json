@@ -1,0 +1,22 @@
+{
+  "name": "DominantColorPlugin",
+  "description": "主色占位：从 LQIP 采样平均色填充容器背景，减少白屏。",
+  "since": "2.0.0",
+  "tags": [
+    "visual",
+    "视觉"
+  ],
+  "config": [
+    {
+      "name": "color",
+      "type": "string",
+      "description": "指定颜色，若未提供则尝试从 lqip 中采样"
+    },
+    {
+      "name": "lqipSrc",
+      "type": "string | ((src: string) => string)",
+      "description": ""
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createDominantColorPlugin()]);"
+}

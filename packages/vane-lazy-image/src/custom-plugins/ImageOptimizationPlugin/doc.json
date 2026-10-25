@@ -1,0 +1,54 @@
+{
+  "name": "ImageOptimizationPlugin",
+  "description": "图片优化：自动追加宽度/质量/格式查询参数。",
+  "since": "2.0.0",
+  "tags": [
+    "network",
+    "网络"
+  ],
+  "config": [
+    {
+      "name": "enabled",
+      "type": "boolean",
+      "default": "true",
+      "description": ""
+    },
+    {
+      "name": "maxWidth",
+      "type": "number",
+      "default": "1920",
+      "description": "最大宽度（像素）"
+    },
+    {
+      "name": "quality",
+      "type": "number",
+      "default": "0.85",
+      "description": "0..1"
+    },
+    {
+      "name": "format",
+      "type": "\"auto\" | \"webp\" | \"jpg\" | \"png\"",
+      "default": "\"auto\"",
+      "description": ""
+    },
+    {
+      "name": "widthParam",
+      "type": "string",
+      "default": "\"w\"",
+      "description": "例如 \"w\""
+    },
+    {
+      "name": "qualityParam",
+      "type": "string",
+      "default": "\"q\"",
+      "description": "例如 \"q\""
+    },
+    {
+      "name": "formatParam",
+      "type": "string",
+      "default": "\"format\"",
+      "description": "例如 \"format\""
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createImageOptimizationPlugin()]);"
+}

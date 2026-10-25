@@ -1,0 +1,28 @@
+{
+  "name": "RetryOnErrorPlugin",
+  "description": "失败重试：指数退避 + 可选抖动的自动重试。",
+  "since": "2.0.0",
+  "tags": [
+    "network",
+    "网络"
+  ],
+  "config": [
+    {
+      "name": "maxRetries",
+      "type": "number",
+      "default": "2",
+      "description": ""
+    },
+    {
+      "name": "baseDelayMs",
+      "type": "number",
+      "description": "退避基准毫秒"
+    },
+    {
+      "name": "jitter",
+      "type": "boolean",
+      "description": ""
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createRetryOnErrorPlugin()]);"
+}

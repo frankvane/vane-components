@@ -1,0 +1,42 @@
+{
+  "name": "SvgPlaceholderPlugin",
+  "description": "SVG 占位符覆盖层：支持静态或动态生成，加载成功后淡出。",
+  "since": "2.0.0",
+  "tags": [
+    "visual",
+    "视觉"
+  ],
+  "config": [
+    {
+      "name": "svgContent",
+      "type": "string | ((context: LazyImageContext) => string)",
+      "description": "SVG 字符串内容，或动态生成函数"
+    },
+    {
+      "name": "background",
+      "type": "string",
+      "description": "叠加层背景（可用于增强对比度）"
+    },
+    {
+      "name": "opacity",
+      "type": "number",
+      "description": "0..1"
+    },
+    {
+      "name": "zIndex",
+      "type": "number",
+      "description": "叠加层层级"
+    },
+    {
+      "name": "showWhen",
+      "type": "\"always\" | \"idle\" | \"loading\" | \"loaded\" | \"error\"",
+      "description": "显示条件"
+    },
+    {
+      "name": "fadeOutOnLoaded",
+      "type": "boolean",
+      "description": "是否在加载成功后淡出"
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createSvgPlaceholderPlugin()]);"
+}

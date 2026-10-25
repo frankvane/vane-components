@@ -1,0 +1,18 @@
+{
+  "name": "OfflinePlugin",
+  "description": "离线支持：网络断开时显示离线提示覆盖层。",
+  "since": "2.0.0",
+  "tags": [
+    "loading",
+    "加载策略"
+  ],
+  "config": [
+    {
+      "name": "enabled",
+      "type": "boolean",
+      "default": "true",
+      "description": ""
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createOfflinePlugin()]);"
+}

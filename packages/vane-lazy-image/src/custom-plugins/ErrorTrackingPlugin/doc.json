@@ -1,0 +1,42 @@
+{
+  "name": "ErrorTrackingPlugin",
+  "description": "错误追踪：上报加载失败详情（端点或自定义函数），可显示徽标。",
+  "since": "2.0.0",
+  "tags": [
+    "error",
+    "错误处理"
+  ],
+  "config": [
+    {
+      "name": "reportEndpoint",
+      "type": "string",
+      "description": ""
+    },
+    {
+      "name": "report",
+      "type": "(payload: any) => void",
+      "description": ""
+    },
+    {
+      "name": "showBadge",
+      "type": "boolean",
+      "description": ""
+    },
+    {
+      "name": "badgeText",
+      "type": "string",
+      "description": ""
+    },
+    {
+      "name": "badgeColor",
+      "type": "string",
+      "description": ""
+    },
+    {
+      "name": "badgeBg",
+      "type": "string",
+      "description": ""
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createErrorTrackingPlugin()]);"
+}

@@ -1,0 +1,24 @@
+{
+  "name": "DecodeAfterIdlePlugin",
+  "description": "空闲解码：加载成功后延迟到浏览器空闲再执行 img.decode()。",
+  "since": "2.0.0",
+  "tags": [
+    "loading",
+    "加载策略"
+  ],
+  "config": [
+    {
+      "name": "enabled",
+      "type": "boolean",
+      "default": "true",
+      "description": ""
+    },
+    {
+      "name": "timeoutMs",
+      "type": "number",
+      "default": "600",
+      "description": ""
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createDecodeAfterIdlePlugin()]);"
+}

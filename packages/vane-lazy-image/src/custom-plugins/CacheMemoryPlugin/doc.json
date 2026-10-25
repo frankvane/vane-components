@@ -1,0 +1,35 @@
+{
+  "name": "CacheMemoryPlugin",
+  "description": "内存 LRU 缓存：会话内缓存图片数据，可配置容量与过期时间。",
+  "since": "2.0.0",
+  "tags": [
+    "cache",
+    "缓存"
+  ],
+  "config": [
+    {
+      "name": "enabled",
+      "type": "boolean",
+      "default": "true",
+      "description": ""
+    },
+    {
+      "name": "maxEntries",
+      "type": "number",
+      "default": "200",
+      "description": "LRU 最大条目"
+    },
+    {
+      "name": "ttlMs",
+      "type": "number",
+      "description": "过期时间，默认不过期"
+    },
+    {
+      "name": "debug",
+      "type": "boolean",
+      "default": "false",
+      "description": ""
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createMemoryCachePlugin()]);"
+}

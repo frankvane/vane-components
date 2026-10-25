@@ -3,7 +3,7 @@ import { readdirSync, existsSync } from "node:fs";
 import path from "node:path";
 
 /**
- * 组件侧边栏自动生成：扫 docs/components/*/index.md，
+ * 组件侧边栏自动生成：扫 docs/components 下各组件的 index.md，
  * 新增组件不需要手动改导航（配合 pnpm new 使用）。
  */
 const componentsDir = path.resolve(__dirname, "../components");

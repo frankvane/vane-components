@@ -1,0 +1,36 @@
+{
+  "name": "CaptionPlugin",
+  "description": "图片说明文字覆盖层，支持样式定制。",
+  "since": "2.0.0",
+  "tags": [
+    "visual",
+    "视觉"
+  ],
+  "config": [
+    {
+      "name": "text",
+      "type": "string | ((src?: string) => string)",
+      "default": "\"\"",
+      "description": ""
+    },
+    {
+      "name": "position",
+      "type": "\"top\" | \"bottom\"",
+      "default": "\"bottom\"",
+      "description": ""
+    },
+    {
+      "name": "bg",
+      "type": "string",
+      "default": "\"rgba(0,0,0,0.55)\"",
+      "description": ""
+    },
+    {
+      "name": "color",
+      "type": "string",
+      "default": "\"#fff\"",
+      "description": ""
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createCaptionPlugin()]);"
+}

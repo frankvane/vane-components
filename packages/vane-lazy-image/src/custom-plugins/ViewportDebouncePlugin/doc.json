@@ -1,0 +1,30 @@
+{
+  "name": "ViewportDebouncePlugin",
+  "description": "视口防抖：对进出视口事件去抖，防止快速滚动反复触发。",
+  "since": "2.0.0",
+  "tags": [
+    "loading",
+    "加载策略"
+  ],
+  "config": [
+    {
+      "name": "debounceMs",
+      "type": "number",
+      "default": "150",
+      "description": "进出视口事件的去抖间隔"
+    },
+    {
+      "name": "onlyWhenIntersecting",
+      "type": "boolean",
+      "default": "true",
+      "description": "仅在进入视口时应用去抖"
+    },
+    {
+      "name": "debug",
+      "type": "boolean",
+      "default": "false",
+      "description": ""
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createViewportDebouncePlugin()]);"
+}

@@ -6,13 +6,17 @@ import path from "node:path";
  *
  * 约定：源码路径 == 发布子路径（JS 与 d.ts 输出路径天然一致，仅差扩展名）
  *   src/index.ts                   → "."                   → dist/index.js
- *   src/entries/core.ts            → "./entries/core"      → dist/entries/core.js
+ *   src/core.ts                    → "./core"              → dist/core.js
  *   src/bus/index.ts               → "./bus"               → dist/bus/index.js
  *   src/custom-plugins/X/index.ts  → "./custom-plugins/X"  → dist/custom-plugins/X/index.js
+ *   src/presets/social-feed/index.ts → "./presets/social-feed" → dist/presets/social-feed/index.js
  *
  * components/ 是组件内部目录，不发布为入口。
+ *
+ * 体积约定：根入口只聚合核心 + 插件系统 + 类型，不桶导出全部插件/配方——
+ * 插件与配方一律走子路径按需引入（ADR-6：体积靠 tree-shaking 与显式导入解决）。
  */
-const NON_ENTRY_DIRS = new Set(["components", "custom-plugins", "entries", "styles"]);
+const NON_ENTRY_DIRS = new Set(["components", "custom-plugins", "entries", "presets", "styles"]);
 
 const ENTRY_CANDIDATES = ["index.ts", "index.tsx"];
 
@@ -23,11 +27,23 @@ export function discoverEntries(root) {
   const rootEntry = firstExisting(ENTRY_CANDIDATES.map((f) => path.join(src, f)));
   if (rootEntry) entries.index = `src/${path.basename(rootEntry)}`;
 
-  // src/entries/*.ts → "./entries/<name>"
+  // src/<name>.ts → "./<name>"（src 根级入口文件，如 core.ts / plugins.ts）
+  for (const file of readdirSync(src)) {
+    if (/\.tsx?$/.test(file) && !ENTRY_CANDIDATES.includes(file)) {
+      entries[file.replace(/\.tsx?$/, "")] = `src/${file}`;
+    }
+  }
+
+  // src/entries/core.ts（文件形态）与 src/entries/core/index.ts（目录形态）
+  // 都映射为 "./entries/<name>"（包内组织形态，不是公开 API 的首选）
   const entriesDir = path.join(src, "entries");
   if (existsSync(entriesDir)) {
     for (const file of readdirSync(entriesDir)) {
       if (/\.tsx?$/.test(file)) entries[`entries/${file.replace(/\.tsx?$/, "")}`] = `src/entries/${file}`;
+    }
+    for (const dir of listDirs(entriesDir)) {
+      const entry = firstExisting(ENTRY_CANDIDATES.map((f) => path.join(entriesDir, dir, f)));
+      if (entry) entries[`entries/${dir}`] = `src/entries/${dir}/${path.basename(entry)}`;
     }
   }
 
@@ -35,6 +51,17 @@ export function discoverEntries(root) {
   for (const dir of listDirs(path.join(src, "custom-plugins"))) {
     const entry = firstExisting(ENTRY_CANDIDATES.map((f) => path.join(src, "custom-plugins", dir, f)));
     if (entry) entries[`custom-plugins/${dir}`] = `src/custom-plugins/${dir}/${path.basename(entry)}`;
+  }
+
+  // src/custom-plugins/index.ts → "./custom-plugins"（桶文件：全量引入逃生口，
+  // 常规场景仍推荐逐插件子路径导入以保持最小体积）
+  const barrel = path.join(src, "custom-plugins", "index.ts");
+  if (existsSync(barrel)) entries["custom-plugins"] = "src/custom-plugins/index.ts";
+
+  // src/presets/<name>/index.ts → "./presets/<name>"（配方按需引入，避免根入口膨胀）
+  for (const dir of listDirs(path.join(src, "presets"))) {
+    const entry = firstExisting(ENTRY_CANDIDATES.map((f) => path.join(src, "presets", dir, f)));
+    if (entry) entries[`presets/${dir}`] = `src/presets/${dir}/${path.basename(entry)}`;
   }
 
   // src/<dir>/index.ts → "./<dir>"（组件内部目录除外）

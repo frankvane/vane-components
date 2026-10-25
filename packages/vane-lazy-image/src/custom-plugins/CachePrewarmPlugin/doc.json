@@ -1,0 +1,36 @@
+{
+  "name": "CachePrewarmPlugin",
+  "description": "缓存预热：进入视口或挂载时把图片预热到内存/IDB 缓存。",
+  "since": "2.0.0",
+  "tags": [
+    "cache",
+    "缓存"
+  ],
+  "config": [
+    {
+      "name": "enabled",
+      "type": "boolean",
+      "default": "true",
+      "description": ""
+    },
+    {
+      "name": "trigger",
+      "type": "\"enter\" | \"mount\"",
+      "default": "\"enter\"",
+      "description": "触发时机：进入视口或挂载"
+    },
+    {
+      "name": "preferMemory",
+      "type": "boolean",
+      "default": "true",
+      "description": "预热时优先写内存"
+    },
+    {
+      "name": "debug",
+      "type": "boolean",
+      "default": "false",
+      "description": ""
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createCachePrewarmPlugin()]);"
+}

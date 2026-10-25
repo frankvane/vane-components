@@ -1,0 +1,366 @@
+{
+  "name": "vane-lazy-image",
+  "version": "2.0.0",
+  "description": "高性能 React 图片懒加载组件：插件化架构、59 个领域插件、ObserverPool/GlobalContext 性能工程",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./advanced": {
+      "types": "./dist/advanced.d.ts",
+      "import": "./dist/advanced.js"
+    },
+    "./core": {
+      "types": "./dist/core.d.ts",
+      "import": "./dist/core.js"
+    },
+    "./monitoring": {
+      "types": "./dist/monitoring.d.ts",
+      "import": "./dist/monitoring.js"
+    },
+    "./plugins": {
+      "types": "./dist/plugins.d.ts",
+      "import": "./dist/plugins.js"
+    },
+    "./custom-plugins/A11yPlugin": {
+      "types": "./dist/custom-plugins/A11yPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/A11yPlugin/index.js"
+    },
+    "./custom-plugins/AdaptiveQualityPlugin": {
+      "types": "./dist/custom-plugins/AdaptiveQualityPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/AdaptiveQualityPlugin/index.js"
+    },
+    "./custom-plugins/AltTextPlugin": {
+      "types": "./dist/custom-plugins/AltTextPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/AltTextPlugin/index.js"
+    },
+    "./custom-plugins/AntiHotlinkPlugin": {
+      "types": "./dist/custom-plugins/AntiHotlinkPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/AntiHotlinkPlugin/index.js"
+    },
+    "./custom-plugins/AspectRatioSpacerPlugin": {
+      "types": "./dist/custom-plugins/AspectRatioSpacerPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/AspectRatioSpacerPlugin/index.js"
+    },
+    "./custom-plugins/AuthPlugin": {
+      "types": "./dist/custom-plugins/AuthPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/AuthPlugin/index.js"
+    },
+    "./custom-plugins/BadgePlugin": {
+      "types": "./dist/custom-plugins/BadgePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/BadgePlugin/index.js"
+    },
+    "./custom-plugins/BatteryAwarePlugin": {
+      "types": "./dist/custom-plugins/BatteryAwarePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/BatteryAwarePlugin/index.js"
+    },
+    "./custom-plugins/BlurUpPlugin": {
+      "types": "./dist/custom-plugins/BlurUpPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/BlurUpPlugin/index.js"
+    },
+    "./custom-plugins/BorderGlowPlugin": {
+      "types": "./dist/custom-plugins/BorderGlowPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/BorderGlowPlugin/index.js"
+    },
+    "./custom-plugins/CDNFallbackPlugin": {
+      "types": "./dist/custom-plugins/CDNFallbackPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/CDNFallbackPlugin/index.js"
+    },
+    "./custom-plugins/CacheIDBPlugin": {
+      "types": "./dist/custom-plugins/CacheIDBPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/CacheIDBPlugin/index.js"
+    },
+    "./custom-plugins/CacheMemoryPlugin": {
+      "types": "./dist/custom-plugins/CacheMemoryPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/CacheMemoryPlugin/index.js"
+    },
+    "./custom-plugins/CachePrewarmPlugin": {
+      "types": "./dist/custom-plugins/CachePrewarmPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/CachePrewarmPlugin/index.js"
+    },
+    "./custom-plugins/CaptionPlugin": {
+      "types": "./dist/custom-plugins/CaptionPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/CaptionPlugin/index.js"
+    },
+    "./custom-plugins/ColorExtractionPlugin": {
+      "types": "./dist/custom-plugins/ColorExtractionPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ColorExtractionPlugin/index.js"
+    },
+    "./custom-plugins/ComparisonPlugin": {
+      "types": "./dist/custom-plugins/ComparisonPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ComparisonPlugin/index.js"
+    },
+    "./custom-plugins/ConcurrencyControlPlugin": {
+      "types": "./dist/custom-plugins/ConcurrencyControlPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ConcurrencyControlPlugin/index.js"
+    },
+    "./custom-plugins/CropPlugin": {
+      "types": "./dist/custom-plugins/CropPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/CropPlugin/index.js"
+    },
+    "./custom-plugins/DataSaverPlugin": {
+      "types": "./dist/custom-plugins/DataSaverPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/DataSaverPlugin/index.js"
+    },
+    "./custom-plugins/DecodeAfterIdlePlugin": {
+      "types": "./dist/custom-plugins/DecodeAfterIdlePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/DecodeAfterIdlePlugin/index.js"
+    },
+    "./custom-plugins/DominantColorPlugin": {
+      "types": "./dist/custom-plugins/DominantColorPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/DominantColorPlugin/index.js"
+    },
+    "./custom-plugins/ErrorBadgePlugin": {
+      "types": "./dist/custom-plugins/ErrorBadgePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ErrorBadgePlugin/index.js"
+    },
+    "./custom-plugins/ErrorOverlayPlugin": {
+      "types": "./dist/custom-plugins/ErrorOverlayPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ErrorOverlayPlugin/index.js"
+    },
+    "./custom-plugins/ErrorTrackingPlugin": {
+      "types": "./dist/custom-plugins/ErrorTrackingPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ErrorTrackingPlugin/index.js"
+    },
+    "./custom-plugins/EventLoggerPlugin": {
+      "types": "./dist/custom-plugins/EventLoggerPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/EventLoggerPlugin/index.js"
+    },
+    "./custom-plugins/ExifOrientationPlugin": {
+      "types": "./dist/custom-plugins/ExifOrientationPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ExifOrientationPlugin/index.js"
+    },
+    "./custom-plugins/FadeInPlugin": {
+      "types": "./dist/custom-plugins/FadeInPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/FadeInPlugin/index.js"
+    },
+    "./custom-plugins/FallbackImagePlugin": {
+      "types": "./dist/custom-plugins/FallbackImagePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/FallbackImagePlugin/index.js"
+    },
+    "./custom-plugins/FetchLoaderPlugin": {
+      "types": "./dist/custom-plugins/FetchLoaderPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/FetchLoaderPlugin/index.js"
+    },
+    "./custom-plugins/FilterPlugin": {
+      "types": "./dist/custom-plugins/FilterPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/FilterPlugin/index.js"
+    },
+    "./custom-plugins/GalleryPlugin": {
+      "types": "./dist/custom-plugins/GalleryPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/GalleryPlugin/index.js"
+    },
+    "./custom-plugins/HoverPrefetchPlugin": {
+      "types": "./dist/custom-plugins/HoverPrefetchPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/HoverPrefetchPlugin/index.js"
+    },
+    "./custom-plugins/HoverZoomPlugin": {
+      "types": "./dist/custom-plugins/HoverZoomPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/HoverZoomPlugin/index.js"
+    },
+    "./custom-plugins/ImageOptimizationPlugin": {
+      "types": "./dist/custom-plugins/ImageOptimizationPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ImageOptimizationPlugin/index.js"
+    },
+    "./custom-plugins/LQIPPlugin": {
+      "types": "./dist/custom-plugins/LQIPPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/LQIPPlugin/index.js"
+    },
+    "./custom-plugins/MemoryPressureAbortPlugin": {
+      "types": "./dist/custom-plugins/MemoryPressureAbortPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/MemoryPressureAbortPlugin/index.js"
+    },
+    "./custom-plugins/NetworkAnalyticsPlugin": {
+      "types": "./dist/custom-plugins/NetworkAnalyticsPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/NetworkAnalyticsPlugin/index.js"
+    },
+    "./custom-plugins/OfflinePlugin": {
+      "types": "./dist/custom-plugins/OfflinePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/OfflinePlugin/index.js"
+    },
+    "./custom-plugins/OverlayInfoPlugin": {
+      "types": "./dist/custom-plugins/OverlayInfoPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/OverlayInfoPlugin/index.js"
+    },
+    "./custom-plugins/ParallaxPlugin": {
+      "types": "./dist/custom-plugins/ParallaxPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ParallaxPlugin/index.js"
+    },
+    "./custom-plugins/PerformanceMonitorPlugin": {
+      "types": "./dist/custom-plugins/PerformanceMonitorPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/PerformanceMonitorPlugin/index.js"
+    },
+    "./custom-plugins/PreconnectPlugin": {
+      "types": "./dist/custom-plugins/PreconnectPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/PreconnectPlugin/index.js"
+    },
+    "./custom-plugins/PredictiveLoadingPlugin": {
+      "types": "./dist/custom-plugins/PredictiveLoadingPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/PredictiveLoadingPlugin/index.js"
+    },
+    "./custom-plugins/PriorityLoadingPlugin": {
+      "types": "./dist/custom-plugins/PriorityLoadingPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/PriorityLoadingPlugin/index.js"
+    },
+    "./custom-plugins/ProgressOverlayPlugin": {
+      "types": "./dist/custom-plugins/ProgressOverlayPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ProgressOverlayPlugin/index.js"
+    },
+    "./custom-plugins/RedactionPlugin": {
+      "types": "./dist/custom-plugins/RedactionPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/RedactionPlugin/index.js"
+    },
+    "./custom-plugins/ResponsivePlugin": {
+      "types": "./dist/custom-plugins/ResponsivePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ResponsivePlugin/index.js"
+    },
+    "./custom-plugins/RetryOnErrorPlugin": {
+      "types": "./dist/custom-plugins/RetryOnErrorPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/RetryOnErrorPlugin/index.js"
+    },
+    "./custom-plugins/SEOPlugin": {
+      "types": "./dist/custom-plugins/SEOPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/SEOPlugin/index.js"
+    },
+    "./custom-plugins/ScrollIdlePlugin": {
+      "types": "./dist/custom-plugins/ScrollIdlePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ScrollIdlePlugin/index.js"
+    },
+    "./custom-plugins/SkeletonPlugin": {
+      "types": "./dist/custom-plugins/SkeletonPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/SkeletonPlugin/index.js"
+    },
+    "./custom-plugins/SvgPlaceholderPlugin": {
+      "types": "./dist/custom-plugins/SvgPlaceholderPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/SvgPlaceholderPlugin/index.js"
+    },
+    "./custom-plugins/TransitionPlugin": {
+      "types": "./dist/custom-plugins/TransitionPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/TransitionPlugin/index.js"
+    },
+    "./custom-plugins/UserBehaviorPlugin": {
+      "types": "./dist/custom-plugins/UserBehaviorPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/UserBehaviorPlugin/index.js"
+    },
+    "./custom-plugins/ViewportAwarePlugin": {
+      "types": "./dist/custom-plugins/ViewportAwarePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ViewportAwarePlugin/index.js"
+    },
+    "./custom-plugins/ViewportDebouncePlugin": {
+      "types": "./dist/custom-plugins/ViewportDebouncePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ViewportDebouncePlugin/index.js"
+    },
+    "./custom-plugins/ViewportDwellPlugin": {
+      "types": "./dist/custom-plugins/ViewportDwellPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ViewportDwellPlugin/index.js"
+    },
+    "./custom-plugins/WatermarkPlugin": {
+      "types": "./dist/custom-plugins/WatermarkPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/WatermarkPlugin/index.js"
+    },
+    "./custom-plugins/WebPPlugin": {
+      "types": "./dist/custom-plugins/WebPPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/WebPPlugin/index.js"
+    },
+    "./custom-plugins": {
+      "types": "./dist/custom-plugins/index.d.ts",
+      "import": "./dist/custom-plugins/index.js"
+    },
+    "./presets/content-long-read": {
+      "types": "./dist/presets/content-long-read/index.d.ts",
+      "import": "./dist/presets/content-long-read/index.js"
+    },
+    "./presets/offline-first": {
+      "types": "./dist/presets/offline-first/index.d.ts",
+      "import": "./dist/presets/offline-first/index.js"
+    },
+    "./presets/performance-first": {
+      "types": "./dist/presets/performance-first/index.d.ts",
+      "import": "./dist/presets/performance-first/index.js"
+    },
+    "./presets/product-gallery": {
+      "types": "./dist/presets/product-gallery/index.d.ts",
+      "import": "./dist/presets/product-gallery/index.js"
+    },
+    "./presets/social-feed": {
+      "types": "./dist/presets/social-feed/index.d.ts",
+      "import": "./dist/presets/social-feed/index.js"
+    },
+    "./custom-plugins/*": {
+      "types": "./dist/custom-plugins/*/index.d.ts",
+      "import": "./dist/custom-plugins/*/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "keywords": [
+    "react",
+    "lazy-loading",
+    "image",
+    "lqip",
+    "web-worker",
+    "virtual-scroll",
+    "performance",
+    "typescript",
+    "plugin"
+  ],
+  "author": "vane",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/frankvane/vane-components.git",
+    "directory": "packages/vane-lazy-image"
+  },
+  "bugs": {
+    "url": "https://github.com/frankvane/vane-components/issues"
+  },
+  "homepage": "https://github.com/frankvane/vane-components#readme",
+  "scripts": {
+    "dev": "vite --config demo/vite.config.ts",
+    "build": "vite build",
+    "build:demo": "vite build --config demo/vite.config.ts",
+    "preview": "vite preview --config demo/vite.config.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run --pool=threads",
+    "lint": "eslint .",
+    "sync:exports": "node ../../scripts/sync-exports.mjs"
+  },
+  "peerDependencies": {
+    "@vane/plugin-core": "workspace:*",
+    "react": ">=16.8.0",
+    "react-dom": ">=16.8.0"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@vane/plugin-core": "workspace:*",
+    "@types/node": "^20.19.18",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "typescript": "^5.5.3",
+    "vite": "^5.4.1",
+    "vite-plugin-dts": "^4.5.4",
+    "vitest": "^2.1.9",
+    "happy-dom": "^15.11.7",
+    "@vane/build-config": "workspace:*",
+    "@vane/vitest-config": "workspace:*",
+    "@vane/eslint-config": "workspace:*",
+    "@vane/tsconfig": "workspace:*"
+  },
+  "vane": {
+    "sizeBudgetKb": 25,
+    "coreSizeBudgetKb": 12
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

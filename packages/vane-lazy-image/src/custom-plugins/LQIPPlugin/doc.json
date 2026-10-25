@@ -1,0 +1,32 @@
+{
+  "name": "LQIPPlugin",
+  "description": "低清晰度占位图（LQIP）：加载期叠加模糊小图，支持自定义透明度与层级。",
+  "since": "2.0.0",
+  "tags": [
+    "visual",
+    "视觉"
+  ],
+  "config": [
+    {
+      "name": "lqipSrc",
+      "type": "string | ((src: string) => string)",
+      "description": ""
+    },
+    {
+      "name": "blur",
+      "type": "number",
+      "description": "px"
+    },
+    {
+      "name": "opacity",
+      "type": "number",
+      "description": "0~1"
+    },
+    {
+      "name": "zIndex",
+      "type": "number",
+      "description": ""
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createLqipPlugin()]);"
+}

@@ -1,0 +1,17 @@
+{
+  "name": "CDNFallbackPlugin",
+  "description": "CDN 回退：主域名加载失败时按序切换备用 CDN 域名。",
+  "since": "2.0.0",
+  "tags": [
+    "network",
+    "网络"
+  ],
+  "config": [
+    {
+      "name": "cdnBases",
+      "type": "string[]",
+      "description": "e.g. [\"https://cdn1.example.com\", \"https://cdn2.example.com\"]"
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createCDNFallbackPlugin()]);"
+}

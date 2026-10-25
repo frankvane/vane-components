@@ -1,0 +1,24 @@
+{
+  "name": "HoverZoomPlugin",
+  "description": "悬停放大：鼠标悬停时放大显示图片局部。",
+  "since": "2.0.0",
+  "tags": [
+    "visual",
+    "视觉"
+  ],
+  "config": [
+    {
+      "name": "scale",
+      "type": "number",
+      "default": "1.08",
+      "description": "default 1.08"
+    },
+    {
+      "name": "durationMs",
+      "type": "number",
+      "default": "180",
+      "description": "default 180ms"
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createHoverZoomPlugin()]);"
+}

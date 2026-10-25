@@ -1,0 +1,36 @@
+{
+  "name": "MemoryPressureAbortPlugin",
+  "description": "内存压力降级：设备内存不足或移动端时改请求低清图。",
+  "since": "2.0.0",
+  "tags": [
+    "loading",
+    "加载策略"
+  ],
+  "config": [
+    {
+      "name": "enabled",
+      "type": "boolean",
+      "default": "true",
+      "description": ""
+    },
+    {
+      "name": "deviceMemoryThreshold",
+      "type": "number",
+      "default": "4",
+      "description": "设备内存<=该阈值时启用降质（GB）"
+    },
+    {
+      "name": "preferOnMobile",
+      "type": "boolean",
+      "default": "true",
+      "description": "移动端或省流模式时强制启用降质"
+    },
+    {
+      "name": "lowWidth",
+      "type": "number",
+      "default": "640",
+      "description": "重写到低清晰度：针对常见图片域名的宽度参数"
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createMemoryPressureAbortPlugin()]);"
+}

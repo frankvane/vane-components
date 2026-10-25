@@ -1,0 +1,41 @@
+{
+  "name": "CacheIDBPlugin",
+  "description": "IndexedDB 持久缓存：跨会话缓存图片 Blob/dataURL，支持 TTL。",
+  "since": "2.0.0",
+  "tags": [
+    "cache",
+    "缓存"
+  ],
+  "config": [
+    {
+      "name": "enabled",
+      "type": "boolean",
+      "default": "true",
+      "description": ""
+    },
+    {
+      "name": "dbName",
+      "type": "string",
+      "default": "\"LLI-Cache\"",
+      "description": ""
+    },
+    {
+      "name": "storeName",
+      "type": "string",
+      "default": "\"images\"",
+      "description": ""
+    },
+    {
+      "name": "ttlMs",
+      "type": "number",
+      "default": "7 * 24 * 60 * 60 * 1000",
+      "description": "过期时间（毫秒）"
+    },
+    {
+      "name": "debug",
+      "type": "boolean",
+      "description": ""
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createIDBCachePlugin()]);"
+}

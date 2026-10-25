@@ -1,0 +1,30 @@
+{
+  "name": "ColorExtractionPlugin",
+  "description": "主色提取：canvas 采样图片主色，可设置容器背景或显示色卡。",
+  "since": "2.0.0",
+  "tags": [
+    "visual",
+    "视觉"
+  ],
+  "config": [
+    {
+      "name": "setContainerBg",
+      "type": "boolean",
+      "default": "true",
+      "description": "是否设置容器背景为主色"
+    },
+    {
+      "name": "sampleSize",
+      "type": "number",
+      "default": "4",
+      "description": "采样步长（像素），越大越快但越不精确"
+    },
+    {
+      "name": "showOverlay",
+      "type": "boolean",
+      "default": "true",
+      "description": "在图片右上角显示主色卡"
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createColorExtractionPlugin()]);"
+}

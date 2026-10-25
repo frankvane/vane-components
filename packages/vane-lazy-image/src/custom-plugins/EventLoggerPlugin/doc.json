@@ -1,0 +1,24 @@
+{
+  "name": "EventLoggerPlugin",
+  "description": "事件日志：记录加载全生命周期事件（可加前缀过滤）。",
+  "since": "2.0.0",
+  "tags": [
+    "monitor",
+    "监控"
+  ],
+  "config": [
+    {
+      "name": "enabled",
+      "type": "boolean",
+      "default": "true",
+      "description": ""
+    },
+    {
+      "name": "prefix",
+      "type": "string",
+      "default": "\"[LLI]\"",
+      "description": ""
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createEventLoggerPlugin()]);"
+}

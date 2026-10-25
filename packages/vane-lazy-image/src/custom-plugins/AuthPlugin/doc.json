@@ -1,0 +1,32 @@
+{
+  "name": "AuthPlugin",
+  "description": "鉴权支持：为图片 URL 追加 token 参数并配置跨域/Referrer 策略。",
+  "since": "2.0.0",
+  "tags": [
+    "network",
+    "网络"
+  ],
+  "config": [
+    {
+      "name": "token",
+      "type": "string | (() => string | undefined)",
+      "description": ""
+    },
+    {
+      "name": "tokenParam",
+      "type": "string",
+      "description": "添加到查询参数的键"
+    },
+    {
+      "name": "crossOrigin",
+      "type": "\"anonymous\" | \"use-credentials\"",
+      "description": ""
+    },
+    {
+      "name": "referrerPolicy",
+      "type": "React.HTMLAttributeReferrerPolicy",
+      "description": ""
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createAuthPlugin()]);"
+}

@@ -1,0 +1,37 @@
+{
+  "name": "ProgressOverlayPlugin",
+  "description": "加载进度条覆盖层：百分比文本与 indeterminate 模式。",
+  "since": "2.0.0",
+  "tags": [
+    "visual",
+    "视觉"
+  ],
+  "config": [
+    {
+      "name": "showWhen",
+      "type": "\"always\" | \"loading\"",
+      "description": ""
+    },
+    {
+      "name": "height",
+      "type": "number",
+      "description": "进度条高度"
+    },
+    {
+      "name": "color",
+      "type": "string",
+      "description": "进度条颜色"
+    },
+    {
+      "name": "background",
+      "type": "string",
+      "description": "背景遮罩色"
+    },
+    {
+      "name": "showPercentText",
+      "type": "boolean",
+      "description": "是否显示百分比文本"
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createProgressOverlayPlugin()]);"
+}

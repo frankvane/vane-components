@@ -1,0 +1,18 @@
+{
+  "name": "ComparisonPlugin",
+  "description": "对比标识覆盖层：标注图片处于对比模式（轻量占位实现）。",
+  "since": "2.0.0",
+  "tags": [
+    "visual",
+    "视觉"
+  ],
+  "config": [
+    {
+      "name": "enabled",
+      "type": "boolean",
+      "default": "true",
+      "description": ""
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createComparisonPlugin()]);"
+}

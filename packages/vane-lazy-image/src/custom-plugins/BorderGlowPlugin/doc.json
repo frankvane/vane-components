@@ -1,0 +1,36 @@
+{
+  "name": "BorderGlowPlugin",
+  "description": "边框光晕：加载成功后为卡片应用发光阴影，悬停时增强。",
+  "since": "2.0.0",
+  "tags": [
+    "visual",
+    "视觉"
+  ],
+  "config": [
+    {
+      "name": "color",
+      "type": "string",
+      "default": "\"rgba(0, 153, 255, 0.6)\"",
+      "description": "default rgba(0, 153, 255, 0.6)"
+    },
+    {
+      "name": "blurPx",
+      "type": "number",
+      "default": "12",
+      "description": "default 12"
+    },
+    {
+      "name": "spreadPx",
+      "type": "number",
+      "default": "2",
+      "description": "default 2"
+    },
+    {
+      "name": "hoverMultiplier",
+      "type": "number",
+      "default": "1.4",
+      "description": "default 1.4"
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createBorderGlowPlugin()]);"
+}

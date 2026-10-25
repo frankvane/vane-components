@@ -1,0 +1,36 @@
+{
+  "name": "BatteryAwarePlugin",
+  "description": "低电量降级：电量低于阈值时缩小请求宽度并禁用预连接。",
+  "since": "2.0.0",
+  "tags": [
+    "loading",
+    "加载策略"
+  ],
+  "config": [
+    {
+      "name": "enabled",
+      "type": "boolean",
+      "default": "true",
+      "description": ""
+    },
+    {
+      "name": "lowBatteryThreshold",
+      "type": "number",
+      "default": "0.2",
+      "description": "0-1"
+    },
+    {
+      "name": "downgradeWidth",
+      "type": "number",
+      "default": "640",
+      "description": ""
+    },
+    {
+      "name": "disablePreconnect",
+      "type": "boolean",
+      "default": "true",
+      "description": ""
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createBatteryAwarePlugin()]);"
+}

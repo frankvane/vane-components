@@ -1,0 +1,36 @@
+{
+  "name": "ViewportDwellPlugin",
+  "description": "停留门槛：在视口内停留不足 dwellMs 则跳过加载，避免快速滚动浪费。",
+  "since": "2.0.0",
+  "tags": [
+    "viewport",
+    "视口"
+  ],
+  "config": [
+    {
+      "name": "dwellMs",
+      "type": "number",
+      "default": "180",
+      "description": "需要在视口中持续停留的时间（毫秒），否则视为跳过不加载"
+    },
+    {
+      "name": "maxWaitMs",
+      "type": "number",
+      "default": "1000",
+      "description": "最长等待时间（毫秒），避免长时间滚动导致饥饿；到时仍可继续加载"
+    },
+    {
+      "name": "onlyWhenIntersecting",
+      "type": "boolean",
+      "default": "true",
+      "description": "仅在进入视口时生效（true），否则所有加载都会应用驻留判断"
+    },
+    {
+      "name": "debug",
+      "type": "boolean",
+      "default": "false",
+      "description": "调试输出"
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createViewportDwellPlugin()]);"
+}

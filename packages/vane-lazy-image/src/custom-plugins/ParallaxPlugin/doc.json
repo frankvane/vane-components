@@ -1,0 +1,22 @@
+{
+  "name": "ParallaxPlugin",
+  "description": "视差滚动：随页面滚动按强度偏移图片位置。",
+  "since": "2.0.0",
+  "tags": [
+    "visual",
+    "视觉"
+  ],
+  "config": [
+    {
+      "name": "strength",
+      "type": "number",
+      "description": "0..1，偏移强度（默认 0.2）"
+    },
+    {
+      "name": "axis",
+      "type": "\"y\" | \"x\"",
+      "description": "轴向"
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createParallaxPlugin()]);"
+}

@@ -1,0 +1,30 @@
+{
+  "name": "BlurUpPlugin",
+  "description": "模糊放大占位：加载期为图片注入 blur 滤镜，加载成功后过渡到清晰，避免「白屏 → 清晰图」的突兀切换。",
+  "since": "2.0.0",
+  "tags": [
+    "visual",
+    "视觉"
+  ],
+  "config": [
+    {
+      "name": "startBlur",
+      "type": "number",
+      "default": "8",
+      "description": "px"
+    },
+    {
+      "name": "endBlur",
+      "type": "number",
+      "default": "0",
+      "description": "px"
+    },
+    {
+      "name": "durationMs",
+      "type": "number",
+      "default": "400",
+      "description": ""
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createBlurUpPlugin()]);"
+}

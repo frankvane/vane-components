@@ -1,0 +1,29 @@
+{
+  "name": "FilterPlugin",
+  "description": "CSS 滤镜：灰度/复古/亮度/对比度/饱和度，悬停可恢复原图。",
+  "since": "2.0.0",
+  "tags": [
+    "visual",
+    "视觉"
+  ],
+  "config": [
+    {
+      "name": "filter",
+      "type": "| \"none\" | \"grayscale\" | \"sepia\" | \"brightness\" | \"contrast\" | \"satur...",
+      "default": "\"none\"",
+      "description": ""
+    },
+    {
+      "name": "amount",
+      "type": "number",
+      "default": "(type === \"none\" ? 1 : type === \"brightness\" ...",
+      "description": ""
+    },
+    {
+      "name": "hover",
+      "type": "boolean",
+      "description": ""
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createFilterPlugin()]);"
+}

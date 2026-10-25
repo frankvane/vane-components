@@ -1,0 +1,27 @@
+{
+  "name": "NetworkAnalyticsPlugin",
+  "description": "网络分析：上报加载耗时、成功率与 CDN 分布。",
+  "since": "2.0.0",
+  "tags": [
+    "network",
+    "网络"
+  ],
+  "config": [
+    {
+      "name": "reportEndpoint",
+      "type": "string",
+      "description": ""
+    },
+    {
+      "name": "report",
+      "type": "(event: string, data: Record<string, any>) => void",
+      "description": "自定义上报函数（若提供则优先使用）"
+    },
+    {
+      "name": "trackCDN",
+      "type": "boolean",
+      "description": ""
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createNetworkAnalyticsPlugin()]);"
+}

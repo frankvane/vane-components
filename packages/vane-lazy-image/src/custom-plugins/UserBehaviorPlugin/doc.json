@@ -1,0 +1,23 @@
+{
+  "name": "UserBehaviorPlugin",
+  "description": "用户行为采集：统计停留时长、点击与进出视口次数。",
+  "since": "2.0.0",
+  "tags": [
+    "monitor",
+    "监控"
+  ],
+  "config": [
+    {
+      "name": "enabled",
+      "type": "boolean",
+      "default": "true",
+      "description": ""
+    },
+    {
+      "name": "onReport",
+      "type": "(data: { src: string; dwellMs: number; clicks: number; enters: number...",
+      "description": ""
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createUserBehaviorPlugin()]);"
+}

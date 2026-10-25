@@ -44,6 +44,14 @@ export interface UsePluginRuntimeOptions<TProps = any, TData = any> {
   containerRef?: React.RefObject<HTMLElement | null>;
   enableDebug?: boolean;
   managerOptions?: PluginManagerOptions;
+  /**
+   * 上下文扩展：在内核 context 基础上附加领域字段（src / imageState / …）。
+   * 每次 context 重建时应用；executeHook / transformData 拿到的都是扩展后的 context。
+   * 领域包应传入 useCallback 包装的稳定函数，避免每次渲染重建 context。
+   */
+  extendContext?: (
+    context: PluginContext<TProps, TData>
+  ) => PluginContext<TProps, TData>;
 }
 
 /**
@@ -61,6 +69,7 @@ export function usePluginRuntime<TProps = any, TData = any>(
     containerRef: externalRef,
     enableDebug = false,
     managerOptions,
+    extendContext,
   } = options;
 
   const localRef = useRef<HTMLElement | null>(null);
@@ -95,7 +104,17 @@ export function usePluginRuntime<TProps = any, TData = any>(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [namesKey]);
 
-  useLayoutEffect(() => () => manager.clear(), [manager]);
+  // 卸载：先执行 onUnmount 钩子链，再清理管理器。
+  // 说明：hook 链在 executeHook 循环内已捕获插件引用，随后的 clear 不会
+  // 中断已启动的链；反过来（先 clear 再 onUnmount）会让插件列表已空、
+  // 钩子丢失。领域包因此不需要自己桥接 onUnmount。
+  useLayoutEffect(
+    () => () => {
+      void manager.executeHook("onUnmount", contextRef.current!);
+      manager.clear();
+    },
+    [manager]
+  );
 
   const orderedPlugins = useMemo(
     () => resolveDependencyOrder(plugins),
@@ -122,9 +141,9 @@ export function usePluginRuntime<TProps = any, TData = any>(
       },
       logger: console,
     };
-    return ctx;
+    return extendContext ? extendContext(ctx) : ctx;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props, data, state, deviceInfo, bus]);
+  }, [props, data, state, deviceInfo, bus, extendContext]);
 
   contextRef.current = context;
 

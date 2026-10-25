@@ -5,8 +5,12 @@
   "type": "module",
   "files": ["*.json"],
   "exports": {
+    ".": "./base.json",
     "./base": "./base.json",
+    "./base.json": "./base.json",
     "./lib": "./lib.json",
-    "./demo": "./demo.json"
+    "./lib.json": "./lib.json",
+    "./demo": "./demo.json",
+    "./demo.json": "./demo.json"
   }
 }

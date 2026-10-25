@@ -84,34 +84,38 @@ export interface PluginContext<TProps = any, TData = any> {
  *  - undefined / true：继续执行下一个插件。
  *
  * 领域钩子（各组件自定义）不走清理语义，只走短路语义。
+ *
+ * 注意：成员一律用「方法语法」而非「箭头函数属性语法」声明——TS 对方法参数
+ * 是双变的，领域包可以把 context 收窄为领域上下文（如 LazyImageContext），
+ * 否则 strictFunctionTypes 下参数逆变会直接拒绝领域钩子赋值。
  */
 export interface PluginHooks<TProps = any, TData = any> {
   /** 挂载；可返回清理函数（clear 时执行） */
-  onMount?: (context: PluginContext<TProps, TData>) => unknown;
+  onMount?(context: PluginContext<TProps, TData>): unknown;
   /** 卸载 */
-  onUnmount?: (context: PluginContext<TProps, TData>) => unknown;
+  onUnmount?(context: PluginContext<TProps, TData>): unknown;
   /** props 变化 */
-  onPropsChange?: (
+  onPropsChange?(
     context: PluginContext<TProps, TData>,
     prev: TProps,
     next: TProps
-  ) => unknown;
+  ): unknown;
   /** 错误（沙箱隔离后仍会上报） */
-  onError?: (
+  onError?(
     context: PluginContext<TProps, TData>,
     error: Error,
     errorInfo?: React.ErrorInfo
-  ) => unknown;
+  ): unknown;
   /** 转发前改写 props（链式，按 order 顺序） */
-  transformProps?: (props: TProps) => TProps;
+  transformProps?(props: TProps): TProps;
   /** 渲染前改写 data */
-  transformData?: (context: PluginContext<TProps, TData>, data: TData) => TData;
+  transformData?(context: PluginContext<TProps, TData>, data: TData): TData;
   /** 覆盖层渲染（绝对定位叠加层） */
-  renderOverlay?: (context: PluginContext<TProps, TData>) => React.ReactNode;
+  renderOverlay?(context: PluginContext<TProps, TData>): React.ReactNode;
   /** 头部渲染，config.slotPosition = "before" | "after" */
-  renderHeader?: (context: PluginContext<TProps, TData>) => React.ReactNode;
+  renderHeader?(context: PluginContext<TProps, TData>): React.ReactNode;
   /** 底部渲染 */
-  renderFooter?: (context: PluginContext<TProps, TData>) => React.ReactNode;
+  renderFooter?(context: PluginContext<TProps, TData>): React.ReactNode;
   /** 领域钩子索引签名 */
   [hookName: string]: unknown;
 }

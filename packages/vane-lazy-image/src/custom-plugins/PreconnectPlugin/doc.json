@@ -1,0 +1,22 @@
+{
+  "name": "PreconnectPlugin",
+  "description": "DNS 预连接：提前与图片域名建立连接，可配置跨域。",
+  "since": "2.0.0",
+  "tags": [
+    "loading",
+    "加载策略"
+  ],
+  "config": [
+    {
+      "name": "domains",
+      "type": "string[]",
+      "description": "额外预连接域名"
+    },
+    {
+      "name": "crossOrigin",
+      "type": "string | null",
+      "description": "\"anonymous\" | \"use-credentials\" | null"
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createPreconnectPlugin()]);"
+}

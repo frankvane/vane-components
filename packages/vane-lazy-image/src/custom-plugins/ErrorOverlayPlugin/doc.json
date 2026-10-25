@@ -1,0 +1,47 @@
+{
+  "name": "ErrorOverlayPlugin",
+  "description": "错误覆盖层：加载失败时显示遮层与重试按钮。",
+  "since": "2.0.0",
+  "tags": [
+    "error",
+    "错误处理"
+  ],
+  "config": [
+    {
+      "name": "message",
+      "type": "string | ((context: LazyImageContext) => string)",
+      "description": ""
+    },
+    {
+      "name": "background",
+      "type": "string",
+      "description": ""
+    },
+    {
+      "name": "color",
+      "type": "string",
+      "description": ""
+    },
+    {
+      "name": "zIndex",
+      "type": "number",
+      "description": ""
+    },
+    {
+      "name": "showRetry",
+      "type": "boolean",
+      "description": ""
+    },
+    {
+      "name": "retryText",
+      "type": "string",
+      "description": ""
+    },
+    {
+      "name": "persistAfterFallback",
+      "type": "boolean",
+      "description": ""
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createErrorOverlayPlugin()]);"
+}

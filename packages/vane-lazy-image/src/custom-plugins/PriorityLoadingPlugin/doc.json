@@ -1,0 +1,18 @@
+{
+  "name": "PriorityLoadingPlugin",
+  "description": "优先级加载：按 high/medium/low 切换 eager/lazy 与 rootMargin。",
+  "since": "2.0.0",
+  "tags": [
+    "loading",
+    "加载策略"
+  ],
+  "config": [
+    {
+      "name": "priority",
+      "type": "\"high\" | \"medium\" | \"low\"",
+      "default": "\"medium\"",
+      "description": ""
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createPriorityLoadingPlugin()]);"
+}

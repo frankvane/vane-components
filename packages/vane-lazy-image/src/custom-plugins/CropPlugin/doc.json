@@ -1,0 +1,24 @@
+{
+  "name": "CropPlugin",
+  "description": "焦点裁剪：通过 objectPosition 将裁剪焦点设在指定相对坐标。",
+  "since": "2.0.0",
+  "tags": [
+    "visual",
+    "视觉"
+  ],
+  "config": [
+    {
+      "name": "enabled",
+      "type": "boolean",
+      "default": "true",
+      "description": ""
+    },
+    {
+      "name": "focusPoint",
+      "type": "{ x: number; y: number }",
+      "default": "{ x: 0.5, y: 0.5 }",
+      "description": "0~1 相对坐标"
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createCropPlugin()]);"
+}

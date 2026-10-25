@@ -1,0 +1,45 @@
+{
+  "name": "WebPPlugin",
+  "description": "WebP 优先：支持 WebP 的环境优先加载 .webp，失败自动回退原图。",
+  "since": "2.0.0",
+  "tags": [
+    "network",
+    "网络"
+  ],
+  "config": [
+    {
+      "name": "enabled",
+      "type": "boolean",
+      "default": "true",
+      "description": ""
+    },
+    {
+      "name": "rewrite",
+      "type": "(src: string, ctx: LazyImageContext) => string | undefined",
+      "description": "自定义重写函数：返回 webp 链接"
+    },
+    {
+      "name": "replaceExtensions",
+      "type": "string[]",
+      "default": "[\"jpg\", \"jpeg\", \"png\"]",
+      "description": "需要替换为 .webp 的扩展名"
+    },
+    {
+      "name": "appendQueryParam",
+      "type": "string",
+      "description": "追加的查询参数，例如 \"format=webp\""
+    },
+    {
+      "name": "onDomains",
+      "type": "string[]",
+      "description": "限定域名（空则不限制）"
+    },
+    {
+      "name": "testSupport",
+      "type": "boolean",
+      "default": "true",
+      "description": "在运行前检测浏览器是否支持 webp"
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createWebPPlugin()]);"
+}

@@ -1,0 +1,62 @@
+{
+  "name": "OverlayInfoPlugin",
+  "description": "信息覆盖层：显示自定义文本，支持常显或悬停触发。",
+  "since": "2.0.0",
+  "tags": [
+    "visual",
+    "视觉"
+  ],
+  "config": [
+    {
+      "name": "content",
+      "type": "string | ((context: LazyImageContext) => string)",
+      "description": ""
+    },
+    {
+      "name": "position",
+      "type": "\"top\" | \"bottom\" | \"center\"",
+      "description": ""
+    },
+    {
+      "name": "background",
+      "type": "string",
+      "description": ""
+    },
+    {
+      "name": "color",
+      "type": "string",
+      "description": ""
+    },
+    {
+      "name": "fontSize",
+      "type": "number",
+      "description": ""
+    },
+    {
+      "name": "padding",
+      "type": "string",
+      "description": ""
+    },
+    {
+      "name": "borderRadius",
+      "type": "number",
+      "description": ""
+    },
+    {
+      "name": "zIndex",
+      "type": "number",
+      "description": ""
+    },
+    {
+      "name": "showWhen",
+      "type": "\"always\" | \"loading\" | \"loaded\" | \"error\"",
+      "description": ""
+    },
+    {
+      "name": "trigger",
+      "type": "\"always\" | \"hover\"",
+      "description": ""
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createOverlayInfoPlugin()]);"
+}

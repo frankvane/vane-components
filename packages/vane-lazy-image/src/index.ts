@@ -1,0 +1,90 @@
+/**
+ * vane-lazy-image — 高性能 React 图片懒加载组件（插件化架构）
+ *
+ * 子路径入口（源码路径 == 发布子路径，按需引入）：
+ *   - vane-lazy-image                          完整包（核心 + 插件系统 + 类型）
+ *   - vane-lazy-image/core                     仅核心组件 + ObserverPool（最小体积）
+ *   - vane-lazy-image/plugins                  插件系统（withPlugins + 领域类型 + 一等公民插件）
+ *   - vane-lazy-image/advanced                 依赖解析 + 版本工具
+ *   - vane-lazy-image/monitoring               性能监控 + 全局上下文
+ *   - vane-lazy-image/custom-plugins/<XxxPlugin>   单个插件（60 个，8 大领域分组）
+ *   - vane-lazy-image/presets/<name>               配方（social-feed 等 5 个场景组合）
+ *
+ * 体积约定：根入口不桶导出全部插件与配方——引入插件/配方请走对应子路径，
+ * 静态导入图保持在预算内（ADR-6：体积靠显式导入 + tree-shaking 解决）。
+ */
+
+// ---------- 核心 ----------
+export { LazyLoadImageCore } from "./components/LazyLoadImagePlugin/LazyLoadImageCore";
+export type {
+  LazyLoadImageCoreProps,
+  LazyLoadImageCoreRef,
+  ImageState,
+} from "./components/LazyLoadImagePlugin/LazyLoadImageCore";
+
+export {
+  observeElement,
+  unobserveElement,
+  getObserverPoolStats,
+  setObserverPoolDebugMode,
+  getObserverPoolDetails,
+  cleanupObserverPool,
+  resetObserverPoolStats,
+  observerPool,
+} from "./components/LazyLoadImagePlugin/ObserverPool";
+export type { ObserverConfig, PoolStats } from "./components/LazyLoadImagePlugin/ObserverPool";
+
+export * from "./components/LazyLoadImagePlugin/constants";
+
+// ---------- 插件系统 ----------
+export { withPlugins } from "./components/LazyLoadImagePlugin/withPlugins";
+export type { WithPluginsConfig } from "./components/LazyLoadImagePlugin/withPlugins";
+
+export type {
+  LazyImagePlugin,
+  LazyImagePluginCreator,
+  LazyImageContext,
+  LazyImageHooks,
+  LazyImageData,
+  LazyImageBusEvents,
+  LazyImagePluginBus,
+  ProgressInfo,
+  NetworkInfo,
+  Dimensions,
+  InteractionType,
+} from "./components/LazyLoadImagePlugin/plugins/types";
+
+// ---------- 全局上下文（性能工程） ----------
+export {
+  getGlobalNetworkInfo,
+  getGlobalDeviceInfo,
+  getGlobalContextStats,
+  addGlobalContextListener,
+  globalContext,
+} from "./utils/GlobalContext";
+
+// ---------- Hooks ----------
+export { useLCPPreload, useImagePreload } from "./hooks/useLCPPreload";
+export type { LCPPreloadOptions } from "./hooks/useLCPPreload";
+
+// ---------- 性能监控 ----------
+export {
+  createPerformanceMonitor,
+  getGlobalMonitorManager,
+  resetGlobalMonitorManager,
+} from "./utils/PerformanceMonitor";
+export type {
+  PerformanceMonitor,
+  PerformanceReport,
+  PerformanceMetrics,
+  PerformanceMonitorConfig,
+} from "./utils/PerformanceMonitor";
+
+// ---------- 自定义插件与配方：走子路径按需引入（见文件头说明） ----------
+// export * from "./custom-plugins";  ← 不在根入口桶导出，避免静态导入图膨胀
+// export * from "./presets";         ← 同上；用法：
+//   import { createBlurUpPlugin } from "vane-lazy-image/custom-plugins/BlurUpPlugin";
+//   import { socialFeedPreset } from "vane-lazy-image/presets/social-feed";
+
+// ---------- 版本 ----------
+export const LAZY_IMAGE_CORE_VERSION = "2.0.0";

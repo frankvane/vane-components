@@ -1,0 +1,48 @@
+{
+  "name": "ScrollIdlePlugin",
+  "description": "滚动空闲加载：滚动停止后再发起加载，避免与滚动争抢带宽。",
+  "since": "2.0.0",
+  "tags": [
+    "loading",
+    "加载策略"
+  ],
+  "config": [
+    {
+      "name": "idleMs",
+      "type": "number",
+      "default": "120",
+      "description": "判定为“空闲”的静止时间（毫秒）"
+    },
+    {
+      "name": "onlyWhenIntersecting",
+      "type": "boolean",
+      "default": "true",
+      "description": "是否仅在进入视口后生效（否则所有加载都会等待空闲）"
+    },
+    {
+      "name": "maxWaitMs",
+      "type": "number",
+      "default": "1200",
+      "description": "最长等待空闲的时间（毫秒），超过则直接继续加载，避免长时间滚动导致饥饿"
+    },
+    {
+      "name": "target",
+      "type": "\"window\" | \"container\"",
+      "default": "\"window\"",
+      "description": "监听对象：window 或容器（容器将使用 context.containerRef.current）"
+    },
+    {
+      "name": "axis",
+      "type": "\"vertical\" | \"horizontal\" | \"both\"",
+      "default": "\"vertical\"",
+      "description": "滚动轴向：vertical/horizontal/both（目前用于调试标注，可按需扩展策略）"
+    },
+    {
+      "name": "debug",
+      "type": "boolean",
+      "default": "false",
+      "description": "调试输出"
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createScrollIdlePlugin()]);"
+}

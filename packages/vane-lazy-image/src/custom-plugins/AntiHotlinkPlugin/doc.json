@@ -1,0 +1,34 @@
+{
+  "name": "AntiHotlinkPlugin",
+  "description": "防盗链：为 URL 追加签名 token，并限制允许的域名。",
+  "since": "2.0.0",
+  "tags": [
+    "network",
+    "网络"
+  ],
+  "config": [
+    {
+      "name": "allowedDomains",
+      "type": "string[]",
+      "description": ""
+    },
+    {
+      "name": "checkReferer",
+      "type": "boolean",
+      "default": "false",
+      "description": "仅在浏览器环境有效"
+    },
+    {
+      "name": "generateToken",
+      "type": "(src: string) => string | undefined",
+      "description": ""
+    },
+    {
+      "name": "tokenParam",
+      "type": "string",
+      "default": "\"token\"",
+      "description": "例如 \"token\""
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createAntiHotlinkPlugin()]);"
+}

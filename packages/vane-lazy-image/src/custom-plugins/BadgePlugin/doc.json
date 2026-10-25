@@ -1,0 +1,72 @@
+{
+  "name": "BadgePlugin",
+  "description": "角标徽章：按加载状态（loading/loaded/error）在四角或中心显示文字徽章。",
+  "since": "2.0.0",
+  "tags": [
+    "visual",
+    "视觉"
+  ],
+  "config": [
+    {
+      "name": "text",
+      "type": "string | ((context: LazyImageContext) => string)",
+      "default": "\"Badge\"",
+      "description": ""
+    },
+    {
+      "name": "position",
+      "type": "\"top-left\" | \"top-right\" | \"bottom-left\" | \"bottom-right\" | \"center\"",
+      "default": "\"top-left\"",
+      "description": ""
+    },
+    {
+      "name": "bgColor",
+      "type": "string",
+      "default": "\"rgba(0,0,0,0.6)\"",
+      "description": ""
+    },
+    {
+      "name": "color",
+      "type": "string",
+      "default": "\"#fff\"",
+      "description": ""
+    },
+    {
+      "name": "fontSize",
+      "type": "number",
+      "default": "12",
+      "description": ""
+    },
+    {
+      "name": "padding",
+      "type": "string",
+      "default": "\"2px 6px\"",
+      "description": ""
+    },
+    {
+      "name": "borderRadius",
+      "type": "number",
+      "default": "4",
+      "description": ""
+    },
+    {
+      "name": "zIndex",
+      "type": "number",
+      "default": "3",
+      "description": ""
+    },
+    {
+      "name": "showWhen",
+      "type": "\"always\" | \"loading\" | \"loaded\" | \"error\"",
+      "default": "\"loaded\"",
+      "description": ""
+    },
+    {
+      "name": "enabled",
+      "type": "boolean",
+      "default": "true",
+      "description": ""
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createBadgePlugin()]);"
+}

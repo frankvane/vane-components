@@ -1,0 +1,42 @@
+{
+  "name": "TransitionPlugin",
+  "description": "加载成功过渡动画：从指定透明度/缩放到目标值的平滑过渡。",
+  "since": "2.0.0",
+  "tags": [
+    "visual",
+    "视觉"
+  ],
+  "config": [
+    {
+      "name": "durationMs",
+      "type": "number",
+      "description": ""
+    },
+    {
+      "name": "easing",
+      "type": "string",
+      "description": ""
+    },
+    {
+      "name": "fromOpacity",
+      "type": "number",
+      "description": ""
+    },
+    {
+      "name": "toOpacity",
+      "type": "number",
+      "description": ""
+    },
+    {
+      "name": "fromScale",
+      "type": "number",
+      "description": ""
+    },
+    {
+      "name": "toScale",
+      "type": "number",
+      "description": ""
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createTransitionPlugin()]);"
+}

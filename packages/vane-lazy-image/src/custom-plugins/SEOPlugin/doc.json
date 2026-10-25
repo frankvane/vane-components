@@ -1,0 +1,45 @@
+{
+  "name": "SEOPlugin",
+  "description": "SEO 增强：alt/title 回退、固定 aspectRatio 减少 CLS、preload 与 LCP 优先。",
+  "since": "2.0.0",
+  "tags": [
+    "a11y",
+    "可访问性"
+  ],
+  "config": [
+    {
+      "name": "enabled",
+      "type": "boolean",
+      "default": "true",
+      "description": ""
+    },
+    {
+      "name": "altFallback",
+      "type": "string",
+      "description": "若未提供 alt，则使用该回退值"
+    },
+    {
+      "name": "title",
+      "type": "string",
+      "description": "设置图片 title（用于提示与关键词）"
+    },
+    {
+      "name": "aspectRatio",
+      "type": "string",
+      "description": "设置容器的固定长宽比，减少 CLS（例如 \"4/3\"、\"16/9\"）"
+    },
+    {
+      "name": "priority",
+      "type": "\"auto\" | \"lcp\"",
+      "default": "\"auto\"",
+      "description": "将首屏关键图片设为 eager 加载"
+    },
+    {
+      "name": "preload",
+      "type": "boolean",
+      "default": "false",
+      "description": "在挂载时注入 <link rel=\"preload\" as=\"image\">"
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createSEOPlugin()]);"
+}

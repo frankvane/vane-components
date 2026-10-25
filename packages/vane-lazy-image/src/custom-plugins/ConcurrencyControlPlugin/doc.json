@@ -1,0 +1,42 @@
+{
+  "name": "ConcurrencyControlPlugin",
+  "description": "并发控制：限制同时加载数量，支持按域名分片与网络自适应。",
+  "since": "2.0.0",
+  "tags": [
+    "loading",
+    "加载策略"
+  ],
+  "config": [
+    {
+      "name": "maxConcurrent",
+      "type": "number",
+      "default": "4",
+      "description": "并发上限（4g 情况的上限）"
+    },
+    {
+      "name": "scope",
+      "type": "\"global\" | \"perHost\"",
+      "default": "\"global\"",
+      "description": "作用域：全局或按域名分片"
+    },
+    {
+      "name": "adaptive",
+      "type": "boolean",
+      "default": "true",
+      "description": "是否根据网络自适应并发（saveData/2g/3g 降低并发）"
+    },
+    {
+      "name": "acquireTimeoutMs",
+      "type": "number",
+      "default": "8000",
+      "description": "获取并发许可的超时（毫秒），超时后不阻塞加载，避免饥饿"
+    },
+    {
+      "name": "debug",
+      "type": "boolean",
+      "default": "false",
+      "description": "调试输出"
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createConcurrencyControlPlugin()]);"
+}

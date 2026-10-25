@@ -7,10 +7,19 @@
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {},
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "sideEffects": false,
-  "publishConfig": { "access": "public" },
-  "keywords": ["react", "plugin", "__NAME_KEBAB__", "typescript"],
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "react",
+    "plugin",
+    "__NAME_KEBAB__",
+    "typescript"
+  ],
   "author": "Frank Vane",
   "license": "MIT",
   "repository": {
@@ -45,6 +54,8 @@
     "typescript": "^5.6.3",
     "vite": "^5.4.1",
     "vite-plugin-dts": "^4.5.4",
-    "vitest": "^2.1.8"
+    "vitest": "^2.1.8",
+    "@vane/vitest-config": "workspace:*",
+    "@vane/eslint-config": "workspace:*"
   }
 }

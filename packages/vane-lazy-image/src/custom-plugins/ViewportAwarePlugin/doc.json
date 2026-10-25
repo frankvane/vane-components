@@ -1,0 +1,27 @@
+{
+  "name": "ViewportAwarePlugin",
+  "description": "视口状态可视化：显示进入/离开指示点并给 DOM 打标记。",
+  "since": "2.0.0",
+  "tags": [
+    "viewport",
+    "视口"
+  ],
+  "config": [
+    {
+      "name": "showDot",
+      "type": "boolean",
+      "description": ""
+    },
+    {
+      "name": "dotPosition",
+      "type": "\"top-left\" | \"top-right\" | \"bottom-left\" | \"bottom-right\"",
+      "description": ""
+    },
+    {
+      "name": "hideWhenOut",
+      "type": "boolean",
+      "description": "是否在不在视口时隐藏指示点（默认显示为灰色）"
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createViewportAwarePlugin()]);"
+}

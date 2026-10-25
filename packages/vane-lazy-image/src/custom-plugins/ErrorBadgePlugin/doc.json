@@ -1,0 +1,65 @@
+{
+  "name": "ErrorBadgePlugin",
+  "description": "错误徽标：加载失败时在角落显示错误徽标。",
+  "since": "2.0.0",
+  "tags": [
+    "error",
+    "错误处理"
+  ],
+  "config": [
+    {
+      "name": "text",
+      "type": "string | ((context: LazyImageContext) => string)",
+      "default": "\"Error\"",
+      "description": ""
+    },
+    {
+      "name": "position",
+      "type": "\"top-left\" | \"top-right\" | \"bottom-left\" | \"bottom-right\" | \"center\"",
+      "default": "\"top-right\"",
+      "description": ""
+    },
+    {
+      "name": "bgColor",
+      "type": "string",
+      "default": "\"rgba(220, 53, 69, 0.85)\"",
+      "description": ""
+    },
+    {
+      "name": "color",
+      "type": "string",
+      "default": "\"#fff\"",
+      "description": ""
+    },
+    {
+      "name": "fontSize",
+      "type": "number",
+      "default": "12",
+      "description": ""
+    },
+    {
+      "name": "padding",
+      "type": "string",
+      "default": "\"2px 6px\"",
+      "description": ""
+    },
+    {
+      "name": "borderRadius",
+      "type": "number",
+      "default": "4",
+      "description": ""
+    },
+    {
+      "name": "zIndex",
+      "type": "number",
+      "description": ""
+    },
+    {
+      "name": "persistAfterFallback",
+      "type": "boolean",
+      "default": "true",
+      "description": ""
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createErrorBadgePlugin()]);"
+}

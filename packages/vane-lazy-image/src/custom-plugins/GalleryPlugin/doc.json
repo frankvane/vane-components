@@ -1,0 +1,30 @@
+{
+  "name": "GalleryPlugin",
+  "description": "画廊灯箱：图片上叠加打开按钮，进入灯箱或新窗口查看原图。",
+  "since": "2.0.0",
+  "tags": [
+    "visual",
+    "视觉"
+  ],
+  "config": [
+    {
+      "name": "buttonText",
+      "type": "string",
+      "default": "\"Open\"",
+      "description": ""
+    },
+    {
+      "name": "enableLightbox",
+      "type": "boolean",
+      "default": "true",
+      "description": ""
+    },
+    {
+      "name": "overlayZIndex",
+      "type": "number",
+      "default": "10",
+      "description": ""
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createGalleryPlugin()]);"
+}

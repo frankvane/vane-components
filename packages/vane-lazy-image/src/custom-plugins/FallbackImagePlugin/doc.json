@@ -1,0 +1,17 @@
+{
+  "name": "FallbackImagePlugin",
+  "description": "回退图片：加载失败时切换到备用图片地址。",
+  "since": "2.0.0",
+  "tags": [
+    "network",
+    "网络"
+  ],
+  "config": [
+    {
+      "name": "fallbackSrc",
+      "type": "string",
+      "description": "例如 \"/404.jpg\""
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createFallbackImagePlugin()]);"
+}

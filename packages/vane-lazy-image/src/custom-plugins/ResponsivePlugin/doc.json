@@ -1,0 +1,36 @@
+{
+  "name": "ResponsivePlugin",
+  "description": "响应式图片：注入 srcset/sizes 多宽度资源，可按宽度生成链接。",
+  "since": "2.0.0",
+  "tags": [
+    "network",
+    "网络"
+  ],
+  "config": [
+    {
+      "name": "enabled",
+      "type": "boolean",
+      "default": "true",
+      "description": ""
+    },
+    {
+      "name": "variants",
+      "type": "ResponsiveVariant[]",
+      "default": "[ { width: 400 }, { width: 800 }, { width: 12...",
+      "description": "生成不同宽度的图片链接"
+    },
+    {
+      "name": "buildSrc",
+      "type": "(baseSrc: string, width: number) => string",
+      "default": "defaultBuildSrc",
+      "description": "自定义生成函数：从基础 src 生成指定宽度的链接"
+    },
+    {
+      "name": "sizes",
+      "type": "string",
+      "default": "\"(max-width: 800px) 100vw, 800px\"",
+      "description": "sizes 属性（例如 \"(max-width: 640px) 100vw, 800px\"）"
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createResponsivePlugin()]);"
+}

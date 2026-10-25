@@ -1,0 +1,41 @@
+{
+  "name": "PredictiveLoadingPlugin",
+  "description": "预测性预加载：按启发式或自定义模型预加载后续图片。",
+  "since": "2.0.0",
+  "tags": [
+    "loading",
+    "加载策略"
+  ],
+  "config": [
+    {
+      "name": "model",
+      "type": "\"heuristic\" | \"ml\"",
+      "default": "\"heuristic\"",
+      "description": ""
+    },
+    {
+      "name": "predict",
+      "type": "(context: LazyImageContext) => string[] | Promise<string[]>",
+      "description": "返回需要预加载的图片链接列表"
+    },
+    {
+      "name": "maxPreload",
+      "type": "number",
+      "default": "5",
+      "description": ""
+    },
+    {
+      "name": "as",
+      "type": "\"image\" | \"fetch\"",
+      "default": "\"image\"",
+      "description": ""
+    },
+    {
+      "name": "crossOrigin",
+      "type": "\"anonymous\" | \"use-credentials\" | null",
+      "default": "\"anonymous\"",
+      "description": ""
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createPredictiveLoadingPlugin()]);"
+}

@@ -1,0 +1,18 @@
+{
+  "name": "ExifOrientationPlugin",
+  "description": "EXIF 方向校正：按拍摄方向旋转图片，避免竖拍横显。",
+  "since": "2.0.0",
+  "tags": [
+    "loading",
+    "加载策略"
+  ],
+  "config": [
+    {
+      "name": "enabled",
+      "type": "boolean",
+      "default": "true",
+      "description": ""
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createExifOrientationPlugin()]);"
+}

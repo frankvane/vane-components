@@ -1,0 +1,30 @@
+{
+  "name": "RedactionPlugin",
+  "description": "隐私打码：在指定百分比区域叠加模糊或色块遮挡。",
+  "since": "2.0.0",
+  "tags": [
+    "visual",
+    "视觉"
+  ],
+  "config": [
+    {
+      "name": "enabled",
+      "type": "boolean",
+      "default": "true",
+      "description": ""
+    },
+    {
+      "name": "boxes",
+      "type": "RedactionBox[]",
+      "default": "[]",
+      "description": ""
+    },
+    {
+      "name": "zIndex",
+      "type": "number",
+      "default": "3",
+      "description": ""
+    }
+  ],
+  "example": "withPlugins(LazyLoadImageCore, [createRedactionPlugin()]);"
+}
