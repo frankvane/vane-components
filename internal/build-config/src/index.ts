@@ -42,6 +42,9 @@ export interface DemoOptions {
   entry?: string;
   port?: number;
   outDir?: string;
+  /** dev 服务器自动打开的路径；html 在 demo/ 子目录时传 "/demo/index.html"，
+   *  否则根路径没有 index.html 会打开空白页。默认 true（根路径） */
+  open?: string | boolean;
 }
 
 /** 把 src/styles/*.css 复制到 dist/style.css，避免为一行 CSS 引额外依赖 */
@@ -133,7 +136,7 @@ export function createDemoConfig(options: DemoOptions = {}): UserConfig {
     resolve: {
       alias: { "@": path.resolve(root, "src") },
     },
-    server: { port: options.port ?? 3000, open: true },
+    server: { port: options.port ?? 3000, open: options.open ?? true },
     build: {
       outDir: options.outDir ?? "demo-dist",
       emptyOutDir: true,
