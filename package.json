@@ -1,0 +1,38 @@
+{
+  "name": "vane-components",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@9.12.0",
+  "engines": {
+    "node": ">=18.18"
+  },
+  "scripts": {
+    "dev": "pnpm --filter \"./packages/*\" --parallel dev",
+    "build": "turbo run build",
+    "build:libs": "pnpm -r --filter \"./packages/*\" --filter \"!@vane/plugin-core\" build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "new": "node scripts/create-component.mjs",
+    "docs:dev": "pnpm --filter docs dev",
+    "docs:build": "pnpm --filter docs build",
+    "docs:plugins": "node scripts/generate-plugin-docs.mjs",
+    "docs:sync": "node scripts/sync-readme.mjs",
+    "sync:exports": "node scripts/sync-exports.mjs",
+    "check": "node scripts/check-packages.mjs",
+    "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm check",
+    "changeset": "changeset",
+    "release:version": "changeset version && pnpm install --lockfile-only",
+    "release:publish": "changeset publish"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.27.9",
+    "@vane/build-config": "workspace:*",
+    "@vane/eslint-config": "workspace:*",
+    "@vane/tsconfig": "workspace:*",
+    "@vane/vitest-config": "workspace:*",
+    "prettier": "^3.3.3",
+    "turbo": "^2.3.3",
+    "typescript": "^5.6.3"
+  }
+}

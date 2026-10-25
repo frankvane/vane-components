@@ -1,0 +1,12 @@
+{
+  "name": "@vane/tsconfig",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "files": ["*.json"],
+  "exports": {
+    "./base": "./base.json",
+    "./lib": "./lib.json",
+    "./demo": "./demo.json"
+  }
+}

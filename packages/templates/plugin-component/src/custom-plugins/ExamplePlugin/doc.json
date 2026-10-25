@@ -1,0 +1,15 @@
+{
+  "name": "ExamplePlugin",
+  "description": "模板插件：演示「工厂 + 机器可读文档」的标准写法。复制本目录改成你自己的插件。",
+  "since": "0.1.0",
+  "tags": ["template", "overlay"],
+  "config": [
+    {
+      "name": "text",
+      "type": "string",
+      "default": "\"\"",
+      "description": "要叠加展示的文本，为空则不渲染"
+    }
+  ],
+  "example": "const X = withPlugins(XCore, [createExamplePlugin({ text: \"示例\" })]);"
+}

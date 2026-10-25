@@ -1,0 +1,7 @@
+packages:
+  - "packages/*"
+  - "internal/*"
+  - "docs"
+  # 模板不进 workspace：它是被 create-component.mjs 复制的骨架，不是可安装包
+  - "!packages/templates/**"
+  - "!**/demo/**"

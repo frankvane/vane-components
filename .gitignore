@@ -1,0 +1,17 @@
+node_modules/
+dist/
+demo-dist/
+*.tsbuildinfo
+.turbo/
+.vitepress/cache/
+.vitepress/dist/
+coverage/
+.DS_Store
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# 历史遗留仓库：各自带有独立 git 历史，迁入 packages/ 后本目录即删除
+archive-plugins/
+# 代理内部数据（工作区记忆等），不属于仓库资产
+.workbuddy/

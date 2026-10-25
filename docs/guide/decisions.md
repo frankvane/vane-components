@@ -1,0 +1,72 @@
+# 关键决策记录（ADR）
+
+每个决定都记录"为什么"，避免后人（包括自己）重复纠结。
+
+## ADR-1 · 抽 `@vane/plugin-core` 共用内核，而不是各包自带插件系统
+
+**背景**：`vane-card` / `vane-waterfall` / `vane-file-preview` / `vane-lazy-image` 各自实现了一份 `PluginBus` + `PluginManager` + `withPlugins`，且已经漂移（card 没有沙箱与依赖解析，lazy-image 有）。
+
+**决定**：内核独立成包，各组件包以 `peerDependencies` 依赖它。
+
+**理由**：
+1. 四份实现的修 bug 成本是四倍；
+2. 跨包插件复用（重试、缓存、监控、A11y）只有在单实例前提下才成立；
+3. peer 依赖保证全站只有一份内核实例。
+
+**代价**：破坏性变更，四个旧包需要发 2.0.0。
+
+## ADR-2 · `react` 只进 `peerDependencies`
+
+**背景**：三个旧包把 `react` / `react-dom` 写进 `dependencies`，消费方可能装到两份 React；demo 依赖（react-markdown、react-router-dom）也混在 `dependencies` 里。
+
+**决定**：`react` / `react-dom` 永远在 `peerDependencies`；demo 依赖永远在 `devDependencies`；运行时第三方库（如 `localforage`）才进 `dependencies`。
+
+**强制**：`pnpm check` 在 CI 拦这条。
+
+## ADR-3 · 源码路径 == 发布子路径
+
+**背景**：旧包 exports 指向 `dist/entries/core/index.d.ts` 这类深层路径，而 d.ts 实际镜像源码目录，两边容易对不上。
+
+**决定**：入口文件按发布结构摆放（`src/index.ts`、`src/entries/*.ts`、`src/custom-plugins/*/index.ts`），JS 与 d.ts 输出路径天然一致；`exports` 由 `pnpm sync:exports` 从源码自动生成，不手写。
+
+## ADR-4 · 插件文档是数据（`doc.json`），不是散文
+
+**背景**：插件一多，README 的插件目录必然和实际实现漂移。
+
+**决定**：每个插件必须带 `doc.json`；`pnpm docs:plugins` 生成表格与导航，`pnpm docs:sync` 生成 npm README。README 是产物，不是源。
+
+## ADR-5 · 只发 ESM（默认），UMD/CJS 可选
+
+**背景**：现代打包器（Vite / webpack 5 / Rollup / esbuild / Next）都消费 ESM。
+
+**决定**：默认 `formats: ["es"]`；确需兼容 CJS 时在 `vite.config.ts` 里显式传 `["es","cjs"]`。
+
+## ADR-6 · 插件数量不设上限：多即选择，永不淘汰
+
+**背景**：插件覆盖的是长尾需求，每个插件解决一类具体问题；"用得少"不等于"不该存在"。插件数量增长真正带来的只有两个副作用——选择成本、消费方体积——而两者都有比限制数量更合适的解法，所以数量本身不构成约束。
+
+**决定**：
+
+1. **不设插件数量上限，永不淘汰，只增不减**。插件是本仓库的核心资产；有 bug 就修，过时就标替代关系，不删除；
+2. "多"不影响消费方体积：ESM + `sideEffects: false` + 源码路径即子路径导出，未引入的插件被 tree-shaking，零成本；
+3. 超过 20 个插件必须**按业务域分组**（目录 + `doc.json` 的 `tags`），分组可递归细化。分组是导航，不是裁剪；
+4. 每个包维护 3-5 个以上 **presets 配方**作为推荐组合入口。配方是"快捷方式"，不是"白名单"——任何插件都可以被单独引入；
+5. 选择成本靠「分组 + 标签 + 配方 + 文档站导航 + `pnpm docs:plugins` 自动目录」解决，不靠删插件。
+
+**理由**：
+
+1. tree-shaking 让"数量"与"消费方体积"解耦，"怕体积"不构成限制数量的理由；
+2. 长尾需求不可预知——今天删掉的插件，明天可能正好是某个用户的刚需；留下的成本只是一份 `doc.json`；
+3. 分组 / 标签 / 配方都是增量基础设施，插件越多反而越能验证这套导航体系的价值。
+
+**代价与边界**：
+
+- 插件越多，`doc.json` 与分组目录的维护量越大——由 `pnpm docs:plugins` 自动生成兜底，防止文档漂移；
+- 单插件体积红线（≤ 2 KB gzip）保留，防止单个插件失控；
+- "不淘汰"指不因"用得少"而删；若插件被更好的实现取代，保留旧版并标注替代关系，迁移时机由用户决定。
+
+## ADR-7 · 演示站与库解耦，demo 不发布
+
+**背景**：旧包把演示页和库源码混在一个 `src/` 下，`files: ["dist"]` 虽然挡住了发布，但 demo 依赖仍然污染 `dependencies`。
+
+**决定**：`demo/` 独立目录 + 独立 vite 配置（`createDemoConfig`），demo 依赖只进 `devDependencies`。
