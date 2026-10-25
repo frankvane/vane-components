@@ -20,6 +20,24 @@ describe("resolveDependencyOrder", () => {
     expect(order).toEqual(["b", "a"]);
   });
 
+  it("优先级不跨越依赖：高优先级依赖方仍排在其依赖之后", () => {
+    const order = resolveDependencyOrder([
+      makePlugin("dependent", { dependencies: ["base"], priority: 9 }),
+      makePlugin("base", { priority: 1 }),
+    ]).map((p) => p.name);
+    expect(order).toEqual(["base", "dependent"]);
+  });
+
+  it("互不依赖时优先级高的先执行，平级保持注册顺序", () => {
+    const order = resolveDependencyOrder([
+      makePlugin("low", { priority: 1 }),
+      makePlugin("high", { priority: 9 }),
+      makePlugin("mid-a", { priority: 5 }),
+      makePlugin("mid-b", { priority: 5 }),
+    ]).map((p) => p.name);
+    expect(order).toEqual(["high", "mid-a", "mid-b", "low"]);
+  });
+
   it("循环依赖抛错", () => {
     expect(() =>
       resolveDependencyOrder([
@@ -81,6 +99,26 @@ describe("createPluginManager", () => {
     const result = await m.executeHook("onMount", ctx);
     expect(result).toBe(false);
     expect(second).not.toHaveBeenCalled();
+  });
+
+  it("onMount 返回的清理函数在 clear 时逆序执行", async () => {
+    const m = createPluginManager();
+    const order: string[] = [];
+    m.registerAll([
+      makePlugin("a", { hooks: { onMount: () => () => order.push("cleanup-a") } }),
+      makePlugin("b", { hooks: { onMount: () => () => order.push("cleanup-b") } }),
+    ]);
+    await m.executeHook("onMount", ctx);
+    expect(order).toEqual([]);
+    m.clear();
+    expect(order).toEqual(["cleanup-b", "cleanup-a"]);
+  });
+
+  it("领域钩子返回函数走短路语义，不注册为清理", async () => {
+    const m = createPluginManager();
+    m.register(makePlugin("p", { hooks: { customHook: () => () => "cleanup" } }));
+    expect(await m.executeHook("customHook", ctx)).toBeTypeOf("function");
+    m.clear(); // 不应把领域钩子的返回值当清理执行
   });
 
   it("钩子返回其他值短路返回", async () => {

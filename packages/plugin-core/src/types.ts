@@ -77,26 +77,31 @@ export interface PluginContext<TProps = any, TData = any> {
 // ---------- 钩子 ----------
 
 /**
- * 领域钩子由各组件扩展（如 card 的 onCartChange、waterfall 的 calculateItemPosition）。
- * 通用钩子在这里统一定义，保证跨组件语义一致。
+ * 生命周期钩子（onMount / onUnmount / onPropsChange / onError）的返回值语义：
+ *  - 返回函数：注册为清理函数，`manager.clear()` 时逆序执行（onMount 的 React 式写法）；
+ *  - 返回 false：中断整条钩子链，后续插件不再执行；
+ *  - 返回其他非 undefined/true 的值：短路，该值作为 executeHook 的结果返回；
+ *  - undefined / true：继续执行下一个插件。
+ *
+ * 领域钩子（各组件自定义）不走清理语义，只走短路语义。
  */
 export interface PluginHooks<TProps = any, TData = any> {
-  /** 挂载；返回清理函数 */
-  onMount?: (context: PluginContext<TProps, TData>) => void | (() => void);
+  /** 挂载；可返回清理函数（clear 时执行） */
+  onMount?: (context: PluginContext<TProps, TData>) => unknown;
   /** 卸载 */
-  onUnmount?: (context: PluginContext<TProps, TData>) => void;
+  onUnmount?: (context: PluginContext<TProps, TData>) => unknown;
   /** props 变化 */
   onPropsChange?: (
     context: PluginContext<TProps, TData>,
     prev: TProps,
     next: TProps
-  ) => void;
+  ) => unknown;
   /** 错误（沙箱隔离后仍会上报） */
   onError?: (
     context: PluginContext<TProps, TData>,
     error: Error,
     errorInfo?: React.ErrorInfo
-  ) => void;
+  ) => unknown;
   /** 转发前改写 props（链式，按 order 顺序） */
   transformProps?: (props: TProps) => TProps;
   /** 渲染前改写 data */

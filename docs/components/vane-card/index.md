@@ -23,7 +23,7 @@ npm install vane-card
 ## 30 秒上手
 
 ```tsx
-import { CardCore, withPlugins } from "vane-card/core";
+import { CardCore, withPlugins } from "vane-card/entries/core";
 import { createImagePlugin } from "vane-card/custom-plugins/ImagePlugin";
 import { createBadgePlugin } from "vane-card/custom-plugins/BadgePlugin";
 

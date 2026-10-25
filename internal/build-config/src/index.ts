@@ -85,10 +85,18 @@ export function createLibConfig(options: LibOptions): UserConfig {
 
   plugins.push(cssCopyPlugin(root));
 
+  const srcDir = path.join(root, "src");
+
+  // 入口产物路径 = 源码相对路径（与 d.ts 输出一致，仅差扩展名）
+  const entryFileNames = (chunk: { facadeModuleId?: string | null }) => {
+    const rel = path.relative(srcDir, chunk.facadeModuleId ?? "").split(path.sep).join("/");
+    return rel.replace(/\.tsx?$/, ".js");
+  };
+
   const outputs = formats.map((format) => ({
     format,
     dir: "dist",
-    entryFileNames: "[name].js",
+    entryFileNames,
     chunkFileNames: "chunks/[name]-[hash].js",
     assetFileNames: "[name][extname]",
     ...(format === "cjs" ? { exports: "named" as const } : {}),
@@ -104,8 +112,6 @@ export function createLibConfig(options: LibOptions): UserConfig {
       lib: {
         entry: primary,
         name: options.name,
-        formats: ["es"],
-        fileName: () => "[name].js",
       },
       rollupOptions: {
         input: entries,

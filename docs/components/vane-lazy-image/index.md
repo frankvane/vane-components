@@ -40,7 +40,7 @@ const LazyImage = withPlugins(LazyLoadImageCore, [
 
 | 导入 | 说明 | Gzip |
 | --- | --- | --- |
-| `vane-lazy-image/core` | 仅核心 | ~0.3 KB |
+| `vane-lazy-image/entries/core` | 仅核心 | ~0.3 KB |
 | `vane-lazy-image` | 核心 + 常用插件 | ~10 KB |
 | `vane-lazy-image/custom-plugins/X` | 单个插件（最小） | ~1 KB |
 

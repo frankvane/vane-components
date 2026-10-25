@@ -28,6 +28,9 @@
     "dist"
   ],
   "sideEffects": false,
+  "vane": {
+    "sizeBudgetKb": 5
+  },
   "publishConfig": {
     "access": "public"
   },
@@ -60,6 +63,7 @@
     "react": ">=16.8.0"
   },
   "devDependencies": {
+    "@types/node": "^22.10.0",
     "@types/react": "^18.3.3",
     "@vane/build-config": "workspace:*",
     "@vitejs/plugin-react": "^4.3.1",

@@ -31,8 +31,11 @@ packages/vane-xxx/
 | 源码 | 发布子路径 | 产物 |
 | --- | --- | --- |
 | `src/index.ts` | `.` | `dist/index.js` |
-| `src/entries/core.ts` | `./core` | `dist/core.js` |
-| `src/custom-plugins/X/index.ts` | `./custom-plugins/X` | `dist/custom-plugins/X.js` |
+| `src/entries/core.ts` | `./entries/core` | `dist/entries/core.js` |
+| `src/<目录>/index.ts` | `./<目录>` | `dist/<目录>/index.js` |
+| `src/custom-plugins/X/index.ts` | `./custom-plugins/X` | `dist/custom-plugins/X/index.js` |
+
+> `components/` 是组件内部目录，不发布为入口。d.ts 与 JS 走同一套相对路径，仅差扩展名。
 
 ## 依赖声明（最容易出错的一条）
 

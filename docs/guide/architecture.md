@@ -82,9 +82,11 @@ interface Plugin<TProps = any> {
 
 | 指标 | 预算 |
 | --- | --- |
-| `@vane/plugin-core` gzip | ≤ 3 KB |
+| `@vane/plugin-core` 入口导入图 gzip | ≤ 5 KB |
 | 组件包默认入口 gzip | ≤ 12 KB（`package.json` 的 `vane.sizeBudgetKb`） |
 | 单插件 gzip | ≤ 2 KB |
 | 每实例 Observer / 监听器 | 全局共享，不允许每实例新建 |
+
+> 体积按「入口文件 + 其静态引入的 chunk」合计计量（多入口构建会拆出共享 chunk，只量入口文件会低估）。
 
 红线由 `pnpm check` 在 CI 强制。

@@ -10,7 +10,7 @@
  *   6. dist 存在时检查 gzip 体积是否超过预算（package.json 的 vane.sizeBudgetKb，默认 12KB）
  */
 import { readFile, readdir, stat } from "node:fs/promises";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { gzipSync } from "node:zlib";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -66,16 +66,23 @@ for (const dir of dirs) {
     }
   }
 
-  // 体积预算
+  // 体积预算：入口 + 其静态引入的 chunk（多入口构建下 rollup 会拆出共享 chunk，
+  // 只量 index.js 会严重低估真实导入成本）
   const budgetKb = pkg.vane?.sizeBudgetKb ?? 12;
   const entry = path.join(packagesDir, dir, "dist", "index.js");
   if (existsSync(entry)) {
-    const raw = await readFile(entry);
-    const gz = gzipSync(raw).length / 1024;
+    const files = [entry];
+    const source = await readFile(entry, "utf-8");
+    for (const m of source.matchAll(/from\s*["'](\.\/chunks\/[^"']+\.js)["']/g)) {
+      const chunk = path.join(packagesDir, dir, "dist", m[1].replace(/^\.\//, ""));
+      if (existsSync(chunk)) files.push(chunk);
+    }
+    const gz =
+      files.reduce((sum, f) => sum + gzipSync(readFileSync(f)).length, 0) / 1024;
     if (gz > budgetKb) {
-      record(pkg.name, "FAIL", `dist/index.js gzip ${gz.toFixed(1)}KB 超过预算 ${budgetKb}KB`);
+      record(pkg.name, "FAIL", `入口导入图 gzip ${gz.toFixed(1)}KB 超过预算 ${budgetKb}KB`);
     } else {
-      record(pkg.name, "PASS", `gzip ${gz.toFixed(1)}KB / 预算 ${budgetKb}KB`);
+      record(pkg.name, "PASS", `入口导入图 gzip ${gz.toFixed(1)}KB / 预算 ${budgetKb}KB`);
     }
   }
 }

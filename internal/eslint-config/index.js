@@ -12,7 +12,8 @@ import tseslint from "typescript-eslint";
  *  - 明确放开 console（插件沙箱内部需要 console.warn）
  */
 export default tseslint.config(
-  { ignores: ["dist", "node_modules", ".turbo", "coverage", "demo/dist"] },
+  // 注意：必须用 **/ 前缀——共享配置的 ignores 相对各消费包解析，裸目录名不生效
+  { ignores: ["**/dist/**", "**/node_modules/**", "**/.turbo/**", "**/coverage/**", "**/demo-dist/**", "**/demo/dist/**"] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],

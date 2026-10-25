@@ -8,5 +8,9 @@
   "peerDependencies": {
     "vite": "^5.0.0",
     "@vitejs/plugin-react": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "vite-plugin-dts": "^4.5.4"
   }
 }

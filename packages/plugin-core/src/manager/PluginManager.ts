@@ -18,9 +18,12 @@ export interface PluginManagerOptions {
 
 /**
  * 插件管理器：注册/注销/启停/钩子执行。
- * 执行顺序 = 依赖拓扑序（稳定）→ 优先级降序。
- * 钩子语义：返回 false 中断链；返回其他非 undefined/true 的值则短路返回该值。
+ * 执行顺序 = 依赖拓扑序（稳定）→ 优先级降序，由 resolveDependencyOrder 统一决定。
+ * 钩子语义（生命周期钩子）：返回函数 → 注册为清理（clear 时逆序执行）；
+ * 返回 false → 中断链；返回其他值 → 短路返回。详见 types.ts PluginHooks 注释。
  */
+const LIFECYCLE_HOOKS = new Set(["onMount", "onUnmount", "onPropsChange", "onError"]);
+
 export function createPluginManager<TProps = any, TData = any>(
   options: PluginManagerOptions = {}
 ): PluginManager<TProps, TData> {
@@ -28,18 +31,14 @@ export function createPluginManager<TProps = any, TData = any>(
   const defaultSandbox = options.sandbox ?? true;
   const defaultTimeout = options.timeout ?? 3000;
   const errors: Array<{ plugin: string; hook: string; error: unknown }> = [];
+  const cleanups: Array<() => void> = [];
 
   const plugins = new Map<string, Plugin<TProps, TData>>();
 
-  const ordered = (): Plugin<TProps, TData>[] => {
-    const list = [...plugins.values()].filter((p) => p.enabled !== false);
-    const topo = resolveDependencyOrder(list);
-    // 稳定排序：优先级高的在前
-    return topo
-      .map((p, index) => ({ p, index }))
-      .sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0) || a.index - b.index)
-      .map((x) => x.p);
-  };
+  // 执行顺序完全由 resolveDependencyOrder 决定：依赖约束绝对优先，
+  // 优先级只在依赖已满足的候选之间起作用，平级保持注册顺序。
+  const ordered = (): Plugin<TProps, TData>[] =>
+    resolveDependencyOrder([...plugins.values()].filter((p) => p.enabled !== false));
 
   const register = (plugin: Plugin<TProps, TData>) => {
     plugins.set(plugin.name, { ...plugin, enabled: plugin.enabled ?? true });
@@ -97,6 +96,12 @@ export function createPluginManager<TProps = any, TData = any>(
         continue;
       }
 
+      // 生命周期钩子返回函数 = 注册清理，不参与短路语义
+      if (LIFECYCLE_HOOKS.has(String(hookName)) && typeof result === "function") {
+        cleanups.push(result as () => void);
+        continue;
+      }
+
       if (result === false) return false;
       if (result !== undefined && result !== true) return result;
     }
@@ -104,6 +109,15 @@ export function createPluginManager<TProps = any, TData = any>(
   };
 
   const clear = () => {
+    // 先快照再清空：清理函数自身可能触发新的注册/执行
+    const pending = cleanups.splice(0);
+    for (const fn of pending.reverse()) {
+      try {
+        fn();
+      } catch (error) {
+        logger.warn("[PluginManager] cleanup failed", error);
+      }
+    }
     for (const plugin of plugins.values()) {
       if (plugin.destroy) {
         Promise.resolve(plugin.destroy()).catch((error) => {

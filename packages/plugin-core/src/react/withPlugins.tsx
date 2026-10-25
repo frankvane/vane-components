@@ -27,10 +27,13 @@ export function withPlugins<P extends AnyProps, R = any>(
   const { plugins, enableDebug = false, displayName } = options;
 
   const WithPluginsComponent = forwardRef<R, P>((props, ref) => {
-    const runtime = usePluginRuntime<P>({ plugins, props, enableDebug });
+    // forwardRef 的渲染签名是 PropsWithoutRef<P>，与 P 仅差 ref 字段，运行时一致；
+    // 泛型 P 无法直接收敛，此处做边界断言，下游全部按 P 处理。
+    const innerProps = props as P;
+    const runtime = usePluginRuntime<P>({ plugins, props: innerProps, enableDebug });
 
     const enhancedProps: AnyProps = {
-      ...runtime.transformProps(props),
+      ...runtime.transformProps(innerProps),
       containerRefExternal: runtime.context.refs.container,
       debug: props.debug ?? enableDebug,
 
@@ -52,7 +55,8 @@ export function withPlugins<P extends AnyProps, R = any>(
 
     return (
       <PluginRuntimeProvider runtime={runtime}>
-        <Component ref={ref} {...(enhancedProps as P)} />
+        {/* 泛型边界：enhancedProps 运行时形态确定，但 TS 无法静态验证到条件类型 PropsWithoutRef<P> */}
+        <Component ref={ref} {...(enhancedProps as unknown as React.PropsWithoutRef<P>)} />
       </PluginRuntimeProvider>
     );
   });

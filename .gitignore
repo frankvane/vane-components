@@ -15,3 +15,6 @@ pnpm-debug.log*
 archive-plugins/
 # 代理内部数据（工作区记忆等），不属于仓库资产
 .workbuddy/
+
+# vite 配置加载临时文件
+*.timestamp-*

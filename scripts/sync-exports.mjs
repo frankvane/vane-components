@@ -25,8 +25,8 @@ for (const dir of dirs) {
   if (pkg.private) continue;
   if (!existsSync(path.join(packagesDir, dir, "src", "index.ts"))) continue;
 
-  const exportsMap = generateExports(path.join(packagesDir, dir));
-  pkg.exports = { ...pkg.exports, ...exportsMap };
+  // exports 是产物：整体替换，避免陈旧键残留（合并模式会永久保留已删除入口的键）
+  pkg.exports = generateExports(path.join(packagesDir, dir));
   await writeFile(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`, "utf-8");
-  console.log(`${pkg.name}: exports 已同步（${Object.keys(exportsMap).length} 个子路径）`);
+  console.log(`${pkg.name}: exports 已同步（${Object.keys(pkg.exports).length} 个子路径）`);
 }
