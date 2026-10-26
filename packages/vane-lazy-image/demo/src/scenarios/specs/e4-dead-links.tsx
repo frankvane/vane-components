@@ -42,7 +42,8 @@ export default function DeadLinks() {
               src={l.src}
               alt={l.label}
               loading="lazy"
-              containerStyle={{ width: "100%", borderRadius: 3, overflow: "hidden" }}
+              containerStyle={{ width: "100%",
+ aspectRatio: "300 / 200", borderRadius: 3, overflow: "hidden" }}
               imageStyle={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
             />
             <figcaption style={CAP}>{l.label}</figcaption>

@@ -44,7 +44,8 @@ export default function DepthCard() {
               src={p.src}
               alt={p.name}
               loading="lazy"
-              containerStyle={{ width: "100%", borderRadius: 10, overflow: "hidden" }}
+              containerStyle={{ width: "100%",
+ aspectRatio: "1", borderRadius: 10, overflow: "hidden" }}
               imageStyle={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
             />
             <figcaption style={CAP}>

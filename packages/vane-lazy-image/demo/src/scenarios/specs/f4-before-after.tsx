@@ -58,7 +58,8 @@ export default function BeforeAfter() {
               src={AFTER}
               alt={`滤镜预设 ${name}`}
               loading="lazy"
-              containerStyle={{ width: "100%", borderRadius: 4, overflow: "hidden" }}
+              containerStyle={{ width: "100%",
+ aspectRatio: "800 / 520", borderRadius: 4, overflow: "hidden" }}
               imageStyle={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
             />
             <figcaption style={CAP}>{name}</figcaption>

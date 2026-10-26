@@ -34,6 +34,9 @@ function Card({ item }: { item: (typeof LOCALES)[number] }) {
           price: item.price,
           currency: item.currency,
           position: "bottom-right",
+          // 卡片只有 130px 宽：默认 16px 字号 + 8/12 内边距会把图下半截糊死，压成商品卡该有的大小
+          backgroundColor: "#e1251b",
+          style: { fontSize: 12, padding: "3px 6px", borderRadius: 3, fontWeight: 600 },
         }),
       ]),
     [item.code, item.price, item.currency],
@@ -45,7 +48,8 @@ function Card({ item }: { item: (typeof LOCALES)[number] }) {
         src={SRC}
         alt={item.name}
         loading="lazy"
-        containerStyle={{ width: "100%", borderRadius: 4, overflow: "hidden" }}
+        containerStyle={{ width: "100%",
+ aspectRatio: "1", borderRadius: 4, overflow: "hidden" }}
         imageStyle={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
       />
       <figcaption style={CAP}>

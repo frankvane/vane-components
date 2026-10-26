@@ -49,7 +49,7 @@ export default function FormatWebp() {
               src={it.src}
               alt={`商品图 ${it.id}`}
               loading="lazy"
-              containerStyle={{ width: "100%", borderRadius: 4, overflow: "hidden" }}
+              containerStyle={{ width: "100%", aspectRatio: "1", borderRadius: 4, overflow: "hidden" }}
               imageStyle={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
             />
           </div>

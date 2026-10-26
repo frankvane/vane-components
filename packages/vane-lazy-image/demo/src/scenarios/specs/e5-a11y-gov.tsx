@@ -35,7 +35,8 @@ export default function A11yGov() {
             src={`https://picsum.photos/seed/vane-a11y-${it.id}/720/405`}
             alt={it.alt}
             loading="lazy"
-            containerStyle={{ width: "100%", borderRadius: 3, overflow: "hidden" }}
+            containerStyle={{ width: "100%",
+ aspectRatio: "720 / 405", borderRadius: 3, overflow: "hidden" }}
             imageStyle={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
           />
           <figcaption style={CAP}>{it.title}</figcaption>

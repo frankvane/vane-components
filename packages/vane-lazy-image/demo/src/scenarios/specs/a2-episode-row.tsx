@@ -36,7 +36,7 @@ export default function EpisodeRow() {
               src={ep.src}
               alt={`第 ${ep.no} 集`}
               loading="lazy"
-              containerStyle={{ width: "100%", borderRadius: 4, overflow: "hidden" }}
+              containerStyle={{ width: "100%", aspectRatio: "320 / 180", borderRadius: 4, overflow: "hidden" }}
               imageStyle={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
             />
             <span style={NO}>第 {ep.no} 集</span>

@@ -10,7 +10,7 @@ import {
 import type { CSSProperties } from "react";
 
 const Lazy = withPlugins(LazyLoadImageCore as any, [
-  createCropPlugin({ enabled: true, focusPoint: { x: 0.5, y: 0.45 } }),
+  createCropPlugin({ enabled: true, focusPoint: { x: 0.5, y: 0.45 }, showLabel: false }),
   // 头像失败两次后回退成默认剪影
   createRetryOnErrorPlugin({ maxRetries: 2, baseDelayMs: 300, jitter: true }),
   createFallbackImagePlugin({

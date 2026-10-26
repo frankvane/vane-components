@@ -12,7 +12,7 @@ const Lazy = withPlugins(LazyLoadImageCore as any, [
   // 读 EXIF 的 Orientation 标记并转正（iOS/安卓直传图的高频坑）
   createExifOrientationPlugin({ enabled: true }),
   // 转正后按人脸/主体中心裁成 4:5，缩略图不歪
-  createCropPlugin({ enabled: true, focusPoint: { x: 0.5, y: 0.42 } }),
+  createCropPlugin({ enabled: true, focusPoint: { x: 0.5, y: 0.42 }, showLabel: false }),
 ]);
 
 const SHOTS = [
@@ -31,7 +31,8 @@ export default function ExifUpright() {
               src={s.src}
               alt={s.note}
               loading="lazy"
-              containerStyle={{ width: "100%", borderRadius: 4, overflow: "hidden" }}
+              containerStyle={{ width: "100%",
+ aspectRatio: "360 / 480", borderRadius: 4, overflow: "hidden" }}
               imageStyle={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
             />
             <figcaption style={CAP}>{s.note}</figcaption>

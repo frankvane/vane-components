@@ -14,7 +14,12 @@ const Lazy = withPlugins(LazyLoadImageCore as any, [
   createAuthPlugin({ token: () => "demo-token-1f2e3d", tokenParam: "access_token" }),
   // 无权限/失效时给一个明确角标，而不是一张裂图
   createErrorBadgePlugin({ text: "无权限", position: "top-right" }),
-  createGalleryPlugin({ enableLightbox: true, buttonText: "放大", overlayZIndex: 15 }),
+  createGalleryPlugin({
+    enableLightbox: true,
+    buttonText: "放大",
+    overlayZIndex: 15,
+    buttonStyle: { top: 6, right: 6, padding: "3px 8px", fontSize: 11, borderRadius: 999, background: "rgba(0,0,0,.5)" },
+  }),
 ]);
 
 const FILES = [
@@ -34,7 +39,7 @@ export default function TicketAttachments() {
               src={f.src}
               alt={f.name}
               loading="lazy"
-              containerStyle={{ width: "100%", borderRadius: 4, overflow: "hidden" }}
+              containerStyle={{ width: "100%", aspectRatio: "3 / 2", borderRadius: 4, overflow: "hidden" }}
               imageStyle={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
             />
             <figcaption style={CAP}>{f.name}</figcaption>

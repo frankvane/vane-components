@@ -36,7 +36,8 @@ export default function NewsMixed() {
           src="https://picsum.photos/seed/vane-news-lead/1200/675"
           alt="头条配图"
           loading="eager"
-          containerStyle={{ width: "100%", borderRadius: 4, overflow: "hidden" }}
+          containerStyle={{ width: "100%",
+ aspectRatio: "1200 / 675", borderRadius: 4, overflow: "hidden" }}
           imageStyle={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
         />
         <h4 style={LEAD_TITLE}>把图片加载顺序理顺之后，首屏快了 1.4 秒</h4>

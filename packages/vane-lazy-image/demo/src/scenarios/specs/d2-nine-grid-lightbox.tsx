@@ -11,7 +11,21 @@ import type { CSSProperties } from "react";
 
 const Lazy = withPlugins(LazyLoadImageCore as any, [
   // 九宫格里单张图也可能被点开看大图
-  createGalleryPlugin({ enableLightbox: true, buttonText: "查看大图", overlayZIndex: 20 }),
+  createGalleryPlugin({
+    enableLightbox: true,
+    buttonText: "查看大图",
+    overlayZIndex: 20,
+    // 九宫格里每张都挂按钮，默认尺寸会糊满整格：缩成右下角的小胶囊，只做入口不抢画面
+    buttonStyle: {
+      top: "auto",
+      bottom: 6,
+      right: 6,
+      padding: "3px 7px",
+      fontSize: 10,
+      borderRadius: 999,
+      background: "rgba(0,0,0,.55)",
+    },
+  }),
   createTransitionPlugin({ durationMs: 240, fromOpacity: 0, toOpacity: 1, fromScale: 1.02, toScale: 1 }),
   createSkeletonPlugin({ type: "pulse", backgroundColor: "#eef0f2", highlightColor: "#f7f8f9", borderRadius: 4 }),
 ]);
@@ -32,7 +46,7 @@ export default function NineGridLightbox() {
               src={p.src}
               alt={`相册第 ${p.id} 张`}
               loading="lazy"
-              containerStyle={{ width: "100%", borderRadius: 4, overflow: "hidden" }}
+              containerStyle={{ width: "100%", aspectRatio: "1", borderRadius: 4, overflow: "hidden" }}
               imageStyle={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
             />
           </div>

@@ -39,7 +39,8 @@ export default function JdSearchGrid() {
               src={sku.src}
               alt={sku.title}
               loading="lazy"
-              containerStyle={{ width: "100%", borderRadius: 8, overflow: "hidden" }}
+              containerStyle={{ width: "100%",
+ aspectRatio: "1", borderRadius: 8, overflow: "hidden" }}
               imageStyle={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
             />
             <p style={PRICE}>

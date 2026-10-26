@@ -37,7 +37,7 @@ export default function UnsplashMasonry() {
               src={p.src}
               alt={`photo by ${p.by}`}
               loading="lazy"
-              containerStyle={{ width: "100%", borderRadius: 4, overflow: "hidden" }}
+              containerStyle={{ width: "100%", aspectRatio: p.ratio, borderRadius: 4, overflow: "hidden" }}
               imageStyle={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
             />
             <figcaption style={CAP}>{p.by}</figcaption>

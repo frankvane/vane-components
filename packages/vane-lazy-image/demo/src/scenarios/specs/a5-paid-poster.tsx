@@ -32,7 +32,7 @@ export default function PaidPoster() {
           src="http://127.0.0.1:3200/protected/image"
           alt="会员专享海报"
           loading="lazy"
-          containerStyle={{ width: "100%", borderRadius: 6, overflow: "hidden" }}
+          containerStyle={{ width: "100%", aspectRatio: "3 / 2", borderRadius: 6, overflow: "hidden" }}
           imageStyle={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
         />
         <div style={LOCK}>会员专享 · VIP</div>

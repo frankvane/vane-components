@@ -37,7 +37,8 @@ export default function HotlinkGuard() {
               src={it.src}
               alt={it.label}
               loading="lazy"
-              containerStyle={{ width: "100%", borderRadius: 4, overflow: "hidden" }}
+              containerStyle={{ width: "100%",
+ aspectRatio: "1", borderRadius: 4, overflow: "hidden" }}
               imageStyle={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
             />
             <figcaption style={CAP}>{it.label}</figcaption>

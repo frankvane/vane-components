@@ -46,7 +46,8 @@ export default function HoverPreview() {
               src={f.src}
               alt={f.label}
               loading="lazy"
-              containerStyle={{ width: "100%", borderRadius: 6, overflow: "hidden" }}
+              containerStyle={{ width: "100%",
+ aspectRatio: "360 / 203", borderRadius: 6, overflow: "hidden" }}
               imageStyle={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
             />
             <span style={LABEL}>{f.label}</span>

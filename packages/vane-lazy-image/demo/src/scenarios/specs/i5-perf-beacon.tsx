@@ -18,13 +18,16 @@ const Lazy = withPlugins(LazyLoadImageCore as any, [
   // 用户行为：曝光、点击、停留，统一成一个上报回调
   createUserBehaviorPlugin({
     enabled: true,
+    // 真实站点只要数据，不要角标面板压在商品图上
+    showOverlay: false,
     onReport: (payload: unknown) => {
       const q = ((window as unknown as { __vaneBehavior?: unknown[] }).__vaneBehavior ??= []);
       q.push(payload);
     },
   }),
   // 曝光去抖：停留 250ms 才算"看见"，避免快速划过的假曝光
-  createViewportDwellPlugin({ dwellMs: 250, onlyWhenIntersecting: true, maxWaitMs: 1200 }),
+  // onlyWhenIntersecting 关掉：这一屏是首屏常驻图，不需要「离开就中止」的门控
+  createViewportDwellPlugin({ dwellMs: 250, onlyWhenIntersecting: false, maxWaitMs: 1200 }),
 ]);
 
 const ITEMS = Array.from({ length: 4 }, (_, i) => ({
@@ -42,7 +45,7 @@ export default function PerfBeacon() {
               src={it.src}
               alt={`埋点图 ${it.id}`}
               loading="lazy"
-              containerStyle={{ width: "100%", borderRadius: 4, overflow: "hidden" }}
+              containerStyle={{ width: "100%", aspectRatio: "320 / 200", borderRadius: 4, overflow: "hidden" }}
               imageStyle={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
             />
           </div>

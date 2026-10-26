@@ -23,6 +23,12 @@ const Lazy = withPlugins(LazyLoadImageCore as any, [
   }),
 ]);
 
+/**
+ * 缩略条用「裸内核」：上图那条链带着「看图集」按钮与 4:3 占位，
+ * 直接复用会让 5 个 56px 缩略格各盖一个按钮——同屏尺寸差大的图不要共用装配链。
+ */
+const Thumb = withPlugins(LazyLoadImageCore as any, []);
+
 const SHOTS = Array.from({ length: 5 }, (_, i) => ({
   id: i + 1,
   src: `https://picsum.photos/seed/vane-house-h${i + 1}/640/480`,
@@ -52,7 +58,7 @@ export default function ListingGallery() {
             style={{ ...THUMB, outline: i === active ? "2px solid #ff7a29" : "none" }}
             aria-label={s.alt}
           >
-            <Lazy
+            <Thumb
               src={s.src}
               alt=""
               loading="lazy"

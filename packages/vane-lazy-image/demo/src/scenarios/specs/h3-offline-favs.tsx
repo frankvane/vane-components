@@ -34,7 +34,8 @@ export default function OfflineFavs() {
               src={f.src}
               alt={f.name}
               loading="lazy"
-              containerStyle={{ width: "100%", borderRadius: 5, overflow: "hidden" }}
+              containerStyle={{ width: "100%",
+ aspectRatio: "320 / 200", borderRadius: 5, overflow: "hidden" }}
               imageStyle={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
             />
             <figcaption style={CAP}>

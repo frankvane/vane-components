@@ -48,7 +48,8 @@ export default function ArtworkDetail() {
           src={cur.src}
           alt={cur.title}
           loading="eager"
-          containerStyle={{ width: "100%", borderRadius: 6, overflow: "hidden" }}
+          containerStyle={{ width: "100%",
+ aspectRatio: "600 / 720", borderRadius: 6, overflow: "hidden" }}
           imageStyle={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
         />
       </div>

@@ -32,7 +32,7 @@ function Protected({ token }: { token: string }) {
       src="http://127.0.0.1:3200/protected/image"
       alt={`受保护资源 ${token}`}
       loading="lazy"
-      containerStyle={{ width: "100%", borderRadius: 4, overflow: "hidden" }}
+      containerStyle={{ width: "100%", aspectRatio: "3 / 2", borderRadius: 4, overflow: "hidden" }}
       imageStyle={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
     />
   );

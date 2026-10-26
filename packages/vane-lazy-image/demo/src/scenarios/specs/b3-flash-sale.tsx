@@ -43,7 +43,8 @@ export default function FlashSale() {
           src="https://picsum.photos/seed/vane-flash/720/540"
           alt="秒杀主推商品"
           loading="eager"
-          containerStyle={{ width: "100%", borderRadius: 6, overflow: "hidden" }}
+          containerStyle={{ width: "100%",
+ aspectRatio: "720 / 540", borderRadius: 6, overflow: "hidden" }}
           imageStyle={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
         />
       </div>

@@ -31,18 +31,20 @@ export default function MemoryPressure() {
   return (
     <div style={STAGE}>
       <div style={SCROLL}>
-        {FEED.map((f) => (
-          <figure key={f.id} style={FIG}>
-            <Lazy
-              src={f.src}
-              alt={f.title}
-              loading="lazy"
-              containerStyle={{ width: "100%", borderRadius: 4, overflow: "hidden" }}
-              imageStyle={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-            />
-            <figcaption style={CAP}>{f.title}</figcaption>
-          </figure>
-        ))}
+        <div style={GRID}>
+          {FEED.map((f) => (
+            <figure key={f.id} style={FIG}>
+              <Lazy
+                src={f.src}
+                alt={f.title}
+                loading="lazy"
+                containerStyle={{ width: "100%", aspectRatio: "480 / 320", borderRadius: 4, overflow: "hidden" }}
+                imageStyle={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+              />
+              <figcaption style={CAP}>{f.title}</figcaption>
+            </figure>
+          ))}
+        </div>
       </div>
       <p style={HINT}>
         这个容器是可以滚的：往上滚时，刚离开视口的图会被 abort（Network 里状态变成 canceled），
@@ -53,7 +55,9 @@ export default function MemoryPressure() {
 }
 
 const STAGE: CSSProperties = { background: "#fff", padding: 14, borderRadius: 6 };
-const SCROLL: CSSProperties = { maxHeight: 230, overflowY: "auto", paddingRight: 4 };
-const FIG: CSSProperties = { margin: "0 0 10px" };
+// 两列小图 + 限高容器：一屏只放得下 4 张，滚动时才有"离开视口被 abort"的演示空间
+const SCROLL: CSSProperties = { maxHeight: 232, overflowY: "auto", paddingRight: 4 };
+const GRID: CSSProperties = { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 };
+const FIG: CSSProperties = { margin: 0 };
 const CAP: CSSProperties = { display: "block", marginTop: 4, color: "#8c8c8c", fontSize: 10.5 };
 const HINT: CSSProperties = { margin: "10px 0 0", color: "#9c9c9c", fontSize: 10.5, lineHeight: 1.7 };

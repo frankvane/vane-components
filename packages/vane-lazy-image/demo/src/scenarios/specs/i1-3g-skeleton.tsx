@@ -37,7 +37,7 @@ export default function Slow3G() {
               src={f.src}
               alt={f.title}
               loading="lazy"
-              containerStyle={{ width: "100%", borderRadius: 6, overflow: "hidden" }}
+              containerStyle={{ width: "100%", aspectRatio: "480 / 320", borderRadius: 6, overflow: "hidden" }}
               imageStyle={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
             />
             <figcaption style={CAP}>{f.title}</figcaption>

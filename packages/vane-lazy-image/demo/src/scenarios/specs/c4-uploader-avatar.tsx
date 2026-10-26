@@ -10,7 +10,7 @@ import {
 import type { CSSProperties } from "react";
 
 const Lazy = withPlugins(LazyLoadImageCore as any, [
-  createCropPlugin({ enabled: true, focusPoint: { x: 0.5, y: 0.35 } }),
+  createCropPlugin({ enabled: true, focusPoint: { x: 0.5, y: 0.35 }, showLabel: false }),
   // 头像当作"正在直播"的信号灯：hover 时辉光增强
   createBorderGlowPlugin({
     color: "rgba(251, 114, 153, .75)",
@@ -35,14 +35,17 @@ export default function UploaderAvatar() {
     <div style={STAGE}>
       {UPS.map((u) => (
         <div key={u.id} style={PERSON}>
-          <div style={AVATAR}>
-            <Lazy
-              src={u.src}
-              alt={`${u.name} 头像`}
-              loading="lazy"
-              containerStyle={{ width: "100%", height: "100%", borderRadius: "50%", overflow: "hidden" }}
-              imageStyle={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-            />
+          {/* border-glow 会把阴影打到「容器再外一层」，这层必须是圆的，否则头像外面套一个圆角矩形光框 */}
+          <div style={GLOW}>
+            <div style={AVATAR}>
+              <Lazy
+                src={u.src}
+                alt={`${u.name} 头像`}
+                loading="lazy"
+                containerStyle={{ width: "100%", height: "100%", borderRadius: "50%", overflow: "hidden" }}
+                imageStyle={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+              />
+            </div>
           </div>
           <p style={NAME}>{u.name}</p>
           <p style={FANS}>{u.fans}</p>
@@ -61,6 +64,7 @@ const STAGE: CSSProperties = {
   flexWrap: "wrap",
 };
 const PERSON: CSSProperties = { textAlign: "center", width: 76 };
-const AVATAR: CSSProperties = { width: 64, height: 64, margin: "0 auto 8px", borderRadius: "50%" };
+const GLOW: CSSProperties = { width: 64, height: 64, margin: "0 auto 8px", borderRadius: "50%" };
+const AVATAR: CSSProperties = { width: "100%", height: "100%", borderRadius: "50%", overflow: "hidden" };
 const NAME: CSSProperties = { margin: 0, color: "#18191c", fontSize: 12 };
 const FANS: CSSProperties = { margin: "2px 0 0", color: "#9499a0", fontSize: 10.5 };

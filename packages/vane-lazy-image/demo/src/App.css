@@ -2366,6 +2366,8 @@ pre {
   background: var(--surface-2);
   border-right: 1px solid var(--line-soft);
   min-height: 160px;
+  /* 舞台不要跟着右侧源码栏一起被拉高：grid 默认 stretch，会让短场景下面拖出一大片空白 */
+  align-self: start;
 }
 .scn-stage.tone-light {
   background: #e9e6df;

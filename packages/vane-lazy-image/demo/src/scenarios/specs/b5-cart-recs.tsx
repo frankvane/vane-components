@@ -36,7 +36,7 @@ export default function CartRecs() {
               src={r.src}
               alt={r.name}
               loading="lazy"
-              containerStyle={{ width: "100%", borderRadius: 4, overflow: "hidden" }}
+              containerStyle={{ width: "100%", aspectRatio: "1", borderRadius: 4, overflow: "hidden" }}
               imageStyle={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
             />
             <p style={NAME}>{r.name}</p>

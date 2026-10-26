@@ -20,6 +20,13 @@ const Lazy = withPlugins(LazyLoadImageCore as any, [
   createPreconnectPlugin({ domains: ["https://picsum.photos"], crossOrigin: "anonymous" }),
 ]);
 
+/**
+ * 缩略图用「裸内核」：overlay 类插件（查看大图按钮 / 色卡 / 放大镜）一旦挂在链条上，
+ * 会给**每一张**用这条链渲染的图都镶一层，56px 的缩略图直接被按钮盖死。
+ * 这也是一条实用规则：同一屏里尺寸差很大的图，不要共用同一条装配链。
+ */
+const Thumb = withPlugins(LazyLoadImageCore as any, []);
+
 const SHOTS = [1, 2, 3, 4].map((i) => `https://picsum.photos/seed/vane-sku-${i}/600/600`);
 
 export default function SkuGalleryZoom() {
@@ -31,7 +38,8 @@ export default function SkuGalleryZoom() {
           src={SHOTS[active]}
           alt="商品主图"
           loading="eager"
-          containerStyle={{ width: "100%", borderRadius: 6, overflow: "hidden" }}
+          containerStyle={{ width: "100%",
+ aspectRatio: "1", borderRadius: 6, overflow: "hidden" }}
           imageStyle={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
         />
       </div>
@@ -44,7 +52,7 @@ export default function SkuGalleryZoom() {
             style={{ ...THUMB, borderColor: i === active ? "#e1251b" : "#e5e5e5" }}
             aria-label={`查看第 ${i + 1} 张`}
           >
-            <Lazy
+            <Thumb
               src={src}
               alt=""
               loading="lazy"

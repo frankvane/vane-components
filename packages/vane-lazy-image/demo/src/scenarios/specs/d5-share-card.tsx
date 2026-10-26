@@ -44,7 +44,8 @@ export default function ShareCard() {
           src="https://picsum.photos/seed/vane-share/720/900"
           alt="滨江步道的秋日银杏"
           loading="lazy"
-          containerStyle={{ width: "100%", borderRadius: 8, overflow: "hidden" }}
+          containerStyle={{ width: "100%",
+ aspectRatio: "720 / 900", borderRadius: 8, overflow: "hidden" }}
           imageStyle={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
         />
       </div>

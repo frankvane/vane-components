@@ -11,13 +11,13 @@ import type { CSSProperties } from "react";
 
 const Lazy = withPlugins(LazyLoadImageCore as any, [
   // 证件照比例的人像统一按脸部中心裁成方图，外面再用 CSS 裁圆
-  createCropPlugin({ enabled: true, focusPoint: { x: 0.5, y: 0.4 } }),
+  createCropPlugin({ enabled: true, focusPoint: { x: 0.5, y: 0.4 }, showLabel: false }),
   // 演员库常有失效图，兜底一张人形占位比留白体面
   createFallbackImagePlugin({
     fallbackSrc: "https://picsum.photos/seed/vane-cast-fallback/200/200",
   }),
   // 取头像主色铺在容器底上，圆形边缘不会露出突兀的白底
-  createColorExtractionPlugin({ setContainerBg: true, sampleSize: 6 }),
+  createColorExtractionPlugin({ setContainerBg: true, sampleSize: 6, showOverlay: false }),
 ]);
 
 const CAST = [
@@ -63,7 +63,7 @@ const STAGE: CSSProperties = {
   padding: 16,
   borderRadius: 6,
   display: "grid",
-  gridTemplateColumns: "repeat(auto-fill, minmax(84px, 1fr))",
+  gridTemplateColumns: "repeat(6, 1fr)",
   gap: 14,
 };
 const PERSON: CSSProperties = { textAlign: "center" };

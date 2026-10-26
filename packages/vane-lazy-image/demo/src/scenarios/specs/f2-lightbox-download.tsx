@@ -36,7 +36,8 @@ export default function LightboxDownload() {
           src="https://picsum.photos/seed/vane-download/900/600"
           alt="海岸线黄昏"
           loading="lazy"
-          containerStyle={{ width: "100%", borderRadius: 6, overflow: "hidden" }}
+          containerStyle={{ width: "100%",
+ aspectRatio: "900 / 600", borderRadius: 6, overflow: "hidden" }}
           imageStyle={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
         />
       </div>
