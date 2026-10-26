@@ -129,7 +129,7 @@ export interface PluginMeta {
   example: string;
   description: string;
   tags: string[];
-  config: Array<{ name: string; type: string; description: string }>;
+  config: Array<{ name: string; type: string; description: string; default?: string }>;
   examples: PluginExample[];
   features: string[];
   useCases: string[];
