@@ -440,7 +440,10 @@ export const LazyLoadImageCore = forwardRef<
     () => ({
       position: "relative",
       width: "100%",
-      height: "100%",
+      // 默认不抢高度：父容器高度不确定时（auto），`height: 100%` 会退化成 0，
+      // 结果既不留白也托不住图，兄弟节点（标题/说明）会压到图上。
+      // 交给内容（img 的自然比例）或调用方显式传入的 height / aspectRatio 决定。
+      height: "auto",
       overflow: "hidden",
       // Issue #1: 使用新的状态格式
       background: state.status === "error" ? "#fee" : "#f5f5f5",
@@ -525,7 +528,8 @@ export const LazyLoadImageCore = forwardRef<
           }}
           style={{
             width: "100%",
-            height: "100%",
+            // 与容器同一套逻辑：默认让图按自然比例撑开，显式传 height 时才铺满
+            height: "auto",
             objectFit: "cover",
             // Issue #1: 使用新的状态格式
             opacity: state.status === "loaded" ? 1 : 0,

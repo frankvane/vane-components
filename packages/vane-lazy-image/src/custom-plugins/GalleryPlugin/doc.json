@@ -7,9 +7,30 @@
     "视觉"
   ],
   "config": [
-    { "name": "buttonText", "type": "string", "default": "\"Open\"", "description": "打开按钮文案" },
-    { "name": "enableLightbox", "type": "boolean", "default": "true", "description": "是否启用内置灯箱" },
-    { "name": "overlayZIndex", "type": "number", "default": "10", "description": "灯箱层叠顺序" }
+    {
+      "name": "buttonText",
+      "type": "string",
+      "default": "\"Open\"",
+      "description": "打开按钮文案"
+    },
+    {
+      "name": "enableLightbox",
+      "type": "boolean",
+      "default": "true",
+      "description": "是否启用内置灯箱"
+    },
+    {
+      "name": "overlayZIndex",
+      "type": "number",
+      "default": "10",
+      "description": "灯箱层叠顺序"
+    },
+    {
+      "name": "buttonStyle",
+      "type": "React.CSSProperties",
+      "default": "{}",
+      "description": "按钮自定义样式（缩略图场景可缩成小号半透明胶囊）"
+    }
   ],
   "example": "// 点击按钮进入灯箱查看大图\nconst GalleryImage = withPlugins(LazyLoadImageCore, [\n  createGalleryPlugin({\n    buttonText: \"查看大图\",\n    enableLightbox: true,\n    overlayZIndex: 20,\n  }),\n]);\n\n<GalleryImage src=\"https://picsum.photos/seed/gallery/600/400\" alt=\"画廊\" />;",
   "examples": [
@@ -17,13 +38,20 @@
       "name": "灯箱预览",
       "description": "叠加「查看大图」按钮，点击进入全屏灯箱看原图。",
       "src": "https://picsum.photos/seed/gallery-lb/600/400",
-      "config": { "buttonText": "查看大图", "enableLightbox": true, "overlayZIndex": 20 }
+      "config": {
+        "buttonText": "查看大图",
+        "enableLightbox": true,
+        "overlayZIndex": 20
+      }
     },
     {
       "name": "新窗口打开",
       "description": "关闭内置灯箱，点击按钮以新窗口打开原图。",
       "src": "https://picsum.photos/seed/gallery-win/600/400",
-      "config": { "buttonText": "Open", "enableLightbox": false }
+      "config": {
+        "buttonText": "Open",
+        "enableLightbox": false
+      }
     }
   ],
   "features": [

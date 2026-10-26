@@ -4,6 +4,8 @@ import React from "react";
 
 export interface UserBehaviorConfig {
   enabled?: boolean;
+  /** 是否在图片角落显示统计面板；接入真实版式时传 false */
+  showOverlay?: boolean;
   onReport?: (data: {
     src: string;
     dwellMs: number;
@@ -14,7 +16,7 @@ export interface UserBehaviorConfig {
 }
 
 export function createUserBehaviorPlugin(config: UserBehaviorConfig = {}): LazyImagePlugin {
-  const { enabled = true, onReport } = config;
+  const { enabled = true, showOverlay = true, onReport } = config;
   return {
     name: "user-behavior",
     version: "1.0.0",
@@ -138,7 +140,7 @@ export function createUserBehaviorPlugin(config: UserBehaviorConfig = {}): LazyI
         } catch {}
       },
       renderOverlay: (context: LazyImageContext) => {
-        if (!enabled) return null;
+        if (!enabled || !showOverlay) return null;
         const Overlay: React.FC = () => {
           const [state, setState] = React.useState({
             dwellMs: 0,

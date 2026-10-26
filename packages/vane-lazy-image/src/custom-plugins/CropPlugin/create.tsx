@@ -4,10 +4,15 @@ import type { LazyImagePlugin, LazyImageContext } from "../../components/LazyLoa
 export interface CropPluginConfig {
   enabled?: boolean;
   focusPoint?: { x: number; y: number }; // 0~1 相对坐标
+  /**
+   * 是否在图片左上角显示焦点标识。
+   * 默认 true（便于验收/调试）；接入生产版式时传 false，避免标识压在图上。
+   */
+  showLabel?: boolean;
 }
 
 export function createCropPlugin(config: CropPluginConfig = {}): LazyImagePlugin {
-  const { enabled = true, focusPoint = { x: 0.5, y: 0.5 } } = config;
+  const { enabled = true, focusPoint = { x: 0.5, y: 0.5 }, showLabel = true } = config;
   return {
     name: "crop",
     version: "0.1.0",
@@ -24,7 +29,7 @@ export function createCropPlugin(config: CropPluginConfig = {}): LazyImagePlugin
         return { ...props, imageStyle };
       },
       renderOverlay: (context: LazyImageContext) => {
-        if (!enabled) return null;
+        if (!enabled || !showLabel) return null;
         return (
           <div style={{ position: "absolute", top: 8, left: 8, background: "rgba(255,165,0,0.8)", color: "#000", padding: "4px 6px", borderRadius: 4, fontSize: 12 }}>
             CropPlugin · focus {focusPoint.x.toFixed(2)},{focusPoint.y.toFixed(2)}

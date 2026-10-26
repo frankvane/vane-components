@@ -3,6 +3,8 @@ import type { LazyImagePlugin } from "../../components/LazyLoadImagePlugin/plugi
 
 export type GalleryPluginConfig = {
   buttonText?: string;
+  /** 按钮自定义样式（比如缩略图里用小号半透明胶囊） */
+  buttonStyle?: React.CSSProperties;
   enableLightbox?: boolean;
   overlayZIndex?: number;
 };
@@ -13,6 +15,7 @@ export const createGalleryPlugin = (
   const buttonText = config?.buttonText ?? "Open";
   const enableLightbox = config?.enableLightbox ?? true;
   const overlayZIndex = config?.overlayZIndex ?? 10;
+  const buttonStyle = config?.buttonStyle ?? {};
 
   return {
     name: "gallery",
@@ -71,6 +74,7 @@ export const createGalleryPlugin = (
                   fontSize: 13,
                   boxShadow: "0 2px 6px rgba(0,0,0,0.25)",
                   cursor: "pointer",
+                  ...buttonStyle,
                 }}
                 onClick={(e) => {
                   e.stopPropagation();

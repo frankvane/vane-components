@@ -20,6 +20,12 @@
       "type": "(data: { src; dwellMs; clicks; enters; leaves }) => void",
       "default": "undefined",
       "description": "卸载时上报回调（默认打印到控制台）"
+    },
+    {
+      "name": "showOverlay",
+      "type": "boolean",
+      "default": "true",
+      "description": "是否在图片角落显示统计面板（生产版式建议关闭）"
     }
   ],
   "example": "const BehaviorImage = withPlugins(LazyLoadImageCore, [\n  createUserBehaviorPlugin({\n    onReport: (data) => {\n      // 上报到分析后端\n      console.log(\"behavior\", data);\n    },\n  }),\n]);\n\n// 在组件中使用\n<BehaviorImage src=\"https://picsum.photos/id/1015/500/300\" alt=\"用户行为示例\" />;",
@@ -57,6 +63,7 @@
   ],
   "notes": [
     "统计结果在卸载时通过 `onReport` 上报（默认打印控制台），示例页用面板实时展示。",
-    "`enabled: false` 可整体关闭统计与面板，不影响图片加载。"
+    "`enabled: false` 可整体关闭统计与面板，不影响图片加载。",
+    "showOverlay: false 只上报数据、不渲染角标，适合直接接入真实版式。"
   ]
 }
