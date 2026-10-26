@@ -19,6 +19,7 @@ const LOADERS: Record<string, () => Promise<{ default: React.FC }>> = {
     import("../combos/ComboResponsiveSeoWebPDemo"),
   "interaction-overlay": () =>
     import("../combos/ComboInteractionOverlayDemo"),
+  "engine-perf": () => import("../combos/ComboEnginePerfDemo"),
 };
 
 interface IdProps {

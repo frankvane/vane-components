@@ -492,6 +492,37 @@ const LazyImage = withPlugins(LazyLoadImageCore, [
 <LazyImage src="https://picsum.photos/seed/responsive-combo/800/600" alt="响应式 SEO WebP 组合示例" />`,
   },
   {
+    id: "engine-perf",
+    title: "性能优化综合（引擎层）",
+    description: "离线降级 + 预连接 + 缓存预热 + 优先级加载，串成端到端链路，并实时展示 GlobalContext 在线/离线与 ObserverPool 共享。",
+    component: "ComboEnginePerfDemo",
+    plugins: [
+      { name: "Offline 离线降级", role: "由 GlobalContext online/offline 驱动徽标与缓存回退" },
+      { name: "Preconnect 预连接", role: "提前与图片域名建连，省 DNS/TLS 往返" },
+      { name: "CachePrewarm 缓存预热", role: "进入视口即预取，滚动无等待" },
+      { name: "PriorityLoading 优先级加载", role: "关键图高优先级，避免被挤占" },
+    ],
+    code: `import {
+  LazyLoadImageCore,
+  createOfflinePlugin,
+  createPreconnectPlugin,
+  createCachePrewarmPlugin,
+  createPriorityLoadingPlugin,
+  withPlugins,
+} from "vane-lazy-image";
+
+const LazyImage = withPlugins(LazyLoadImageCore, [
+  createOfflinePlugin({ showBadge: true }),
+  createPreconnectPlugin({ domains: ["https://picsum.photos"], showBadge: true }),
+  createCachePrewarmPlugin({ trigger: "enter", showBadge: true }),
+  createPriorityLoadingPlugin({ priority: "high" }),
+]);
+
+// 用法
+<LazyImage src="https://picsum.photos/seed/engine-perf/800/600" alt="性能优化综合示例" />
+// 在 DevTools → Network 勾选 Offline，离线徽标会即时出现（GlobalContext online/offline 驱动）`,
+  },
+  {
     id: "interaction-overlay",
     title: "交互与叠层组合",
     description: "视口感知 + 防抖 + 悬停预取 + 滚动空闲 + 进度蒙层 + 信息蒙层 + 骨架，强化交互与反馈。",
@@ -542,6 +573,7 @@ export interface AdvancedMeta {
 export const ADVANCED: AdvancedMeta[] = [
   { id: "plugin-sandbox", title: "插件沙箱", description: "自包含 try/catch 沙箱隔离插件钩子执行。", component: "PluginSandboxDemo" },
   { id: "performance-monitoring", title: "性能监控系统", description: "全局性能监控与报告。", component: "PerformanceMonitoringDemo" },
+  { id: "engine-infra", title: "引擎性能基础设施", description: "GlobalContext 全局上下文 + ObserverPool 共享观察池的实时可观察面板。", component: "EngineInfraDemo" },
   { id: "plugin-hot-reload", title: "插件热更新", description: "运行时注册 / 注销插件。", component: "PluginHotReloadDemo" },
   { id: "dependency-resolver", title: "依赖解析器", description: "拓扑排序 / 环检测 / 冲突校验。", component: "DependencyResolverDemo" },
 ];

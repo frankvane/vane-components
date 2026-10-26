@@ -10,6 +10,7 @@ const LOADERS: Record<string, () => Promise<{ default: React.FC }>> = {
   "plugin-sandbox": () => import("../advanced/PluginSandboxDemo"),
   "performance-monitoring": () =>
     import("../advanced/PerformanceMonitoringDemo"),
+  "engine-infra": () => import("../advanced/EngineInfraDemo"),
   "plugin-hot-reload": () => import("../advanced/PluginHotReloadDemo"),
   "dependency-resolver": () => import("../advanced/DependencyResolverDemo"),
 };
