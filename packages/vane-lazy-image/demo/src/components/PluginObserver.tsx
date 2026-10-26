@@ -1,5 +1,5 @@
 import React from "react";
-import { applyEnv, readEnv, writeEnv, type EnvState } from "./env-sim";
+import { getEnvState, setEnvState, subscribeEnv, type EnvState } from "./env-sim";
 
 /**
  * 能力观察台（Inspector）
@@ -30,6 +30,28 @@ function pushAnim(v: string) {
   if (ANIM_HIST.length > 4) ANIM_HIST.shift();
 }
 
+
+// ---- LCP 采样（只有「性能收益」类结论需要，缺 API 时静默降级） ----
+let LCP_MS = 0;
+let LCP_TAG = "";
+let lcpStarted = false;
+function startLcpObserver() {
+  if (lcpStarted || typeof window === "undefined") return;
+  lcpStarted = true;
+  try {
+    const po = new PerformanceObserver((list) => {
+      const es = list.getEntries();
+      const e = es[es.length - 1] as any;
+      if (e) {
+        LCP_MS = Math.round(e.startTime);
+        LCP_TAG = (e.url ? String(e.url).split("/").slice(-2).join("/") : e.element?.tagName || "").slice(0, 40);
+      }
+    });
+    po.observe({ type: "largest-contentful-paint", buffered: true } as any);
+  } catch {
+    /* 浏览器不支持就留空 */
+  }
+}
 
 // ---- 插件日志采集（只收带标签的日志，如 [LLI] / [ConcurrencyGate]） ----
 const LOG_BUF: string[] = [];
@@ -193,6 +215,9 @@ function readSnapshot(
 
   let timing = "-";
   let cacheHit = false;
+  // 量化「这张图到底花了多少字节 / 多久」——性能收益类结论需要它，
+  // 只有「行为是否发生」的证据不足以支撑优化收益
+  let perf: { kb: string; decoded: string; duration: number } | null = null;
   const src = img?.currentSrc || img?.src || "";
   if (src) {
     try {
@@ -204,6 +229,11 @@ function readSnapshot(
           e.duration
         )}ms · ${kb}`;
         cacheHit = entries.length >= 2 && (entries[entries.length - 1].transferSize || 0) === 0;
+        perf = {
+          kb: e.transferSize ? (e.transferSize / 1024).toFixed(1) + "KB" : "0KB（缓存）",
+          decoded: e.decodedBodySize ? (e.decodedBodySize / 1024).toFixed(1) + "KB" : "—",
+          duration: Math.round(e.duration),
+        };
       }
     } catch {
       /* ignore */
@@ -248,6 +278,9 @@ function readSnapshot(
     links,
     metaTags,
     timing,
+    perf,
+    lcp: LCP_MS,
+    lcpTag: LCP_TAG,
     cacheHit,
     baselineAlt,
     expectSrc,
@@ -320,6 +353,14 @@ function buildRows(s: Snap): Row[] {
   push("links", "注入 <link>", s.links.join(" | "), s.links.length > 0);
   if (s.metaTags) push("meta", "注入 <meta>/JSON-LD", `${s.metaTags} 条`, true);
   push("logs", "插件日志", s.logs.count ? `${s.logs.count} 条：${s.logs.last[0] || ""}` : "", s.logs.count > 0);
+  // 下面两行是「测量」而不是「插件作用」，永远不标 ●：用于把性能类收益量化到具体数字
+  push(
+    "transfer",
+    "传输 / 解码",
+    s.perf ? `${s.perf.kb} · 解码 ${s.perf.decoded} · 耗时 ${s.perf.duration}ms` : "",
+    false
+  );
+  push("lcp", "LCP", s.lcp ? `${s.lcp}ms${s.lcpTag ? `（${s.lcpTag}）` : ""}` : "", false);
   return rows;
 }
 
@@ -362,12 +403,20 @@ export const PluginObserver: React.FC<{
 }> = ({ stageRef, pluginId, baselineAlt, expectSrc, onRetryCache }) => {
   const [snap, setSnap] = React.useState<Snap>(null);
   const [tick, setTick] = React.useState(0);
-  const [env, setEnv] = React.useState<EnvState>(() => readEnv());
+  // 环境状态放在模块级 store：预览区的「一键演示」按钮与这里的勾选框共用同一份，
+  // 否则点了演示按钮勾选框不会同步，验收人以为没生效
+  const env = React.useSyncExternalStore(subscribeEnv, getEnvState, getEnvState);
   const logBaseRef = React.useRef(LOG_COUNT);
 
   React.useEffect(() => {
     patchConsole();
+    startLcpObserver();
   }, []);
+
+  // 环境一变就立刻重采一次快照（不等 600ms 的轮询）
+  React.useEffect(() => {
+    setTick((v) => v + 1);
+  }, [env]);
 
   React.useEffect(() => {
     logBaseRef.current = LOG_COUNT;
@@ -412,11 +461,7 @@ export const PluginObserver: React.FC<{
   }, [stageRef, baselineAlt, expectSrc, tick]);
 
   // 环境模拟：立即生效 + 持久化（部分插件在挂载期读环境，刷新后仍保持）
-  React.useEffect(() => {
-    writeEnv(env);
-    applyEnv(env);
-    setTick((v) => v + 1);
-  }, [env.offline, env.slow, env.battery]);
+  // 写入统一走 setEnvState，它会 apply 到 navigator 并通知订阅者
 
   const rows = React.useMemo(() => {
     const base = buildRows(snap);
@@ -487,14 +532,16 @@ export const PluginObserver: React.FC<{
                 type="checkbox"
                 data-env={k}
                 checked={!!env[k]}
-                onChange={(e) => setEnv((v) => ({ ...v, [k]: e.target.checked }))}
+                onChange={(e) =>
+                  setEnvState({ ...env, [k]: e.target.checked } as EnvState)
+                }
               />
               {label}
             </label>
           ))}
           <button
             className="btn btn-mini"
-            onClick={() => setEnv({ offline: false, slow: false, battery: false })}
+            onClick={() => setEnvState({ offline: false, slow: false, battery: false })}
           >
             还原
           </button>

@@ -10,6 +10,155 @@ import {
   defaultValuesFor,
 } from "./ConfigControls";
 import { PluginObserver } from "./PluginObserver";
+import { getEnvState, setEnvState, type EnvState } from "./env-sim";
+
+/**
+ * 一键演示：把「需要知道改哪个参数、改成什么值才能看见」的插件收敛成一个按钮。
+ *
+ * 测评里有一批插件的能力默认参数下不体现差异（filter 的 filter=none、
+ * priority-loading 的 priority=medium、viewport-aware 不显示标记……），
+ * 也有一批依赖环境（低电量 / 省流量 / 低内存）。这些插件此前只能靠测评脚本
+ * 逐个改值去验证，人工验收基本无从下手。这里为每个插件给出一个语义化的演示动作：
+ * 设参数、开环境模拟、或切到多图并发，点一下即可在画面上/观察台看到效果。
+ */
+type DemoAction = {
+  label: string;
+  hint: string;
+  patch?: Record<string, any>;
+  env?: Partial<EnvState>;
+  emptyAlt?: boolean;
+  multi?: boolean;
+  scroll?: boolean;
+};
+
+const DEMO_ACTIONS: Record<string, DemoAction[]> = {
+  "alt-text": [
+    {
+      label: "清空 alt 后自动补全",
+      hint: "补全类插件只在 alt 缺失时起作用，点击后会清空 alt 并按 prefix 生成",
+      emptyAlt: true,
+      patch: { prefix: "示例图片" },
+    },
+  ],
+  "anti-hotlink": [
+    {
+      label: "开启 Referer 校验",
+      hint: "无 referrer 时给 URL 追加 ref=direct，看观察台「请求 URL」",
+      patch: { checkReferer: true },
+    },
+  ],
+  auth: [
+    {
+      label: "注入访问凭证",
+      hint: "请求 URL 追加 access_token=demo-token，看观察台「请求 URL」",
+      patch: { token: "demo-token-1f2e3d", tokenParam: "access_token", crossOrigin: "anonymous" },
+    },
+  ],
+  "cache-memory": [
+    {
+      label: "多图并发 + 二次加载",
+      hint: "4 张图同时请求，再点观察台「二次加载测缓存」看是否命中",
+      multi: true,
+    },
+  ],
+  "concurrency-control": [
+    {
+      label: "4 张图排队（max=1）",
+      hint: "maxConcurrent=1 + debug，观察台「插件日志」会打印 acquire/release 排队过程",
+      multi: true,
+      patch: { maxConcurrent: 1, debug: true },
+    },
+  ],
+  "custom-effects": [
+    {
+      label: "套一组自定义效果",
+      hint: "imageStyle 是对象，参数面板里输不了，这里直接注入一组样式",
+      patch: {
+        imageStyle: {
+          filter: "sepia(0.9) contrast(1.1)",
+          transform: "scale(1.04)",
+          borderRadius: "14px",
+        },
+      },
+    },
+  ],
+  filter: [
+    {
+      label: "灰度 + 悬停恢复",
+      hint: "filter=none 时没有任何效果，这里切成 grayscale 且悬停还原",
+      patch: { filter: "grayscale", amount: 1, hover: true },
+    },
+  ],
+  "priority-loading": [
+    {
+      label: "提到最高优先级",
+      hint: "priority=high → 观察台 fetchpriority=high、loading=eager",
+      patch: { priority: "high" },
+    },
+  ],
+  "scroll-idle": [
+    {
+      label: "滚动后空闲再加载",
+      hint: "idleMs 拉长并开 debug，点击后自动滚一次，看请求时机与日志",
+      patch: { idleMs: 800, debug: true },
+      scroll: true,
+    },
+  ],
+  "viewport-aware": [
+    {
+      label: "显示视口标记",
+      hint: "rootMargin=200px + showDot，预览区右下角出现一个可视标记",
+      patch: { rootMargin: "200px", showDot: true },
+    },
+  ],
+  "viewport-debounce": [
+    {
+      label: "防抖 800ms + 滚动",
+      hint: "进入视口后要稳定停留才加载，点击后自动滚一次",
+      patch: { debounceMs: 800, debug: true },
+      scroll: true,
+    },
+  ],
+  "viewport-dwell": [
+    {
+      label: "驻留 1200ms + 滚动",
+      hint: "要求停留足够久才发起加载，点击后自动滚一次",
+      patch: { dwellMs: 1200, debug: true },
+      scroll: true,
+    },
+  ],
+  "battery-aware": [
+    {
+      label: "模拟低电量",
+      hint: "电量 8% → 请求宽度降级到 640，看观察台「请求 URL」",
+      env: { battery: true },
+      patch: { downgradeWidth: 640 },
+    },
+  ],
+  "data-saver": [
+    {
+      label: "模拟省流量模式",
+      hint: "saveData=true → URL 追加 quality 参数",
+      env: { slow: true },
+    },
+  ],
+  "memory-pressure-abort": [
+    {
+      label: "模拟低内存设备",
+      hint: "deviceMemory 降到 1GB → 降级宽度到 640",
+      env: { battery: true },
+      patch: { lowWidth: 640 },
+    },
+  ],
+  "network-analytics": [
+    {
+      label: "模拟弱网",
+      hint: "Network Information API 走 2g/900ms，日志里会带上网络档位",
+      env: { slow: true },
+    },
+  ],
+};
+
 
 /**
  * 示例页预设：少数插件的关键参数在 doc.json 里没有可静态声明的默认值
@@ -90,6 +239,9 @@ export const PluginPreview: React.FC<{ pluginId: string }> = ({ pluginId }) => {
   const [emptyAlt, setEmptyAlt] = React.useState(false);
   // 动画类插件（fade-in / reveal / morph / blur-up）效果是瞬态的，需要「重播」才能验收
   const [replay, setReplay] = React.useState(0);
+  // 多图并发：并发控制 / 视口调度 / 缓存类插件的价值只在多图下体现，
+  // 单图示例页天然看不出来
+  const [multi, setMulti] = React.useState(false);
   const stageRef = React.useRef<HTMLDivElement>(null);
   // 记录被用户手动改过的字段，示例预设不再覆盖它们
   const touchedRef = React.useRef<Set<string>>(new Set());
@@ -101,6 +253,7 @@ export const PluginPreview: React.FC<{ pluginId: string }> = ({ pluginId }) => {
     setSrc(defaultSrc);
     setEmptyAlt(false);
     setReplay(0);
+    setMulti(false);
   }, [pluginId, meta, defaultSrc]);
 
   const finalSrc = useError
@@ -152,6 +305,39 @@ export const PluginPreview: React.FC<{ pluginId: string }> = ({ pluginId }) => {
     window.setTimeout(() => setSrc(defaultSrc), 900);
   };
 
+  const actions = DEMO_ACTIONS[pluginId] || [];
+
+  const runAction = (a: DemoAction) => {
+    if (a.patch) {
+      // 演示写入的参数同样进 touched：否则会被示例预设覆盖回去
+      Object.keys(a.patch).forEach((k) => touchedRef.current.add(k));
+      setValues((v) => ({ ...v, ...a.patch }));
+    }
+    if (a.env) setEnvState({ ...getEnvState(), ...a.env });
+    if (a.emptyAlt) setEmptyAlt(true);
+    if (a.multi) setMulti(true);
+    // 门控 / 视口类插件要「有一次滚动」才会走完整流程
+    if (a.scroll) {
+      window.setTimeout(() => {
+        window.scrollTo(0, 260);
+        window.dispatchEvent(new Event("scroll"));
+        window.setTimeout(() => {
+          window.scrollTo(0, 0);
+          window.dispatchEvent(new Event("scroll"));
+        }, 700);
+      }, 250);
+    }
+    // 重挂载一次，让动画 / 门控类插件按新参数重新走一遍
+    setReplay((v) => v + 1);
+  };
+
+  // 多图模式用不同 seed，避免 4 张图命中同一个缓存条目、看不出并发
+  const multiSrc = (i: number) => {
+    const m = defaultSrc.match(/^https:\/\/picsum\.photos\/seed\/([^/]+)\/(.+)$/);
+    if (m) return `https://picsum.photos/seed/${m[1]}-m${i}/${m[2]}`;
+    return `${defaultSrc}${defaultSrc.includes("?") ? "&" : "?"}m=${i}`;
+  };
+
   return (
     <div className="preview-wrap">
       <div className="preview-toolbar">
@@ -180,6 +366,15 @@ export const PluginPreview: React.FC<{ pluginId: string }> = ({ pluginId }) => {
           />
           清空 alt（演示补全类插件）
         </label>
+        <label className="checkbox-line">
+          <input
+            type="checkbox"
+            data-demo="multi"
+            checked={multi}
+            onChange={(e) => setMulti(e.target.checked)}
+          />
+          多图（4 张并发）
+        </label>
         <button className="btn" data-demo="replay" onClick={() => setReplay((v) => v + 1)}>
           重播动画
         </button>
@@ -190,6 +385,24 @@ export const PluginPreview: React.FC<{ pluginId: string }> = ({ pluginId }) => {
           重置参数
         </button>
       </div>
+
+      {actions.length > 0 && (
+        <div className="demo-actions">
+          <span className="demo-actions-label">一键演示</span>
+          {actions.map((a, i) => (
+            <button
+              key={i}
+              className="btn btn-mini"
+              data-action={`${pluginId}#${i}`}
+              title={a.hint}
+              onClick={() => runAction(a)}
+            >
+              {a.label}
+            </button>
+          ))}
+          <span className="demo-actions-hint">{actions.map((a) => a.hint).join("；")}</span>
+        </div>
+      )}
 
       {presetKeys.length > 0 && (
         <div className="preset-hint">
@@ -202,19 +415,39 @@ export const PluginPreview: React.FC<{ pluginId: string }> = ({ pluginId }) => {
           <div className="preview-error">组合出错：{composeError}</div>
         ) : (
           <EB>
-            <div key={replay} style={{ width: 360, height: 240 }}>
-              <LazyImage
-                src={finalSrc}
-                alt={emptyAlt ? "" : meta.title}
-                loading="lazy"
-                containerStyle={{ width: "100%", height: "100%" }}
-                imageStyle={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                }}
-              />
-            </div>
+            {multi ? (
+              <div className="preview-grid" data-multi="1">
+                {[0, 1, 2, 3].map((i) => (
+                  <div key={`${replay}-${i}`} style={{ width: 160, height: 110 }}>
+                    <LazyImage
+                      src={multiSrc(i)}
+                      alt={emptyAlt ? "" : `${meta.title} ${i + 1}`}
+                      loading="lazy"
+                      containerStyle={{ width: "100%", height: "100%" }}
+                      imageStyle={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div key={replay} style={{ width: 360, height: 240 }}>
+                <LazyImage
+                  src={finalSrc}
+                  alt={emptyAlt ? "" : meta.title}
+                  loading="lazy"
+                  containerStyle={{ width: "100%", height: "100%" }}
+                  imageStyle={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                  }}
+                />
+              </div>
+            )}
           </EB>
         )}
       </div>
@@ -245,6 +478,9 @@ export const StaticPreview: React.FC<{
   const [src] = React.useState<string>(
     example.src || `https://picsum.photos/seed/${pluginId}/600/400`
   );
+  // 场景卡片同样需要「重播」：揭示动画 / 形变 / 淡入的效果播完就没了，
+  // 静态卡片一旦加载完就再也看不到过程
+  const [replay, setReplay] = React.useState(0);
 
   const normalize = (c: Record<string, any>) => {
     const out: Record<string, any> = {};
@@ -275,11 +511,18 @@ export const StaticPreview: React.FC<{
 
   return (
     <div className="example-stage">
+      <button
+        className="btn btn-mini example-replay"
+        data-demo="replay-static"
+        onClick={() => setReplay((v) => v + 1)}
+      >
+        重播
+      </button>
       {composeError ? (
         <div className="preview-error">组合出错：{composeError}</div>
       ) : (
         <EB>
-          <div style={{ width: 360, height: 240 }}>
+          <div key={replay} style={{ width: 360, height: 240 }}>
             <LazyImage
               src={src}
               alt={meta.title}

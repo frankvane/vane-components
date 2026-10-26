@@ -45,6 +45,40 @@ export function isEnvActive(e: EnvState = readEnv()): boolean {
   return e.offline || e.slow || e.battery;
 }
 
+/**
+ * 进程内共享的环境状态。
+ * 观察台的勾选框与预览区的「一键演示」按钮都要改环境，若各自 useState，
+ * 点了演示按钮勾选框不会同步。这里放一份带订阅的中心状态，
+ * 任何一处写入都会立即 apply 到 navigator 并通知所有订阅者。
+ */
+let currentEnv: EnvState | null = null;
+const envListeners = new Set<(e: EnvState) => void>();
+
+export function getEnvState(): EnvState {
+  if (!currentEnv) currentEnv = readEnv();
+  return currentEnv;
+}
+
+export function setEnvState(next: EnvState) {
+  currentEnv = { ...next };
+  writeEnv(currentEnv);
+  applyEnv(currentEnv);
+  envListeners.forEach((fn) => {
+    try {
+      fn(currentEnv as EnvState);
+    } catch {
+      /* ignore */
+    }
+  });
+}
+
+export function subscribeEnv(fn: (e: EnvState) => void): () => void {
+  envListeners.add(fn);
+  return () => {
+    envListeners.delete(fn);
+  };
+}
+
 export function applyEnv(e: EnvState) {
   // 离线
   try {
