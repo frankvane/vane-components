@@ -80,15 +80,15 @@ const PerformanceMonitoringDemo: React.FC = () => {
         <div
           style={{
             padding: 16,
-            background: "#ecfdf5",
+            background: "rgba(127, 208, 140, 0.10)",
             borderRadius: "8px",
-            border: "1px solid #10b981",
+            border: "1px solid var(--ok)",
           }}
         >
-          <p style={{ margin: 0, color: "#065f46", lineHeight: "1.6", marginBottom: 8 }}>
+          <p style={{ margin: 0, color: "var(--ok)", lineHeight: "1.6", marginBottom: 8 }}>
             📊 <strong>监控系统功能：</strong>
           </p>
-          <ul style={{ margin: 0, color: "#065f46", lineHeight: "1.8" }}>
+          <ul style={{ margin: 0, color: "var(--ok)", lineHeight: "1.8" }}>
             <li>实时性能指标收集（TTFB、下载、解码）</li>
             <li>自动性能报告生成</li>
             <li>全局监控管理器（跨组件统计）</li>
@@ -173,7 +173,7 @@ const PerformanceMonitoringDemo: React.FC = () => {
                   containerStyle={{
                     width: "100%",
                     height: "100%",
-                    background: "#f3f4f6",
+                    background: "var(--surface-2)",
                     borderRadius: "8px",
                   }}
                   imageStyle={{
@@ -188,7 +188,7 @@ const PerformanceMonitoringDemo: React.FC = () => {
                   textAlign: "center",
                   marginTop: 8,
                   fontSize: "0.85em",
-                  color: "#666",
+                  color: "var(--text-2)",
                 }}
               >
                 图片 {i + 1}
@@ -205,10 +205,10 @@ const PerformanceMonitoringDemo: React.FC = () => {
           <div
             style={{
               padding: 20,
-              background: "#f9fafb",
+              background: "var(--surface-2)",
               borderRadius: "8px",
               textAlign: "center",
-              color: "#6b7280",
+              color: "var(--text-3)",
             }}
           >
             等待性能数据收集中...（滚动页面以加载图片）
@@ -221,9 +221,9 @@ const PerformanceMonitoringDemo: React.FC = () => {
                 onClick={() => setSelectedReport(i)}
                 style={{
                   padding: 12,
-                  background: selectedReport === i ? "#eff6ff" : "#f9fafb",
+                  background: selectedReport === i ? "var(--accent-wash)" : "var(--surface-2)",
                   borderRadius: "8px",
-                  border: `1px solid ${selectedReport === i ? "#3b82f6" : "#e5e7eb"}`,
+                  border: `1px solid ${selectedReport === i ? "var(--signal)" : "var(--line)"}`,
                   cursor: "pointer",
                   transition: "all 0.2s",
                 }}
@@ -233,7 +233,7 @@ const PerformanceMonitoringDemo: React.FC = () => {
                     <strong style={{ fontSize: "0.9em" }}>
                       图片 #{report.index + 1}
                     </strong>
-                    <div style={{ fontSize: "0.8em", color: "#666", marginTop: 4 }}>
+                    <div style={{ fontSize: "0.8em", color: "var(--text-2)", marginTop: 4 }}>
                       {new Date(report.timestamp).toLocaleTimeString()}
                     </div>
                   </div>
@@ -242,12 +242,12 @@ const PerformanceMonitoringDemo: React.FC = () => {
                       style={{
                         fontSize: "1.1em",
                         fontWeight: "bold",
-                        color: report.duration > 3000 ? "#dc2626" : report.duration > 1000 ? "#f59e0b" : "#16a34a",
+                        color: report.duration > 3000 ? "var(--danger)" : report.duration > 1000 ? "var(--warn)" : "var(--ok)",
                       }}
                     >
                       {report.duration}ms
                     </div>
-                    <div style={{ fontSize: "0.8em", color: "#666" }}>
+                    <div style={{ fontSize: "0.8em", color: "var(--text-2)" }}>
                       加载时长
                     </div>
                   </div>
@@ -265,34 +265,34 @@ const PerformanceMonitoringDemo: React.FC = () => {
           <div
             style={{
               padding: 16,
-              background: "#ffffff",
+              background: "var(--surface)",
               borderRadius: "8px",
-              border: "1px solid #e5e7eb",
+              border: "1px solid var(--line)",
             }}
           >
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <tbody>
-                <tr style={{ borderBottom: "1px solid #f3f4f6" }}>
+                <tr style={{ borderBottom: "1px solid var(--surface-2)" }}>
                   <td style={{ padding: "8px 0", fontWeight: 500 }}>图片索引</td>
-                  <td style={{ padding: "8px 0", textAlign: "right", color: "#666" }}>
+                  <td style={{ padding: "8px 0", textAlign: "right", color: "var(--text-2)" }}>
                     #{performanceData[selectedReport].index + 1}
                   </td>
                 </tr>
-                <tr style={{ borderBottom: "1px solid #f3f4f6" }}>
+                <tr style={{ borderBottom: "1px solid var(--surface-2)" }}>
                   <td style={{ padding: "8px 0", fontWeight: 500 }}>加载时长</td>
-                  <td style={{ padding: "8px 0", textAlign: "right", color: "#666" }}>
+                  <td style={{ padding: "8px 0", textAlign: "right", color: "var(--text-2)" }}>
                     {performanceData[selectedReport].duration}ms
                   </td>
                 </tr>
-                <tr style={{ borderBottom: "1px solid #f3f4f6" }}>
+                <tr style={{ borderBottom: "1px solid var(--surface-2)" }}>
                   <td style={{ padding: "8px 0", fontWeight: 500 }}>加载时间</td>
-                  <td style={{ padding: "8px 0", textAlign: "right", color: "#666" }}>
+                  <td style={{ padding: "8px 0", textAlign: "right", color: "var(--text-2)" }}>
                     {new Date(performanceData[selectedReport].timestamp).toLocaleString()}
                   </td>
                 </tr>
-                <tr style={{ borderBottom: "1px solid #f3f4f6" }}>
+                <tr style={{ borderBottom: "1px solid var(--surface-2)" }}>
                   <td style={{ padding: "8px 0", fontWeight: 500 }}>图片URL</td>
-                  <td style={{ padding: "8px 0", textAlign: "right", color: "#666", fontSize: "0.8em" }}>
+                  <td style={{ padding: "8px 0", textAlign: "right", color: "var(--text-2)", fontSize: "0.8em" }}>
                     {performanceData[selectedReport].src.substring(0, 50)}...
                   </td>
                 </tr>
@@ -306,15 +306,15 @@ const PerformanceMonitoringDemo: React.FC = () => {
                         fontSize: "0.85em",
                         fontWeight: "bold",
                         background: performanceData[selectedReport].duration > 3000
-                          ? "#fee2e2"
+                          ? "rgba(242, 104, 94, 0.12)"
                           : performanceData[selectedReport].duration > 1000
-                          ? "#fef3c7"
-                          : "#d1fae5",
+                          ? "rgba(245, 194, 75, 0.10)"
+                          : "rgba(127, 208, 140, 0.14)",
                         color: performanceData[selectedReport].duration > 3000
-                          ? "#dc2626"
+                          ? "var(--danger)"
                           : performanceData[selectedReport].duration > 1000
-                          ? "#f59e0b"
-                          : "#16a34a",
+                          ? "var(--warn)"
+                          : "var(--ok)",
                       }}
                     >
                       {performanceData[selectedReport].duration > 3000
@@ -337,9 +337,9 @@ const PerformanceMonitoringDemo: React.FC = () => {
         <div
           style={{
             padding: 16,
-            background: "#f9fafb",
+            background: "var(--surface-2)",
             borderRadius: "8px",
-            border: "1px solid #e5e7eb",
+            border: "1px solid var(--line)",
           }}
         >
           <pre style={{ margin: 0, fontSize: "0.85em", overflow: "auto" }}>

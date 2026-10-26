@@ -19,10 +19,15 @@ const AdvancedDetail: React.FC<IdProps> = ({ id }) => {
   const loader = LOADERS[id];
   if (!loader) return <div className="page">未找到高级示例：{id}</div>;
   const Comp = React.lazy(loader);
+  const meta = ADVANCED.find((a) => a.id === id);
   return (
-    <React.Suspense fallback={<div className="loading">加载中…</div>}>
-      <Comp />
-    </React.Suspense>
+    <div className="page">
+      {/* 各高级 demo 自带标题，这里补一个屏幕阅读器可见的页面主标题 */}
+      <h1 className="sr-only">{meta?.title ?? "高级功能"}</h1>
+      <React.Suspense fallback={<div className="loading">加载中…</div>}>
+        <Comp />
+      </React.Suspense>
+    </div>
   );
 };
 
@@ -37,7 +42,7 @@ export const AdvancedPage: React.FC = () => {
           插件沙箱、性能监控、热更新、依赖解析等底层能力演示。
         </p>
       </div>
-      <div className="group-card-items">
+      <div className="index-grid">
         {ADVANCED.map((a) => (
           <a key={a.id} href={`#/advanced/${a.id}`} className="chip chip-lg">
             {a.title}

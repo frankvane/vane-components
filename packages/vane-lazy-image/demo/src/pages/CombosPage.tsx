@@ -34,12 +34,13 @@ const ComboDetail: React.FC<IdProps> = ({ id }) => {
   }
   const Comp = React.lazy(loader);
   return (
-      <div className="combo-detail">
-        <React.Suspense fallback={<div className="loading">加载中…</div>}>
-          <Comp />
-        </React.Suspense>
-        <ComboPanel key={combo.id} combo={combo} />
-      </div>
+    <div className="page combo-detail">
+      <h1 className="sr-only">{combo.title}</h1>
+      <React.Suspense fallback={<div className="loading">加载中…</div>}>
+        <Comp />
+      </React.Suspense>
+      <ComboPanel key={combo.id} combo={combo} />
+    </div>
   );
 };
 
@@ -54,7 +55,7 @@ export const CombosPage: React.FC = () => {
           多个插件协同的真实业务组合，展示端到端能力。
         </p>
       </div>
-      <div className="group-card-items">
+      <div className="index-grid">
         {COMBOS.map((c) => (
           <a key={c.id} href={`#/combo/${c.id}`} className="chip chip-lg">
             {c.title}

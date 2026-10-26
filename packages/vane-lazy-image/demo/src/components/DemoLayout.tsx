@@ -1,6 +1,7 @@
 import React from "react";
 
-// 替代旧版 DemoPage：仅做标题/描述 + 内容容器 + 轻量源码视图（可选 source）。
+// 每个场景一块面板：标题 / 描述 / 内容 / 可折叠源码。
+// 不使用 .page（外层页面已经有 .page 了，嵌套会重复分隔线与最大宽度）。
 export const DemoLayout: React.FC<{
   title: string;
   description?: string;
@@ -9,16 +10,18 @@ export const DemoLayout: React.FC<{
 }> = ({ title, description, source, children }) => {
   const [showSrc, setShowSrc] = React.useState(false);
   return (
-    <div className="page">
-      <div className="page-header">
-        <h1 className="page-title">{title}</h1>
-        {description && <p className="page-desc">{description}</p>}
-      </div>
-      <div className="page-body">{children}</div>
+    <section className="demo-block">
+      <header className="demo-head">
+        <h2 className="demo-title">{title}</h2>
+        {description && <p className="demo-desc">{description}</p>}
+      </header>
+      <div className="demo-body">{children}</div>
       {source && (
-        <div style={{ marginTop: 24 }}>
+        <div className="demo-foot">
           <button
-            className="btn"
+            type="button"
+            className="btn btn-mini"
+            aria-expanded={showSrc}
             onClick={() => setShowSrc((v) => !v)}
           >
             {showSrc ? "隐藏源码" : "查看源码"}
@@ -30,6 +33,6 @@ export const DemoLayout: React.FC<{
           )}
         </div>
       )}
-    </div>
+    </section>
   );
 };

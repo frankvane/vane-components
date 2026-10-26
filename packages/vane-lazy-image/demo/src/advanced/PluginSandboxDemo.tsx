@@ -96,17 +96,17 @@ const PluginSandboxDemo: React.FC = () => {
         <div
           style={{
             padding: 16,
-            background: "#fef2f2",
+            background: "rgba(242, 104, 94, 0.10)",
             borderRadius: "8px",
-            border: "1px solid #ef4444",
+            border: "1px solid var(--danger)",
           }}
         >
-          <p style={{ margin: 0, color: "#991b1b", lineHeight: "1.6", marginBottom: 8 }}>
+          <p style={{ margin: 0, color: "var(--danger)", lineHeight: "1.6", marginBottom: 8 }}>
             ⚠️ <strong>沙箱机制保护：</strong>
           </p>
-          <ul style={{ margin: 0, color: "#991b1b", lineHeight: "1.8" }}>
+          <ul style={{ margin: 0, color: "var(--danger)", lineHeight: "1.8" }}>
             <li>🛡️ 捕获插件内的错误和异常</li>
-            <li>⏱️ 超时控制（防止死循环）</li>
+            <li>超时控制（防止死循环）</li>
             <li>🧹 自动清理资源和监听器</li>
             <li>📦 命名空间隔离（sharedData）</li>
           </ul>
@@ -122,7 +122,7 @@ const PluginSandboxDemo: React.FC = () => {
             disabled={scenario === "unsafe"}
             style={{
               padding: "10px 20px",
-              background: scenario === "unsafe" ? "#9ca3af" : "#dc2626",
+              background: scenario === "unsafe" ? "var(--text-3)" : "var(--danger)",
               color: "white",
               border: "none",
               borderRadius: "6px",
@@ -137,7 +137,7 @@ const PluginSandboxDemo: React.FC = () => {
             disabled={scenario === "safe"}
             style={{
               padding: "10px 20px",
-              background: scenario === "safe" ? "#9ca3af" : "#16a34a",
+              background: scenario === "safe" ? "var(--text-3)" : "var(--ok)",
               color: "white",
               border: "none",
               borderRadius: "6px",
@@ -151,7 +151,7 @@ const PluginSandboxDemo: React.FC = () => {
             onClick={handleReset}
             style={{
               padding: "10px 20px",
-              background: "#6b7280",
+              background: "var(--text-3)",
               color: "white",
               border: "none",
               borderRadius: "6px",
@@ -170,15 +170,15 @@ const PluginSandboxDemo: React.FC = () => {
           <div
             style={{
               padding: 16,
-              background: scenario === "unsafe" ? "#fee2e2" : "#dcfce7",
+              background: scenario === "unsafe" ? "rgba(242, 104, 94, 0.12)" : "rgba(127, 208, 140, 0.12)",
               borderRadius: "8px",
-              border: `1px solid ${scenario === "unsafe" ? "#dc2626" : "#16a34a"}`,
+              border: `1px solid ${scenario === "unsafe" ? "var(--danger)" : "var(--ok)"}`,
             }}
           >
-            <strong style={{ color: scenario === "unsafe" ? "#991b1b" : "#166534" }}>
+            <strong style={{ color: scenario === "unsafe" ? "var(--danger)" : "var(--ok)" }}>
               {scenario === "unsafe" ? "❌ 不安全插件场景" : "✅ 沙箱保护场景"}
             </strong>
-            <p style={{ margin: "8px 0 0", color: scenario === "unsafe" ? "#991b1b" : "#166534" }}>
+            <p style={{ margin: "8px 0 0", color: scenario === "unsafe" ? "var(--danger)" : "var(--ok)" }}>
               {scenario === "unsafe"
                 ? "此插件在 onLoadSuccess 中抛出错误，会导致应用崩溃。观察控制台的错误信息。"
                 : "相同的错误逻辑，但被沙箱包装。错误被捕获，应用继续正常运行。"}
@@ -189,8 +189,8 @@ const PluginSandboxDemo: React.FC = () => {
 
       {/* 图片展示 */}
       <div style={{ marginBottom: 30 }}>
-        <h3 style={{ fontSize: "1.1em", marginBottom: 12 }}>🖼️ 测试图片</h3>
-        <p style={{ color: "#666", marginBottom: 12 }}>
+        <h3 style={{ fontSize: "1.1em", marginBottom: 12 }}>测试图片</h3>
+        <p style={{ color: "var(--text-2)", marginBottom: 12 }}>
           {scenario === "none"
             ? "点击上方按钮选择测试场景"
             : "观察图片加载时的插件行为和错误处理"}
@@ -212,7 +212,7 @@ const PluginSandboxDemo: React.FC = () => {
                   containerStyle={{
                     width: "100%",
                     height: "100%",
-                    background: "#f3f4f6",
+                    background: "var(--surface-2)",
                     borderRadius: "8px",
                   }}
                   imageStyle={{
@@ -227,7 +227,7 @@ const PluginSandboxDemo: React.FC = () => {
                   textAlign: "center",
                   marginTop: 8,
                   fontSize: "0.85em",
-                  color: "#666",
+                  color: "var(--text-2)",
                 }}
               >
                 图片 {i + 1}
@@ -243,9 +243,9 @@ const PluginSandboxDemo: React.FC = () => {
         <div
           style={{
             padding: 16,
-            background: "#1f2937",
+            background: "var(--text)",
             borderRadius: "8px",
-            color: "#d1d5db",
+            color: "var(--line-strong)",
             fontFamily: "monospace",
             fontSize: "0.85em",
             maxHeight: 200,
@@ -253,7 +253,7 @@ const PluginSandboxDemo: React.FC = () => {
           }}
         >
           {logs.length === 0 ? (
-            <div style={{ color: "#6b7280" }}>等待操作...</div>
+            <div style={{ color: "var(--text-3)" }}>等待操作...</div>
           ) : (
             logs.map((log, i) => (
               <div key={i} style={{ marginBottom: 4 }}>
@@ -270,9 +270,9 @@ const PluginSandboxDemo: React.FC = () => {
         <div
           style={{
             padding: 16,
-            background: "#f9fafb",
+            background: "var(--surface-2)",
             borderRadius: "8px",
-            border: "1px solid #e5e7eb",
+            border: "1px solid var(--line)",
           }}
         >
           <pre style={{ margin: 0, fontSize: "0.85em", overflow: "auto" }}>
@@ -303,15 +303,15 @@ const safePlugin = {
         <div
           style={{
             padding: 16,
-            background: "#eff6ff",
+            background: "var(--accent-wash)",
             borderRadius: "8px",
-            border: "1px solid #3b82f6",
+            border: "1px solid var(--signal)",
           }}
         >
-          <p style={{ margin: 0, color: "#1e40af", lineHeight: "1.6", marginBottom: 8 }}>
+          <p style={{ margin: 0, color: "var(--signal)", lineHeight: "1.6", marginBottom: 8 }}>
             💡 <strong>使用建议：</strong>
           </p>
-          <ul style={{ margin: 0, color: "#1e40af", lineHeight: "1.8" }}>
+          <ul style={{ margin: 0, color: "var(--signal)", lineHeight: "1.8" }}>
             <li>对第三方插件使用沙箱包装</li>
             <li>在开发环境启用 debug 模式</li>
             <li>根据插件复杂度调整超时时间</li>

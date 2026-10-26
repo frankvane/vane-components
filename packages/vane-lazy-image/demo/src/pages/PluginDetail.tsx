@@ -1,6 +1,6 @@
 import React from "react";
 import { useParams, Link } from "react-router-dom";
-import { getPluginById } from "../data/plugin-catalog";
+import { getPluginById, CATEGORY_LABELS } from "../data/plugin-catalog";
 import { PluginPreview } from "../components/PluginPreview";
 import { ExampleCard } from "../components/ExampleCard";
 import { CodeBlock } from "../components/CodeBlock";
@@ -37,6 +37,24 @@ export const PluginDetail: React.FC = () => {
               {t}
             </span>
           ))}
+        </div>
+        <div className="plugin-meta">
+          <span className="plugin-meta-item">
+            <i>factory</i>
+            <code>{meta.factoryName}</code>
+          </span>
+          <span className="plugin-meta-item">
+            <i>group</i>
+            {CATEGORY_LABELS[meta.category]}
+          </span>
+          <span className="plugin-meta-item">
+            <i>params</i>
+            {meta.config.length}
+          </span>
+          <span className="plugin-meta-item">
+            <i>examples</i>
+            {meta.examples.length}
+          </span>
         </div>
       </div>
 
@@ -85,6 +103,7 @@ export const PluginDetail: React.FC = () => {
             {meta.examples.map((ex, i) => (
               <ExampleCard
                 key={i}
+                index={i}
                 pluginId={meta.id}
                 factoryName={meta.factoryName}
                 example={ex}

@@ -229,15 +229,15 @@ const DependencyResolverDemo: React.FC = () => {
         <div
           style={{
             padding: 16,
-            background: "#f0f9ff",
+            background: "rgba(95, 211, 200, 0.08)",
             borderRadius: "8px",
-            border: "1px solid #0ea5e9",
+            border: "1px solid var(--signal)",
           }}
         >
-          <p style={{ margin: 0, color: "#0369a1", lineHeight: "1.6", marginBottom: 8 }}>
+          <p style={{ margin: 0, color: "var(--signal)", lineHeight: "1.6", marginBottom: 8 }}>
             🧩 <strong>依赖解析功能：</strong>
           </p>
-          <ul style={{ margin: 0, color: "#0369a1", lineHeight: "1.8" }}>
+          <ul style={{ margin: 0, color: "var(--signal)", lineHeight: "1.8" }}>
             <li>自动拓扑排序（Topological Sort）</li>
             <li>循环依赖检测</li>
             <li>版本兼容性检查（Semver）</li>
@@ -254,7 +254,7 @@ const DependencyResolverDemo: React.FC = () => {
             onClick={handleScenario1}
             style={{
               padding: "10px 16px",
-              background: "#10b981",
+              background: "var(--ok)",
               color: "white",
               border: "none",
               borderRadius: "6px",
@@ -268,7 +268,7 @@ const DependencyResolverDemo: React.FC = () => {
             onClick={handleScenario2}
             style={{
               padding: "10px 16px",
-              background: "#3b82f6",
+              background: "var(--signal)",
               color: "white",
               border: "none",
               borderRadius: "6px",
@@ -282,7 +282,7 @@ const DependencyResolverDemo: React.FC = () => {
             onClick={handleScenario3}
             style={{
               padding: "10px 16px",
-              background: "#f59e0b",
+              background: "var(--warn)",
               color: "white",
               border: "none",
               borderRadius: "6px",
@@ -296,7 +296,7 @@ const DependencyResolverDemo: React.FC = () => {
             onClick={handleScenario4}
             style={{
               padding: "10px 16px",
-              background: "#ef4444",
+              background: "var(--danger)",
               color: "white",
               border: "none",
               borderRadius: "6px",
@@ -319,18 +319,18 @@ const DependencyResolverDemo: React.FC = () => {
                 key={plugin.name}
                 style={{
                   padding: "8px 12px",
-                  background: "#f3f4f6",
+                  background: "var(--surface-2)",
                   borderRadius: "6px",
                   fontSize: "0.85em",
-                  border: "1px solid #d1d5db",
+                  border: "1px solid var(--line-strong)",
                 }}
               >
                 <div style={{ fontWeight: "bold" }}>{plugin.name}</div>
-                <div style={{ color: "#6b7280", fontSize: "0.9em" }}>
+                <div style={{ color: "var(--text-3)", fontSize: "0.9em" }}>
                   v{plugin.version}
                 </div>
                 {plugin.dependencies && (
-                  <div style={{ color: "#9ca3af", fontSize: "0.85em", marginTop: 4 }}>
+                  <div style={{ color: "var(--text-3)", fontSize: "0.85em", marginTop: 4 }}>
                     依赖: {Object.keys(plugin.dependencies).join(", ")}
                   </div>
                 )}
@@ -347,9 +347,9 @@ const DependencyResolverDemo: React.FC = () => {
           <div
             style={{
               padding: 16,
-              background: "#f0fdf4",
+              background: "rgba(127, 208, 140, 0.10)",
               borderRadius: "8px",
-              border: "1px solid #22c55e",
+              border: "1px solid var(--ok)",
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
@@ -358,16 +358,16 @@ const DependencyResolverDemo: React.FC = () => {
                   <div
                     style={{
                       padding: "8px 16px",
-                      background: "#dcfce7",
+                      background: "rgba(127, 208, 140, 0.12)",
                       borderRadius: "6px",
                       fontWeight: "bold",
-                      color: "#166534",
+                      color: "var(--ok)",
                     }}
                   >
                     {i + 1}. {name}
                   </div>
                   {i < resolvedOrder.length - 1 && (
-                    <span style={{ color: "#16a34a", fontSize: "1.2em" }}>→</span>
+                    <span style={{ color: "var(--ok)", fontSize: "1.2em" }}>→</span>
                   )}
                 </React.Fragment>
               ))}
@@ -382,9 +382,9 @@ const DependencyResolverDemo: React.FC = () => {
         <div
           style={{
             padding: 16,
-            background: "#1f2937",
+            background: "var(--text)",
             borderRadius: "8px",
-            color: "#d1d5db",
+            color: "var(--line-strong)",
             fontFamily: "monospace",
             fontSize: "0.85em",
             maxHeight: 200,
@@ -392,7 +392,7 @@ const DependencyResolverDemo: React.FC = () => {
           }}
         >
           {resolveLog.length === 0 ? (
-            <div style={{ color: "#6b7280" }}>点击上方按钮开始测试...</div>
+            <div style={{ color: "var(--text-3)" }}>点击上方按钮开始测试...</div>
           ) : (
             resolveLog.map((log, i) => (
               <div key={i} style={{ marginBottom: 4 }}>
@@ -422,7 +422,7 @@ const DependencyResolverDemo: React.FC = () => {
                 containerStyle={{
                   width: "100%",
                   height: "100%",
-                  background: "#f3f4f6",
+                  background: "var(--surface-2)",
                   borderRadius: "8px",
                 }}
                 imageStyle={{
@@ -442,9 +442,9 @@ const DependencyResolverDemo: React.FC = () => {
         <div
           style={{
             padding: 16,
-            background: "#f9fafb",
+            background: "var(--surface-2)",
             borderRadius: "8px",
-            border: "1px solid #e5e7eb",
+            border: "1px solid var(--line)",
           }}
         >
           <pre style={{ margin: 0, fontSize: "0.85em", overflow: "auto" }}>

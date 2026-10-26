@@ -1,0 +1,93 @@
+import type { ScenarioMeta } from "../types";
+
+/** C · 视频社区：封面数量极大、单图小，核心矛盾是"别和视频抢带宽"。 */
+export const VIDEO: ScenarioMeta[] = [
+  {
+    id: "c1-bili-cover-grid",
+    code: "C1",
+    cat: "video",
+    title: "推荐流封面栅格",
+    ref: { site: "bilibili", page: "首页推荐流", url: "https://www.bilibili.com/" },
+    pain: "16:9 封面 + 右下时长胶囊；一屏十几条，抢占不到视口就不该发请求。",
+    tone: "light",
+    plugs: [
+      { fn: "createAspectRatioSpacerPlugin", arg: "{ ratio: 16 / 9 }", why: "封面比例固定，栅格不塌" },
+      { fn: "createBadgePlugin", arg: '{ text: dur, position: "bottom-right" }', why: "时长胶囊，逐条装配" },
+      { fn: "createViewportDwellPlugin", arg: "{ dwellMs: 180, onlyWhenIntersecting: true }", why: "快速滑过不算真正看到" },
+      { fn: "createFadeInPlugin", arg: "{ durationMs: 260 }", why: "白底上的切换更柔和" },
+      { fn: "createVideoPosterPlugin", arg: "{ playInModal: true }", why: "置顶条点封面起播" },
+    ],
+    note: "时长逐条不同，用 useMemo 固定 withPlugins 的组件身份，避免重渲染整块重挂。",
+  },
+  {
+    id: "c2-hero-banner",
+    code: "C2",
+    cat: "video",
+    title: "首页运营 Banner",
+    ref: { site: "bilibili / YouTube", page: "首页顶部轮播", url: "https://www.youtube.com/" },
+    pain: "整站 LCP 就是这张大图，晚 300ms 就是指标上的一次降级。",
+    tone: "light",
+    plugs: [
+      { fn: "createPriorityLoadingPlugin", arg: '{ priority: "high" }', why: "唯一该抢带宽的图" },
+      { fn: "createPreconnectPlugin", arg: '{ domains: ["https://picsum.photos"] }', why: "提前建连省一个 RTT" },
+      { fn: "createLqipPlugin", arg: "{ lqipSrc: (src) => …, blur: 16 }", why: "20px 低清先铺满" },
+    ],
+  },
+  {
+    id: "c3-watch-side-list",
+    code: "C3",
+    cat: "video",
+    title: "接下来播放列",
+    ref: { site: "YouTube", page: "播放页右侧列表", url: "https://www.youtube.com/" },
+    pain: "滚动时一帧十几个请求，直接和正在播放的视频抢带宽。",
+    tone: "dark",
+    plugs: [
+      { fn: "createScrollIdlePlugin", arg: "{ idleMs: 120, maxWaitMs: 900 }", why: "滚动停了才放行" },
+      { fn: "createViewportAwarePlugin", arg: '{ rootMargin: "160px", once: true }', why: "提前一屏但与滚动解耦" },
+      { fn: "createMemoryCachePlugin", arg: "{ maxEntries: 80 }", why: "切视频不重复拉封面" },
+    ],
+  },
+  {
+    id: "c4-uploader-avatar",
+    code: "C4",
+    cat: "video",
+    title: "UP 主头像（直播中）",
+    ref: { site: "bilibili", page: "UP 主卡片", url: "https://www.bilibili.com/" },
+    pain: "头像小、数量多、缺图率高；直播中还要有状态信号。",
+    tone: "light",
+    plugs: [
+      { fn: "createCropPlugin", arg: "{ focusPoint: { x: 0.5, y: 0.35 } }", why: "脸部居中裁方" },
+      { fn: "createBorderGlowPlugin", arg: '{ color: "rgba(251,114,153,.75)" }', why: "直播中的信号灯" },
+      { fn: "createFallbackImagePlugin", arg: "{ fallbackSrc: … }", why: "缺图有人形兜底" },
+    ],
+  },
+  {
+    id: "c5-hover-preview",
+    code: "C5",
+    cat: "video",
+    title: "悬停起播预览",
+    ref: { site: "bilibili / YouTube", page: "封面悬停预览", url: "https://www.bilibili.com/" },
+    pain: "悬停 300ms 才真的要预览，但这 300ms 里把下一帧取回来，体验差别巨大。",
+    tone: "dark",
+    plugs: [
+      { fn: "createHoverPrefetchPlugin", arg: "{ trigger: \"mouseenter\", max: 2 }", why: "悬停即预取下一帧" },
+      { fn: "createFetchLoaderPlugin", arg: "{ enabled: true, timeout: 20000 }", why: "拿到进度、可中断、可复用" },
+      { fn: "createTransitionPlugin", arg: "{ durationMs: 260 }", why: "帧切换不闪" },
+    ],
+    note: "真实项目把「下一帧」换成视频首帧图或雪碧图分片。",
+  },
+  {
+    id: "c6-saver-mode",
+    code: "C6",
+    cat: "video",
+    title: "移动端省流模式",
+    ref: { site: "bilibili", page: "移动端省流", url: "https://www.bilibili.com/" },
+    pain: "用户开着省流量、电量只剩 15%，这时还按桌面规格拉图就是纯粹的浪费。",
+    tone: "dark",
+    plugs: [
+      { fn: "createDataSaverPlugin", arg: "{ respectSaveData: true, fallbackQuality: 0.6 }", why: "尊重 Save-Data" },
+      { fn: "createBatteryAwarePlugin", arg: "{ lowBatteryThreshold: 0.2, downgradeWidth: 640 }", why: "低电量降档" },
+      { fn: "createNetworkAnalyticsPlugin", arg: "{ trackCDN: true }", why: "量化省了多少字节" },
+    ],
+  },
+];

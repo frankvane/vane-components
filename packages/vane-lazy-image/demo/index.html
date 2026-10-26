@@ -3,7 +3,29 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>vane-lazy-image 演示</title>
+    <meta name="theme-color" content="#0b0a09" />
+    <meta
+      name="description"
+      content="vane-lazy-image 插件化 React 图片懒加载组件库的实时演示台：参数调优、运行时观测与组合装配。"
+    />
+    <title>vane-lazy-image · 插件演示台</title>
+    <!-- 内联 SVG 图标：与侧栏品牌方块同色，顺带消掉 /favicon.ico 的 404 -->
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23ff7a29'/%3E%3Cpath d='M8 9h4.6l3.4 9.2L19.4 9H24l-6.2 15h-3.6L8 9Z' fill='%230b0a09'/%3E%3C/svg%3E"
+    />
+    <!-- 首屏底色内联，避免暗色站点在 CSS 到达前闪白 -->
+    <style>
+      html {
+        color-scheme: dark;
+        background: #0b0a09;
+      }
+      body {
+        margin: 0;
+        background: #0b0a09;
+        color: #f2ede4;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>

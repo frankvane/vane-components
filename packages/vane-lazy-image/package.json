@@ -368,7 +368,8 @@
     "lint": "eslint .",
     "sync:exports": "node ../../scripts/sync-exports.mjs",
     "serve:demo": "node scripts/serve-demo.cjs",
-    "demo": "pnpm build:demo && node scripts/serve-demo.cjs"
+    "demo": "pnpm build:demo && node scripts/serve-demo.cjs",
+    "verify:scenarios": "node scripts/verify-scenarios.mjs"
   },
   "peerDependencies": {
     "@vane/plugin-core": "workspace:*",

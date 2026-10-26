@@ -50,12 +50,20 @@ export const ExampleCard: React.FC<{
   pluginId: string;
   factoryName: string;
   example: PluginExample;
-}> = ({ pluginId, factoryName, example }) => {
+  index?: number;
+}> = ({ pluginId, factoryName, example, index }) => {
   const [open, setOpen] = React.useState(false);
   const code = buildSource(example, factoryName, pluginId);
   return (
     <div className="example-card">
-      <h4 className="example-name">{example.name}</h4>
+      <div className="example-head">
+        {typeof index === "number" && (
+          <span className="example-index" aria-hidden="true">
+            {String(index + 1).padStart(2, "0")}
+          </span>
+        )}
+        <h4 className="example-name">{example.name}</h4>
+      </div>
       {example.description && (
         <p className="example-desc">{example.description}</p>
       )}
@@ -64,6 +72,7 @@ export const ExampleCard: React.FC<{
         <button
           type="button"
           className="example-toggle"
+          aria-expanded={open}
           onClick={() => setOpen((o) => !o)}
         >
           {open ? "隐藏源码" : "查看源码"}

@@ -48,8 +48,8 @@ const PluginHotReloadDemo: React.FC = () => {
     const badge = createBadgePlugin({
       text: "🔥 HOT",
       position: "top-right",
-      bgColor: "#ef4444",
-      color: "#fff",
+      bgColor: "var(--danger)",
+      color: "var(--text-inv)",
       fontSize: 14,
       padding: "4px 12px",
       showWhen: "loaded"
@@ -90,8 +90,8 @@ const PluginHotReloadDemo: React.FC = () => {
     const newBadge = createBadgePlugin({
       text: "✨ NEW",
       position: "top-left",
-      bgColor: "#10b981",
-      color: "#fff",
+      bgColor: "var(--ok)",
+      color: "var(--text-inv)",
       fontSize: 16,
       padding: "6px 16px",
       borderRadius: 8,
@@ -129,15 +129,15 @@ const PluginHotReloadDemo: React.FC = () => {
         <div
           style={{
             padding: 16,
-            background: "#fef3c7",
+            background: "rgba(245, 194, 75, 0.10)",
             borderRadius: "8px",
-            border: "1px solid #f59e0b",
+            border: "1px solid var(--warn)",
           }}
         >
-          <p style={{ margin: 0, color: "#92400e", lineHeight: "1.6", marginBottom: 8 }}>
+          <p style={{ margin: 0, color: "var(--warn)", lineHeight: "1.6", marginBottom: 8 }}>
             🔥 <strong>热更新能力：</strong>
           </p>
-          <ul style={{ margin: 0, color: "#92400e", lineHeight: "1.8" }}>
+          <ul style={{ margin: 0, color: "var(--warn)", lineHeight: "1.8" }}>
             <li>运行时注册新插件</li>
             <li>动态卸载已有插件</li>
             <li>热替换插件配置</li>
@@ -155,18 +155,18 @@ const PluginHotReloadDemo: React.FC = () => {
               key={name}
               style={{
                 padding: "6px 12px",
-                background: "#dbeafe",
+                background: "var(--accent-wash)",
                 borderRadius: "6px",
                 fontSize: "0.9em",
-                color: "#1e40af",
-                border: "1px solid #3b82f6",
+                color: "var(--signal)",
+                border: "1px solid var(--signal)",
               }}
             >
               {name}
             </div>
           ))}
           {currentPlugins.length === 0 && (
-            <div style={{ color: "#9ca3af", fontSize: "0.9em" }}>
+            <div style={{ color: "var(--text-3)", fontSize: "0.9em" }}>
               无激活插件
             </div>
           )}
@@ -181,7 +181,7 @@ const PluginHotReloadDemo: React.FC = () => {
             onClick={handleAddBadge}
             style={{
               padding: "10px 16px",
-              background: "#10b981",
+              background: "var(--ok)",
               color: "white",
               border: "none",
               borderRadius: "6px",
@@ -195,7 +195,7 @@ const PluginHotReloadDemo: React.FC = () => {
             onClick={handleRemoveBadge}
             style={{
               padding: "10px 16px",
-              background: "#ef4444",
+              background: "var(--danger)",
               color: "white",
               border: "none",
               borderRadius: "6px",
@@ -209,7 +209,7 @@ const PluginHotReloadDemo: React.FC = () => {
             onClick={handleReplacePlugin}
             style={{
               padding: "10px 16px",
-              background: "#f59e0b",
+              background: "var(--warn)",
               color: "white",
               border: "none",
               borderRadius: "6px",
@@ -223,7 +223,7 @@ const PluginHotReloadDemo: React.FC = () => {
             onClick={handleResetPlugins}
             style={{
               padding: "10px 16px",
-              background: "#6b7280",
+              background: "var(--text-3)",
               color: "white",
               border: "none",
               borderRadius: "6px",
@@ -255,7 +255,7 @@ const PluginHotReloadDemo: React.FC = () => {
                 containerStyle={{
                   width: "100%",
                   height: "100%",
-                  background: "#f3f4f6",
+                  background: "var(--surface-2)",
                   borderRadius: "8px",
                 }}
                 imageStyle={{
@@ -275,9 +275,9 @@ const PluginHotReloadDemo: React.FC = () => {
         <div
           style={{
             padding: 16,
-            background: "#1f2937",
+            background: "var(--text)",
             borderRadius: "8px",
-            color: "#d1d5db",
+            color: "var(--line-strong)",
             fontFamily: "monospace",
             fontSize: "0.85em",
             maxHeight: 250,
@@ -285,7 +285,7 @@ const PluginHotReloadDemo: React.FC = () => {
           }}
         >
           {logs.length === 0 ? (
-            <div style={{ color: "#6b7280" }}>等待操作...</div>
+            <div style={{ color: "var(--text-3)" }}>等待操作...</div>
           ) : (
             logs.map((log, i) => (
               <div key={i} style={{ marginBottom: 4 }}>
@@ -302,9 +302,9 @@ const PluginHotReloadDemo: React.FC = () => {
         <div
           style={{
             padding: 16,
-            background: "#f9fafb",
+            background: "var(--surface-2)",
             borderRadius: "8px",
-            border: "1px solid #e5e7eb",
+            border: "1px solid var(--line)",
           }}
         >
           <pre style={{ margin: 0, fontSize: "0.85em", overflow: "auto" }}>
@@ -320,7 +320,7 @@ const success = manager.register(badge); // 返回 true/false
 // 运行时添加新插件
 const newBadge = createBadgePlugin({
   text: "NEW",
-  bgColor: "#10b981"
+  bgColor: "var(--ok)"
 });
 manager.register(newBadge); // 热注册
 

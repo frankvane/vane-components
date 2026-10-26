@@ -66,13 +66,13 @@ const ComboEnginePerfDemo: React.FC = () => {
       <div
         style={{
           padding: 14,
-          background: online ? "#ecfdf5" : "#fef2f2",
+          background: online ? "rgba(127, 208, 140, 0.10)" : "rgba(242, 104, 94, 0.10)",
           borderRadius: 10,
-          border: `1px solid ${online ? "#10b981" : "#f87171"}`,
+          border: `1px solid ${online ? "var(--ok)" : "var(--danger)"}`,
           marginBottom: 20,
         }}
       >
-        <p style={{ margin: 0, color: online ? "#065f46" : "#991b1b", lineHeight: 1.6 }}>
+        <p style={{ margin: 0, color: online ? "var(--ok)" : "var(--danger)", lineHeight: 1.6 }}>
           <strong>当前：{online ? "在线" : "离线"}</strong>
           {online
             ? " — OfflinePlugin 在线预热资源进 Cache Storage；切到 DevTools → Network → Offline 后，下方图片会即时显示「离线模式」徽标并回退占位图（证明 GlobalContext online/offline 已真正驱动插件重渲染）。"
@@ -101,7 +101,7 @@ const ComboEnginePerfDemo: React.FC = () => {
               containerStyle={{
                 width: "100%",
                 height: "100%",
-                background: "#f3f4f6",
+                background: "var(--surface-2)",
                 borderRadius: 8,
               }}
               imageStyle={{ width: "100%", height: "100%", objectFit: "cover" }}
@@ -118,13 +118,13 @@ const Stat: React.FC<{ label: string; value: string }> = ({ label, value }) => (
     style={{
       padding: 14,
       borderRadius: 8,
-      background: "#fff",
-      border: "1px solid #e5e7eb",
+      background: "var(--surface-2)",
+      border: "1px solid var(--line)",
       textAlign: "center",
     }}
   >
-    <div style={{ fontSize: "1.5em", fontWeight: 700, color: "#0e7490" }}>{value}</div>
-    <div style={{ fontSize: "0.8em", color: "#64748b" }}>{label}</div>
+    <div style={{ fontSize: "1.5em", fontWeight: 700, color: "var(--signal)" }}>{value}</div>
+    <div style={{ fontSize: "0.8em", color: "var(--text-3)" }}>{label}</div>
   </div>
 );
 

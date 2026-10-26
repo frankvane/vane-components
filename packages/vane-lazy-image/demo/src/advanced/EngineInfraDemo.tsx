@@ -21,7 +21,7 @@ const EngineInfraDemo: React.FC = () => {
   const [ctxStats, setCtxStats] = useState(() => getGlobalContextStats());
   const [pool, setPool] = useState(() => getObserverPoolStats());
 
-  // 🚀 GlobalContext：订阅全局上下文变化（online/offline、网络切换、resize 都会触发）
+  // GlobalContext：订阅全局上下文变化（online/offline、网络切换、resize 都会触发）
   useEffect(() => {
     const refresh = () => {
       setNet(getGlobalNetworkInfo());
@@ -33,7 +33,7 @@ const EngineInfraDemo: React.FC = () => {
     return unsub;
   }, []);
 
-  // 👁️ ObserverPool：轮询统计（图片进入视口时被复用，Observer 数量远低于图片数）
+  // ObserverPool：轮询统计（图片进入视口时被复用，Observer 数量远低于图片数）
   useEffect(() => {
     const tick = () => setPool(getObserverPoolStats());
     tick();
@@ -77,19 +77,19 @@ const EngineInfraDemo: React.FC = () => {
           marginBottom: 24,
         }}
       >
-        {/* 🚀 GlobalContext 面板 */}
+        {/* GlobalContext 面板 */}
         <div
           style={{
             padding: 16,
-            background: "#f5f3ff",
+            background: "var(--surface-3)",
             borderRadius: 10,
-            border: "1px solid #c4b5fd",
+            border: "1px solid var(--accent-line)",
           }}
         >
-          <h3 style={{ margin: "0 0 4px", fontSize: "1.05em", color: "#5b21b6" }}>
-            🚀 GlobalContext · 全局上下文
+          <h3 style={{ margin: "0 0 4px", fontSize: "1.05em", color: "var(--accent-2)" }}>
+            GlobalContext · 全局上下文
           </h3>
-          <p style={{ margin: "0 0 12px", fontSize: "0.82em", color: "#7c3aed" }}>
+          <p style={{ margin: "0 0 12px", fontSize: "0.82em", color: "var(--accent-2)" }}>
             全 App 唯一的网络/设备监听源，变化后广播给每个实例。
           </p>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
@@ -99,13 +99,13 @@ const EngineInfraDemo: React.FC = () => {
                 width: 10,
                 height: 10,
                 borderRadius: "50%",
-                background: net?.online ? "#16a34a" : "#dc2626",
+                background: net?.online ? "var(--ok)" : "var(--danger)",
               }}
             />
             <strong style={{ fontSize: "1.1em" }}>
               {net?.online ? "在线" : "离线"}
             </strong>
-            <span style={{ fontSize: "0.78em", color: "#6b7280" }}>
+            <span style={{ fontSize: "0.78em", color: "var(--text-3)" }}>
               （在 DevTools → Network 勾选 Offline 可实时切换本状态）
             </span>
           </div>
@@ -124,31 +124,31 @@ const EngineInfraDemo: React.FC = () => {
           </table>
         </div>
 
-        {/* 👁️ ObserverPool 面板 */}
+        {/* ObserverPool 面板 */}
         <div
           style={{
             padding: 16,
-            background: "#ecfeff",
+            background: "rgba(95, 211, 200, 0.08)",
             borderRadius: 10,
             border: "1px solid #67e8f9",
           }}
         >
-          <h3 style={{ margin: "0 0 4px", fontSize: "1.05em", color: "#0e7490" }}>
-            👁️ ObserverPool · 共享观察池
+          <h3 style={{ margin: "0 0 4px", fontSize: "1.05em", color: "var(--signal)" }}>
+            ObserverPool · 共享观察池
           </h3>
-          <p style={{ margin: "0 0 12px", fontSize: "0.82em", color: "#0e7490" }}>
+          <p style={{ margin: "0 0 12px", fontSize: "0.82em", color: "var(--signal)" }}>
             相同配置（root/rootMargin/threshold）的图复用同一个 IntersectionObserver。
           </p>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12, marginBottom: 12 }}>
-            <StatCard label="Observer 实例" value={String(pool.observerCount)} accent="#0891b2" />
-            <StatCard label="被观察元素" value={String(pool.elementCount)} accent="#0891b2" />
-            <StatCard label="平均共享比" value={`${shareRatio}∶1`} accent="#7c3aed" />
-            <StatCard label="累计回调" value={String(pool.totalCallbackExecutions)} accent="#7c3aed" />
+            <StatCard label="Observer 实例" value={String(pool.observerCount)} accent="var(--signal)" />
+            <StatCard label="被观察元素" value={String(pool.elementCount)} accent="var(--signal)" />
+            <StatCard label="平均共享比" value={`${shareRatio}∶1`} accent="var(--accent-2)" />
+            <StatCard label="累计回调" value={String(pool.totalCallbackExecutions)} accent="var(--accent-2)" />
           </div>
-          <p style={{ margin: "0 0 6px", fontSize: "0.8em", color: "#155e75" }}>
+          <p style={{ margin: "0 0 6px", fontSize: "0.8em", color: "var(--signal)" }}>
             内存估算：<strong>{pool.memoryEstimate}</strong>
           </p>
-          <p style={{ margin: 0, fontSize: "0.78em", color: "#64748b", lineHeight: 1.5 }}>
+          <p style={{ margin: 0, fontSize: "0.78em", color: "var(--text-3)", lineHeight: 1.5 }}>
             下方 {images.length} 张图若各自创建 Observer 需 {images.length} 个实例；
             共享池把它们收敛到 <strong>{pool.observerCount}</strong> 个（root 身份经 WeakMap 稳定化，
             不同滚动根同 class 也不会碰撞到错-root observer）。
@@ -157,7 +157,7 @@ const EngineInfraDemo: React.FC = () => {
       </div>
 
       {/* 图片网格（制造被观察元素） */}
-      <h3 style={{ fontSize: "1.05em", margin: "0 0 12px" }}>🖼️ 观察样本（{images.length} 张）</h3>
+      <h3 style={{ fontSize: "1.05em", margin: "0 0 12px" }}>观察样本（{images.length} 张）</h3>
       <div
         style={{
           display: "grid",
@@ -177,7 +177,7 @@ const EngineInfraDemo: React.FC = () => {
               containerStyle={{
                 width: "100%",
                 height: "100%",
-                background: "#f3f4f6",
+                background: "var(--surface-2)",
                 borderRadius: 8,
               }}
               imageStyle={{ width: "100%", height: "100%", objectFit: "cover" }}
@@ -190,14 +190,14 @@ const EngineInfraDemo: React.FC = () => {
 };
 
 const rowStyle: React.CSSProperties = {
-  borderBottom: "1px solid #ede9fe",
+  borderBottom: "1px solid var(--accent-wash)",
 };
-const k: React.CSSProperties = { padding: "6px 0", color: "#6b7280" };
+const k: React.CSSProperties = { padding: "6px 0", color: "var(--text-3)" };
 const v: React.CSSProperties = {
   padding: "6px 0",
   textAlign: "right",
   fontWeight: 600,
-  color: "#1f2937",
+  color: "var(--text)",
 };
 
 const StatCard: React.FC<{ label: string; value: string; accent: string }> = ({
@@ -209,13 +209,13 @@ const StatCard: React.FC<{ label: string; value: string; accent: string }> = ({
     style={{
       padding: 12,
       borderRadius: 8,
-      background: "#fff",
+      background: "var(--surface)",
       border: `1px solid ${accent}33`,
       textAlign: "center",
     }}
   >
     <div style={{ fontSize: "1.6em", fontWeight: 700, color: accent }}>{value}</div>
-    <div style={{ fontSize: "0.78em", color: "#64748b" }}>{label}</div>
+    <div style={{ fontSize: "0.78em", color: "var(--text-3)" }}>{label}</div>
   </div>
 );
 
