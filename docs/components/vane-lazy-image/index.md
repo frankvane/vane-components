@@ -43,23 +43,27 @@ const LazyImage = withPlugins(LazyLoadImageCore, [
 
 | 导入 | 说明 | 实测 Gzip |
 | --- | --- | --- |
-| `vane-lazy-image/core` | 仅核心（Core + ObserverPool） | ~8 KB |
-| `vane-lazy-image/plugins` | 插件系统（withPlugins + 领域类型 + 一等公民插件） | ~10 KB |
-| `vane-lazy-image` | 完整包（核心 + 插件系统 + 类型） | ~13.6 KB |
-| `vane-lazy-image/custom-plugins/X` | 单个插件（60 选 1） | ~0.2 KB 起 |
-| `vane-lazy-image/custom-plugins` | 全部插件桶文件（逃生口，常规不推荐） | ~2 KB + 插件本体 |
-| `vane-lazy-image/presets/X` | 场景配方（5 选 1） | ~0.2 KB + 插件本体 |
-| `vane-lazy-image/advanced` | 依赖解析 + 版本工具 | ~0.5 KB |
-| `vane-lazy-image/monitoring` | 性能监控 + 全局上下文 | ~1 KB |
+| `vane-lazy-image/core` | 仅核心（Core + ObserverPool） | 6.9 KB |
+| `vane-lazy-image/plugins` | 插件系统（withPlugins + 领域类型 + 一等公民插件） | 5.5 KB |
+| `vane-lazy-image/monitoring` | 性能监控 + 全局上下文 | 3.9 KB |
+| `vane-lazy-image/advanced` | 依赖解析 + 版本工具 | 3.5 KB |
+| `vane-lazy-image` | 完整包（核心 + 插件系统 + 全部插件工厂桶导出） | 26.9 KB |
+| `vane-lazy-image/custom-plugins` | 全部插件桶文件（仅 re-export 胶水，可摇） | 1.25 KB |
+| `vane-lazy-image/custom-plugins/X` | 单个插件（60 选 1） | 0.14 KB 起 |
+| `vane-lazy-image/presets/X` | 场景配方（5 选 1） | 0.18 KB 起 |
 
-> 源码路径 == 发布子路径，未引入的插件不进产物。
-> 根入口不桶导出插件与配方——引入插件/配方请走对应子路径（见[插件目录](plugins.md)与[组合配方](recipes.md)）。
+> 表中的根入口 26.9 KB 是「`import "vane-lazy-image"` 却一个符号都不用」的**未 tree-shake 上界**：
+> 根入口为兼容 1.x 的 `import { createXxxPlugin } from "vane-lazy-image"` 写法，按需保留了对
+> 全部插件工厂的桶导出（`sideEffects: false`，消费方未用到的会被摇掉）。
+> 想要最小体积就走 `vane-lazy-image/core`（6.9 KB）或按子路径引入插件——源码路径 == 发布子路径，
+> 未引入的插件不进产物。预算门 `vane.sizeBudgetKb = 28`（实测 26.9 KB），口径记在 package.json 的
+> `sizeBudgetNote` 里。
 
 ## 从 1.x 迁移
 
 2.0.0 更换了插件系统内核（`@vane/plugin-core`），主要差异：
 
-- **插件引入路径**：插件工厂不再从根入口导出，改为 `vane-lazy-image/custom-plugins/<XxxPlugin>` 子路径引入（根入口只保留核心 + 插件系统 + 类型，保证按需引入时最小体积）；确需全量可用桶文件 `vane-lazy-image/custom-plugins`；
+- **插件引入路径**：插件工厂**仍从根入口导出**（`import { createBadgePlugin } from "vane-lazy-image"` 可用，1.x 写法无需改动）；但推荐走 `vane-lazy-image/custom-plugins/<XxxPlugin>` 子路径——只取一个插件时静态图从 26.9 KB 降到 0.14 KB 量级；
 - 插件工厂签名不变（`createXxxPlugin(config)`），`priority` 语义仍为「越小越优先，默认 100」，与 1.x 一致；
 - 旧版直接可用的 `createPluginManager` / `createPluginBus` / `createPluginSandbox` 等底层 API 改为从 `vane-lazy-image/plugins` 转发（实现来自 `@vane/plugin-core`）；
 - 移除：插件热更新（`hotReload` / `savePluginState`）、`hookFactory`、`renderDeps`、bus 通配符与批处理——1.x 中无内置插件使用这些能力，自定义插件如依赖需自行实现；

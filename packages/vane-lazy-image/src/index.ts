@@ -2,16 +2,19 @@
  * vane-lazy-image — 高性能 React 图片懒加载组件（插件化架构）
  *
  * 子路径入口（源码路径 == 发布子路径，按需引入）：
- *   - vane-lazy-image                          完整包（核心 + 插件系统 + 类型）
- *   - vane-lazy-image/core                     仅核心组件 + ObserverPool（最小体积）
+ *   - vane-lazy-image                          完整包（核心 + 插件系统 + 全部插件工厂）
+ *   - vane-lazy-image/core                     仅核心组件 + ObserverPool（最小体积，6.9KB）
  *   - vane-lazy-image/plugins                  插件系统（withPlugins + 领域类型 + 一等公民插件）
  *   - vane-lazy-image/advanced                 依赖解析 + 版本工具
  *   - vane-lazy-image/monitoring               性能监控 + 全局上下文
- *   - vane-lazy-image/custom-plugins/<XxxPlugin>   单个插件（60 个，8 大领域分组）
+ *   - vane-lazy-image/custom-plugins/<XxxPlugin>   单个插件（60 个，8 大领域分组，0.14KB 起）
  *   - vane-lazy-image/presets/<name>               配方（social-feed 等 5 个场景组合）
  *
- * 体积约定：根入口不桶导出全部插件与配方——引入插件/配方请走对应子路径，
- * 静态导入图保持在预算内（ADR-6：体积靠显式导入 + tree-shaking 解决）。
+ * 体积约定（ADR-6）：按需最小体积走 /core 或子路径；根入口为兼容 1.x 的
+ * `import { createXxxPlugin } from "vane-lazy-image"` 写法，保留 `export * from "./custom-plugins"`
+ * 的桶导出，因此根入口静态图是「一个符号都不用」的未 tree-shake 上界（实测 26.9KB，
+ * 预算见 package.json 的 vane.sizeBudgetKb / sizeBudgetNote）。`sideEffects: false` 保证
+ * 消费方用 ESM 打包时未用到的插件被摇掉。
  */
 
 // ---------- 核心 ----------

@@ -426,8 +426,9 @@
     "vitest": "^2.1.9"
   },
   "vane": {
-    "sizeBudgetKb": 25,
-    "coreSizeBudgetKb": 12
+    "sizeBudgetKb": 28,
+    "coreSizeBudgetKb": 12,
+    "sizeBudgetNote": "入口图 = dist/index.js + 其静态引入的 chunk，实测 26.9KB，是「引入根入口但不使用任何符号」的未 tree-shake 上界。根入口按 ADR-6 保留 export * from \"./custom-plugins\"（为兼容 1.x 的 import { createXxxPlugin } from \"vane-lazy-image\"），故该上界随插件数线性增长；消费方 sideEffects:false + ESM 会摇掉未用插件。按需最小体积请走 vane-lazy-image/core（6.9KB）或子路径。"
   },
   "engines": {
     "node": ">=18"
