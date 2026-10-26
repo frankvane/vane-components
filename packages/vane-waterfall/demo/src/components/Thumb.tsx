@@ -2,8 +2,10 @@
  * 缩略图占位块
  *
  * 用纯 CSS 渐变画「图」，好处：离线可用、零请求、高度精确受控（瀑布流要的是高度，
- * 不是图）。斜纹 + 中心色块让它看起来像内容而不是纯色块，卡片里的视觉层级更接近
- * 真实的图文卡。
+ * 不是图）。
+ *
+ * 配色刻意去饱和：只保留 18% 左右的彩度，让 13 个场景里的「照片」读起来像同一批
+ * 印刷样张，而不是一堆糖果色块；网纹由 `.thumb::after` 统一叠（见 App.css）。
  */
 import React from "react";
 
@@ -20,7 +22,7 @@ export interface ThumbProps {
   deep?: boolean;
 }
 
-export function Thumb({ height, hue, badge, glyph, radius = 8, deep }: ThumbProps) {
+export function Thumb({ height, hue, badge, glyph, radius = 0, deep }: ThumbProps) {
   const h2 = (hue + 42) % 360;
   return (
     <div
@@ -29,8 +31,7 @@ export function Thumb({ height, hue, badge, glyph, radius = 8, deep }: ThumbProp
         height,
         borderRadius: radius,
         backgroundImage: [
-          `repeating-linear-gradient(135deg, rgba(255,255,255,.07) 0 10px, rgba(255,255,255,0) 10px 20px)`,
-          `radial-gradient(120% 80% at 18% 12%, hsl(${hue} 68% ${deep ? 46 : 64}%) 0%, hsl(${h2} 58% ${deep ? 26 : 40}%) 100%)`,
+          `radial-gradient(132% 92% at 16% 6%, hsl(${hue} 21% ${deep ? 36 : 64}%) 0%, hsl(${h2} 17% ${deep ? 15 : 33}%) 100%)`,
         ].join(","),
       }}
     >

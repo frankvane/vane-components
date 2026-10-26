@@ -85,14 +85,39 @@ export function PluginsPage() {
 
   return (
     <div>
-      <h2 className="page-title">插件工坊</h2>
-      <p className="page-sub">
-        {PLUGINS.length} 个插件按 5 组排列。勾选即装配 —— 左侧列表按「组 → priority 降序」排，
-        同一个域内越靠上的越先执行。右侧预览是**真的**在跑这些插件，不是示意图。
-      </p>
+      <header className="page-head">
+        <div>
+          <p className="eyebrow">workshop · 装配台</p>
+          <h2 className="page-title">插件工坊</h2>
+          <p className="page-sub">
+            {PLUGINS.length} 个插件按 5 组排列。勾选即装配 —— 左侧列表按「组 → priority 降序」排，
+            同一个域内越靠上的越先执行。右侧预览是**真的**在跑这些插件，不是示意图。
+          </p>
+        </div>
+        <div className="page-facts">
+          <div>
+            <b>{PLUGINS.length}</b>
+            <span>plugins</span>
+          </div>
+          <div>
+            <b>{GROUP_ORDER.length}</b>
+            <span>groups</span>
+          </div>
+          <div>
+            <b>{on.size}</b>
+            <span>enabled</span>
+          </div>
+        </div>
+      </header>
 
       <div className="ws">
         <aside className="ws-panel">
+          <div className="ws-panel-head">
+            <span>插件目录</span>
+            <code>
+              {on.size}/{PLUGINS.length}
+            </code>
+          </div>
           {conflicts.length > 0 ? (
             <div className="ws-conflict">
               {conflicts.map((c) => (
@@ -136,7 +161,7 @@ export function PluginsPage() {
         </aside>
 
         <div>
-          <div className="ws-stage">
+          <div className="ws-stage plate">
             <div className="ws-stage-head">
               <span>
                 已启用 <b>{selected.length}</b> 个

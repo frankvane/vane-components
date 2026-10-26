@@ -8,7 +8,7 @@
  * 结果直接列在页面上 —— 几何问题只有真实布局引擎能发现，靠肉眼逐卡看会漏。
  */
 import React, { useCallback, useMemo, useState } from "react";
-import { GROUPS, SCENARIOS } from "../scenarios/catalog";
+import { GROUPS, SCENARIOS, USED_PLUGINS } from "../scenarios/catalog";
 import { ScenarioCard } from "../components/ScenarioCard";
 import { auditWaterfall, summarize, type AuditIssue } from "../lib/audit";
 
@@ -35,11 +35,30 @@ export function ScenariosPage() {
 
   return (
     <div>
-      <h2 className="page-title">场景示例</h2>
-      <p className="scn-blurb">
-        {SCENARIOS.length} 个真实版式，全部可交互（筛选、拖拽、跳转、无限加载都真的能用）。
-        每张卡右边有「最小装配」和「完整源码」两份代码，都能直接复制。
-      </p>
+      <header className="page-head">
+        <div>
+          <p className="eyebrow">plates · 版式索引</p>
+          <h2 className="page-title">场景示例</h2>
+          <p className="page-sub">
+            {SCENARIOS.length} 个真实版式，全部可交互（筛选、拖拽、跳转、无限加载都真的能用）。
+            每张卡右边有「最小装配」和「完整源码」两份代码，都能直接复制。
+          </p>
+        </div>
+        <div className="page-facts">
+          <div>
+            <b>{SCENARIOS.length}</b>
+            <span>plates</span>
+          </div>
+          <div>
+            <b>{GROUPS.length}</b>
+            <span>groups</span>
+          </div>
+          <div>
+            <b>{USED_PLUGINS.length}</b>
+            <span>plugins used</span>
+          </div>
+        </div>
+      </header>
 
       <div className="scn-tabs">
         {tabs.map((t) => {

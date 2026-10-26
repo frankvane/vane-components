@@ -2,9 +2,9 @@
  * 示例页骨架
  *
  * 每页同一个结构，读第二页就形成肌肉记忆：
- *   标题 + 一句话 + 什么时候用
+ *   刊头（期号 + 标题 + 元信息）
  *   → 参数控件（拖了就改行为，下面的代码同步变）
- *   → 舞台（真实运行）+ 右栏（装了哪些插件 / 为什么 / 坑位）
+ *   → 舞台（真实运行，装在「校样板」里）+ 右栏（装了哪些插件 / 为什么 / 坑位）
  *   → 通栏代码（最小装配 / 完整源码）
  *
  * 日志与 cfg 都放在这一层：换页时整体重挂载，天然不会串状态。
@@ -38,17 +38,38 @@ export function DemoPage({ entry, order }: { entry: DemoEntry; order: number }) 
   return (
     <section className="demo" data-demo={meta.slug}>
       <header className="demo-head">
-        <div className="demo-title-row">
+        <div className="demo-folio">
           <span className="demo-no">{String(order).padStart(2, "0")}</span>
-          <h2>{meta.title}</h2>
-          <span className="demo-group">{GROUP_META[meta.group].label}</span>
-          {meta.plugin ? <code className="demo-plugin">{meta.plugin}</code> : null}
+          <em>plate</em>
         </div>
-        <p className="demo-intro">{meta.intro}</p>
-        <p className="demo-why">
-          <b>什么时候用</b>
-          {meta.why}
-        </p>
+
+        <div>
+          <div className="demo-title-row">
+            <h2>{meta.title}</h2>
+            <span className="demo-group">{GROUP_META[meta.group].label}</span>
+            {meta.plugin ? <code className="demo-plugin">{meta.plugin}</code> : null}
+          </div>
+          <p className="demo-intro">{meta.intro}</p>
+          <p className="demo-why">
+            <b>什么时候用</b>
+            {meta.why}
+          </p>
+        </div>
+
+        <div className="demo-meta">
+          <div className="demo-meta-row">
+            <span>file</span>
+            <b>{file}</b>
+          </div>
+          <div className="demo-meta-row">
+            <span>group</span>
+            <b>{GROUP_META[meta.group].label}</b>
+          </div>
+          <div className="demo-meta-row">
+            <span>plugs</span>
+            <b>{meta.plugs.length ? `${meta.plugs.length} installed` : "core only"}</b>
+          </div>
+        </div>
       </header>
 
       {meta.controls?.length ? (
@@ -68,12 +89,23 @@ export function DemoPage({ entry, order }: { entry: DemoEntry; order: number }) 
       ) : null}
 
       <div className="demo-body">
-        <div
-          className={`demo-stage${meta.tone === "light" ? " tone-light" : ""}`}
-          style={{ "--stage-h": `${meta.stageHeight ?? 380}px` } as React.CSSProperties}
-        >
-          <Stage cfg={cfg} log={log} setCfg={onChange} />
-        </div>
+        <figure className="plate">
+          <figcaption className="plate-cap">
+            <b>stage</b>
+            <span>
+              {meta.tone === "light" ? "light surface" : "live render"}
+              {meta.stageHeight ? ` · ${meta.stageHeight}px` : ""}
+            </span>
+            <em>live</em>
+          </figcaption>
+          <div className="plate-ruler" aria-hidden />
+          <div
+            className={`plate-body demo-stage${meta.tone === "light" ? " tone-light" : ""}`}
+            style={{ "--stage-h": `${meta.stageHeight ?? 380}px` } as React.CSSProperties}
+          >
+            <Stage cfg={cfg} log={log} setCfg={onChange} />
+          </div>
+        </figure>
 
         <aside className="demo-side">
           <div className="demo-plugs">
@@ -114,6 +146,8 @@ export function DemoPage({ entry, order }: { entry: DemoEntry; order: number }) 
         <div className="demo-switch" role="tablist">
           <button
             type="button"
+            role="tab"
+            aria-selected={tab === "minimal"}
             className={tab === "minimal" ? "is-active" : ""}
             onClick={() => setTab("minimal")}
           >
@@ -121,6 +155,8 @@ export function DemoPage({ entry, order }: { entry: DemoEntry; order: number }) 
           </button>
           <button
             type="button"
+            role="tab"
+            aria-selected={tab === "full"}
             className={tab === "full" ? "is-active" : ""}
             onClick={() => setTab("full")}
           >

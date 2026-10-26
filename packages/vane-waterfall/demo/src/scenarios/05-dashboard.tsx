@@ -89,10 +89,15 @@ function Sparkline({ points, tone }: { points: number[]; tone: "up" | "down" }) 
   const d = points
     .map((p, i) => `${i === 0 ? "M" : "L"}${(i * step).toFixed(1)},${(h - (p / 100) * h).toFixed(1)}`)
     .join(" ");
-  const stroke = tone === "up" ? "#e2534b" : "#2f9e6e";
   return (
     <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} aria-hidden className="wf-spark">
-      <path d={d} fill="none" stroke={stroke} strokeWidth="1.6" strokeLinecap="round" />
+      <path
+        d={d}
+        fill="none"
+        className={`wf-spark-line is-${tone}`}
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }

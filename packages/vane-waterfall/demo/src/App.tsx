@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useEffect, useState } from "react";
+import React, { Suspense, lazy, useCallback, useEffect, useState } from "react";
 import { HashRouter, Navigate, Route, Routes, useLocation, useParams, Link } from "react-router-dom";
 import { DEMOS, DEMO_GROUPS, demosOf, findDemo } from "./demos/registry";
 import { GROUP_META } from "./demos/types";
@@ -13,9 +13,9 @@ const ScenariosPage = lazy(() =>
 );
 
 const NAV = [
-  { to: "/", label: "总览", hint: "overview" },
-  { to: "/plugins", label: "插件工坊", hint: "26 plugins" },
-  { to: "/scenarios", label: "场景示例", hint: "13 layouts" },
+  { to: "/", no: "01", label: "总览", hint: "overview" },
+  { to: "/plugins", no: "02", label: "插件工坊", hint: "26 plugins" },
+  { to: "/scenarios", no: "03", label: "场景示例", hint: "13 plates" },
 ];
 
 /**
@@ -36,7 +36,7 @@ class PageBoundary extends React.Component<
   render() {
     if (!this.state.error) return this.props.children;
     return (
-      <div className="crash">
+      <div className="crash" role="alert">
         <h3>这个页面炸了</h3>
         <pre>{String(this.state.error?.stack || this.state.error)}</pre>
         <button type="button" onClick={() => this.setState({ error: null })}>
@@ -48,14 +48,14 @@ class PageBoundary extends React.Component<
 }
 
 function labelOf(pathname: string): string {
-  if (pathname.startsWith("/plugins")) return "workshop / 插件工坊";
-  if (pathname.startsWith("/scenarios")) return "scenario / 场景示例";
+  if (pathname.startsWith("/plugins")) return "workshop · 插件工坊";
+  if (pathname.startsWith("/scenarios")) return "plates · 场景示例";
   if (pathname.startsWith("/demo")) {
     const slug = pathname.replace(/^\/demo\/?/, "");
     const hit = findDemo(slug);
-    return hit ? `demo / ${hit.meta.title}` : "demo / 逐项示例";
+    return hit ? `demo ${hit.file.slice(0, 2)} · ${hit.meta.title}` : "demo · 逐项示例";
   }
-  return "index / 总览";
+  return "index · 总览";
 }
 
 /** 侧栏的「逐项示例」分组：默认展开当前所在组 */
@@ -89,6 +89,7 @@ function DemoNav({ pathname }: { pathname: string }) {
               type="button"
               className={`nav-group-head${activeGroup === g ? " is-current" : ""}`}
               onClick={() => setOpen((prev) => ({ ...prev, [g]: !expanded }))}
+              aria-expanded={expanded}
             >
               <span className={`nav-caret${expanded ? " is-open" : ""}`} aria-hidden>
                 ▸
@@ -104,7 +105,7 @@ function DemoNav({ pathname }: { pathname: string }) {
                     to={`/demo/${d.meta.slug}`}
                     className={`nav-sub${pathname === `/demo/${d.meta.slug}` ? " is-active" : ""}`}
                   >
-                    <em>{d.file.slice(0, 2)}</em>
+                    <em aria-hidden>{d.file.slice(0, 2)}</em>
                     {d.meta.title}
                   </Link>
                 ))}
@@ -131,14 +132,56 @@ function DemoRoute() {
 
 function Shell() {
   const { pathname } = useLocation();
+  const [navOpen, setNavOpen] = useState(false);
+  const [guides, setGuides] = useState(false);
+
+  // 路由变化自动收起抽屉，否则点完导航还要手动关一次
+  useEffect(() => setNavOpen(false), [pathname]);
+
+  const toggleGuides = useCallback(() => setGuides((v) => !v), []);
+
+  // Esc 关抽屉；g 切换参考线（输入框里按 g 不算）
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement | null;
+      const typing =
+        el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable);
+      if (e.key === "Escape") setNavOpen(false);
+      if (!typing && (e.key === "g" || e.key === "G") && !e.metaKey && !e.ctrlKey) {
+        setGuides((v) => !v);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   return (
-    <div className="shell">
-      <aside className="side">
+    <div
+      className={`shell${navOpen ? " is-nav-open" : ""}${guides ? " is-guides" : ""}`}
+    >
+      {/* HashRouter 下 href="#main" 会被当成路由，必须自己接管焦点 */}
+      <a
+        className="skip-link"
+        href="#main"
+        onClick={(e) => {
+          e.preventDefault();
+          const el = document.getElementById("main");
+          el?.setAttribute("tabindex", "-1");
+          el?.focus();
+          el?.scrollIntoView({ block: "start" });
+        }}
+      >
+        跳到内容
+      </a>
+
+      <aside className="side" aria-label="站点导航">
         <Link to="/" className="brand">
-          <span className="brand-mark" aria-hidden />
+          <span className="brand-mark" aria-hidden>
+            V
+          </span>
           <span>
             <strong>vane-waterfall</strong>
-            <em>瀑布流 · 插件化</em>
+            <em>排版台 / plugin index</em>
           </span>
         </Link>
         <nav>
@@ -147,7 +190,9 @@ function Shell() {
               key={item.to}
               to={item.to}
               className={`nav-item${pathname === item.to ? " is-active" : ""}`}
+              aria-current={pathname === item.to ? "page" : undefined}
             >
+              <em aria-hidden>{item.no}</em>
               <span>{item.label}</span>
               <code>{item.hint}</code>
             </Link>
@@ -155,18 +200,54 @@ function Shell() {
           <DemoNav pathname={pathname} />
         </nav>
         <div className="side-foot">
-          <p>26 个领域插件 · 13 个组合场景 · 34 页逐项示例</p>
-          <p className="muted">D1-A 布局钩子 / D2-A 虚拟化</p>
+          <p>26 PLUGINS · 13 PLATES</p>
+          <p className="muted">34 DEMOS · D1-A / D2-A</p>
         </div>
       </aside>
 
-      <main className="main">
+      <button
+        type="button"
+        className="scrim"
+        aria-label="关闭导航"
+        tabIndex={navOpen ? 0 : -1}
+        onClick={() => setNavOpen(false)}
+      />
+
+      <div className="main" id="main">
         <header className="topbar">
+          <button
+            type="button"
+            className="nav-toggle"
+            aria-label={navOpen ? "关闭导航" : "打开导航"}
+            aria-expanded={navOpen}
+            onClick={() => setNavOpen((v) => !v)}
+          >
+            <span aria-hidden />
+          </button>
           <span className="crumb">{labelOf(pathname)}</span>
-          <a className="topbar-link" href="https://github.com/frankvane/vane-components" target="_blank" rel="noreferrer">
-            source ↗
-          </a>
+          <div className="topbar-right">
+            <button
+              type="button"
+              className="topbar-btn"
+              aria-pressed={guides}
+              onClick={toggleGuides}
+              title="显示栏位参考线（快捷键 G）"
+            >
+              <i aria-hidden />
+              guides
+            </button>
+            <a
+              className="topbar-link"
+              href="https://github.com/frankvane/vane-components"
+              target="_blank"
+              rel="noreferrer"
+            >
+              source ↗
+            </a>
+          </div>
         </header>
+
+        <div className="guides" aria-hidden />
         <Suspense fallback={<div className="loading">loading modules…</div>}>
           <PageBoundary>
             <Routes>
@@ -179,7 +260,7 @@ function Shell() {
             </Routes>
           </PageBoundary>
         </Suspense>
-      </main>
+      </div>
     </div>
   );
 }

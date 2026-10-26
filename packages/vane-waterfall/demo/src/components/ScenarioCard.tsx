@@ -1,7 +1,7 @@
 /**
- * 场景卡：一卡两栏
+ * 场景卡：一张通栏校样板
  *
- *  左：真实运行的那份组件（不是截图、不是伪代码）
+ *  左：真实运行的那份组件（不是截图、不是伪代码），装在尺规板里
  *  右：插件清单（每个插件「为什么需要」）+ 两份源码切换
  *      · 完整版 —— `?raw` 读的就是左边正在跑的同名文件
  *      · 最小装配 —— 由 meta 现场生成，去掉业务噪音，只剩装配与 props
@@ -22,18 +22,33 @@ export function ScenarioCard({ entry }: { entry: ScenarioEntry }) {
   return (
     <section className="scn-card" id={`scn-${meta.id}`} data-scenario={meta.id}>
       <header className="scn-head">
+        <span className="scn-folio" aria-hidden>
+          {file.slice(0, 2)}
+        </span>
         <h3 className="scn-title">{meta.title}</h3>
-        <code className="scn-id">{file}</code>
-        <a className="scn-ref" href={meta.ref.url} target="_blank" rel="noreferrer">
-          {meta.ref.label} ↗
-        </a>
+        <div className="scn-head-meta">
+          <code className="scn-id">{file}</code>
+          <a className="scn-ref" href={meta.ref.url} target="_blank" rel="noreferrer">
+            {meta.ref.label} ↗
+          </a>
+        </div>
         <p className="scn-pain">{meta.pain}</p>
       </header>
 
       <div className="scn-body">
-        <div className={`scn-stage${meta.tone === "light" ? " tone-light" : ""}`}>
-          <Component />
-        </div>
+        <figure className="plate scn-plate">
+          <figcaption className="plate-cap">
+            <b>stage</b>
+            <span>
+              {meta.group} · {meta.plugs.length} plugins
+            </span>
+            <em>live</em>
+          </figcaption>
+          <div className="plate-ruler" aria-hidden />
+          <div className={`scn-stage${meta.tone === "light" ? " tone-light" : ""}`}>
+            <Component />
+          </div>
+        </figure>
 
         <div className="scn-side">
           <div className="scn-plugs">
@@ -66,6 +81,8 @@ export function ScenarioCard({ entry }: { entry: ScenarioEntry }) {
         <div className="scn-switch" role="tablist">
           <button
             type="button"
+            role="tab"
+            aria-selected={tab === "minimal"}
             className={tab === "minimal" ? "is-active" : ""}
             onClick={() => setTab("minimal")}
           >
@@ -73,6 +90,8 @@ export function ScenarioCard({ entry }: { entry: ScenarioEntry }) {
           </button>
           <button
             type="button"
+            role="tab"
+            aria-selected={tab === "full"}
             className={tab === "full" ? "is-active" : ""}
             onClick={() => setTab("full")}
           >

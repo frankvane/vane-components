@@ -40,7 +40,7 @@ export function FeedCard({
     <Thumb
       height={fixed ? "100%" : card.height}
       hue={card.hue}
-      radius={fixed ? 0 : 8}
+      radius={0}
       deep={variant === "video"}
       badge={
         variant === "video" ? (

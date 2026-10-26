@@ -145,12 +145,15 @@ const missing = [...ALL_PLUGINS].filter((p) => !used.has(p)).sort();
 
 // ---------- 侧栏计数（App.tsx 里硬编码，避免把场景目录整包拉进首屏） ----------
 const appSrc = read(path.join(ROOT, "demo/src/App.tsx"));
-const hintMatch = /hint:\s*"(\d+)\s*layouts"/.exec(appSrc);
+// 计数只认 /scenarios 那一条，避免撞上 "26 plugins"；单位词（layouts / plates…）随便改，
+// 闸门管的是「数字与真实场景数是否一致」，不是文案。
+const navEntry = /\{\s*to:\s*"\/scenarios"[\s\S]*?\}/.exec(appSrc);
+const hintMatch = navEntry ? /hint:\s*"(\d+)\s*([^"0-9]+)"/.exec(navEntry[0]) : null;
 if (!hintMatch) {
-  errors.push('demo/src/App.tsx：侧栏没有形如 hint: "N layouts" 的计数');
+  errors.push('demo/src/App.tsx：/scenarios 导航项没有形如 hint: "N plates" 的计数');
 } else if (Number(hintMatch[1]) !== files.length) {
   errors.push(
-    `demo/src/App.tsx：侧栏写 ${hintMatch[1]} layouts，实际 ${files.length} 个场景`
+    `demo/src/App.tsx：侧栏写 ${hintMatch[1]} ${hintMatch[2].trim()}，实际 ${files.length} 个场景`
   );
 }
 
