@@ -1,0 +1,40 @@
+{
+  "name": "ReducedMotionPlugin",
+  "description": "检测 `prefers-reduced-motion: reduce`，命中后把 useTransform 关掉并清掉项上的 transition。前庭功能敏感用户不会因为滚动时的位置微动而不适。",
+  "since": "2.0.0",
+  "tags": [
+    "perf",
+    "a11y"
+  ],
+  "config": [
+    {
+      "name": "disableTransform",
+      "type": "boolean",
+      "default": "true",
+      "description": "命中偏好时改用 left/top 定位"
+    },
+    {
+      "name": "removeTransitions",
+      "type": "boolean",
+      "default": "true",
+      "description": "命中偏好时清掉项过渡"
+    }
+  ],
+  "example": "// 尊重系统「减少动画」偏好：关掉 transform 定位与项过渡。\nconst Waterfall = withPlugins(WaterfallCore, [\n  createReducedMotionPlugin({\n    disableTransform: true,\n    removeTransitions: true,\n  }),\n]);\n\n<Waterfall items={items} renderItem={(item) => <Card data={item} />} />;",
+  "conflicts": [
+    "TransitionPlugin"
+  ],
+  "features": [
+    "系统偏好驱动，零配置生效",
+    "两项能力可分别关闭",
+    "与 TransitionPlugin 同装时优先生效"
+  ],
+  "useCases": [
+    "政务 / 医疗类站点",
+    "无障碍合规要求",
+    "低性能设备"
+  ],
+  "notes": [
+    "偏好只在挂载时读一次；用户中途改系统设置需刷新页面。"
+  ]
+}

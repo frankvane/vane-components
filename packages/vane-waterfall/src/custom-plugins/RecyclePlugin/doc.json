@@ -1,0 +1,32 @@
+{
+  "name": "RecyclePlugin",
+  "description": "纯绘制层优化：项离开视口就 `visibility: hidden`，回来再显示。DOM 节点不销毁，滚动位置与已加载的图片都保留，适合「项里有视频/Canvas，重建代价高」的场景。",
+  "since": "2.0.0",
+  "tags": [
+    "interaction",
+    "性能"
+  ],
+  "config": [
+    {
+      "name": "poolSize",
+      "type": "number",
+      "default": "—",
+      "description": "同时保持可见的项数上限（超出则回收最早的）"
+    }
+  ],
+  "example": "// 视口外的项设 `visibility: hidden`，降低长列表的绘制压力。\nconst Waterfall = withPlugins(WaterfallCore, [\n  createRecyclePlugin(),\n]);\n\n<Waterfall items={items} renderItem={(item) => <Card data={item} />} />;",
+  "features": [
+    "不销毁 DOM，只隐藏",
+    "项内媒体不重新加载",
+    "与虚拟化正交（一个省绘制、一个省节点）"
+  ],
+  "useCases": [
+    "项内含视频 / canvas",
+    "长列表滚动发虚",
+    "低端设备省电"
+  ],
+  "notes": [
+    "与 Core 的 `virtualize` 同开会让项被卸载又隐藏，收益互相抵消，建议只选一个。",
+    "只改 visibility 不改布局，所以不会引起重排。"
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "name": "GroupingPlugin",
+  "description": "用 groupBy 把项按业务字段分组，结果放进 sharedData 的 `GROUPS`（Map<组键, 索引数组>），供 StickyHeaderPlugin、分组统计条等消费。挂载即算一次，之后 props 变化重算。",
+  "since": "2.0.0",
+  "tags": [
+    "ui",
+    "分组"
+  ],
+  "config": [
+    {
+      "name": "groupBy",
+      "type": "(item, index) => string | number",
+      "default": "item.category ?? \"default\"",
+      "description": "分组函数"
+    },
+    {
+      "name": "showOverlay",
+      "type": "boolean",
+      "default": "false",
+      "description": "是否显示分组统计角标"
+    }
+  ],
+  "example": "// 按字段把项分组，结果写进 sharedData(GROUPS) 供吸顶条 / 统计用。\nconst Waterfall = withPlugins(WaterfallCore, [\n  createGroupingPlugin({\n    groupBy: \"item.category ?? \\\"default\\\"\",\n    showOverlay: false,\n  }),\n]);\n\n<Waterfall items={items} renderItem={(item) => <Card data={item} />} />;",
+  "features": [
+    "挂载即计算（旧版只在 props 变化时算，首屏永远拿不到分组）",
+    "结果写 sharedData，跨插件可读",
+    "统计角标默认关闭"
+  ],
+  "useCases": [
+    "按分类分组的信息流",
+    "按日期分组的时间线",
+    "吸顶条显示当前分组"
+  ],
+  "notes": [
+    "分组只产出索引映射，不改变渲染顺序；要视觉分组请自己按分组建行。"
+  ]
+}

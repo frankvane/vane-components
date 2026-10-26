@@ -1,0 +1,38 @@
+{
+  "name": "URLSyncPlugin",
+  "description": "props 变化时把指定键写进 URL（hash 或 search），挂载时读出来广播 `urlsync:init`。刷新与分享都能还原筛选状态。",
+  "since": "2.0.0",
+  "tags": [
+    "ui",
+    "URL",
+    "可分享"
+  ],
+  "config": [
+    {
+      "name": "mode",
+      "type": "\"hash\" | \"search\"",
+      "default": "\"hash\"",
+      "description": "写 hash 还是 search"
+    },
+    {
+      "name": "keys",
+      "type": "string[]",
+      "default": "[\"pageIndex\",\"pageSize\",\"searchQuery\"]",
+      "description": "要同步的 props 键"
+    }
+  ],
+  "example": "// 把分页/搜索/排序同步进 URL（hash 或 search），链接可分享。\nconst Waterfall = withPlugins(WaterfallCore, [\n  createURLSyncPlugin({\n    mode: \"hash\",\n    keys: [\"pageIndex\",\"pageSize\",\"searchQuery\"],\n  }),\n]);\n\n<Waterfall items={items} renderItem={(item) => <Card data={item} />} />;",
+  "features": [
+    "hash 模式会保留已有路由路径",
+    "用 replaceState，不污染后退栈",
+    "SSR 安全：无 window 时直接跳过"
+  ],
+  "useCases": [
+    "搜索结果可分享",
+    "后台筛选状态可刷新",
+    "带参数的深链"
+  ],
+  "notes": [
+    "只做单向同步（props → URL）与初始读取；URL 前进后退的监听请页面自己做。"
+  ]
+}

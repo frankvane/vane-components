@@ -1,0 +1,41 @@
+{
+  "name": "InfiniteScrollPlugin",
+  "description": "监听 Core 的 onReachBottom，在距底部 `threshold` 像素内触发 onLoadMore。自带并发锁：上一次还没结束不会重复触发。",
+  "since": "2.0.0",
+  "tags": [
+    "data",
+    "加载更多"
+  ],
+  "config": [
+    {
+      "name": "threshold",
+      "type": "number",
+      "default": "300",
+      "description": "触发距离 px"
+    },
+    {
+      "name": "onLoadMore",
+      "type": "() => void | Promise<void>",
+      "default": "props.onLoadMore",
+      "description": "加载回调"
+    }
+  ],
+  "example": "// 滚动到距底部阈值内触发加载更多，带并发锁防重复请求。\nconst Waterfall = withPlugins(WaterfallCore, [\n  createInfiniteScrollPlugin({\n    threshold: 300,\n  }),\n]);\n\n<Waterfall items={items} renderItem={(item) => <Card data={item} />} />;",
+  "conflicts": [
+    "PaginationPlugin"
+  ],
+  "features": [
+    "距底 300px 预加载，滚到底时数据已就位",
+    "并发锁：加载中不重复触发",
+    "context.hasMore 为 false 时自动停"
+  ],
+  "useCases": [
+    "信息流无限滚动",
+    "画廊继续加载",
+    "搜索结果瀑布流"
+  ],
+  "notes": [
+    "阈值不要小于一屏（约 600px），否则用户滚到底会看到空白等待。",
+    "翻页类场景请用 PaginationPlugin，两者不要同装。"
+  ]
+}

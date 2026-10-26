@@ -1,0 +1,37 @@
+{
+  "name": "ClickAnalyticsPlugin",
+  "description": "统计每次项点击并累计总数，向 bus 发 `analytics:click`（带 index / item / total）。默认只上报不显示角标，接入真实版式时不会被调试面板盖住内容。",
+  "since": "2.0.0",
+  "tags": [
+    "interaction",
+    "埋点"
+  ],
+  "config": [
+    {
+      "name": "log",
+      "type": "boolean",
+      "default": "false",
+      "description": "是否在控制台打印每次点击"
+    },
+    {
+      "name": "showOverlay",
+      "type": "boolean",
+      "default": "false",
+      "description": "是否显示右上角计数角标"
+    }
+  ],
+  "example": "// 统计项点击次数，发 `analytics:click` 事件，可选角标与日志。\nconst Waterfall = withPlugins(WaterfallCore, [\n  createClickAnalyticsPlugin({\n    log: false,\n    showOverlay: false,\n  }),\n]);\n\n<Waterfall items={items} renderItem={(item) => <Card data={item} />} />;",
+  "features": [
+    "点击总量统计（sharedData）",
+    "bus 事件可被外部订阅上报",
+    "角标默认关闭"
+  ],
+  "useCases": [
+    "内容流点击率统计",
+    "AB 实验埋点",
+    "调试点击行为"
+  ],
+  "notes": [
+    "生产环境请把数据从 bus 事件接到自己的埋点 SDK，不要让插件直接打日志。"
+  ]
+}

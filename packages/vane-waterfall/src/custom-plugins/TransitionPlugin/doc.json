@@ -1,0 +1,40 @@
+{
+  "name": "TransitionPlugin",
+  "description": "给每个项挂上 transform + opacity 的 CSS 过渡，布局重排、分页切换、筛选后重新排列时位置变化是滑过去的，不是瞬移。",
+  "since": "2.0.0",
+  "tags": [
+    "perf",
+    "动效"
+  ],
+  "config": [
+    {
+      "name": "duration",
+      "type": "number",
+      "default": "300",
+      "description": "过渡时长 ms"
+    },
+    {
+      "name": "easing",
+      "type": "string",
+      "default": "ease",
+      "description": "缓动函数"
+    }
+  ],
+  "example": "// 布局变化时给项加 transform/opacity 过渡，插入新数据不「闪现」。\nconst Waterfall = withPlugins(WaterfallCore, [\n  createTransitionPlugin({\n    duration: 300,\n    easing: \"ease\",\n  }),\n]);\n\n<Waterfall items={items} renderItem={(item) => <Card data={item} />} />;",
+  "conflicts": [
+    "ReducedMotionPlugin"
+  ],
+  "features": [
+    "项位置变化平滑过渡",
+    "挂载时即生效（onItemMount）",
+    "与 ReducedMotionPlugin 互斥"
+  ],
+  "useCases": [
+    "筛选 / 排序后重排",
+    "分页切换",
+    "动态插入卡片"
+  ],
+  "notes": [
+    "首屏大量项同时过渡会有一次「整体滑入」，想要更克制可以把 duration 降到 150ms。"
+  ]
+}

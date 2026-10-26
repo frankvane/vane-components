@@ -1,0 +1,38 @@
+{
+  "name": "BookmarkPlugin",
+  "description": "长列表读到一半要跳走时按 **B** 存位置，回来按 **R** 复原。焦点在输入框/可编辑区域时不拦截按键。",
+  "since": "2.0.0",
+  "tags": [
+    "ui",
+    "滚动",
+    "快捷键"
+  ],
+  "config": [
+    {
+      "name": "storageKey",
+      "type": "string",
+      "default": "\"waterfall-bookmark\"",
+      "description": "localStorage 键名"
+    },
+    {
+      "name": "scrollBehavior",
+      "type": "\"auto\" | \"smooth\"",
+      "default": "\"smooth\"",
+      "description": "恢复时的滚动行为"
+    }
+  ],
+  "example": "// 按 B 记录滚动位置、按 R 跳回（localStorage），忽略输入框按键。\nconst Waterfall = withPlugins(WaterfallCore, [\n  createBookmarkPlugin({\n    storageKey: \"waterfall-bookmark\",\n    scrollBehavior: \"smooth\",\n  }),\n]);\n\n<Waterfall items={items} renderItem={(item) => <Card data={item} />} />;",
+  "features": [
+    "B 存 / R 取，零 UI 侵入",
+    "自动区分容器滚动与页面滚动",
+    "输入框内不误触"
+  ],
+  "useCases": [
+    "长文列表阅读",
+    "后台大表格浏览",
+    "演示时快速复位"
+  ],
+  "notes": [
+    "键名全局共用，一个页面里多处瀑布流请各自传不同的 storageKey。"
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "name": "ThrottlePlugin",
+  "description": "接管 Core 的 throttleDelay（滚动回调节流）与 debounceDelay（尺寸变化后多久重排）。默认 16ms / 150ms，长列表滚动卡顿时可以放宽到 32 / 300。",
+  "since": "2.0.0",
+  "tags": [
+    "perf",
+    "性能"
+  ],
+  "config": [
+    {
+      "name": "scroll",
+      "type": "number",
+      "default": "—",
+      "description": "滚动节流 ms（必填）"
+    },
+    {
+      "name": "resize",
+      "type": "number",
+      "default": "props.debounceDelay",
+      "description": "布局防抖 ms"
+    }
+  ],
+  "example": "// 调整滚动节流与尺寸防抖，弱网/低端机可放宽。\nconst Waterfall = withPlugins(WaterfallCore, [\n  createThrottlePlugin(),\n]);\n\n<Waterfall items={items} renderItem={(item) => <Card data={item} />} />;",
+  "features": [
+    "滚动节流与布局防抖分开调",
+    "只改 props，不改算法",
+    "与 DebounceLayoutPlugin 叠加时后者优先"
+  ],
+  "useCases": [
+    "低端安卓机长列表",
+    "滚动时 CPU 占用过高",
+    "拖拽侧栏时减少重排"
+  ],
+  "notes": [
+    "scroll 低于 16ms 没有意义（浏览器帧率上限）。"
+  ]
+}

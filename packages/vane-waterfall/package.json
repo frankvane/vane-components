@@ -1,0 +1,218 @@
+{
+  "name": "vane-waterfall",
+  "version": "2.0.0",
+  "description": "React 瀑布流布局组件：插件化、可变高、虚拟化，27 个领域插件",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./entries/core": {
+      "types": "./dist/entries/core.d.ts",
+      "import": "./dist/entries/core.js"
+    },
+    "./entries/plugins": {
+      "types": "./dist/entries/plugins.d.ts",
+      "import": "./dist/entries/plugins.js"
+    },
+    "./custom-plugins/A11yPlugin": {
+      "types": "./dist/custom-plugins/A11yPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/A11yPlugin/index.js"
+    },
+    "./custom-plugins/AlignmentPlugin": {
+      "types": "./dist/custom-plugins/AlignmentPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/AlignmentPlugin/index.js"
+    },
+    "./custom-plugins/AutoColumnPlugin": {
+      "types": "./dist/custom-plugins/AutoColumnPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/AutoColumnPlugin/index.js"
+    },
+    "./custom-plugins/BookmarkPlugin": {
+      "types": "./dist/custom-plugins/BookmarkPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/BookmarkPlugin/index.js"
+    },
+    "./custom-plugins/ClickAnalyticsPlugin": {
+      "types": "./dist/custom-plugins/ClickAnalyticsPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ClickAnalyticsPlugin/index.js"
+    },
+    "./custom-plugins/DebounceLayoutPlugin": {
+      "types": "./dist/custom-plugins/DebounceLayoutPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/DebounceLayoutPlugin/index.js"
+    },
+    "./custom-plugins/DragReorderPlugin": {
+      "types": "./dist/custom-plugins/DragReorderPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/DragReorderPlugin/index.js"
+    },
+    "./custom-plugins/FilterPlugin": {
+      "types": "./dist/custom-plugins/FilterPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/FilterPlugin/index.js"
+    },
+    "./custom-plugins/FixedHeightPlugin": {
+      "types": "./dist/custom-plugins/FixedHeightPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/FixedHeightPlugin/index.js"
+    },
+    "./custom-plugins/GapPlugin": {
+      "types": "./dist/custom-plugins/GapPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/GapPlugin/index.js"
+    },
+    "./custom-plugins/GroupingPlugin": {
+      "types": "./dist/custom-plugins/GroupingPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/GroupingPlugin/index.js"
+    },
+    "./custom-plugins/HeatmapAnalyticsPlugin": {
+      "types": "./dist/custom-plugins/HeatmapAnalyticsPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/HeatmapAnalyticsPlugin/index.js"
+    },
+    "./custom-plugins/InfiniteScrollPlugin": {
+      "types": "./dist/custom-plugins/InfiniteScrollPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/InfiniteScrollPlugin/index.js"
+    },
+    "./custom-plugins/PaginationPlugin": {
+      "types": "./dist/custom-plugins/PaginationPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/PaginationPlugin/index.js"
+    },
+    "./custom-plugins/PinItemPlugin": {
+      "types": "./dist/custom-plugins/PinItemPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/PinItemPlugin/index.js"
+    },
+    "./custom-plugins/RecyclePlugin": {
+      "types": "./dist/custom-plugins/RecyclePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/RecyclePlugin/index.js"
+    },
+    "./custom-plugins/ReducedMotionPlugin": {
+      "types": "./dist/custom-plugins/ReducedMotionPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ReducedMotionPlugin/index.js"
+    },
+    "./custom-plugins/ResponsiveColumnsPlugin": {
+      "types": "./dist/custom-plugins/ResponsiveColumnsPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ResponsiveColumnsPlugin/index.js"
+    },
+    "./custom-plugins/ScrollAnchorPlugin": {
+      "types": "./dist/custom-plugins/ScrollAnchorPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ScrollAnchorPlugin/index.js"
+    },
+    "./custom-plugins/SearchPlugin": {
+      "types": "./dist/custom-plugins/SearchPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/SearchPlugin/index.js"
+    },
+    "./custom-plugins/SortPlugin": {
+      "types": "./dist/custom-plugins/SortPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/SortPlugin/index.js"
+    },
+    "./custom-plugins/StatePersistencePlugin": {
+      "types": "./dist/custom-plugins/StatePersistencePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/StatePersistencePlugin/index.js"
+    },
+    "./custom-plugins/StickyHeaderPlugin": {
+      "types": "./dist/custom-plugins/StickyHeaderPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/StickyHeaderPlugin/index.js"
+    },
+    "./custom-plugins/ThrottlePlugin": {
+      "types": "./dist/custom-plugins/ThrottlePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ThrottlePlugin/index.js"
+    },
+    "./custom-plugins/TransitionPlugin": {
+      "types": "./dist/custom-plugins/TransitionPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/TransitionPlugin/index.js"
+    },
+    "./custom-plugins/URLSyncPlugin": {
+      "types": "./dist/custom-plugins/URLSyncPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/URLSyncPlugin/index.js"
+    },
+    "./custom-plugins": {
+      "types": "./dist/custom-plugins/index.d.ts",
+      "import": "./dist/custom-plugins/index.js"
+    },
+    "./presets/dashboard": {
+      "types": "./dist/presets/dashboard/index.d.ts",
+      "import": "./dist/presets/dashboard/index.js"
+    },
+    "./presets/photo-feed": {
+      "types": "./dist/presets/photo-feed/index.d.ts",
+      "import": "./dist/presets/photo-feed/index.js"
+    },
+    "./presets/product-feed": {
+      "types": "./dist/presets/product-feed/index.d.ts",
+      "import": "./dist/presets/product-feed/index.js"
+    },
+    "./custom-plugins/*": {
+      "types": "./dist/custom-plugins/*/index.d.ts",
+      "import": "./dist/custom-plugins/*/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "keywords": [
+    "react",
+    "waterfall",
+    "masonry",
+    "virtual-scroll",
+    "plugin",
+    "layout",
+    "typescript"
+  ],
+  "author": "vane",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/frankvane/vane-components.git",
+    "directory": "packages/vane-waterfall"
+  },
+  "bugs": {
+    "url": "https://github.com/frankvane/vane-components/issues"
+  },
+  "homepage": "https://github.com/frankvane/vane-components/tree/main/packages/vane-waterfall#readme",
+  "scripts": {
+    "dev": "vite --config demo/vite.config.ts",
+    "build": "vite build",
+    "build:demo": "vite build --config demo/vite.config.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run --pool=threads",
+    "lint": "eslint .",
+    "sync:exports": "node ../../scripts/sync-exports.mjs",
+    "docs:plugins": "node ../../scripts/generate-plugin-docs.mjs",
+    "verify:scenarios": "node scripts/verify-scenarios.mjs",
+    "serve:demo": "node scripts/serve-demo.cjs",
+    "demo": "pnpm build:demo && node scripts/serve-demo.cjs",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "@vane/plugin-core": "workspace:*",
+    "react": ">=16.8.0",
+    "react-dom": ">=16.8.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.18",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@types/react-syntax-highlighter": "^15.5.13",
+    "@vane/build-config": "workspace:*",
+    "@vane/eslint-config": "workspace:*",
+    "@vane/plugin-core": "workspace:*",
+    "@vane/tsconfig": "workspace:*",
+    "@vane/vitest-config": "workspace:*",
+    "@vitejs/plugin-react": "^4.3.1",
+    "happy-dom": "^15.11.7",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6",
+    "react-syntax-highlighter": "^15.6.6",
+    "typescript": "^5.5.3",
+    "vite": "^5.4.1",
+    "vite-plugin-dts": "^4.5.4",
+    "vitest": "^2.1.9"
+  },
+  "vane": {
+    "sizeBudgetKb": 14,
+    "coreSizeBudgetKb": 12
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

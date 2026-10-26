@@ -1,0 +1,497 @@
+{
+  "_comment": "布局行为快照：由旧 WaterfallCore.calculateLayout 的逐行转写生成（.workbuddy/scratch/wf-baseline）。新包 layout.ts 必须复现这些数字。",
+  "generatedAt": "2026-10-26",
+  "containerWidth": 1000,
+  "cases": [
+    {
+      "id": "alignment-shortest",
+      "desc": "3 列 10 项，alignmentMode=shortest，gap 16，无内边距",
+      "input": {
+        "heights": [
+          180,
+          240,
+          150,
+          320,
+          200,
+          90,
+          260,
+          140,
+          300,
+          170
+        ],
+        "columns": 3,
+        "columnGap": 16,
+        "rowGap": 16,
+        "padding": 0,
+        "alignmentMode": "shortest"
+      },
+      "expect": {
+        "columnWidth": 322.6667,
+        "columnHeights": [
+          754,
+          638,
+          818
+        ],
+        "totalHeight": 818,
+        "columns": [
+          0,
+          1,
+          2,
+          2,
+          0,
+          1,
+          1,
+          0,
+          2,
+          0
+        ],
+        "positions": [
+          {
+            "index": 0,
+            "x": 0,
+            "y": 0,
+            "column": 0
+          },
+          {
+            "index": 1,
+            "x": 338.6667,
+            "y": 0,
+            "column": 1
+          },
+          {
+            "index": 2,
+            "x": 677.3333,
+            "y": 0,
+            "column": 2
+          },
+          {
+            "index": 3,
+            "x": 677.3333,
+            "y": 166,
+            "column": 2
+          },
+          {
+            "index": 4,
+            "x": 0,
+            "y": 196,
+            "column": 0
+          },
+          {
+            "index": 5,
+            "x": 338.6667,
+            "y": 256,
+            "column": 1
+          },
+          {
+            "index": 6,
+            "x": 338.6667,
+            "y": 362,
+            "column": 1
+          },
+          {
+            "index": 7,
+            "x": 0,
+            "y": 412,
+            "column": 0
+          },
+          {
+            "index": 8,
+            "x": 677.3333,
+            "y": 502,
+            "column": 2
+          },
+          {
+            "index": 9,
+            "x": 0,
+            "y": 568,
+            "column": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "alignment-balanced",
+      "desc": "3 列 10 项，alignmentMode=balanced，gap 16，无内边距",
+      "input": {
+        "heights": [
+          180,
+          240,
+          150,
+          320,
+          200,
+          90,
+          260,
+          140,
+          300,
+          170
+        ],
+        "columns": 3,
+        "columnGap": 16,
+        "rowGap": 16,
+        "padding": 0,
+        "alignmentMode": "balanced"
+      },
+      "expect": {
+        "columnWidth": 322.6667,
+        "columnHeights": [
+          994,
+          628,
+          588
+        ],
+        "totalHeight": 994,
+        "columns": [
+          0,
+          1,
+          2,
+          0,
+          1,
+          2,
+          0,
+          1,
+          2,
+          0
+        ],
+        "positions": [
+          {
+            "index": 0,
+            "x": 0,
+            "y": 0,
+            "column": 0
+          },
+          {
+            "index": 1,
+            "x": 338.6667,
+            "y": 0,
+            "column": 1
+          },
+          {
+            "index": 2,
+            "x": 677.3333,
+            "y": 0,
+            "column": 2
+          },
+          {
+            "index": 3,
+            "x": 0,
+            "y": 196,
+            "column": 0
+          },
+          {
+            "index": 4,
+            "x": 338.6667,
+            "y": 256,
+            "column": 1
+          },
+          {
+            "index": 5,
+            "x": 677.3333,
+            "y": 166,
+            "column": 2
+          },
+          {
+            "index": 6,
+            "x": 0,
+            "y": 532,
+            "column": 0
+          },
+          {
+            "index": 7,
+            "x": 338.6667,
+            "y": 472,
+            "column": 1
+          },
+          {
+            "index": 8,
+            "x": 677.3333,
+            "y": 272,
+            "column": 2
+          },
+          {
+            "index": 9,
+            "x": 0,
+            "y": 808,
+            "column": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "alignment-sequential",
+      "desc": "3 列 10 项，alignmentMode=sequential，gap 16，无内边距",
+      "input": {
+        "heights": [
+          180,
+          240,
+          150,
+          320,
+          200,
+          90,
+          260,
+          140,
+          300,
+          170
+        ],
+        "columns": 3,
+        "columnGap": 16,
+        "rowGap": 16,
+        "padding": 0,
+        "alignmentMode": "sequential"
+      },
+      "expect": {
+        "columnWidth": 322.6667,
+        "columnHeights": [
+          994,
+          628,
+          588
+        ],
+        "totalHeight": 994,
+        "columns": [
+          0,
+          1,
+          2,
+          0,
+          1,
+          2,
+          0,
+          1,
+          2,
+          0
+        ],
+        "positions": [
+          {
+            "index": 0,
+            "x": 0,
+            "y": 0,
+            "column": 0
+          },
+          {
+            "index": 1,
+            "x": 338.6667,
+            "y": 0,
+            "column": 1
+          },
+          {
+            "index": 2,
+            "x": 677.3333,
+            "y": 0,
+            "column": 2
+          },
+          {
+            "index": 3,
+            "x": 0,
+            "y": 196,
+            "column": 0
+          },
+          {
+            "index": 4,
+            "x": 338.6667,
+            "y": 256,
+            "column": 1
+          },
+          {
+            "index": 5,
+            "x": 677.3333,
+            "y": 166,
+            "column": 2
+          },
+          {
+            "index": 6,
+            "x": 0,
+            "y": 532,
+            "column": 0
+          },
+          {
+            "index": 7,
+            "x": 338.6667,
+            "y": 472,
+            "column": 1
+          },
+          {
+            "index": 8,
+            "x": 677.3333,
+            "y": 272,
+            "column": 2
+          },
+          {
+            "index": 9,
+            "x": 0,
+            "y": 808,
+            "column": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "gap-padding",
+      "desc": "2 列 4 项，columnGap 14 / rowGap 8 / padding 12-20-12-20：留白从内容宽里扣，不吞列宽",
+      "input": {
+        "heights": [
+          100,
+          120,
+          140,
+          160
+        ],
+        "columns": 2,
+        "columnGap": 14,
+        "rowGap": 8,
+        "padding": {
+          "top": 12,
+          "right": 20,
+          "bottom": 12,
+          "left": 20
+        },
+        "alignmentMode": "shortest"
+      },
+      "expect": {
+        "columnWidth": 473,
+        "columnHeights": [
+          268,
+          308
+        ],
+        "totalHeight": 320,
+        "positions": [
+          {
+            "index": 0,
+            "x": 20,
+            "y": 12
+          },
+          {
+            "index": 1,
+            "x": 507,
+            "y": 12
+          },
+          {
+            "index": 2,
+            "x": 20,
+            "y": 120
+          },
+          {
+            "index": 3,
+            "x": 507,
+            "y": 140
+          }
+        ]
+      }
+    },
+    {
+      "id": "total-height",
+      "desc": "totalHeight = max(columnHeights) + padding.bottom；旧版列高含末尾 rowGap，故比视觉底边多一个 rowGap",
+      "input": {
+        "heights": [
+          200,
+          100,
+          300
+        ],
+        "columns": 2,
+        "columnGap": 20,
+        "rowGap": 10,
+        "padding": 0,
+        "alignmentMode": "shortest"
+      },
+      "expect": {
+        "columnHeights": [
+          210,
+          420
+        ],
+        "totalHeight": 420,
+        "maxColumnHeight": 420,
+        "trailingGap": 0
+      }
+    },
+    {
+      "id": "resize-relayout",
+      "desc": "第 2 项从 120 长到 360：后续项换列，totalHeight 变化",
+      "input": {
+        "heightsBefore": [
+          120,
+          120,
+          120,
+          120
+        ],
+        "heightsAfter": [
+          120,
+          360,
+          120,
+          120
+        ],
+        "columns": 2,
+        "columnGap": 10,
+        "rowGap": 10
+      },
+      "expect": {
+        "before": {
+          "columns": [
+            0,
+            1,
+            0,
+            1
+          ],
+          "y": [
+            0,
+            0,
+            130,
+            130
+          ]
+        },
+        "after": {
+          "columns": [
+            0,
+            1,
+            0,
+            0
+          ],
+          "y": [
+            0,
+            0,
+            130,
+            260
+          ]
+        },
+        "totalHeightBefore": 260,
+        "totalHeightAfter": 390
+      }
+    },
+    {
+      "id": "scroll-to-item",
+      "desc": "单列 4 项，clientHeight 400，第 3 项（index 2）三种 block 的 scrollTop",
+      "input": {
+        "heights": [
+          200,
+          300,
+          150,
+          260
+        ],
+        "columns": 1,
+        "rowGap": 10,
+        "clientHeight": 400,
+        "index": 2
+      },
+      "expect": {
+        "y": 520,
+        "start": 520,
+        "center": 395,
+        "end": 270
+      }
+    },
+    {
+      "id": "empty-items",
+      "desc": "items 置空：positions 为空，totalHeight 只剩上下内边距",
+      "input": {
+        "heights": [],
+        "columns": 3,
+        "columnGap": 16,
+        "rowGap": 16,
+        "padding": 8
+      },
+      "expect": {
+        "positions": [],
+        "columnHeights": [
+          8,
+          8,
+          8
+        ],
+        "totalHeight": 16
+      }
+    }
+  ]
+}

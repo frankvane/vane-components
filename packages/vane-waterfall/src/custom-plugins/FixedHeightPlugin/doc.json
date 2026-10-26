@@ -1,0 +1,31 @@
+{
+  "name": "FixedHeightPlugin",
+  "description": "把数据里带 height 字段的项统一改写为固定高度，瀑布流变成等高网格。适合「图少字多」的卡片流——等高反而更好扫读。",
+  "since": "2.0.0",
+  "tags": [
+    "layout",
+    "网格"
+  ],
+  "config": [
+    {
+      "name": "itemHeight",
+      "type": "number",
+      "default": "—",
+      "description": "统一项高 px（必填）"
+    }
+  ],
+  "example": "// 把项高度统一成固定值，瀑布流退化为等高网格。\nconst Waterfall = withPlugins(WaterfallCore, [\n  createFixedHeightPlugin(),\n]);\n\n<Waterfall items={items} renderItem={(item) => <Card data={item} />} />;",
+  "features": [
+    "等高网格（严格对齐）",
+    "只改数据里已有的 height 字段",
+    "与 Pagination / Filter 组合仍然成立"
+  ],
+  "useCases": [
+    "商品列表（图固定比例）",
+    "后台看板卡片",
+    "需要严格栅格对齐的页面"
+  ],
+  "notes": [
+    "数据里没有 height 字段时不会生效——高度由 renderItem 自己的内容决定。"
+  ]
+}

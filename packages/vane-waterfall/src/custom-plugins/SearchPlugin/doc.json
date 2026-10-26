@@ -1,0 +1,44 @@
+{
+  "name": "SearchPlugin",
+  "description": "读取 `props.searchQuery`，在指定字段上做大小写不敏感的 `includes` 匹配。没指定字段就对对象的全部自有字段匹配。",
+  "since": "2.0.0",
+  "tags": [
+    "data",
+    "数据管线",
+    "搜索"
+  ],
+  "config": [
+    {
+      "name": "fields",
+      "type": "(keyof T)[]",
+      "default": "[]",
+      "description": "参与匹配的字段；空则匹配全部自有字段"
+    },
+    {
+      "name": "scrollToTop",
+      "type": "boolean",
+      "default": "false",
+      "description": "关键词变化后回顶"
+    },
+    {
+      "name": "scrollBehavior",
+      "type": "\"auto\" | \"smooth\"",
+      "default": "\"auto\"",
+      "description": "回顶行为"
+    }
+  ],
+  "example": "// 按 props.searchQuery 做大小写不敏感的多字段包含匹配。\nconst Waterfall = withPlugins(WaterfallCore, [\n  createSearchPlugin({\n    fields: [],\n    scrollToTop: false,\n    scrollBehavior: \"auto\",\n  }),\n]);\n\n<Waterfall items={items} renderItem={(item) => <Card data={item} />} />;",
+  "features": [
+    "大小写不敏感",
+    "多字段 OR 匹配",
+    "空关键词直接放行（不触发过滤）"
+  ],
+  "useCases": [
+    "站内搜索结果页",
+    "后台列表即时搜索",
+    "商品名 / 店铺名联合搜索"
+  ],
+  "notes": [
+    "纯前端 `includes`，不排序也不做拼音；要相关性排序请在 Search 之后接 SortPlugin。"
+  ]
+}

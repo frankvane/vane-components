@@ -1,0 +1,31 @@
+{
+  "name": "AlignmentPlugin",
+  "description": "设置瀑布流的列分配策略。shortest 让每列尽量等高（视觉最自然），balanced 让每列项数接近，sequential 按 index 轮转（可预测位置，适合需要与外部索引对齐的场景）。",
+  "since": "2.0.0",
+  "tags": [
+    "layout",
+    "布局"
+  ],
+  "config": [
+    {
+      "name": "mode",
+      "type": "\"shortest\" | \"balanced\" | \"sequential\"",
+      "default": "shortest",
+      "description": "列分配策略"
+    }
+  ],
+  "example": "// 指定列分配策略：最矮列优先（shortest）/ 项数均衡（balanced）/ 顺序轮转（sequential）。\nconst Waterfall = withPlugins(WaterfallCore, [\n  createAlignmentPlugin({\n    mode: \"shortest\",\n  }),\n]);\n\n<Waterfall items={items} renderItem={(item) => <Card data={item} />} />;",
+  "features": [
+    "三种列分配策略",
+    "只改 props.alignmentMode，不影响其他配置",
+    "与 ResponsiveColumns / AutoColumn 正交"
+  ],
+  "useCases": [
+    "内容流：默认 shortest",
+    "等长卡片：balanced 更整齐",
+    "需要与后端顺序对齐：sequential"
+  ],
+  "notes": [
+    "balanced 与 shortest 在列高相同时都取最左列，视觉上左偏是预期行为。"
+  ]
+}

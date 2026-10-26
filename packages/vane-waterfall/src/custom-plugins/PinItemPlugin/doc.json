@@ -1,0 +1,39 @@
+{
+  "name": "PinItemPlugin",
+  "description": "把若干索引的项钉在顶部指定列，其余项从它们下方继续排。走 D1-A 布局钩子（calculateItemPosition），是旧版宣称但从未生效的能力。",
+  "since": "2.0.0",
+  "tags": [
+    "layout",
+    "layout-hook",
+    "置顶"
+  ],
+  "config": [
+    {
+      "name": "pinnedIndices",
+      "type": "number[]",
+      "default": "[]",
+      "description": "要钉住的项索引"
+    },
+    {
+      "name": "column",
+      "type": "number",
+      "default": "0",
+      "description": "钉到第几列"
+    }
+  ],
+  "example": "// 把指定索引的项钉在顶部同一列，不参与常规列高推进（广告位 / 公告卡）。\nconst Waterfall = withPlugins(WaterfallCore, [\n  createPinItemPlugin({\n    pinnedIndices: [],\n    column: 0,\n  }),\n]);\n\n<Waterfall items={items} renderItem={(item) => <Card data={item} />} />;",
+  "features": [
+    "置顶项不占常规列高：后续项从置顶块下方开始",
+    "支持多列分别置顶（column 可不同）",
+    "每次布局前重置偏移，items 变化后不会累加错位"
+  ],
+  "useCases": [
+    "信息流首位的推广卡",
+    "公告 / 置顶帖",
+    "需要固定在左上角的活动位"
+  ],
+  "notes": [
+    "置顶项之间按 pinnedIndices 顺序纵向堆叠，同一列多条会依次往下排。",
+    "置顶会挤掉该列的正常网格位置，pinnedIndices 建议控制在 1~2 条。"
+  ]
+}

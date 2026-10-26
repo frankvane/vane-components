@@ -1,0 +1,31 @@
+{
+  "name": "ScrollAnchorPlugin",
+  "description": "不需要自己算索引：外部只管 `bus.emit(\"anchor:scrollToId\", { id })`，插件用 getAnchorId 找到对应项并滚过去。适合「从消息跳到某条内容」。",
+  "since": "2.0.0",
+  "tags": [
+    "interaction",
+    "滚动"
+  ],
+  "config": [
+    {
+      "name": "getAnchorId",
+      "type": "(item, index) => string | number | undefined",
+      "default": "item.id",
+      "description": "从项里取锚点 id"
+    }
+  ],
+  "example": "// 监听 `anchor:scrollToId` 事件，按业务 id 滚动到对应项。\nconst Waterfall = withPlugins(WaterfallCore, [\n  createScrollAnchorPlugin({\n    getAnchorId: \"item.id\",\n  }),\n]);\n\n<Waterfall items={items} renderItem={(item) => <Card data={item} />} />;",
+  "features": [
+    "按业务 id 定位，不用算下标",
+    "onMount 订阅 / onUnmount 退订（不泄漏）",
+    "平滑滚动"
+  ],
+  "useCases": [
+    "从通知跳转到具体卡片",
+    "目录点击定位",
+    "外链深链定位"
+  ],
+  "notes": [
+    "目标项必须已在 items 里；分页场景请先切到对应页再发事件。"
+  ]
+}

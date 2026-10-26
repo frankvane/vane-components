@@ -1,0 +1,47 @@
+{
+  "name": "PaginationPlugin",
+  "description": "读 `props.pageIndex`（1 基）与 `props.pageSize` 切片。放在数据管线最末端，保证切的是「过滤 + 排序 + 搜索」之后的结果。",
+  "since": "2.0.0",
+  "tags": [
+    "data",
+    "数据管线",
+    "分页"
+  ],
+  "config": [
+    {
+      "name": "pageSize",
+      "type": "number",
+      "default": "props.pageSize ?? 20",
+      "description": "每页条数"
+    },
+    {
+      "name": "scrollToTop",
+      "type": "boolean",
+      "default": "false",
+      "description": "翻页后回顶"
+    },
+    {
+      "name": "scrollBehavior",
+      "type": "\"auto\" | \"smooth\"",
+      "default": "\"auto\"",
+      "description": "回顶行为"
+    }
+  ],
+  "example": "// 按 props.pageIndex / pageSize 切片，页码从 1 开始。\nconst Waterfall = withPlugins(WaterfallCore, [\n  createPaginationPlugin({\n    scrollToTop: false,\n    scrollBehavior: \"auto\",\n  }),\n]);\n\n<Waterfall items={items} renderItem={(item) => <Card data={item} />} />;",
+  "conflicts": [
+    "InfiniteScrollPlugin"
+  ],
+  "features": [
+    "1 基页码（与 UI 分页器一致）",
+    "pageIndex 非法值自动夹到 1",
+    "翻页自动回顶可选"
+  ],
+  "useCases": [
+    "后台列表分页",
+    "搜索结果分页",
+    "与 URLSyncPlugin 配合做可分享链接"
+  ],
+  "notes": [
+    "pageSize 优先级：props.pageSize > 工厂 config.pageSize > 20。"
+  ]
+}

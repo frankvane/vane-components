@@ -1,0 +1,38 @@
+{
+  "name": "HeatmapAnalyticsPlugin",
+  "description": "按项统计「进入视口次数」与「点击次数」，用于粗粒度热力分析。首次布局会补记一次当前可见范围的曝光，避免首屏全是 0。",
+  "since": "2.0.0",
+  "tags": [
+    "interaction",
+    "埋点",
+    "曝光"
+  ],
+  "config": [
+    {
+      "name": "showOverlay",
+      "type": "boolean",
+      "default": "false",
+      "description": "是否显示顶部汇总条"
+    },
+    {
+      "name": "showOverlaySummary",
+      "type": "boolean",
+      "default": "—",
+      "description": "showOverlay 的旧别名"
+    }
+  ],
+  "example": "// 统计每项曝光次数与点击次数，可显示汇总条。\nconst Waterfall = withPlugins(WaterfallCore, [\n  createHeatmapAnalyticsPlugin({\n    showOverlay: false,\n  }),\n]);\n\n<Waterfall items={items} renderItem={(item) => <Card data={item} />} />;",
+  "features": [
+    "逐项曝光 / 点击计数",
+    "首屏曝光自动补记",
+    "汇总条默认关闭"
+  ],
+  "useCases": [
+    "信息流曝光分析",
+    "广告位可见性验证",
+    "调试曝光策略"
+  ],
+  "notes": [
+    "计数只存在内存里，刷新即清零；要持久化请订阅 bus 事件自行上报。"
+  ]
+}

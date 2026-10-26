@@ -1,0 +1,44 @@
+{
+  "name": "StatePersistencePlugin",
+  "description": "三个时机各做一件事：首次渲染把快照里的 pageIndex / searchQuery 注入 props；挂载后恢复 scrollTop；props 变化与卸载时写回快照。刷新页面不丢进度。",
+  "since": "2.0.0",
+  "tags": [
+    "ui",
+    "持久化"
+  ],
+  "config": [
+    {
+      "name": "storageKey",
+      "type": "string",
+      "default": "\"waterfall-state\"",
+      "description": "localStorage 键名"
+    },
+    {
+      "name": "persistScroll",
+      "type": "boolean",
+      "default": "true",
+      "description": "是否持久化滚动位置"
+    },
+    {
+      "name": "persistKeys",
+      "type": "string[]",
+      "default": "[\"pageIndex\",\"pageSize\",\"searchQuery\"]",
+      "description": "要持久化的 props 键"
+    }
+  ],
+  "example": "// 把滚动位置与分页/查询状态存 localStorage，回来时恢复。\nconst Waterfall = withPlugins(WaterfallCore, [\n  createStatePersistencePlugin({\n    storageKey: \"waterfall-state\",\n    persistScroll: true,\n    persistKeys: [\"pageIndex\",\"pageSize\",\"searchQuery\"],\n  }),\n]);\n\n<Waterfall items={items} renderItem={(item) => <Card data={item} />} />;",
+  "features": [
+    "滚动位置 + 分页/查询一起存",
+    "首帧注入只做一次，不会覆盖用户操作",
+    "SSR / 隐私模式下降级为不持久化"
+  ],
+  "useCases": [
+    "后台列表刷新不丢页",
+    "搜索结果返回定位",
+    "移动端来回切换页面"
+  ],
+  "notes": [
+    "只能恢复「值」，不能替你把它写回 React state——页面应订阅 `state:restored` 事件或读 bus。",
+    "localStorage 不可用（隐私模式/配额满）时静默跳过，不会抛错。"
+  ]
+}

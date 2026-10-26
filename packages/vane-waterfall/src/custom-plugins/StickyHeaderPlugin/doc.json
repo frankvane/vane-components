@@ -1,0 +1,37 @@
+{
+  "name": "StickyHeaderPlugin",
+  "description": "在滚动容器内渲染一条 `position: sticky` 的标题条，始终贴住容器顶部。装了 GroupingPlugin 时自动显示第一个分组名，也可用 title 写死。",
+  "since": "2.0.0",
+  "tags": [
+    "ui",
+    "吸顶"
+  ],
+  "config": [
+    {
+      "name": "title",
+      "type": "string",
+      "default": "\"分组标题\"",
+      "description": "标题文案"
+    },
+    {
+      "name": "showHint",
+      "type": "boolean",
+      "default": "false",
+      "description": "是否显示「向下滚动观察」提示"
+    }
+  ],
+  "example": "// 滚动容器内的吸顶标题条，可与分组联动显示当前组。\nconst Waterfall = withPlugins(WaterfallCore, [\n  createStickyHeaderPlugin({\n    title: \"分组标题\",\n    showHint: false,\n  }),\n]);\n\n<Waterfall items={items} renderItem={(item) => <Card data={item} />} />;",
+  "features": [
+    "sticky 吸顶，不依赖额外容器",
+    "与 Grouping 联动显示当前组",
+    "提示文案默认关闭"
+  ],
+  "useCases": [
+    "分组信息流",
+    "按日期分组的时间线",
+    "长列表的上下文提示"
+  ],
+  "notes": [
+    "sticky 生效要求它作为滚动容器的直接子元素——由 composeSlots 保证，单测已锁。"
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "name": "A11yPlugin",
+  "description": "把瀑布流补成读屏可理解的列表：容器 `role=list` + `aria-label`，每项 `role=listitem` + `aria-posinset` / `aria-setsize`，并可选加 `tabIndex` 让键盘能逐项聚焦。",
+  "since": "2.0.0",
+  "tags": [
+    "ui",
+    "a11y"
+  ],
+  "config": [
+    {
+      "name": "containerRole",
+      "type": "string",
+      "default": "\"list\"",
+      "description": "容器 role"
+    },
+    {
+      "name": "itemRole",
+      "type": "string",
+      "default": "\"listitem\"",
+      "description": "项 role"
+    },
+    {
+      "name": "enableTabIndex",
+      "type": "boolean",
+      "default": "true",
+      "description": "项是否可 Tab 聚焦"
+    },
+    {
+      "name": "containerLabel",
+      "type": "string",
+      "default": "\"Waterfall list\"",
+      "description": "容器 aria-label"
+    }
+  ],
+  "example": "// 给容器与项补 ARIA role / label / posinset，支持键盘 Tab 遍历。\nconst Waterfall = withPlugins(WaterfallCore, [\n  createA11yPlugin({\n    containerRole: \"list\",\n    itemRole: \"listitem\",\n    enableTabIndex: true,\n  }),\n]);\n\n<Waterfall items={items} renderItem={(item) => <Card data={item} />} />;",
+  "features": [
+    "容器 / 项 role 成对补齐",
+    "aria-posinset + aria-setsize 正确标注序号",
+    "键盘可逐项聚焦"
+  ],
+  "useCases": [
+    "政务 / 金融等合规站点",
+    "读屏用户可用的信息流",
+    "键盘操作优先的桌面端"
+  ],
+  "notes": [
+    "项数很多时 `tabIndex=0` 会让 Tab 变长，建议配合「跳转主内容」链接使用。"
+  ]
+}

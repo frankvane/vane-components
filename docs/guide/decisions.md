@@ -70,3 +70,38 @@
 **背景**：旧包把演示页和库源码混在一个 `src/` 下，`files: ["dist"]` 虽然挡住了发布，但 demo 依赖仍然污染 `dependencies`。
 
 **决定**：`demo/` 独立目录 + 独立 vite 配置（`createDemoConfig`），demo 依赖只进 `devDependencies`。
+
+## ADR-8 · 领域钩子面收口：48 → 20，只保留有执行点的钩子
+
+**背景**：旧 `vane-waterfall` 声明了 48 个插件钩子，逐条对着 Core 的调用点核对后发现**只有 17 个真的会被执行**，其余 31 个（`filterItem` / `sortItems` / `searchItem` / `renderContainer` / `renderEmpty` / `renderLoadingMore` / `transformItem` / `calculateVisibleRange` …）从来没有执行者。插件写进去不报错，也不生效——比"没实现"更糟，因为它看起来是实现了的。
+
+**决定**：
+
+1. 钩子面收口到 **20 个**，每个都必须在 Core 或装配层有明确调用点；
+2. 新增钩子必须同时落地「调用点 + 单测断言」，否则不进 `WaterfallPluginHooks`；
+3. 布局类钩子（`calculateColumns` / `calculateColumnWidth` / `calculateItemPosition`）必须走 D1-A 的布局纯函数执行点，不允许在插件里直接改 DOM 绕过布局。
+
+**代价**：1.x 的插件若依赖被删钩子，迁移时行为会"少一点"——但那部分行为本来就没生效，用户感知不到回退。
+
+**连带修复**：`PinItemPlugin` 在 1.x 是彻底空转（逻辑全在 `calculateItemPosition` 上，而该钩子无执行点），收口后它第一次真正工作。
+
+## ADR-9 · 虚拟化归属 Core，不做成插件
+
+**背景**：1.x 的 `VirtualWaterfallPlugin` 把 `renderItem` 置空、用 overlay 自绘卡片，等于架空 Core；且未渲染项量不到高度就 `continue`，总高严重偏小，滚动条会乱跳、最后一屏滚不到。
+
+**决定**：
+
+1. 虚拟化下沉 Core，作为 `virtualize?: boolean | { overscan, estimateHeight, dynamicHeights }`；
+2. **只裁渲染，不裁测量**：未渲染项按 `estimateHeight` 占位，列高照常推进；
+3. 已测到的真实高度缓存在 `measuredHeights`，项被卸载后仍然记得；
+4. `RecyclePlugin` 保留（不卸载、只 `visibility: hidden`），与 `virtualize` **互斥**：几百项用 Recycle，上千项用 virtualize。
+
+**理由**：虚拟化是布局问题，不是渲染装饰。放在插件里意味着插件要和 Core 抢渲染权，任何一次 Core 升级都会互相打架。
+
+## ADR-10 · `priority` 语义同向：大 = 先执行，不做反转
+
+**背景**：`vane-lazy-image` 迁移时把 `priority` 做了 `1000 - x` 反转以适配新内核。瀑布流旧版的语义本来就是「越大越先注册」，与内核「越大越先执行」同向。
+
+**决定**：不做反转，直接沿用。任何"照抄 lazy-image 的适配代码"都会引入 bug。
+
+**验证**：`test/withPlugins.test.tsx` 里锁了「priority 大的插件先跑」，数据管线的 `Filter(40) → Sort(30) → Search(20) → Pagination(10)` 靠这条语义成立。

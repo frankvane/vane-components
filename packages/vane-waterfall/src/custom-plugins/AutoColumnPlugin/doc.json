@@ -1,0 +1,47 @@
+{
+  "name": "AutoColumnPlugin",
+  "description": "按「容器可用宽度 ÷ 最小列宽」自动决定列数，取代写死 3 列。走 D1-A 布局钩子（calculateColumns），拿到的是真实容器宽度，不是 window.innerWidth。",
+  "since": "2.0.0",
+  "tags": [
+    "layout",
+    "layout-hook",
+    "响应式"
+  ],
+  "config": [
+    {
+      "name": "minColumnWidth",
+      "type": "number",
+      "default": "—",
+      "description": "每列最小宽度 px（必填）"
+    },
+    {
+      "name": "maxColumns",
+      "type": "number",
+      "default": "Infinity",
+      "description": "列数上限"
+    },
+    {
+      "name": "minColumns",
+      "type": "number",
+      "default": "1",
+      "description": "列数下限"
+    }
+  ],
+  "example": "// 按容器宽与最小列宽自动算列数，窄屏自动降列。\nconst Waterfall = withPlugins(WaterfallCore, [\n  createAutoColumnPlugin({\n    maxColumns: \"Infinity\",\n    minColumns: 1,\n  }),\n]);\n\n<Waterfall items={items} renderItem={(item) => <Card data={item} />} />;",
+  "conflicts": [
+    "ResponsiveColumnsPlugin"
+  ],
+  "features": [
+    "按容器宽度（不是视口宽度）算列数",
+    "列数上下限可夹",
+    "与 Gap / Padding 一起算，留白不吞列宽"
+  ],
+  "useCases": [
+    "响应式信息流",
+    "侧边栏宽度可拖动的后台看板",
+    "移动端 → 桌面端同一套代码"
+  ],
+  "notes": [
+    "与 ResponsiveColumnsPlugin 同时装会互相覆盖列数，只选一个。"
+  ]
+}

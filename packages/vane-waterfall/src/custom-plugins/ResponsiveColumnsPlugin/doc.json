@@ -1,0 +1,34 @@
+{
+  "name": "ResponsiveColumnsPlugin",
+  "description": "用一张断点表控制列数，命中哪档用哪档。走 D1-A 布局钩子（calculateColumns），按容器宽度匹配断点。",
+  "since": "2.0.0",
+  "tags": [
+    "layout",
+    "layout-hook",
+    "响应式"
+  ],
+  "config": [
+    {
+      "name": "breakpoints",
+      "type": "Record<string, { width: number; columns: number }>",
+      "default": "—",
+      "description": "断点表，按 width 升序匹配"
+    }
+  ],
+  "example": "// 按断点表决定列数（如 640 → 2 列、1024 → 3 列、1440 → 4 列）。\nconst Waterfall = withPlugins(WaterfallCore, [\n  createResponsiveColumnsPlugin(),\n]);\n\n<Waterfall items={items} renderItem={(item) => <Card data={item} />} />;",
+  "conflicts": [
+    "AutoColumnPlugin"
+  ],
+  "features": [
+    "断点表驱动，设计稿几档就写几档",
+    "按容器宽度而非视口宽度匹配",
+    "未命中任何断点时回退到 props.columns"
+  ],
+  "useCases": [
+    "严格对齐设计断点的站点",
+    "同一个组件嵌在不同宽度的容器里"
+  ],
+  "notes": [
+    "与 AutoColumnPlugin 互斥。"
+  ]
+}

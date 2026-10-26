@@ -1,0 +1,44 @@
+{
+  "name": "FilterPlugin",
+  "description": "用谓词函数过滤数据，优先读 `props.filterFn`，没有就用工厂里传入的 predicate。过滤条件变了可以自动滚回顶部（默认不开）。",
+  "since": "2.0.0",
+  "tags": [
+    "data",
+    "数据管线"
+  ],
+  "config": [
+    {
+      "name": "predicate",
+      "type": "(item, index) => boolean",
+      "default": "—",
+      "description": "默认谓词，可被 props.filterFn 覆盖"
+    },
+    {
+      "name": "scrollToTop",
+      "type": "boolean",
+      "default": "false",
+      "description": "条件变化后回顶"
+    },
+    {
+      "name": "scrollBehavior",
+      "type": "\"auto\" | \"smooth\"",
+      "default": "\"auto\"",
+      "description": "回顶行为"
+    }
+  ],
+  "example": "// 按谓词过滤 items，参数变化可自动回顶。\nconst Waterfall = withPlugins(WaterfallCore, [\n  createFilterPlugin({\n    scrollToTop: false,\n    scrollBehavior: \"auto\",\n  }),\n]);\n\n<Waterfall items={items} renderItem={(item) => <Card data={item} />} />;",
+  "features": [
+    "谓词抛错时按「保留」处理，不会整表消失",
+    "props.filterFn 优先，便于页面动态换过滤条件",
+    "可与 Sort / Search / Pagination 串联"
+  ],
+  "useCases": [
+    "分类 Tab 切换",
+    "只看有货 / 只看促销",
+    "价格区间筛选"
+  ],
+  "notes": [
+    "数据管线的执行顺序由 priority 决定：Filter(40) → Sort(30) → Search(20) → Pagination(10)。",
+    "先过滤再分页，页码总数才是过滤后的总数——顺序反了会出现「第 2 页空」。"
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "name": "DebounceLayoutPlugin",
+  "description": "只调 debounceDelay：容器宽度连续变化（抽屉展开、分栏拖拽）时，等变化停下来再算一次布局，避免每帧重排。",
+  "since": "2.0.0",
+  "tags": [
+    "perf",
+    "性能"
+  ],
+  "config": [
+    {
+      "name": "delay",
+      "type": "number",
+      "default": "—",
+      "description": "布局防抖 ms（必填）"
+    }
+  ],
+  "example": "// 单独放大布局防抖，容器频繁变宽时（抽屉/侧栏动画）不抖。\nconst Waterfall = withPlugins(WaterfallCore, [\n  createDebounceLayoutPlugin(),\n]);\n\n<Waterfall items={items} renderItem={(item) => <Card data={item} />} />;",
+  "features": [
+    "只影响布局时机，不影响渲染",
+    "可被 ThrottlePlugin 覆盖",
+    "对移动端软键盘弹出也有效"
+  ],
+  "useCases": [
+    "可折叠侧栏",
+    "分栏宽度拖拽",
+    "横竖屏切换"
+  ],
+  "notes": [
+    "delay 过大会让「展开后布局」明显滞后，建议 120–250ms。"
+  ]
+}

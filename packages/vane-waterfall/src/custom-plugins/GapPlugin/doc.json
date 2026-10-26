@@ -1,0 +1,42 @@
+{
+  "name": "GapPlugin",
+  "description": "把 rowGap / columnGap 收敛到一处配置，并支持按窗口宽度切换间距（窄屏 8px、宽屏 16px 这类）。",
+  "since": "2.0.0",
+  "tags": [
+    "layout",
+    "间距"
+  ],
+  "config": [
+    {
+      "name": "columnGap",
+      "type": "number",
+      "default": "props.columnGap",
+      "description": "列间距 px"
+    },
+    {
+      "name": "rowGap",
+      "type": "number",
+      "default": "props.rowGap",
+      "description": "行间距 px"
+    },
+    {
+      "name": "responsive",
+      "type": "{ sm?, md?, lg?, xl? }",
+      "default": "—",
+      "description": "断点覆盖（按 window 宽度）"
+    }
+  ],
+  "example": "// 统一控制行/列间距，支持按断点给不同间距。\nconst Waterfall = withPlugins(WaterfallCore, [\n  createGapPlugin(),\n]);\n\n<Waterfall items={items} renderItem={(item) => <Card data={item} />} />;",
+  "features": [
+    "行列间距一处配置",
+    "断点覆盖（sm/md/lg/xl）",
+    "不填则回退到 props"
+  ],
+  "useCases": [
+    "设计规范里间距随断点变化",
+    "同一组件在不同页面用不同密度"
+  ],
+  "notes": [
+    "断点判断用的是 window.innerWidth（间距通常跟视口走，与列数按容器算不一样）。"
+  ]
+}
