@@ -178,6 +178,7 @@
     "sync:exports": "node ../../scripts/sync-exports.mjs",
     "docs:plugins": "node ../../scripts/generate-plugin-docs.mjs",
     "verify:scenarios": "node scripts/verify-scenarios.mjs",
+    "audit:demos": "node scripts/audit-demos.mjs",
     "serve:demo": "node scripts/serve-demo.cjs",
     "demo": "pnpm build:demo && node scripts/serve-demo.cjs",
     "prepublishOnly": "npm run build"

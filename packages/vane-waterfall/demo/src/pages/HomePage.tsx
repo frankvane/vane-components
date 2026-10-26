@@ -9,8 +9,9 @@ import {
 import { makeCards, type SeedCard } from "../data/seed";
 import { FeedCard } from "../components/FeedCard";
 import { CodeBlock } from "../components/CodeBlock";
-import { SCENARIOS, USED_PLUGINS } from "../scenarios/catalog";
+import { SCENARIOS } from "../scenarios/catalog";
 import { PLUGINS } from "../data/plugins";
+import { DEMOS, DEMO_PLUGINS } from "../demos/registry";
 
 const HERO_DATA = makeCards({ count: 18, seed: 2026, heightRange: [120, 220] });
 
@@ -59,9 +60,9 @@ const FEATURES = [
 export function HomePage() {
   const stats = [
     { k: `${PLUGINS.length}`, v: "领域插件", s: "5 组 · 按 priority 串联" },
-    { k: `${SCENARIOS.length}`, v: "可跑场景", s: "每卡两份源码" },
+    { k: `${DEMOS.length}`, v: "逐项示例", s: "一插件一页 · 参数可拖" },
+    { k: `${SCENARIOS.length}`, v: "组合场景", s: "每卡两份源码" },
     { k: "20", v: "领域钩子", s: "4 生命周期 + 16 业务" },
-    { k: "3", v: "现成配方", s: "photo / product / dashboard" },
   ];
 
   return (
@@ -88,6 +89,10 @@ export function HomePage() {
               </li>
             ))}
           </ul>
+          <p className="hero-links">
+            <Link to={`/demo/${DEMOS[0].meta.slug}`}>从「基础示例」开始 →</Link>
+            <Link to="/scenarios">看 {SCENARIOS.length} 个真实版式 →</Link>
+          </p>
         </div>
 
         <div className="hero-demo">
@@ -122,6 +127,9 @@ export function HomePage() {
         </h2>
         <p className="page-sub" style={{ marginBottom: 12 }}>
           两步：装配成组件类型，然后当普通列表用。所有行为都来自插件，Core 的 props 只有布局相关的那几个。
+          <br />
+          想逐个插件看效果，走 <Link to={`/demo/${DEMOS[0].meta.slug}`}>逐项示例</Link>（
+          {DEMO_PLUGINS.length} / {PLUGINS.length} 个插件各有一页，另有 ref / 事件 / 基础 props 六页）。
         </p>
         <CodeBlock code={QUICK_START} title="feed.tsx" collapseAfter={0} maxHeight={520} />
       </section>
@@ -137,12 +145,12 @@ export function HomePage() {
             {SCENARIOS.length} 个真实版式（图文 / 电商 / 视频 / 看板…），每卡带可复制的完整源码
           </span>
         </Link>
-        <div className="card link-card is-muted">
-          <strong>覆盖情况</strong>
+        <Link className="card link-card" to={`/demo/${DEMOS[0].meta.slug}`}>
+          <strong>逐项示例 →</strong>
           <span>
-            场景已用到 {USED_PLUGINS.length} / {PLUGINS.length} 个插件，其余在工坊里都有开关
+            {DEMOS.length} 页：一插件一页，带参数控件与随参数变化的装配代码
           </span>
-        </div>
+        </Link>
       </section>
     </div>
   );

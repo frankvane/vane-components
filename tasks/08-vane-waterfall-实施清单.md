@@ -254,7 +254,7 @@
 - ❌ 不迁 28 个死钩子（`calculateVisibleRange` / `onLoadMore` / `filterItem` / `sortItems` / `searchItem` / `renderContainer` / `renderEmpty` / `renderLoadingMore` / `renderError` / `transformItem` …）
 - ❌ 不迁 `renderContainer`（0 插件使用）
 - ❌ 不保留 `localforage` 依赖（0 引用）
-- ❌ 不复刻旧 35 个 demo 页（改为工坊 + 场景库）
+- ⚠️ ~~不复刻旧 35 个 demo 页（改为工坊 + 场景库）~~ —— **已修正，见文末「W6 补做」**：逐项视角不能丢，最终三视角并存（34 页逐项示例 + 工坊 + 13 场景）
 - ❌ 不做 priority 反转适配（旧新版同向，照抄 lazy-image 会引入 bug）
 - ❌ 不在本阶段动 `vane-card` / `vane-file-preview`（属 `tasks/02` 的 P2 其余两条）
 
@@ -274,3 +274,34 @@ W0（决策）
 - W3.1（A 级 14 个）与 W3.4 的 presets 可并行；W3.2 建议在 W2 验收通过后再动，避免「钩子面还没定就改插件」。
 - W4.3 场景库可与 W3.2 交叉进行（场景只依赖已迁好的插件）。
 - 每个阶段结束都跑一次 `pnpm verify`（根目录），把回归锁在阶段内。
+
+---
+
+## W6 补做（2026-10-26，计划外）：逐插件示例 34 页
+
+W4 当初把旧仓 35 个 demo 页整体砍掉，只留「工坊（勾选组合）+ 场景库（组合版式）」。实测下来这个取舍有漏洞：**组合视角强了，单点视角没了** —— 想单独看「FixedHeight 的 itemHeight 从 120 调到 260 会怎样」「Ref 的 13 个方法各自返回什么」时，工坊里只能勾一个插件共用同一块预览，参数没法逐个拖，也没有对应源码。
+
+于是按旧仓清单（基础功能 / 高级功能 / 插件功能三组）补回逐项示例，并做了三点升级：
+
+1. **数据驱动而非 34 份样板**：每页只写 `meta`（含 plugs / props / controls / note）+ 一个装配函数，页面骨架、控件、日志、代码块全部由 `demos/DemoPage.tsx` + `stages/feed.tsx` 提供。26 个插件页平均 40 行。
+2. **拖控件 = 改代码**：`meta.props` 与 `plugs[].cfg` 支持 `{{key}}` 占位，用控件当前值替换 —— 把间距拖到 24，下面的装配代码就变成 `columnGap: 24`。
+3. **两道闸门**：`verify:scenarios` 扩展到示例（slug ↔ 文件名、plugs ↔ 源码双向、26 个插件必须每个都有一页）；新增 `scripts/audit-demos.mjs` 用真浏览器对 37 个页面做几何体检（8 个页面 × 34 页 + 3 个其它页 → 全 0 命中）。
+
+页面清单：3 基础（基础示例 / 自定义列数 / 自定义间距）+ 3 高级 API（Ref 方法 / 生命周期事件 / 高级配置）+ 28 插件（26 插件 + 2 个虚拟化内核能力页）。
+
+**过程中修掉的真 bug**
+
+- `DemoPage` 用 `useState(() => initialCfg(meta))` 初始化控件值，但路由切换时同一组件类型被复用 → 从第 2 页起控件值还是上一页的（显示 `undefined`）。修法：`<DemoPage key={entry.meta.slug} />`。
+- 侧栏跨组跳转时当前组不展开，导航看起来「跳丢了」。修法：`activeGroup` 变化时把该组展开。
+- 把 `searchQuery` 这类高频输入写进「重建组件」的 key 里，会让每敲一个字整块瀑布流重挂载（输入框失焦、滚动归零）。修法：`pluginKeys` 显式排除，只让真正影响装配的键参与重建。
+
+**验收**
+
+| 项 | 结果 |
+| --- | --- |
+| `tsc --noEmit` | 0 错 |
+| `eslint` | 0 error（172 warning，均为既有 `no-explicit-any` / `react-refresh`） |
+| `vitest` | 5 files / 33 用例通过 |
+| `verify:scenarios` | 13 场景 + **34 示例**；插件页覆盖 **26 / 26** |
+| `audit:demos` | **37 页 · 0 命中**（越界 / 负坐标 / 零尺寸 / 两两重叠 / 总高不足） |
+| `vite build`（demo） | 263 modules，`index` 128 KB gzip（含 34 页与源码字符串） |

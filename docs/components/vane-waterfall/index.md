@@ -70,6 +70,7 @@ layout.ts           computeLayout 纯函数（含 3 个布局钩子执行点）
 virtualize.ts       computeVisibleRange 纯函数 + 占位高度策略
 custom-plugins/     26 个领域插件（5 组）
 presets/            photo-feed / product-feed / dashboard
+demo/               演示站：34 页逐项示例 + 工坊 + 13 场景（不随包发布）
 ```
 
 ## 插件目录速览
@@ -101,15 +102,29 @@ presets/            photo-feed / product-feed / dashboard
 
 ## 在线示例
 
-演示站包含两类页面，都能直接开：
+演示站是三种视角，各管一件事：
 
-- **插件工坊**：勾选 26 个插件，实时看装配效果并生成可复制代码
-- **场景库**：13 个真实版式（图文 / 电商 / 视频 / 看板 / 长文…），每卡带「完整源码」+「最小装配」两份代码，并有页面内的几何体检（重叠 / 越界 / 总高不足）
+| 页面 | 数量 | 解决什么 |
+| --- | --- | --- |
+| **逐项示例** | 34 页 | 一插件一页：拖参数看行为变化，装配代码跟着参数实时变 |
+| **插件工坊** | 26 插件 | 组合实验台：勾选任意组合，现场看冲突提示并生成装配代码 |
+| **场景库** | 13 版式 | 组合视角：真实版式（图文 / 电商 / 视频 / 看板 / 长文…），每卡两份源码 |
+
+逐项示例分三组，与 [API](api.md) 的钩子表一一对得上：
+
+- **基础功能**（3）：基础示例、自定义列数、自定义间距 —— 只用 Core props
+- **高级功能**（3）：Ref 方法调用（13 个方法逐个点）、生命周期和事件（13 个回调接满）、高级配置（padding / useTransform / alignmentMode / 节流防抖）
+- **插件功能**（28）：26 个插件各一页，另有 2 页是内核能力（虚拟瀑布流 / 动态高度虚拟化）
+
+每页固定四块：一句话 + 什么时候用 → 参数控件 → 可交互舞台（含事件日志 / 读数条）→ 通栏代码（最小装配 / 完整源码）。
 
 本地跑：
 
 ```bash
-pnpm --filter vane-waterfall dev          # 开发（端口 3300）
-pnpm --filter vane-waterfall demo         # 构建 + 静态托管 demo-dist
-pnpm --filter vane-waterfall verify:scenarios   # 场景目录 / 源码 / 插件名一致性闸门
+pnpm --filter vane-waterfall dev               # 开发（端口 3300）
+pnpm --filter vane-waterfall demo              # 构建 + 静态托管 demo-dist
+pnpm --filter vane-waterfall verify:scenarios  # 目录 / 源码 / 插件名一致性闸门（场景 + 示例）
+PLAYWRIGHT_PATH=<playwright> node scripts/audit-demos.mjs   # 37 个页面逐页几何体检
 ```
+
+两道闸门的区别：`verify:scenarios` 是静态核对（元信息 ↔ 源码 ↔ 插件名双向），`audit-demos` 用真浏览器量几何（重叠 / 越界 / 零尺寸 / `scrollHeight` 盖不住底边）—— 后者能抓住「文字看不出来、但版式已经坏了」的问题。
