@@ -16,7 +16,46 @@
       "name": "crossOrigin",
       "type": "string | null",
       "description": "\"anonymous\" | \"use-credentials\" | null"
+    },
+    {
+      "name": "showBadge",
+      "type": "boolean",
+      "default": "false",
+      "description": "是否在卡片上显示「已预连 N」徽标（便于观察注入效果）"
     }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createPreconnectPlugin()]);"
+  "example": "const LazyImage = withPlugins(LazyLoadImageCore, [\n  createPreconnectPlugin({\n    domains: [\"https://cdn.example.com\", \"https://img.example.com\"],\n    crossOrigin: \"anonymous\",\n  }),\n]);",
+  "examples": [
+    {
+      "name": "基础预连接",
+      "description": "为图片 CDN 域名提前建连，消除首图 DNS/TLS 往返，更快出现。",
+      "config": {
+        "domains": ["https://picsum.photos"],
+        "crossOrigin": "anonymous",
+        "showBadge": true
+      }
+    },
+    {
+      "name": "多域名预连接",
+      "description": "同时预连接多个静态资源域名，适合跨 CDN 的图片源。",
+      "config": {
+        "domains": ["https://picsum.photos", "https://fastly.picsum.photos"],
+        "crossOrigin": "anonymous"
+      }
+    }
+  ],
+  "features": [
+    "挂载时注入 <link rel=\"preconnect\">，提前完成 DNS/TCP/TLS 握手",
+    "支持跨域凭证配置（crossOrigin: anonymous / use-credentials）",
+    "与浏览器默认预连接策略互补，相同域名不会重复注入"
+  ],
+  "useCases": [
+    "图片托管在独立 CDN 域名时，消除首图握手延迟",
+    "瀑布流列表首屏涉及多个静态资源域名"
+  ],
+  "notes": [
+    "仅注入预连接提示，不保证一定建连，实际收益取决于浏览器调度。",
+    "不宜预连接过多域名，以免占用有限的连接资源。",
+    "已在本插件内去重，重复传入相同域名只会注入一次。"
+  ]
 }

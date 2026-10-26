@@ -1,0 +1,43 @@
+{
+  "name": "LocalizationPlugin",
+  "description": "国际化：根据用户语言环境自动切换图片，支持手动指定、自动检测、自定义检测函数与后备图片。",
+  "since": "2.0.0",
+  "tags": [
+    "ecommerce",
+    "电商核心"
+  ],
+  "config": [
+    { "name": "localeMap", "type": "Record<string, string>", "default": "undefined", "description": "语言 → 图片 URL 映射" },
+    { "name": "defaultLocale", "type": "string", "default": "\"en\"", "description": "默认语言（后备）" },
+    { "name": "currentLocale", "type": "string", "default": "undefined", "description": "手动指定当前语言" },
+    { "name": "autoDetect", "type": "boolean", "default": "true", "description": "是否自动检测浏览器语言" },
+    { "name": "detectLocale", "type": "() => string", "default": "undefined", "description": "自定义语言检测函数" },
+    { "name": "fallbackSrc", "type": "string", "default": "undefined", "description": "最终后备图片 URL" }
+  ],
+  "example": "// 1. 按浏览器语言自动切换图片\nconst I18nImage = withPlugins(LazyLoadImageCore, [\n  createLocalizationPlugin({\n    localeMap: {\n      en: \"https://cdn.example.com/en.jpg\",\n      zh: \"https://cdn.example.com/zh.jpg\",\n    },\n    autoDetect: true,\n    defaultLocale: \"en\",\n  }),\n]);\n\n// 2. 手动指定语言（不自动检测）\ncreateLocalizationPlugin({\n  localeMap: { en: \"https://cdn.example.com/en.jpg\", zh: \"https://cdn.example.com/zh.jpg\" },\n  currentLocale: \"zh\",\n  autoDetect: false,\n});\n\n// 3. 在组件中使用\n<I18nImage src=\"https://picsum.photos/id/1015/500/300\" alt=\"多语言图片\" />;",
+  "examples": [
+    { "name": "手动切换语言", "description": "手动指定 currentLocale 展示对应语言图片（此处以 en 为例）。", "src": "https://picsum.photos/id/1015/500/300", "config": { "localeMap": { "en": "https://picsum.photos/id/1015/500/300", "zh": "https://picsum.photos/id/1016/500/300", "ja": "https://picsum.photos/id/1018/500/300", "ko": "https://picsum.photos/id/1019/500/300" }, "currentLocale": "en", "autoDetect": false, "defaultLocale": "en" } },
+    { "name": "自动检测浏览器语言", "description": "根据浏览器语言自动选择图片（支持 en/zh/fr/de/es）。", "src": "https://picsum.photos/id/1020/500/300", "config": { "localeMap": { "en": "https://picsum.photos/id/1020/500/300", "zh": "https://picsum.photos/id/1021/500/300", "fr": "https://picsum.photos/id/1022/500/300", "de": "https://picsum.photos/id/1023/500/300", "es": "https://picsum.photos/id/1024/500/300" }, "autoDetect": true, "defaultLocale": "en" } },
+    { "name": "自定义语言检测", "description": "通过 detectLocale() 从 localStorage 读取偏好（示例中简写为自动检测）。", "src": "https://picsum.photos/id/1025/500/300", "config": { "localeMap": { "en": "https://picsum.photos/id/1025/500/300", "zh": "https://picsum.photos/id/1026/500/300", "ja": "https://picsum.photos/id/1027/500/300" }, "defaultLocale": "en", "autoDetect": true } },
+    { "name": "后备图片机制", "description": "请求的语言（ru）不在映射中 → 显示 fallbackSrc 后备图片。", "src": "https://picsum.photos/id/1030/500/300", "config": { "localeMap": { "en": "https://picsum.photos/id/1028/500/300", "zh": "https://picsum.photos/id/1029/500/300" }, "currentLocale": "ru", "defaultLocale": "en", "fallbackSrc": "https://picsum.photos/id/1030/500/300" } }
+  ],
+  "notes": [
+    "最佳实践：始终提供 defaultLocale 作为后备；localeMap 至少包含常用语言（en、zh 等）；图片 URL 应指向稳定可访问的资源；建议使用 CDN 加速不同地区的图片加载；可结合用户设置和浏览器检测；开发环境建议打开 console 查看语言检测日志。"
+  ],
+  "features": [
+    "多语言支持（任意语言环境）",
+    "自动检测浏览器语言",
+    "默认回退语言",
+    "自定义检测函数",
+    "后备机制（最终后备图片 URL）",
+    "动态切换（运行时切换语言）"
+  ],
+  "useCases": [
+    "国际化网站",
+    "品牌宣传",
+    "多语言 App",
+    "电商平台（商品本地化展示）",
+    "新闻媒体",
+    "在线教育"
+  ]
+}

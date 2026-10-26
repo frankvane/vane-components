@@ -1,0 +1,49 @@
+{
+  "name": "DownloadButtonPlugin",
+  "description": "下载按钮：为图片添加一键下载功能，支持多位置、自定义样式、悬停显示与生命周期回调。",
+  "since": "2.0.0",
+  "tags": [
+    "ecommerce",
+    "电商核心"
+  ],
+  "config": [
+    { "name": "filename", "type": "string", "default": "undefined", "description": "下载文件名" },
+    { "name": "position", "type": "\"top-left\" | \"top-right\" | \"bottom-left\" | \"bottom-right\"", "default": "\"top-right\"", "description": "按钮位置" },
+    { "name": "size", "type": "\"small\" | \"medium\" | \"large\"", "default": "\"medium\"", "description": "按钮尺寸" },
+    { "name": "buttonStyle", "type": "React.CSSProperties", "default": "{}", "description": "自定义按钮样式" },
+    { "name": "showOnHover", "type": "boolean", "default": "false", "description": "仅悬停时显示" },
+    { "name": "onBeforeDownload", "type": "(src) => void | Promise<void>", "default": "undefined", "description": "下载前回调（可做权限校验）" },
+    { "name": "onDownloadSuccess", "type": "(filename) => void", "default": "undefined", "description": "下载成功回调" },
+    { "name": "onDownloadError", "type": "(error) => void", "default": "undefined", "description": "下载失败回调" },
+    { "name": "customIcon", "type": "ReactNode", "default": "undefined", "description": "自定义图标" },
+    { "name": "tooltipText", "type": "string", "default": "\"下载图片\"", "description": "提示文案" }
+  ],
+  "example": "// 1. 右上角下载按钮，成功后回调\nconst DownloadImage = withPlugins(LazyLoadImageCore, [\n  createDownloadButtonPlugin({\n    position: \"top-right\",\n    filename: \"my-image.jpg\",\n    onDownloadSuccess: (name) => console.log(name),\n  }),\n]);\n\n// 2. 仅悬停时显示下载按钮\ncreateDownloadButtonPlugin({\n  position: \"top-left\",\n  size: \"large\",\n  showOnHover: true,\n  tooltipText: \"点击下载高清图片\",\n});\n\n// 3. 在组件中使用\n<DownloadImage src=\"https://picsum.photos/id/1015/500/300\" alt=\"可下载图片\" />;",
+  "examples": [
+    { "name": "基础下载功能", "description": "点击右上角下载按钮，保存图片（文件名 my-image.jpg）。", "src": "https://picsum.photos/id/1015/500/300", "config": { "filename": "my-image.jpg", "position": "top-right", "size": "medium" } },
+    { "name": "悬停显示按钮", "description": "默认隐藏，鼠标悬停图片左上角出现大号下载按钮。", "src": "https://picsum.photos/id/1018/500/300", "config": { "position": "top-left", "size": "large", "showOnHover": true, "tooltipText": "点击下载高清图片" } },
+    { "name": "自定义位置和大小", "description": "左下角小号绿色下载按钮。", "src": "https://picsum.photos/id/1019/500/300", "config": { "position": "bottom-left", "size": "small", "buttonStyle": { "backgroundColor": "rgba(52, 199, 89, 0.9)" } } },
+    { "name": "自定义按钮样式", "description": "右下角红色方形下载按钮。", "src": "https://picsum.photos/id/1020/500/300", "config": { "position": "bottom-right", "size": "medium", "buttonStyle": { "backgroundColor": "rgba(255, 59, 48, 0.9)", "borderRadius": "8px", "border": "none" }, "tooltipText": "下载原图" } },
+    { "name": "下载生命周期回调", "description": "下载前后触发回调（可权限校验 / 统计上报）；示例中省略函数，见用法示例。", "src": "https://picsum.photos/id/1021/500/300", "config": { "filename": "premium-photo.jpg", "position": "top-right", "size": "large" } },
+    { "name": "自定义下载图标", "description": "示例以默认图标呈现；可用 customIcon 替换为自定义图标。", "src": "https://picsum.photos/id/1022/500/300", "config": { "position": "top-right", "size": "medium", "buttonStyle": { "backgroundColor": "rgba(88, 86, 214, 0.9)" } } }
+  ],
+  "notes": [
+    "下载提示：下载需要图片 URL 支持 CORS，否则可能失败；跨域图片需服务器设置 Access-Control-Allow-Origin；filename 应包含合适的文件扩展名（.jpg / .png 等）；大文件下载时会有短暂延迟，建议显示加载状态；移动端下载体验可能因浏览器而异；可在 onBeforeDownload 中进行权限检查。"
+  ],
+  "features": [
+    "一键下载（点击按钮即可下载图片）",
+    "多位置支持（4 个角落）",
+    "自定义样式（大小 / 颜色 / 形状）",
+    "悬停显示模式",
+    "生命周期回调（下载前 / 后 / 失败）",
+    "自定义图标"
+  ],
+  "useCases": [
+    "图片网站（用户下载高清图）",
+    "设计平台（下载设计作品）",
+    "新闻媒体",
+    "电商平台（下载商品图片）",
+    "在线教育（下载教学资料）",
+    "企业官网（下载宣传图）"
+  ]
+}

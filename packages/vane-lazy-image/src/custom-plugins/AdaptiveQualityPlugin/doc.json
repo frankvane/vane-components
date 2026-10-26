@@ -1,43 +1,36 @@
 {
   "name": "AdaptiveQualityPlugin",
-  "description": "网络自适应画质：按 effectiveType/saveData 调整质量参数，支持实时监听。",
+  "description": "自适应画质：根据网络类型（effectiveType）与省流模式（saveData）动态调整图片质量参数，弱网/省流自动降质，支持 realtime 实时监听。",
   "since": "2.0.0",
-  "tags": [
-    "network",
-    "网络"
-  ],
+  "tags": ["other", "网络", "性能", "省流量"],
   "config": [
-    {
-      "name": "lowQ",
-      "type": "number",
-      "description": "低速网络质量值"
-    },
-    {
-      "name": "highQ",
-      "type": "number",
-      "description": "高速网络质量值"
-    },
-    {
-      "name": "saveDataQuality",
-      "type": "number",
-      "description": "省流模式质量值"
-    },
-    {
-      "name": "overrideEffectiveType",
-      "type": "EffectiveType",
-      "description": "Demo/测试覆盖"
-    },
-    {
-      "name": "overrideSaveData",
-      "type": "boolean",
-      "description": "Demo/测试覆盖"
-    },
-    {
-      "name": "mode",
-      "type": "\"once\" | \"realtime\"",
-      "default": "\"once\"",
-      "description": ""
-    }
+    { "name": "lowQ", "type": "number", "default": "40(2g/3g)", "description": "低速网络质量值(1~100)" },
+    { "name": "highQ", "type": "number", "default": "80(4g)", "description": "高速网络质量值(1~100)" },
+    { "name": "saveDataQuality", "type": "number", "default": "35", "description": "省流模式质量值(1~100)" },
+    { "name": "overrideEffectiveType", "type": "\"4g\" | \"3g\" | \"2g\" | \"slow-2g\"", "default": "undefined", "description": "Demo/测试覆盖网络类型" },
+    { "name": "overrideSaveData", "type": "boolean", "default": "undefined", "description": "Demo/测试覆盖省流开关" },
+    { "name": "mode", "type": "\"once\" | \"realtime\"", "default": "\"once\"", "description": "once 仅初始一次 / realtime 监听变化" }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createAdaptiveQualityPlugin()]);"
+  "example": "const AqImage = withPlugins(LazyLoadImageCore, [\n  createAdaptiveQualityPlugin({ lowQ: 45, highQ: 85, mode: \"realtime\" }),\n]);\n\n<AqImage src=\"https://picsum.photos/id/1015/500/300\" alt=\"自适应画质示例\" />;",
+  "examples": [
+    { "name": "默认一次性调速", "description": "初始按网络设置质量，加载一次。", "src": "https://picsum.photos/id/1015/500/300", "config": { "mode": "once" } },
+    { "name": "实时监听网络", "description": "mode=realtime，网络变化时自动重新计算质量。", "src": "https://picsum.photos/id/1021/500/300", "config": { "mode": "realtime" } },
+    { "name": "模拟弱网降质", "description": "overrideEffectiveType=2g，演示低速下自动降质。", "src": "https://picsum.photos/id/1026/500/300", "config": { "overrideEffectiveType": "2g", "overrideSaveData": true } }
+  ],
+  "features": [
+    "按网络类型调速",
+    "省流模式降质",
+    "realtime 实时监听",
+    "手动覆盖（Demo）",
+    "质量参数可配"
+  ],
+  "useCases": [
+    "弱网体验优化",
+    "流量节省",
+    "全球 CDN 适配",
+    "移动端画质策略"
+  ],
+  "notes": [
+    "overrideEffectiveType / overrideSaveData 仅用于 Demo 测试覆盖真实网络信息；质量参数通过 URL ?q= 注入，适用于支持该参数的图床。"
+  ]
 }

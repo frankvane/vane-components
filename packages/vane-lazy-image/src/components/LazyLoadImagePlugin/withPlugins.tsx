@@ -98,6 +98,9 @@ export function withPlugins(
     // ---------- 领域上下文：通过 extendContext 注入内核 context ----------
     // 内核 executeHook / transformData / onUnmount（卸载时）拿到的都是
     // 这个扩展后的 context，领域字段对插件始终可见。
+    // coreRef：捕获被包裹 Core 的 ref，向插件暴露 reload/reset 以真正中止/重置加载
+    const coreRef = useRef<LazyLoadImageCoreRef | null>(null);
+
     const extendContext = useCallback(
       (base: any): LazyImageContext => ({
         ...base,
@@ -110,6 +113,10 @@ export function withPlugins(
         // 领域别名：内核 shared（Map）→ 领域 sharedData，旧版插件零改动
         sharedData: base.shared as Map<string, any>,
         performanceData: performanceDataRef.current,
+        // 暴露给插件的加载控制：reload 会中止在途请求并（若在视口）重新发起；
+        // reset 仅回到 idle 不重新发起，用于「离开视口即中止」类场景。
+        reload: () => coreRef.current?.reload(),
+        reset: () => coreRef.current?.reset(),
       }),
       [props.src, imageState, isIntersecting, networkInfo]
     );
@@ -168,22 +175,25 @@ export function withPlugins(
     }, [execute]);
 
     // ---------- Core 生命周期 props → 领域钩子链 ----------
+    // 门控：插件 onBeforeLoad 返回 false 时抛 LLI_PLUGIN_GATE，由 Core 捕获后
+    // 跳过本次加载（不进入 loading、不报 error）。这是「视口防抖 / 视口驻留 /
+    // 内存中止」等插件真正拦截/延迟加载的唯一受支持路径。
     const handleBeforeLoad = useCallback(async () => {
+      const gate = await execute("onBeforeLoad");
+      if (gate === false) {
+        throw new Error("LLI_PLUGIN_GATE");
+      }
       const result = await execute("onLoad");
       return result as string | undefined;
     }, [execute]);
 
     const handleLoadStart = useCallback(() => {
+      // 仅负责打点计时；loading 状态由 Core 在门控放行后 dispatch LOAD_START 设置。
+      // 注意：插件 onBeforeLoad 钩子已上移到 handleBeforeLoad（真正 await 的路径），
+      // 这里不再重复调用，避免门控被 void 丢弃。
       performanceDataRef.current = {
         loadStartTime: performance.now(),
       };
-      setImageState({
-        isIdle: false,
-        isLoading: true,
-        isLoaded: false,
-        isError: false,
-      });
-      void execute("onBeforeLoad");
     }, [execute]);
 
     const handleLoadSuccess = useCallback(
@@ -246,7 +256,18 @@ export function withPlugins(
       onLeaveViewport: handleLeaveViewport,
     };
 
-    return <WrappedComponent ref={ref} {...enhancedProps} />;
+    return (
+      <WrappedComponent
+        ref={(node: LazyLoadImageCoreRef | null) => {
+          coreRef.current = node;
+          if (typeof ref === "function") ref(node);
+          else if (ref)
+            (ref as React.MutableRefObject<LazyLoadImageCoreRef | null>).current =
+              node;
+        }}
+        {...enhancedProps}
+      />
+    );
   });
 
   WithPluginsComponent.displayName = "WithPlugins(LazyLoadImageCore)";

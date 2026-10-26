@@ -1,72 +1,42 @@
 {
   "name": "BadgePlugin",
-  "description": "角标徽章：按加载状态（loading/loaded/error）在四角或中心显示文字徽章。",
+  "description": "角标徽章：在图片四角或中心叠加文字徽章，可按加载状态（always/loading/loaded/error）显示，支持自定义文字、颜色、字号与形状。",
   "since": "2.0.0",
-  "tags": [
-    "visual",
-    "视觉"
-  ],
+  "tags": ["other", "视觉", "徽标"],
   "config": [
-    {
-      "name": "text",
-      "type": "string | ((context: LazyImageContext) => string)",
-      "default": "\"Badge\"",
-      "description": ""
-    },
-    {
-      "name": "position",
-      "type": "\"top-left\" | \"top-right\" | \"bottom-left\" | \"bottom-right\" | \"center\"",
-      "default": "\"top-left\"",
-      "description": ""
-    },
-    {
-      "name": "bgColor",
-      "type": "string",
-      "default": "\"rgba(0,0,0,0.6)\"",
-      "description": ""
-    },
-    {
-      "name": "color",
-      "type": "string",
-      "default": "\"#fff\"",
-      "description": ""
-    },
-    {
-      "name": "fontSize",
-      "type": "number",
-      "default": "12",
-      "description": ""
-    },
-    {
-      "name": "padding",
-      "type": "string",
-      "default": "\"2px 6px\"",
-      "description": ""
-    },
-    {
-      "name": "borderRadius",
-      "type": "number",
-      "default": "4",
-      "description": ""
-    },
-    {
-      "name": "zIndex",
-      "type": "number",
-      "default": "3",
-      "description": ""
-    },
-    {
-      "name": "showWhen",
-      "type": "\"always\" | \"loading\" | \"loaded\" | \"error\"",
-      "default": "\"loaded\"",
-      "description": ""
-    },
-    {
-      "name": "enabled",
-      "type": "boolean",
-      "default": "true",
-      "description": ""
-    }
+    { "name": "text", "type": "string | ((context) => string)", "default": "\"Badge\"", "description": "徽章文字（支持函数动态生成）" },
+    { "name": "position", "type": "\"top-left\" | \"top-right\" | \"bottom-left\" | \"bottom-right\" | \"center\"", "default": "\"top-left\"", "description": "徽章位置（四角或中心）" },
+    { "name": "bgColor", "type": "string", "default": "\"rgba(0,0,0,0.6)\"", "description": "背景色" },
+    { "name": "color", "type": "string", "default": "\"#fff\"", "description": "文字色" },
+    { "name": "fontSize", "type": "number", "default": "12", "description": "字号(px)" },
+    { "name": "padding", "type": "string", "default": "\"2px 6px\"", "description": "内边距" },
+    { "name": "borderRadius", "type": "number", "default": "4", "description": "圆角(px)" },
+    { "name": "zIndex", "type": "number", "default": "3", "description": "层级" },
+    { "name": "showWhen", "type": "\"always\" | \"loading\" | \"loaded\" | \"error\"", "default": "\"loaded\"", "description": "显示时机" },
+    { "name": "enabled", "type": "boolean", "default": "true", "description": "是否启用" }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createBadgePlugin()]);"
+  "example": "const BadgeImage = withPlugins(LazyLoadImageCore, [\n  createBadgePlugin({ text: \"NEW\", position: \"top-left\", bgColor: \"#ff4757\", showWhen: \"always\" }),\n]);\n\n<BadgeImage src=\"https://picsum.photos/id/1015/500/300\" alt=\"角标示例\" />;",
+  "examples": [
+    { "name": "常驻徽标", "description": "左上角红色 NEW 徽标，始终显示。", "src": "https://picsum.photos/id/1015/500/300", "config": { "text": "NEW", "position": "top-left", "bgColor": "#ff4757", "showWhen": "always" } },
+    { "name": "加载时显示", "description": "加载中显示 Loading 徽标，加载完成隐藏。", "src": "https://picsum.photos/id/1021/500/300", "config": { "text": "Loading", "position": "top-right", "bgColor": "rgba(0,0,0,0.6)", "showWhen": "loading" } },
+    { "name": "加载成功后显示", "description": "加载完成后显示 Done 徽标。", "src": "https://picsum.photos/id/1026/500/300", "config": { "text": "Done", "position": "bottom-right", "bgColor": "#28a745", "showWhen": "loaded" } },
+    { "name": "自定义样式", "description": "橙色大字号圆角徽标，居中。", "src": "https://picsum.photos/id/1031/500/300", "config": { "text": "HOT", "position": "center", "bgColor": "#ff9f43", "color": "#fff", "fontSize": 16, "borderRadius": 20 } }
+  ],
+  "features": [
+    "角标 / 中心两种布局",
+    "五位置（四角 + 中心）",
+    "按加载状态显示",
+    "自定义文字/颜色/字号/圆角",
+    "支持函数文案",
+    "可关闭"
+  ],
+  "useCases": [
+    "商品标签",
+    "状态提示",
+    "进度/完成标记",
+    "活动角标"
+  ],
+  "notes": [
+    "text 支持函数型（按 context 动态生成），静态预览仅支持字符串；函数用法见用法示例。"
+  ]
 }

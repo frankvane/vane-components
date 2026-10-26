@@ -1,23 +1,29 @@
 {
   "name": "UserBehaviorPlugin",
-  "description": "用户行为采集：统计停留时长、点击与进出视口次数。",
+  "description": "用户行为：实时统计每张图片的视口驻留时长、点击次数、进入/离开次数，并在图片上叠加可视化面板，卸载时统一上报。",
   "since": "2.0.0",
-  "tags": [
-    "monitor",
-    "监控"
-  ],
+  "tags": ["viewport", "视口与交互", "数据", "分析"],
   "config": [
-    {
-      "name": "enabled",
-      "type": "boolean",
-      "default": "true",
-      "description": ""
-    },
-    {
-      "name": "onReport",
-      "type": "(data: { src: string; dwellMs: number; clicks: number; enters: number...",
-      "description": ""
-    }
+    { "name": "enabled", "type": "boolean", "default": "true", "description": "是否启用统计与面板" },
+    { "name": "onReport", "type": "(data: { src; dwellMs; clicks; enters; leaves }) => void", "default": "undefined", "description": "卸载时上报回调（默认打印到控制台）" }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createUserBehaviorPlugin()]);"
+  "example": "const BehaviorImage = withPlugins(LazyLoadImageCore, [\n  createUserBehaviorPlugin({\n    onReport: (data) => {\n      // 上报到分析后端\n      console.log(\"behavior\", data);\n    },\n  }),\n]);\n\n// 在组件中使用\n<BehaviorImage src=\"https://picsum.photos/id/1015/500/300\" alt=\"用户行为示例\" />;",
+  "examples": [
+    { "name": "默认统计面板", "description": "右上角实时显示驻留、点击、进入/离开数据。", "src": "https://picsum.photos/id/1015/500/300", "config": { "enabled": true } },
+    { "name": "关闭统计", "description": "enabled=false 时不渲染面板也不统计。", "src": "https://picsum.photos/id/1021/500/300", "config": { "enabled": false } }
+  ],
+  "features": [
+    "实时统计驻留时长",
+    "点击次数统计",
+    "进入 / 离开次数统计",
+    "视口状态指示（绿/红点）",
+    "卸载时统一上报",
+    "可通过 enabled 关闭"
+  ],
+  "useCases": [
+    "内容热度分析",
+    "广告位效果评估",
+    "UX 研究与转化漏斗",
+    "图片曝光与互动埋点"
+  ]
 }

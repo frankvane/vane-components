@@ -6,6 +6,24 @@
  * 按 8 大领域分组（ADR-6：只分组，不淘汰）；分组与 doc.json 的 tags 一致。
  */
 
+// ---------- 电商核心 ----------
+export { createPriceTagPlugin } from "./PriceTagPlugin";
+export type { PriceTagPluginConfig } from "./PriceTagPlugin";
+export { createPromoBadgePlugin } from "./PromoBadgePlugin";
+export type { PromoBadgePluginConfig } from "./PromoBadgePlugin";
+export { createInventoryStatusPlugin } from "./InventoryStatusPlugin";
+export type { InventoryStatusPluginConfig } from "./InventoryStatusPlugin";
+export { createColorSwatchPlugin } from "./ColorSwatchPlugin";
+export type { ColorSwatchPluginConfig } from "./ColorSwatchPlugin";
+export { createSocialSharePlugin } from "./SocialSharePlugin";
+export type { SocialSharePluginConfig } from "./SocialSharePlugin";
+export { createVideoPosterPlugin } from "./VideoPosterPlugin";
+export type { VideoPosterPluginConfig } from "./VideoPosterPlugin";
+export { createLocalizationPlugin } from "./LocalizationPlugin";
+export type { LocalizationPluginConfig } from "./LocalizationPlugin";
+export { createDownloadButtonPlugin } from "./DownloadButtonPlugin";
+export type { DownloadButtonPluginConfig } from "./DownloadButtonPlugin";
+
 // ---------- 视觉与效果 ----------
 export { createAspectRatioSpacerPlugin } from "./AspectRatioSpacerPlugin";
 export type { AspectRatioSpacerConfig } from "./AspectRatioSpacerPlugin";
@@ -20,7 +38,7 @@ export type { CaptionPluginConfig } from "./CaptionPlugin";
 export { createColorExtractionPlugin } from "./ColorExtractionPlugin";
 export type { ColorExtractionConfig } from "./ColorExtractionPlugin";
 export { createComparisonPlugin } from "./ComparisonPlugin";
-export type { ComparisonPluginConfig } from "./ComparisonPlugin";
+export type { ComparisonConfig } from "./ComparisonPlugin";
 export { createCropPlugin } from "./CropPlugin";
 export type { CropPluginConfig } from "./CropPlugin";
 export { createDominantColorPlugin } from "./DominantColorPlugin";
@@ -52,6 +70,20 @@ export { createTransitionPlugin } from "./TransitionPlugin";
 export type { TransitionPluginConfig } from "./TransitionPlugin";
 export { createWatermarkPlugin } from "./WatermarkPlugin";
 export type { WatermarkPluginConfig } from "./WatermarkPlugin";
+export { createCustomEffectsPlugin } from "./CustomEffectsPlugin";
+export type { CustomEffectsConfig } from "./CustomEffectsPlugin";
+
+// ---------- 视觉效果与交互 ----------
+export { createRevealAnimationPlugin } from "./RevealAnimationPlugin";
+export type { RevealAnimationConfig } from "./RevealAnimationPlugin";
+export { createGlitchEffectPlugin } from "./GlitchEffectPlugin";
+export type { GlitchEffectConfig } from "./GlitchEffectPlugin";
+export { createMorphPlugin } from "./MorphPlugin";
+export type { MorphConfig } from "./MorphPlugin";
+export { createAnimatedCursorPlugin } from "./AnimatedCursorPlugin";
+export type { AnimatedCursorConfig } from "./AnimatedCursorPlugin";
+export { createDepthMapPlugin } from "./DepthMapPlugin";
+export type { DepthMapConfig } from "./DepthMapPlugin";
 
 // ---------- 加载策略 ----------
 export { createBatteryAwarePlugin } from "./BatteryAwarePlugin";
@@ -71,7 +103,7 @@ export type { HoverPrefetchConfig } from "./HoverPrefetchPlugin";
 export { createMemoryPressureAbortPlugin } from "./MemoryPressureAbortPlugin";
 export type { MemoryPressureAbortConfig } from "./MemoryPressureAbortPlugin";
 export { createOfflinePlugin } from "./OfflinePlugin";
-export type { OfflinePluginConfig } from "./OfflinePlugin";
+export type { OfflineConfig } from "./OfflinePlugin";
 export { createPreconnectPlugin } from "./PreconnectPlugin";
 export type { PreconnectPluginConfig } from "./PreconnectPlugin";
 export { createPredictiveLoadingPlugin } from "./PredictiveLoadingPlugin";

@@ -1,32 +1,64 @@
 {
   "name": "AuthPlugin",
-  "description": "鉴权支持：为图片 URL 追加 token 参数并配置跨域/Referrer 策略。",
+  "description": "鉴权：为私有图片 URL 追加访问凭证 token（查询参数），并可配置 crossOrigin 与 referrerPolicy，满足需登录态才能访问的图片源鉴权需求。",
   "since": "2.0.0",
-  "tags": [
-    "network",
-    "网络"
-  ],
+  "tags": ["network", "网络", "鉴权", "私有资源"],
   "config": [
     {
       "name": "token",
       "type": "string | (() => string | undefined)",
-      "description": ""
+      "description": "访问凭证；支持函数动态获取（函数型仅顶层示例展示）"
     },
     {
       "name": "tokenParam",
       "type": "string",
-      "description": "添加到查询参数的键"
+      "description": "追加到查询参数的键名"
     },
     {
       "name": "crossOrigin",
       "type": "\"anonymous\" | \"use-credentials\"",
-      "description": ""
+      "description": "img 的 crossOrigin 属性"
     },
     {
       "name": "referrerPolicy",
       "type": "React.HTMLAttributeReferrerPolicy",
-      "description": ""
+      "description": "img 的 referrerPolicy 属性"
     }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createAuthPlugin()]);"
+  "example": "import { LazyLoadImageCore, createAuthPlugin, withPlugins } from \"vane-lazy-image\";\n\nconst LazyImage = withPlugins(LazyLoadImageCore, [\n  createAuthPlugin({\n    token: () => getAccessToken(),\n    tokenParam: \"token\",\n    crossOrigin: \"anonymous\",\n  }),\n]);\n\n<LazyImage src=\"https://private.example.com/photo.jpg\" alt=\"鉴权示例\" />",
+  "examples": [
+    {
+      "name": "静态 token",
+      "description": "为图片 URL 追加固定访问凭证参数。",
+      "src": "https://picsum.photos/seed/auth/800/600",
+      "config": {
+        "token": "sk-demo-123",
+        "tokenParam": "token"
+      }
+    },
+    {
+      "name": "跨域 + 无 referrer",
+      "description": "追加凭证的同时配置跨域与 referrer 策略。",
+      "src": "https://picsum.photos/seed/auth-2/800/600",
+      "config": {
+        "token": "sk-demo-123",
+        "crossOrigin": "anonymous",
+        "referrerPolicy": "no-referrer"
+      }
+    }
+  ],
+  "features": [
+    "为图片 URL 追加 token 查询参数完成鉴权",
+    "支持 crossOrigin / referrerPolicy 跨域鉴权配置",
+    "token 支持函数动态获取（如刷新令牌）"
+  ],
+  "useCases": [
+    "需登录态才能访问的私有图片 / 云存储",
+    "带鉴权的用户头像 / 相册"
+  ],
+  "notes": [
+    "token 函数型仅顶层示例展示；静态字符串可直接用于静态预览",
+    "与 AntiHotlink 区别：Auth 注入访问凭证，AntiHotlink 注入防盗链签名，二者可叠加",
+    "tokenParam 已存在则不重复追加"
+  ]
 }

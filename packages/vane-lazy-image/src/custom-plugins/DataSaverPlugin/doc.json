@@ -32,5 +32,39 @@
       "description": "query param name, e.g. \"quality\" or \"q\""
     }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createDataSaverPlugin()]);"
+  "example": "const LazyImage = withPlugins(LazyLoadImageCore, [\n  createDataSaverPlugin({\n    respectSaveData: true, // 尊重系统省流开关\n    fallbackQuality: 0.5,  // 省流时质量降到 0.5\n    qualityParam: \"q\",     // 追加 ?q=0.5\n  }),\n]);",
+  "examples": [
+    {
+      "name": "尊重系统省流",
+      "description": "检测到 saveData 时自动降质并禁用预加载，仅在省流模式下生效。",
+      "config": {
+        "respectSaveData": true,
+        "fallbackQuality": 0.5,
+        "qualityParam": "q"
+      }
+    },
+    {
+      "name": "始终省流",
+      "description": "忽略系统开关，始终追加低质量参数，适合极端省流场景。",
+      "config": {
+        "respectSaveData": false,
+        "fallbackQuality": 0.4,
+        "disablePreload": true
+      }
+    }
+  ],
+  "features": [
+    "读取 navigator.connection.saveData，开启时自动降质",
+    "自动追加质量查询参数（如 ?q=0.6）",
+    "可选禁用预加载以进一步省流"
+  ],
+  "useCases": [
+    "移动端弱流量用户自动减负",
+    "按运营策略全局降质"
+  ],
+  "notes": [
+    "依赖业务 CDN 支持对应质量参数，否则参数无效。",
+    "respectSaveData=false 时按 fallbackQuality 强制降质（无视系统开关）。",
+    "与 ImageOptimization 叠加时，省流质量会进一步覆盖优化质量。"
+  ]
 }

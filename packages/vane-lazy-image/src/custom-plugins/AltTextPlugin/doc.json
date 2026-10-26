@@ -1,22 +1,30 @@
 {
   "name": "AltTextPlugin",
-  "description": "alt 自动生成：从 src 推导或按前缀生成 alt 文本。",
+  "description": "替代文本：当图片未提供 alt 时，按前缀或自定义 derive 函数自动生成 alt，提升可访问性与 SEO；已有 alt 则不覆盖。",
   "since": "2.0.0",
-  "tags": [
-    "a11y",
-    "可访问性"
-  ],
+  "tags": ["a11y", "可访问性", "SEO"],
   "config": [
-    {
-      "name": "derive",
-      "type": "(src: string) => string",
-      "description": ""
-    },
-    {
-      "name": "prefix",
-      "type": "string",
-      "description": "例如 \"Image\""
-    }
+    { "name": "derive", "type": "(src: string) => string", "default": "undefined", "description": "自定义推导函数（函数型，参见用法示例）" },
+    { "name": "prefix", "type": "string", "default": "\"Image\"", "description": "默认推导前缀（如 \"Image\"）" }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createAltTextPlugin()]);"
+  "example": "const AltImage = withPlugins(LazyLoadImageCore, [\n  createAltTextPlugin({\n    derive: (src) => `图片 ${new URL(src).pathname}`,\n  }),\n]);\n\n// 不传 alt 时自动补全；传了 alt 则不覆盖\n<AltImage src=\"https://picsum.photos/id/1015/500/300\" alt=\"\" />;",
+  "examples": [
+    { "name": "默认前缀派生", "description": "不传 alt，按 prefix 自动生成 alt。", "src": "https://picsum.photos/id/1015/500/300", "config": { "prefix": "产品图" } },
+    { "name": "已有 alt 不覆盖", "description": "传入 alt 时插件保留原值，不做替换。", "src": "https://picsum.photos/id/1021/500/300", "config": { "prefix": "Image" } }
+  ],
+  "features": [
+    "alt 缺失自动派生",
+    "自定义前缀",
+    "自定义 derive 函数",
+    "不覆盖已有 alt"
+  ],
+  "useCases": [
+    "批量图片 alt 补全",
+    "SEO 优化",
+    "读屏适配",
+    "用户未填 alt 兜底"
+  ],
+  "notes": [
+    "derive 为函数型配置，静态预览仅支持 prefix；函数用法见用法示例。"
+  ]
 }

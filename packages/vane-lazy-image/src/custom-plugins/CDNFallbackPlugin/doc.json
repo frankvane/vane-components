@@ -1,17 +1,38 @@
 {
   "name": "CDNFallbackPlugin",
-  "description": "CDN 回退：主域名加载失败时按序切换备用 CDN 域名。",
+  "description": "CDN 回退：主 CDN 域名加载失败时，按序切换备用 CDN 域名（保留路径与查询参数），实现跨厂商容灾，避免单点故障导致破图。",
   "since": "2.0.0",
-  "tags": [
-    "network",
-    "网络"
-  ],
+  "tags": ["network", "网络", "CDN", "容灾"],
   "config": [
     {
       "name": "cdnBases",
       "type": "string[]",
-      "description": "e.g. [\"https://cdn1.example.com\", \"https://cdn2.example.com\"]"
+      "description": "备用 CDN 基址列表，首个即主用 CDN。e.g. [\"https://cdn1.example.com\", \"https://cdn2.example.com\"]"
     }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createCDNFallbackPlugin()]);"
+  "example": "import { LazyLoadImageCore, createCDNFallbackPlugin, withPlugins } from \"vane-lazy-image\";\n\nconst LazyImage = withPlugins(LazyLoadImageCore, [\n  createCDNFallbackPlugin({\n    cdnBases: [\"https://cdn1.example.com\", \"https://cdn2.example.com\"],\n  }),\n]);\n\n<LazyImage src=\"https://cdn0.example.com/photo.jpg\" alt=\"CDN 回退示例\" />",
+  "examples": [
+    {
+      "name": "多 CDN 回退",
+      "description": "主用 picsum.photos 命中；真实故障场景填入备用域名可自动切换（演示用同源避免 404）。",
+      "src": "https://picsum.photos/seed/cdn/800/600",
+      "config": {
+        "cdnBases": ["https://picsum.photos", "https://fastly.picsum.photos"]
+      }
+    }
+  ],
+  "features": [
+    "onLoad 用 cdnBases[0] 作为主用 CDN 重写 host",
+    "onLoadError 按序切换下一个 CDN 并改写 img.src 触发重试",
+    "切换时保留路径 / 查询参数，附加 cdnFallback 缓存破坏参数"
+  ],
+  "useCases": [
+    "多活 CDN、跨云厂商容灾",
+    "主源站故障时无缝切到备用源"
+  ],
+  "notes": [
+    "cdnBases 为必填，首个即主用 CDN",
+    "演示用同源 CDN 避免 404；生产请填入真实备用域名，主域失败会自动切换",
+    "切换逻辑替换协议 / host / port，路径与 query 不变"
+  ]
 }

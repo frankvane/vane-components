@@ -1,18 +1,30 @@
 {
   "name": "AspectRatioSpacerPlugin",
-  "description": "宽高比占位：按 ratio 预留空间，避免加载造成的布局抖动（CLS）。",
+  "description": "宽高比占位：在容器上预留固定宽高比，图片加载前后保持布局稳定，杜绝 CLS（布局抖动）。",
   "since": "2.0.0",
-  "tags": [
-    "visual",
-    "视觉"
-  ],
+  "tags": ["a11y", "可访问性", "视觉"],
   "config": [
-    {
-      "name": "ratio",
-      "type": "number",
-      "default": "4 / 3",
-      "description": "如 4/3、16/9，或直接传数字（宽/高）"
-    }
+    { "name": "ratio", "type": "number", "default": "4/3", "description": "宽/高比，如 4/3、16/9，或直接传数字" }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createAspectRatioSpacerPlugin()]);"
+  "example": "const RatioImage = withPlugins(LazyLoadImageCore, [\n  createAspectRatioSpacerPlugin({ ratio: 4 / 3 }),\n]);\n\n<RatioImage src=\"https://picsum.photos/id/1015/500/300\" alt=\"宽高比占位示例\" />;",
+  "examples": [
+    { "name": "4:3 占位", "description": "常见图文比例，加载前后无跳动。", "src": "https://picsum.photos/id/1015/500/300", "config": { "ratio": 1.3333 } },
+    { "name": "16:9 占位", "description": "视频/横幅比例。", "src": "https://picsum.photos/id/1021/500/300", "config": { "ratio": 1.7778 } },
+    { "name": "正方形占位", "description": "ratio=1，头像/方形卡片。", "src": "https://picsum.photos/id/1026/500/300", "config": { "ratio": 1 } }
+  ],
+  "features": [
+    "预留宽高比",
+    "基于 CSS aspect-ratio",
+    "防布局抖动（CLS）",
+    "任意比例"
+  ],
+  "useCases": [
+    "瀑布流/列表占位",
+    "LCP 稳定",
+    "移动端响应式",
+    "避免滚动跳动"
+  ],
+  "notes": [
+    "ratio 在静态预览中建议传数字（如 1.3333 表示 4/3），便于配置表与查看源码展示。"
+  ]
 }

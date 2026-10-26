@@ -1,0 +1,69 @@
+{
+  "name": "PriceTagPlugin",
+  "description": "商品价格标签：在图片上叠加价格信息，支持原价、折扣、节省金额、异步价格获取与淡入动画。",
+  "since": "2.0.0",
+  "tags": [
+    "ecommerce",
+    "电商核心"
+  ],
+  "config": [
+    { "name": "price", "type": "number", "default": "undefined", "description": "当前价格" },
+    { "name": "currency", "type": "string", "default": "\"$\"", "description": "货币符号" },
+    { "name": "position", "type": "\"top-left\" | \"top-right\" | \"bottom-left\" | \"bottom-right\"", "default": "\"top-right\"", "description": "标签位置（四角）" },
+    { "name": "originalPrice", "type": "number", "default": "undefined", "description": "原价（划线显示）" },
+    { "name": "discount", "type": "string", "default": "undefined", "description": "折扣文案，如 “40% OFF”" },
+    { "name": "showSavings", "type": "boolean", "default": "false", "description": "是否计算并显示节省金额" },
+    { "name": "backgroundColor", "type": "string", "default": "\"#ff4757\"", "description": "标签背景色" },
+    { "name": "textColor", "type": "string", "default": "\"#fff\"", "description": "标签文字色" },
+    { "name": "animate", "type": "boolean", "default": "true", "description": "淡入动画" },
+    { "name": "style", "type": "React.CSSProperties", "default": "{}", "description": "自定义叠加样式" },
+    { "name": "fetchPrice", "type": "(context) => Promise<{ price; originalPrice?; discount? }>", "default": "undefined", "description": "异步获取价格（API 集成）" },
+    { "name": "loadingText", "type": "string", "default": "\"加载中...\"", "description": "异步加载文案" },
+    { "name": "errorText", "type": "string", "default": "\"价格获取失败\"", "description": "异步失败文案" }
+  ],
+  "example": "// 1. 组装带价格标签的懒加载图片组件\nconst PriceImage = withPlugins(LazyLoadImageCore, [\n  createPriceTagPlugin({\n    price: 299.99,\n    currency: \"¥\",\n    position: \"bottom-left\",\n    originalPrice: 499.99,\n    discount: \"40% OFF\",\n    showSavings: true,\n  }),\n]);\n\n// 2. 在商品卡片中使用\n<PriceImage\n  src=\"https://picsum.photos/id/180/400/300\"\n  alt=\"无线耳机\"\n  style={{ width: 240, height: 160, borderRadius: 8 }}\n/>;\n\n// 3. 异步价格（接入后端 API）\ncreatePriceTagPlugin({\n  currency: \"¥\",\n  fetchPrice: async () => {\n    const res = await fetch(\"/api/products/123/price\");\n    return res.json(); // { price, originalPrice?, discount? }\n  },\n});",
+  "examples": [
+    {
+      "name": "完整价格信息（带折扣和节省金额）",
+      "description": "原价划线 + 折扣标签 + 自动计算节省金额，落在左下角。",
+      "src": "https://picsum.photos/id/180/400/300",
+      "config": { "price": 299.99, "currency": "$", "position": "bottom-left", "originalPrice": 499.99, "discount": "40% OFF", "showSavings": true }
+    },
+    {
+      "name": "简单价格标签",
+      "description": "仅当前价 + 货币符号，落在左上角。",
+      "src": "https://picsum.photos/id/201/400/300",
+      "config": { "price": 1999, "currency": "¥", "position": "top-left" }
+    },
+    {
+      "name": "自定义样式价格标签",
+      "description": "自定义背景色 / 文字色 / 圆角与内边距。",
+      "src": "https://picsum.photos/id/250/400/300",
+      "config": { "price": 59.99, "currency": "€", "position": "bottom-right", "backgroundColor": "#4ECDC4", "textColor": "#1A535C", "style": { "borderRadius": "8px", "padding": "12px 16px" } }
+    },
+    {
+      "name": "异步获取价格（模拟 API）",
+      "description": "真实场景通过 fetchPrice 异步拉取价格；示例以静态值代替，可见“查询价格 / 价格查询失败”状态（见用法示例中的 fetchPrice）。",
+      "src": "https://picsum.photos/id/260/400/300",
+      "config": { "currency": "¥", "position": "top-right", "showSavings": true, "price": 1299.99, "originalPrice": 1999, "discount": "限时优惠" }
+    }
+  ],
+  "features": [
+    "显示当前价格、原价、折扣标签",
+    "计算并显示节省金额",
+    "支持多种货币符号",
+    "4 个位置可选（四角）",
+    "淡入动画效果",
+    "完全自定义样式",
+    "支持异步价格数据获取（API 集成）",
+    "显示加载和错误状态"
+  ],
+  "useCases": [
+    "电商产品列表",
+    "促销活动页面",
+    "特价商品展示",
+    "移动端商城",
+    "从 API 动态获取价格的场景",
+    "跨境电商实时汇率转换"
+  ]
+}

@@ -1,5 +1,9 @@
 import type { LazyImagePlugin, LazyImageContext } from "../../components/LazyLoadImagePlugin/plugins/types";
 
+import React from "react";
+
+import { createPreloadBadge } from "../_shared/preloadBadge";
+
 export interface HoverPrefetchConfig {
   /** 计算需要预取的下一张图片（或多张） */
   getNextSrc?: (context: LazyImageContext) => string | string[] | Promise<string | string[]>;
@@ -15,26 +19,39 @@ export interface HoverPrefetchConfig {
   dedupe?: boolean;
   /** 跨域策略 */
   crossOrigin?: "anonymous" | "use-credentials" | null;
+  /** 是否在卡片上显示「已预取 N」徽标（便于观察注入效果） */
+  showBadge?: boolean;
   /** 调试输出 */
   debug?: boolean;
 }
 
 function addPreload(href: string, as: HoverPrefetchConfig["as"] = "image", crossOrigin: HoverPrefetchConfig["crossOrigin"] = "anonymous") {
   try {
-    // 仅在浏览器环境插入
     if (typeof document === "undefined") return;
+    const id = `lli-hoverprefetch-${as}-${href}`;
+    if (document.getElementById(id)) return; // 去重
     const link = document.createElement("link");
+    link.id = id;
     link.setAttribute("rel", "preload");
     link.setAttribute("as", as || "image");
     link.setAttribute("href", href);
     if (crossOrigin) link.setAttribute("crossorigin", crossOrigin);
     document.head.appendChild(link);
-    return () => {
-      try { document.head.removeChild(link); } catch {}
-    };
   } catch {}
-  return undefined;
 }
+
+/** 按 URL 末尾连续数字段递增派生「下一张」，作为 getNextSrc 的默认实现 */
+function deriveNext(src: string): string | undefined {
+  const m = src.match(/(\d+)(?=[^\d]*$)/);
+  if (!m) return undefined;
+  const full = m[0];
+  const n = parseInt(full, 10);
+  if (Number.isNaN(n)) return undefined;
+  const next = src.replace(full, String(n + 1));
+  return next !== src ? next : undefined;
+}
+
+const Badge = createPreloadBadge("lli-hoverprefetch-", "已预取");
 
 export function createHoverPrefetchPlugin(config: HoverPrefetchConfig = {}): LazyImagePlugin {
   const {
@@ -45,6 +62,7 @@ export function createHoverPrefetchPlugin(config: HoverPrefetchConfig = {}): Laz
     max = 2,
     dedupe = true,
     crossOrigin = "anonymous",
+    showBadge = false,
     debug = false,
   } = config;
 
@@ -52,14 +70,19 @@ export function createHoverPrefetchPlugin(config: HoverPrefetchConfig = {}): Laz
 
   async function handlePrefetch(context: LazyImageContext) {
     try {
-      const result = getNextSrc ? await Promise.resolve(getNextSrc(context)) : undefined;
+      let result = getNextSrc ? await Promise.resolve(getNextSrc(context)) : undefined;
+      // 未提供 getNextSrc 时，按 URL 末尾数字段递增派生「下一张」，便于直接演示
+      if (!result) {
+        const derived = deriveNext(context.src);
+        result = derived;
+      }
       if (!result) return;
       const list = Array.isArray(result) ? result : [result];
       const selected = list.slice(0, Math.max(1, max));
       selected.forEach((href) => {
         if (dedupe && inserted.has(href)) return;
-        const cleanup = addPreload(href, as, crossOrigin);
-        if (cleanup) inserted.add(href);
+        addPreload(href, as, crossOrigin);
+        inserted.add(href);
         if (debug) {
           try { console.debug("[HoverPrefetch] preload", { href, as }); } catch {}
         }
@@ -73,7 +96,7 @@ export function createHoverPrefetchPlugin(config: HoverPrefetchConfig = {}): Laz
 
   return {
     name: "hover-prefetch",
-    version: "0.1.0",
+    version: "2.0.0",
     config,
     hooks: {
       onMount: (context: LazyImageContext) => {
@@ -83,7 +106,6 @@ export function createHoverPrefetchPlugin(config: HoverPrefetchConfig = {}): Laz
         if (!el) return;
         const handler = () => handlePrefetch(context);
         el.addEventListener(trigger, handler, { passive: true });
-        // 将清理函数存入共享数据以便卸载时移除监听
         context.sharedData?.set("hover-prefetch:cleanup", () => {
           try { el.removeEventListener(trigger, handler); } catch {}
         });
@@ -95,6 +117,7 @@ export function createHoverPrefetchPlugin(config: HoverPrefetchConfig = {}): Laz
         }
         inserted.clear();
       },
+      renderOverlay: () => (showBadge ? React.createElement(Badge) : null),
     },
   };
 }

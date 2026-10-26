@@ -1,5 +1,7 @@
 import type { LazyImagePlugin, LazyImageContext } from "../../components/LazyLoadImagePlugin/plugins/types";
 
+import React from "react";
+
 import { IDBCache } from "../CacheIDBPlugin/create";
 import { MemoryCache } from "../CacheMemoryPlugin/create";
 
@@ -7,6 +9,8 @@ export interface CachePrewarmConfig {
   enabled?: boolean;
   trigger?: "enter" | "mount"; // 触发时机：进入视口或挂载
   preferMemory?: boolean; // 预热时优先写内存
+  /** 是否在卡片上显示预热状态徽标（便于观察） */
+  showBadge?: boolean;
   debug?: boolean;
 }
 
@@ -75,12 +79,40 @@ async function prewarm(src: string, preferMemory: boolean, debug: boolean) {
   }
 }
 
+const CacheBadge: React.FC<{ src: string }> = ({ src }) => {
+  const [done, setDone] = React.useState(false);
+  React.useEffect(() => {
+    const tick = () => setDone(prewarmedKeys.has(src));
+    tick();
+    const t = setInterval(tick, 400);
+    return () => clearInterval(t);
+  }, [src]);
+  return (
+    <div
+      style={{
+        position: "absolute",
+        top: 8,
+        left: 8,
+        background: done ? "rgba(76,175,80,0.92)" : "rgba(255,152,0,0.92)",
+        color: "#fff",
+        fontSize: 12,
+        padding: "4px 8px",
+        borderRadius: 6,
+        zIndex: 6,
+        pointerEvents: "none",
+      }}
+    >
+      {done ? "已预热 ✓" : "预热中…"}
+    </div>
+  );
+};
+
 export function createCachePrewarmPlugin(config: CachePrewarmConfig = {}): LazyImagePlugin {
-  const { enabled = true, trigger = "enter", preferMemory = true, debug = false } = config;
+  const { enabled = true, trigger = "enter", preferMemory = true, showBadge = false, debug = false } = config;
 
   return {
     name: "cache-prewarm",
-    version: "1.0.0",
+    version: "2.0.0",
     config,
     hooks: {
       onMount: (context: LazyImageContext) => {
@@ -101,6 +133,7 @@ export function createCachePrewarmPlugin(config: CachePrewarmConfig = {}): LazyI
           createdObjectURLs.delete(context.src);
         }
       },
+      renderOverlay: (context) => (showBadge ? React.createElement(CacheBadge, { src: context.src }) : null),
     },
   };
 }

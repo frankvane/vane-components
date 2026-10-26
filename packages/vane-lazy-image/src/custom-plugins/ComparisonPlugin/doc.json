@@ -1,18 +1,34 @@
 {
   "name": "ComparisonPlugin",
-  "description": "对比标识覆盖层：标注图片处于对比模式（轻量占位实现）。",
+  "description": "前后对比（v2 真实实现）：用可拖拽分隔条对比 beforeSrc / afterSrc 两张图，拖动实时比较差异（如调色前后、装修前后、A/B 图）。不再是写死文字角标。",
   "since": "2.0.0",
-  "tags": [
-    "visual",
-    "视觉"
-  ],
+  "tags": ["other", "视觉", "对比", "交互"],
   "config": [
-    {
-      "name": "enabled",
-      "type": "boolean",
-      "default": "true",
-      "description": ""
-    }
+    { "name": "beforeSrc", "type": "string", "default": "主图 src", "description": "左侧（拖动前）对比图；默认用主图" },
+    { "name": "afterSrc", "type": "string", "default": "主图 src", "description": "右侧（拖动后）对比图；默认用主图" },
+    { "name": "labelBefore", "type": "string", "default": "前", "description": "左图标签文字" },
+    { "name": "labelAfter", "type": "string", "default": "后", "description": "右图标签文字" },
+    { "name": "start", "type": "number", "default": "0.5", "description": "初始分割位置（0~1）" }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createComparisonPlugin()]);"
+  "example": "const CompareImage = withPlugins(LazyLoadImageCore, [\n  createComparisonPlugin({\n    beforeSrc: \"https://picsum.photos/id/1015/800/600\",\n    afterSrc: \"https://picsum.photos/id/1016/800/600\",\n    labelBefore: \"原图\", labelAfter: \"处理后\",\n  }),\n]);\n\n<CompareImage src=\"https://picsum.photos/id/1016/800/600\" alt=\"前后对比示例\" />;",
+  "examples": [
+    { "name": "基础对比", "description": "提供 beforeSrc / afterSrc 两张图，拖动中间把手即可对比。", "src": "https://picsum.photos/id/1016/800/600", "config": { "beforeSrc": "https://picsum.photos/id/1015/800/600", "afterSrc": "https://picsum.photos/id/1016/800/600", "labelBefore": "原图", "labelAfter": "处理后" } },
+    { "name": "自定义起始位置", "description": "start=0.3 让初始分割更偏左。", "src": "https://picsum.photos/id/1021/800/600", "config": { "beforeSrc": "https://picsum.photos/id/1020/800/600", "afterSrc": "https://picsum.photos/id/1021/800/600", "start": 0.3 } },
+    { "name": "单图自对比（调色）", "description": "只传 afterSrc，before 用主图，演示同一张图的两种状态。", "src": "https://picsum.photos/id/1025/800/600", "config": { "afterSrc": "https://picsum.photos/id/1025/800/600", "labelBefore": "原图", "labelAfter": "滤镜" } }
+  ],
+  "features": [
+    "可拖拽分隔条对比两图（指针/触摸）",
+    "左右标签可自定义",
+    "初始分割位置可调",
+    "左图按分割宽度自适应裁剪，始终铺满容器"
+  ],
+  "useCases": [
+    "装修前后 / 调色前后对比",
+    "A/B 图组对比",
+    "图像增强效果演示",
+    "教学 / 设计稿对照"
+  ],
+  "notes": [
+    "v2 起为真实拖拽交互，旧版仅渲染写死文字角标。对比层覆盖在 Core 主图之上，拖动区域占满容器。"
+  ]
 }

@@ -1,47 +1,86 @@
 {
   "name": "ErrorOverlayPlugin",
-  "description": "错误覆盖层：加载失败时显示遮层与重试按钮。",
+  "description": "错误覆盖层：图片加载失败时显示半透明遮罩与可选『重试』按钮，引导用户手动重试，适用于商品主图等关键图。",
   "since": "2.0.0",
-  "tags": [
-    "error",
-    "错误处理"
-  ],
+  "tags": ["error", "错误处理", "错误反馈", "重试"],
   "config": [
     {
       "name": "message",
       "type": "string | ((context: LazyImageContext) => string)",
-      "description": ""
+      "default": "undefined（回退『加载失败』）",
+      "description": "遮罩提示文案；支持函数按 ctx 动态生成（函数型仅顶层示例展示）"
     },
     {
       "name": "background",
       "type": "string",
-      "description": ""
+      "default": "\"rgba(220, 53, 69, 0.18)\"",
+      "description": "遮罩背景色"
     },
     {
       "name": "color",
       "type": "string",
-      "description": ""
+      "default": "\"#b00020\"",
+      "description": "文字颜色"
     },
     {
       "name": "zIndex",
       "type": "number",
-      "description": ""
+      "default": "10",
+      "description": "遮罩层级"
     },
     {
       "name": "showRetry",
       "type": "boolean",
-      "description": ""
+      "default": "true",
+      "description": "是否显示重试按钮"
     },
     {
       "name": "retryText",
       "type": "string",
-      "description": ""
+      "default": "\"重试\"",
+      "description": "重试按钮文字"
     },
     {
       "name": "persistAfterFallback",
       "type": "boolean",
-      "description": ""
+      "default": "true",
+      "description": "回退图加载成功后是否仍显示遮罩"
     }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createErrorOverlayPlugin()]);"
+  "example": "import { LazyLoadImageCore, createErrorOverlayPlugin, withPlugins } from \"vane-lazy-image\";\n\nconst LazyImage = withPlugins(LazyLoadImageCore, [\n  createErrorOverlayPlugin({\n    message: (ctx) => `图片加载失败：${ctx.src}`,\n    retryText: \"点我重试\",\n  }),\n]);\n\n// 故意触发失败以观察遮罩与重试按钮\n<LazyImage src=\"https://invalid.example.com/x.png\" alt=\"错误覆盖层示例\" />",
+  "examples": [
+    {
+      "name": "默认重试遮罩",
+      "description": "失败时整图遮罩 + 重试按钮（默认文案『重试』）。",
+      "src": "https://invalid.example.com/error-overlay.png",
+      "config": {
+        "retryText": "重试"
+      }
+    },
+    {
+      "name": "自定义文案与配色",
+      "description": "深色遮罩 + 白色文字 + 自定义提示文案。",
+      "src": "https://invalid.example.com/error-overlay-2.png",
+      "config": {
+        "message": "图片暂时无法加载",
+        "background": "rgba(0,0,0,0.4)",
+        "color": "#fff"
+      }
+    }
+  ],
+  "features": [
+    "失败时整图半透明遮罩 + 可选重试按钮",
+    "重试通过 cache-bust 参数（?retry=时间戳）重新请求，绕过缓存",
+    "自定义文案 / 背景 / 文字色 / 层级",
+    "persistAfterFallback：回退后仍显示遮罩"
+  ],
+  "useCases": [
+    "商品主图 / 头图失败后友好提示并支持手动重试",
+    "与 RetryOnError 组合：自动重试 + 手动重试双保险"
+  ],
+  "notes": [
+    "showRetry 默认开启；message 支持函数型（仅顶层示例展示）",
+    "重试逻辑直接改写 img.src，不依赖外部状态",
+    "点击重试使用 Date.now() 做缓存破坏，确保重新发起请求"
+  ]
 }

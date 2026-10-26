@@ -1,3 +1,4 @@
+import React from "react";
 import type { LazyImagePlugin, LazyImageContext } from "../../components/LazyLoadImagePlugin/plugins/types";
 
 export interface RetryOnErrorConfig {
@@ -38,8 +39,33 @@ export function createRetryOnErrorPlugin(config: RetryOnErrorConfig = {}): LazyI
           scheduleRetry(context, config, next);
           return true; // 错误已处理，正在重试
         }
-        // 重试用尽，返回 false 让错误继续传播到其他插件
+        // 重试用尽：记录用尽次数，供 renderOverlay 显示「重试失败」
+        try { context.sharedData?.set(key, next); } catch {}
+        // 返回 false 让错误继续传播到其他插件
         return false;
+      },
+      renderOverlay: (context: LazyImageContext) => {
+        const maxRetries = config.maxRetries ?? 2;
+        const count = Number(context.sharedData?.get("retry-count") ?? 0);
+        if (count <= 0) return null;
+        const exhausted = count > maxRetries;
+        const base: React.CSSProperties = {
+          position: "absolute",
+          top: 6,
+          right: 6,
+          zIndex: 10,
+          fontSize: 12,
+          fontWeight: 600,
+          color: "#fff",
+          background: exhausted ? "rgba(108,117,125,0.9)" : "rgba(255,149,0,0.92)",
+          padding: "2px 8px",
+          borderRadius: 4,
+        };
+        return React.createElement(
+          "div",
+          { style: base },
+          exhausted ? `重试失败 (${maxRetries})` : `重试中 ${count}/${maxRetries}`
+        );
       },
     },
   };

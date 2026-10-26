@@ -7,30 +7,48 @@
     "视觉"
   ],
   "config": [
+    { "name": "color", "type": "string", "default": "rgba(0, 153, 255, 0.6)", "description": "辉光颜色" },
+    { "name": "blurPx", "type": "number", "default": "12", "description": "辉光模糊半径 px" },
+    { "name": "spreadPx", "type": "number", "default": "2", "description": "辉光扩散 px" },
+    { "name": "hoverMultiplier", "type": "number", "default": "1.4", "description": "悬停时辉光强度倍数" }
+  ],
+  "example": "// 加载成功后卡片发光，悬停增强\nconst GlowImage = withPlugins(LazyLoadImageCore, [\n  createBorderGlowPlugin({\n    color: \"rgba(0, 153, 255, 0.6)\",\n    blurPx: 12,\n    spreadPx: 2,\n    hoverMultiplier: 1.4,\n  }),\n]);\n\n<GlowImage src=\"https://picsum.photos/seed/glow/600/400\" alt=\"边框辉光\" />;",
+  "examples": [
     {
-      "name": "color",
-      "type": "string",
-      "default": "\"rgba(0, 153, 255, 0.6)\"",
-      "description": "default rgba(0, 153, 255, 0.6)"
+      "name": "基础辉光",
+      "description": "蓝色柔光，悬停轻微增强，突出主体卡片。",
+      "src": "https://picsum.photos/seed/glow-basic/600/400",
+      "config": { "color": "rgba(0, 153, 255, 0.6)", "blurPx": 12, "spreadPx": 2, "hoverMultiplier": 1.4 }
     },
     {
-      "name": "blurPx",
-      "type": "number",
-      "default": "12",
-      "description": "default 12"
+      "name": "强霓虹辉光",
+      "description": "品红大模糊半径，悬停强度放大约 1.6 倍。",
+      "src": "https://picsum.photos/seed/glow-neon/600/400",
+      "config": { "color": "rgba(255, 0, 128, 0.7)", "blurPx": 24, "spreadPx": 4, "hoverMultiplier": 1.6 }
     },
     {
-      "name": "spreadPx",
-      "type": "number",
-      "default": "2",
-      "description": "default 2"
-    },
-    {
-      "name": "hoverMultiplier",
-      "type": "number",
-      "default": "1.4",
-      "description": "default 1.4"
+      "name": "柔和暖光",
+      "description": "暖橙色低饱和辉光，适配温馨主题。",
+      "src": "https://picsum.photos/seed/glow-warm/600/400",
+      "config": { "color": "rgba(255, 170, 0, 0.5)", "blurPx": 18, "spreadPx": 2, "hoverMultiplier": 1.3 }
     }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createBorderGlowPlugin()]);"
+  "features": [
+    "加载成功后自动为卡片加发光阴影",
+    "悬停增强辉光强度",
+    "颜色 / 模糊 / 扩散均可调",
+    "智能定位外层卡片，避免被父容器 overflow 裁剪",
+    "卸载时自动还原原始阴影"
+  ],
+  "useCases": [
+    "商品主图聚焦",
+    "精选 / 推荐位强调",
+    "卡片悬停交互反馈",
+    "暗色背景下的视觉点睛"
+  ],
+  "notes": [
+    "辉光优先作用在外层卡片（向上两层），以规避父容器 overflow:hidden 把光晕裁掉。",
+    "插件在 onUnmount 还原原始 box-shadow，不会污染其它样式。",
+    "与 CustomEffects 的 containerStyle 叠加时，两者都会合并进容器样式。"
+  ]
 }

@@ -1,22 +1,32 @@
 {
   "name": "DominantColorPlugin",
-  "description": "主色占位：从 LQIP 采样平均色填充容器背景，减少白屏。",
+  "description": "主色占位：在加载完成前用指定颜色或 LQIP 采样平均色填充容器背景，减少白屏、提升视觉连贯性。",
   "since": "2.0.0",
-  "tags": [
-    "visual",
-    "视觉"
-  ],
+  "tags": ["other", "视觉", "占位"],
   "config": [
-    {
-      "name": "color",
-      "type": "string",
-      "description": "指定颜色，若未提供则尝试从 lqip 中采样"
-    },
-    {
-      "name": "lqipSrc",
-      "type": "string | ((src: string) => string)",
-      "description": ""
-    }
+    { "name": "color", "type": "string", "default": "rgba(0,0,0,0.06)", "description": "指定背景色（未提供时尝试从 lqip 采样）" },
+    { "name": "lqipSrc", "type": "string | ((src) => string)", "default": "undefined", "description": "低清预览图地址或生成函数（用于采样平均色）" }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createDominantColorPlugin()]);"
+  "example": "const ColorImage = withPlugins(LazyLoadImageCore, [\n  createDominantColorPlugin({\n    lqipSrc: (src) => src + \"?w=20\", // 用小图采样主色\n  }),\n]);\n\n<ColorImage src=\"https://picsum.photos/id/1015/500/300\" alt=\"主色占位示例\" />;",
+  "examples": [
+    { "name": "指定背景色", "description": "直接指定浅灰背景，加载前不白屏。", "src": "https://picsum.photos/id/1015/500/300", "config": { "color": "#e9ecef" } },
+    { "name": "LQIP 采样主色", "description": "用小图采样平均色填充（跨域图需 CORS，失败则回退默认色）。", "src": "https://picsum.photos/id/1021/500/300", "config": { "lqipSrc": "https://picsum.photos/id/1021/20/20" } },
+    { "name": "暖色背景", "description": "指定暖色背景，营造色调一致感。", "src": "https://picsum.photos/id/1026/500/300", "config": { "color": "#f8d7da" } }
+  ],
+  "features": [
+    "指定颜色占位",
+    "LQIP 采样平均色",
+    "加载前不白屏",
+    "采样失败安全回退",
+    "可关闭"
+  ],
+  "useCases": [
+    "相册/画廊占位",
+    "Pinterest 风布局",
+    "慢网白屏治理",
+    "品牌色调统一"
+  ],
+  "notes": [
+    "lqipSrc 采样需要图片服务器配置 CORS 头；跨域失败会自动回退到 color（默认浅灰），不影响加载。"
+  ]
 }

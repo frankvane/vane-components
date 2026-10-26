@@ -1,0 +1,75 @@
+{
+  "name": "RevealAnimationPlugin",
+  "description": "图片揭示动画：为图片加载添加各种进场动画（淡入/缩放/旋转/翻转/弹跳/弹性等 16 种预设 + 自定义），纯 CSS 无依赖。",
+  "since": "2.0.0",
+  "tags": ["interaction", "视觉效果与交互", "visual"],
+  "config": [
+    { "name": "animation", "type": "\"fade\" | \"fade-up\" | \"fade-down\" | \"fade-left\" | \"fade-right\" | \"zoom-in\" | \"zoom-out\" | \"rotate-in\" | \"flip-x\" | \"flip-y\" | \"slide-up\" | \"slide-down\" | \"slide-left\" | \"slide-right\" | \"bounce\" | \"elastic\" | \"custom\"", "default": "\"fade-up\"", "description": "动画类型" },
+    { "name": "duration", "type": "number", "default": "600", "description": "持续时间（毫秒）" },
+    { "name": "delay", "type": "number", "default": "0", "description": "延迟（毫秒）" },
+    { "name": "easing", "type": "string", "default": "\"ease-out\"", "description": "缓动函数" },
+    { "name": "customAnimation", "type": "string", "default": "\"\"", "description": "自定义动画名（animation 为 custom 时生效）" },
+    { "name": "customKeyframes", "type": "string", "default": "\"\"", "description": "自定义 keyframes 文本" },
+    { "name": "fillMode", "type": "\"none\" | \"forwards\" | \"backwards\" | \"both\"", "default": "\"both\"", "description": "动画填充模式" },
+    { "name": "disabled", "type": "boolean", "default": "false", "description": "是否禁用" }
+  ],
+  "example": "// 1. 组装带揭示动画的懒加载图片\nconst RevealImage = withPlugins(LazyLoadImageCore, [\n  createRevealAnimationPlugin({ animation: \"zoom-in\", duration: 800 }),\n]);\n\n// 2. 在列表中使用\n<RevealImage\n  src=\"https://picsum.photos/id/1018/400/300\"\n  alt=\"风景\"\n  style={{ width: 240, height: 160, borderRadius: 8 }}\n/>;\n\n// 3. 自定义关键帧动画\ncreateRevealAnimationPlugin({\n  animation: \"custom\",\n  customAnimation: \"myReveal\",\n  customKeyframes:\n    \"@keyframes myReveal { from { opacity: 0; transform: scale(1.2) rotate(8deg); } to { opacity: 1; transform: none; } }\",\n});",
+  "examples": [
+    {
+      "name": "淡入上浮（默认）",
+      "description": "fade-up：图片加载完成后从下方淡入上浮，最通用的进场效果。",
+      "src": "https://picsum.photos/id/1018/400/300",
+      "config": { "animation": "fade-up", "duration": 700, "easing": "ease-out" }
+    },
+    {
+      "name": "缩放进入 zoom-in",
+      "description": "图片由 1.2 倍缩放回落至原尺寸并淡入，适合主视觉。",
+      "src": "https://picsum.photos/id/1015/400/300",
+      "config": { "animation": "zoom-in", "duration": 800 }
+    },
+    {
+      "name": "旋转进入 rotate-in",
+      "description": "带轻微旋转的进场，动感更强。",
+      "src": "https://picsum.photos/id/1024/400/300",
+      "config": { "animation": "rotate-in", "duration": 900, "delay": 100 }
+    },
+    {
+      "name": "弹跳 bounce",
+      "description": "带回弹缓冲的进场，活泼、吸引注意。",
+      "src": "https://picsum.photos/id/1039/400/300",
+      "config": { "animation": "bounce", "duration": 1000 }
+    },
+    {
+      "name": "弹性 elastic + 自定义时长",
+      "description": "弹性缓动 + 更长时长，强调“弹出”质感。",
+      "src": "https://picsum.photos/id/1043/400/300",
+      "config": { "animation": "elastic", "duration": 1200, "easing": "cubic-bezier(0.68, -0.55, 0.265, 1.55)" }
+    },
+    {
+      "name": "自定义关键帧 custom",
+      "description": "通过 customAnimation 指定动画名，并以 customKeyframes 注入关键帧文本，可做任意效果。",
+      "src": "https://picsum.photos/id/1050/400/300",
+      "config": { "animation": "custom", "customAnimation": "myReveal", "customKeyframes": "@keyframes myReveal { from { opacity: 0; transform: scale(1.2) rotate(8deg); } to { opacity: 1; transform: none; } }" }
+    }
+  ],
+  "features": [
+    "16 种预设动画（淡入/缩放/旋转/翻转/滑动/弹跳/弹性）",
+    "支持自定义动画名 + 关键帧文本",
+    "可配置时长、延迟、缓动函数",
+    "fill 模式控制动画结束态",
+    "可一键禁用（disabled，适配低端设备）",
+    "纯 CSS 实现，无运行时依赖"
+  ],
+  "useCases": [
+    "图片列表进场",
+    "瀑布流懒加载",
+    "轮播图切换",
+    "首屏内容揭示",
+    "卡片/区块入场动画",
+    "营销落地页视觉点缀"
+  ],
+  "notes": [
+    "动画在图片加载完成后触发一次；再次滚动不会重复播放。",
+    "低端设备或开启“减少动态效果”偏好时，可设 disabled: true 关闭动画。"
+  ]
+}

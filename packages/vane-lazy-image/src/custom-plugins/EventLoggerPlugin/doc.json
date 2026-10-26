@@ -1,24 +1,31 @@
 {
   "name": "EventLoggerPlugin",
-  "description": "事件日志：记录加载全生命周期事件（可加前缀过滤）。",
+  "description": "事件日志：在控制台记录图片加载全生命周期事件（before-load / load-success / load-error / enter-viewport / leave-viewport / progress），便于调试与监控。",
   "since": "2.0.0",
-  "tags": [
-    "monitor",
-    "监控"
-  ],
+  "tags": ["other", "监控", "调试"],
   "config": [
-    {
-      "name": "enabled",
-      "type": "boolean",
-      "default": "true",
-      "description": ""
-    },
-    {
-      "name": "prefix",
-      "type": "string",
-      "default": "\"[LLI]\"",
-      "description": ""
-    }
+    { "name": "enabled", "type": "boolean", "default": "true", "description": "是否启用日志" },
+    { "name": "prefix", "type": "string", "default": "\"[LLI]\"", "description": "日志前缀，便于过滤" }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createEventLoggerPlugin()]);"
+  "example": "const LogImage = withPlugins(LazyLoadImageCore, [\n  createEventLoggerPlugin({ prefix: \"[IMG]\" }),\n]);\n\n<LogImage src=\"https://picsum.photos/id/1015/500/300\" alt=\"事件日志示例\" />;",
+  "examples": [
+    { "name": "默认日志", "description": "使用默认 [LLI] 前缀记录全部事件。", "src": "https://picsum.photos/id/1015/500/300", "config": { "enabled": true } },
+    { "name": "自定义前缀", "description": "改用 [IMG] 前缀，便于在控制台分组过滤。", "src": "https://picsum.photos/id/1021/500/300", "config": { "prefix": "[IMG]" } },
+    { "name": "关闭日志", "description": "enabled=false 时不输出任何日志。", "src": "https://picsum.photos/id/1026/500/300", "config": { "enabled": false } }
+  ],
+  "features": [
+    "全生命周期事件记录",
+    "可自定义前缀",
+    "可关闭",
+    "零业务侵入"
+  ],
+  "useCases": [
+    "调试加载流程",
+    "加载监控埋点",
+    "性能问题排查",
+    "教学演示"
+  ],
+  "notes": [
+    "仅用于开发/调试，生产环境建议按需关闭以避免控制台噪音。"
+  ]
 }

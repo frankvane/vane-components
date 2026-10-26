@@ -1,28 +1,61 @@
 {
   "name": "RetryOnErrorPlugin",
-  "description": "失败重试：指数退避 + 可选抖动的自动重试。",
+  "description": "失败重试：图片加载失败后按指数退避（可选抖动）自动重试，提升网络抖动 / 瞬时故障下的自愈成功率，并提供重试进度角标。",
   "since": "2.0.0",
-  "tags": [
-    "network",
-    "网络"
-  ],
+  "tags": ["network", "网络", "重试", "自愈"],
   "config": [
     {
       "name": "maxRetries",
       "type": "number",
       "default": "2",
-      "description": ""
+      "description": "最大重试次数"
     },
     {
       "name": "baseDelayMs",
       "type": "number",
-      "description": "退避基准毫秒"
+      "description": "退避基准毫秒（默认 500）"
     },
     {
       "name": "jitter",
       "type": "boolean",
-      "description": ""
+      "description": "是否在退避基础上叠加随机抖动"
     }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createRetryOnErrorPlugin()]);"
+  "example": "import { LazyLoadImageCore, createRetryOnErrorPlugin, withPlugins } from \"vane-lazy-image\";\n\nconst LazyImage = withPlugins(LazyLoadImageCore, [\n  createRetryOnErrorPlugin({ maxRetries: 3, baseDelayMs: 400, jitter: true }),\n]);\n\n// 故意触发失败以观察指数退避重试\n<LazyImage src=\"https://invalid.example.com/x.png\" alt=\"失败重试示例\" />",
+  "examples": [
+    {
+      "name": "自动重试",
+      "description": "失败后指数退避重试，用尽后角标显示『重试失败』（演示用无效地址）。",
+      "src": "https://invalid.example.com/retry.png",
+      "config": {
+        "maxRetries": 3,
+        "baseDelayMs": 400
+      }
+    },
+    {
+      "name": "带抖动退避",
+      "description": "在指数退避基础上叠加随机抖动，避免重试风暴。",
+      "src": "https://invalid.example.com/retry-jitter.png",
+      "config": {
+        "maxRetries": 2,
+        "baseDelayMs": 600,
+        "jitter": true
+      }
+    }
+  ],
+  "features": [
+    "指数退避重试：delay = baseDelayMs * 2^(n-1)",
+    "可选 jitter 抖动避免重试风暴",
+    "角标实时显示『重试中 n/max』与『重试失败(max)』",
+    "用尽后放行错误给下游插件（ErrorOverlay / ErrorBadge）"
+  ],
+  "useCases": [
+    "弱网 / 瞬时 5xx 自愈",
+    "与手动重试（ErrorOverlay）互补"
+  ],
+  "notes": [
+    "maxRetries 默认 2，baseDelayMs 默认 500",
+    "重试用 ?retry=时间戳&n=count 防止缓存命中",
+    "重试用尽返回 false，错误继续向下游传播"
+  ]
 }

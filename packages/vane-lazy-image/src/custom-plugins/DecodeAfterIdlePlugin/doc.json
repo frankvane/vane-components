@@ -1,24 +1,50 @@
 {
   "name": "DecodeAfterIdlePlugin",
-  "description": "空闲解码：加载成功后延迟到浏览器空闲再执行 img.decode()。",
+  "description": "空闲解码：图片加载成功后延迟到浏览器空闲时段再执行 img.decode()，避免大图解码阻塞主线程，提升交互流畅度。",
   "since": "2.0.0",
-  "tags": [
-    "loading",
-    "加载策略"
-  ],
+  "tags": ["loading", "加载策略", "解码", "性能"],
   "config": [
     {
       "name": "enabled",
       "type": "boolean",
       "default": "true",
-      "description": ""
+      "description": "是否启用空闲解码"
     },
     {
       "name": "timeoutMs",
       "type": "number",
       "default": "600",
-      "description": ""
+      "description": "最长等待空闲的兜底时间(ms)"
     }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createDecodeAfterIdlePlugin()]);"
+  "example": "import { LazyLoadImageCore, createDecodeAfterIdlePlugin, withPlugins } from \"vane-lazy-image\";\n\nconst LazyImage = withPlugins(LazyLoadImageCore, [\n  createDecodeAfterIdlePlugin({ enabled: true, timeoutMs: 1000 }),\n]);\n\n<LazyImage src=\"https://picsum.photos/seed/decode/1200/800\" alt=\"空闲解码示例\" />",
+  "examples": [
+    {
+      "name": "默认空闲解码",
+      "description": "成功后于空闲时段执行 decode，并设置 decoding=async。",
+      "src": "https://picsum.photos/seed/decode/1200/800",
+      "config": {}
+    },
+    {
+      "name": "自定义超时",
+      "description": "放宽最长等待空闲时间到 1000ms。",
+      "src": "https://picsum.photos/seed/decode-timeout/1200/800",
+      "config": {
+        "timeoutMs": 1000
+      }
+    }
+  ],
+  "features": [
+    "成功后 requestIdleCallback 内调用 img.decode()",
+    "自动设置 decoding=\"async\"",
+    "requestIdleCallback 不可用时回退 setTimeout"
+  ],
+  "useCases": [
+    "图片密集型信息流防止解码卡顿",
+    "首屏后延迟解码，优先保证交互响应"
+  ],
+  "notes": [
+    "timeoutMs 控制最长等待空闲的兜底时间",
+    "decode 失败被静默忽略，不影响显示"
+  ]
 }

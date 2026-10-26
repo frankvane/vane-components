@@ -7,36 +7,42 @@
     "视觉"
   ],
   "config": [
+    { "name": "type", "type": "\"shimmer\" | \"pulse\"", "default": "\"shimmer\"", "description": "动画类型" },
+    { "name": "backgroundColor", "type": "string", "default": "#e5e7eb", "description": "底色" },
+    { "name": "highlightColor", "type": "string", "default": "#f3f4f6", "description": "shimmer 高亮色" },
+    { "name": "borderRadius", "type": "number", "default": "6", "description": "圆角 px" },
+    { "name": "zIndex", "type": "number", "default": "1", "description": "层叠顺序" },
+    { "name": "showWhen", "type": "\"always\" | \"loading\"", "default": "\"loading\"", "description": "何时显示" }
+  ],
+  "example": "// 加载期 shimmer 骨架占位\nconst SkeletonImage = withPlugins(LazyLoadImageCore, [\n  createSkeletonPlugin({\n    type: \"shimmer\",\n    borderRadius: 8,\n    showWhen: \"loading\",\n  }),\n]);\n\n<SkeletonImage src=\"https://picsum.photos/seed/skeleton/600/400\" alt=\"骨架屏\" />;",
+  "examples": [
     {
-      "name": "type",
-      "type": "\"shimmer\" | \"pulse\"",
-      "description": ""
+      "name": "Shimmer 骨架",
+      "description": "流光骨架，提示内容加载中，圆角 8。",
+      "src": "https://picsum.photos/seed/skeleton-shimmer/600/400",
+      "config": { "type": "shimmer", "borderRadius": 8, "showWhen": "loading" }
     },
     {
-      "name": "backgroundColor",
-      "type": "string",
-      "description": ""
-    },
-    {
-      "name": "highlightColor",
-      "type": "string",
-      "description": "shimmer 高亮色"
-    },
-    {
-      "name": "borderRadius",
-      "type": "number",
-      "description": ""
-    },
-    {
-      "name": "zIndex",
-      "type": "number",
-      "description": ""
-    },
-    {
-      "name": "showWhen",
-      "type": "\"always\" | \"loading\"",
-      "description": ""
+      "name": "Pulse 骨架",
+      "description": "呼吸式明暗变化，更克制的占位动画。",
+      "src": "https://picsum.photos/seed/skeleton-pulse/600/400",
+      "config": { "type": "pulse", "backgroundColor": "#eee", "highlightColor": "#f5f5f5", "borderRadius": 8 }
     }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createSkeletonPlugin()]);"
+  "features": [
+    "shimmer（流光）/ pulse（呼吸）两种动画",
+    "底色 / 高亮色 / 圆角可调",
+    "加载完成自动淡出",
+    "零图片请求，首屏即见"
+  ],
+  "useCases": [
+    "列表 / 卡片加载占位",
+    "首屏骨架屏",
+    "与 BlurUp / LQIP 配合的兜底占位",
+    "弱网环境体验优化"
+  ],
+  "notes": [
+    "showWhen:\"loading\" 表示仅在加载期显示，图片就绪后自动让位。",
+    "与 BlurUp 叠加时，建议骨架层级低于模糊图（zIndex 较小）。"
+  ]
 }

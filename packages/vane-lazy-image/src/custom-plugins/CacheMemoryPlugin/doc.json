@@ -31,5 +31,36 @@
       "description": ""
     }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createMemoryCachePlugin()]);"
+  "example": "const LazyImage = withPlugins(LazyLoadImageCore, [\n  createMemoryCachePlugin({\n    maxEntries: 300,\n    ttlMs: 5 * 60 * 1000, // 5 分钟过期\n  }),\n]);",
+  "examples": [
+    {
+      "name": "默认内存缓存",
+      "description": "会话内 LRU 缓存（默认 200 条），同一图片重复访问零网络。",
+      "config": {
+        "maxEntries": 200
+      }
+    },
+    {
+      "name": "限定过期时间",
+      "description": "5 分钟后条目失效，在命中率与内存占用之间取得平衡。",
+      "config": {
+        "maxEntries": 300,
+        "ttlMs": 300000
+      }
+    }
+  ],
+  "features": [
+    "会话内 LRU 缓存（默认 200 条）",
+    "可选 TTL 过期时间",
+    "内存受限时自动淘汰最久未用条目"
+  ],
+  "useCases": [
+    "同一图片在列表 / 详情多处复用",
+    "快速来回切换的画廊、相册"
+  ],
+  "notes": [
+    "内存缓存不跨会话，刷新页面即失效。",
+    "需要跨会话持久请配合 IDBCachePlugin。",
+    "命中时直接返回已缓存数据，跳过网络请求。"
+  ]
 }

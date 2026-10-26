@@ -1,17 +1,37 @@
 {
   "name": "FallbackImagePlugin",
-  "description": "回退图片：加载失败时切换到备用图片地址。",
+  "description": "兜底图：图片加载失败时自动切换到备用图片地址，避免出现破图空白，是最基础的失败降级手段。",
   "since": "2.0.0",
-  "tags": [
-    "network",
-    "网络"
-  ],
+  "tags": ["network", "网络", "兜底", "降级"],
   "config": [
     {
       "name": "fallbackSrc",
       "type": "string",
-      "description": "例如 \"/404.jpg\""
+      "description": "兜底图地址，建议使用始终可访问的占位图或 data URI。e.g. \"/404.jpg\""
     }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createFallbackImagePlugin()]);"
+  "example": "import { LazyLoadImageCore, createFallbackImagePlugin, withPlugins } from \"vane-lazy-image\";\n\nconst LazyImage = withPlugins(LazyLoadImageCore, [\n  createFallbackImagePlugin({ fallbackSrc: \"/404.jpg\" }),\n]);\n\n<LazyImage src=\"https://invalid.example.com/broken.png\" alt=\"兜底图示例\" />",
+  "examples": [
+    {
+      "name": "基础兜底图",
+      "description": "原图失败 → 自动切换到兜底图正常显示（演示用始终可访问的占位图）。",
+      "src": "https://invalid.example.com/broken.png",
+      "config": {
+        "fallbackSrc": "https://picsum.photos/seed/fallback/400/300"
+      }
+    }
+  ],
+  "features": [
+    "onLoadError 直接改写 img.src 为兜底地址",
+    "标记 had-error，供 ErrorBadge 等插件联动",
+    "兜底成功后仍可配合其它错误插件展示状态"
+  ],
+  "useCases": [
+    "保证任何失败都不出现破图",
+    "与错误徽标 / 追踪组合，兜底 + 可观测"
+  ],
+  "notes": [
+    "fallbackSrc 为必填；建议使用始终可访问的占位图或 data URI，避免兜底本身再失败",
+    "兜底成功后若仍有 ErrorBadge(persistAfterFallback)，可继续显示徽标便于排查"
+  ]
 }

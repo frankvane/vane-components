@@ -7,23 +7,45 @@
     "视觉"
   ],
   "config": [
+    { "name": "filter", "type": "\"none\" | \"grayscale\" | \"sepia\" | \"brightness\" | \"contrast\" | \"saturate\"", "default": "\"none\"", "description": "滤镜类型" },
+    { "name": "amount", "type": "number", "default": "undefined", "description": "滤镜强度（多数类型 0~1）" },
+    { "name": "hover", "type": "boolean", "default": "false", "description": "悬停时恢复原图" }
+  ],
+  "example": "// 灰度显示，悬停恢复原彩图\nconst FilterImage = withPlugins(LazyLoadImageCore, [\n  createFilterPlugin({\n    filter: \"grayscale\",\n    amount: 1,\n    hover: true,\n  }),\n]);\n\n<FilterImage src=\"https://picsum.photos/seed/filter/600/400\" alt=\"滤镜\" />;",
+  "examples": [
     {
-      "name": "filter",
-      "type": "| \"none\" | \"grayscale\" | \"sepia\" | \"brightness\" | \"contrast\" | \"satur...",
-      "default": "\"none\"",
-      "description": ""
+      "name": "灰度 + 悬停还原",
+      "description": "默认灰度，鼠标悬停瞬间恢复彩色，制造焦点对比。",
+      "src": "https://picsum.photos/seed/filter-gray/600/400",
+      "config": { "filter": "grayscale", "amount": 1, "hover": true }
     },
     {
-      "name": "amount",
-      "type": "number",
-      "default": "(type === \"none\" ? 1 : type === \"brightness\" ...",
-      "description": ""
+      "name": "复古暖调",
+      "description": "sepia 中度做旧，营造怀旧氛围。",
+      "src": "https://picsum.photos/seed/filter-sepia/600/400",
+      "config": { "filter": "sepia", "amount": 0.6 }
     },
     {
-      "name": "hover",
-      "type": "boolean",
-      "description": ""
+      "name": "高对比增强",
+      "description": "提升对比度，让画面更有张力。",
+      "src": "https://picsum.photos/seed/filter-contrast/600/400",
+      "config": { "filter": "contrast", "amount": 1.4 }
     }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createFilterPlugin()]);"
+  "features": [
+    "内置 grayscale / sepia / brightness / contrast / saturate 预设",
+    "amount 控制强度",
+    "hover 模式悬停恢复原图",
+    "纯 CSS filter，零额外绘制开销"
+  ],
+  "useCases": [
+    "商品列表统一灰度，hover 高亮",
+    "怀旧 / 复古风格相册",
+    "强调主体前的视觉降噪",
+    "活动主题统一调色"
+  ],
+  "notes": [
+    "hover:true 时滤镜在鼠标移入时移除、移出时恢复。",
+    "需要组合滤镜（如 contrast+saturate）或更复杂效果，可用 CustomEffectsPlugin 的 imageStyle.filter 任意写。"
+  ]
 }

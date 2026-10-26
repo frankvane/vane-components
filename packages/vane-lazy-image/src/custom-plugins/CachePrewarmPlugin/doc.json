@@ -30,7 +30,46 @@
       "type": "boolean",
       "default": "false",
       "description": ""
+    },
+    {
+      "name": "showBadge",
+      "type": "boolean",
+      "default": "false",
+      "description": "是否在卡片上显示预热状态徽标（便于观察）"
     }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createCachePrewarmPlugin()]);"
+  "example": "const LazyImage = withPlugins(LazyLoadImageCore, [\n  createCachePrewarmPlugin({\n    trigger: \"enter\",    // 进入视口即预热\n    preferMemory: true,  // 优先写入内存缓存\n  }),\n]);",
+  "examples": [
+    {
+      "name": "进入视口预热",
+      "description": "图片刚进视口就提前取回并写入缓存，滚动时无等待、点击放大秒开。",
+      "config": {
+        "trigger": "enter",
+        "preferMemory": true,
+        "showBadge": true
+      }
+    },
+    {
+      "name": "挂载即预热",
+      "description": "组件挂载即预热，适合首屏已知必看的图（如详情页主图）。",
+      "config": {
+        "trigger": "mount",
+        "preferMemory": false
+      }
+    }
+  ],
+  "features": [
+    "进入视口 / 挂载时提前 fetch 并写入 Memory / IDB 缓存",
+    "内置重入保护（prewarming / prewarmed 集合），避免重复预热",
+    "优先写入内存（objectURL），跨会话持久交给 IDB"
+  ],
+  "useCases": [
+    "商品详情页主图：进入视口即预热，查看大图零延迟",
+    "轮播首图：挂载即预热，切换时无白屏"
+  ],
+  "notes": [
+    "依赖 MemoryCachePlugin / IDBCachePlugin 提供底层存储。",
+    "预热失败或超时（10s）不影响正常加载，仅跳过预热。",
+    "与 CacheIDBPlugin 配合可实现“进入视口即落盘”。"
+  ]
 }

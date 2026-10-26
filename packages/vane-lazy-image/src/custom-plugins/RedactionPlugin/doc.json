@@ -7,24 +7,40 @@
     "视觉"
   ],
   "config": [
+    { "name": "enabled", "type": "boolean", "default": "true", "description": "是否启用" },
+    { "name": "boxes", "type": "RedactionBox[]", "default": "[]", "description": "遮挡区域：{ x, y, w, h (0~1), blur?, color? }" },
+    { "name": "zIndex", "type": "number", "default": "3", "description": "层叠顺序" }
+  ],
+  "example": "// 局部打码（如人脸 / 车牌）\nconst RedactedImage = withPlugins(LazyLoadImageCore, [\n  createRedactionPlugin({\n    boxes: [\n      { x: 0.40, y: 0.30, w: 0.20, h: 0.15, blur: 8 },\n    ],\n  }),\n]);\n\n<RedactedImage src=\"https://picsum.photos/seed/redaction/600/400\" alt=\"打码\" />;",
+  "examples": [
     {
-      "name": "enabled",
-      "type": "boolean",
-      "default": "true",
-      "description": ""
+      "name": "局部模糊打码",
+      "description": "在图片 40%/30% 处覆盖一块 20%×15% 的模糊区域（如人脸）。",
+      "src": "https://picsum.photos/seed/redaction-blur/600/400",
+      "config": { "enabled": true, "boxes": [ { "x": 0.4, "y": 0.3, "w": 0.2, "h": 0.15, "blur": 8 } ] }
     },
     {
-      "name": "boxes",
-      "type": "RedactionBox[]",
-      "default": "[]",
-      "description": ""
-    },
-    {
-      "name": "zIndex",
-      "type": "number",
-      "default": "3",
-      "description": ""
+      "name": "色块遮挡",
+      "description": "用半透明色块遮挡敏感区域，不依赖模糊。",
+      "src": "https://picsum.photos/seed/redaction-block/600/400",
+      "config": { "enabled": true, "boxes": [ { "x": 0.1, "y": 0.7, "w": 0.35, "h": 0.12, "color": "rgba(0,0,0,0.85)" } ] }
     }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createRedactionPlugin()]);"
+  "features": [
+    "按百分比坐标划定遮挡区（自适应尺寸）",
+    "支持模糊（blur）或纯色块两种遮挡",
+    "可同时覆盖多个区域",
+    "整体启停"
+  ],
+  "useCases": [
+    "人脸 / 车牌隐私打码",
+    "敏感信息遮挡",
+    "截图脱敏",
+    "合规图片发布"
+  ],
+  "notes": [
+    "坐标使用 0~1 的相对比例，图片缩放时遮挡区自动跟随。",
+    "blur 通过 backdrop-filter 实现；若浏览器不支持会以纯色块兜底。",
+    "打码是覆盖层，不改变原图像素，导出原图不会被脱敏。"
+  ]
 }

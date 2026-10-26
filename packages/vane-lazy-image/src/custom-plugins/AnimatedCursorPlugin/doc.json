@@ -1,0 +1,72 @@
+{
+  "name": "AnimatedCursorPlugin",
+  "description": "自定义光标动画：为图片叠加系统光标（放大镜/十字/抓手等）或自定义光标（圆点/圆环/加号）+ 跟随动画 + 点击涟漪 + 文字提示，纯 CSS+JS 无依赖。",
+  "since": "2.0.0",
+  "tags": ["interaction", "视觉效果与交互", "visual"],
+  "config": [
+    { "name": "style", "type": "\"zoom-in\" | \"zoom-out\" | \"pointer\" | \"crosshair\" | \"move\" | \"grab\" | \"custom-dot\" | \"custom-ring\" | \"custom-plus\" | \"none\"", "default": "\"zoom-in\"", "description": "光标样式" },
+    { "name": "enableFollower", "type": "boolean", "default": "true", "description": "是否启用跟随光标" },
+    { "name": "followerColor", "type": "string", "default": "\"rgba(59, 130, 246, 0.5)\"", "description": "跟随光标颜色" },
+    { "name": "followerSize", "type": "number", "default": "40", "description": "跟随光标大小（px）" },
+    { "name": "followerDelay", "type": "number", "default": "0.1", "description": "跟随延迟系数（越大越跟手）" },
+    { "name": "scaleOnHover", "type": "boolean", "default": "true", "description": "悬停时跟随光标缩放" },
+    { "name": "hoverScale", "type": "number", "default": "1.5", "description": "悬停缩放比例" },
+    { "name": "customIcon", "type": "string", "default": "\"\"", "description": "自定义光标图标 URL" },
+    { "name": "cursorText", "type": "string", "default": "\"\"", "description": "光标附带文字" },
+    { "name": "showRipple", "type": "boolean", "default": "false", "description": "点击时产生涟漪" }
+  ],
+  "example": "// 1. 放大镜光标 + 蓝色跟随圆点\nconst CursorImage = withPlugins(LazyLoadImageCore, [\n  createAnimatedCursorPlugin({ style: \"zoom-in\", followerColor: \"rgba(59,130,246,0.5)\" }),\n]);\n\n// 2. 在商品图中使用\n<CursorImage\n  src=\"https://picsum.photos/id/110/400/300\"\n  alt=\"商品\"\n  style={{ width: 240, height: 160, borderRadius: 8 }}\n/>;\n\n// 3. 自定义圆点 + 点击涟漪 + 文字提示\ncreateAnimatedCursorPlugin({\n  style: \"custom-dot\",\n  showRipple: true,\n  cursorText: \"查看大图\",\n  followerSize: 48,\n});",
+  "examples": [
+    {
+      "name": "zoom-in 放大镜 + 跟随圆点",
+      "description": "系统放大镜光标，叠加半透明蓝色跟随圆点，暗示可放大查看。",
+      "src": "https://picsum.photos/id/110/400/300",
+      "config": { "style": "zoom-in", "enableFollower": true, "followerColor": "rgba(59,130,246,0.5)", "followerSize": 40 }
+    },
+    {
+      "name": "custom-dot 自定义圆点 + 点击涟漪",
+      "description": "自定义圆点跟随光标，点击产生涟漪动画，互动感强。",
+      "src": "https://picsum.photos/id/119/400/300",
+      "config": { "style": "custom-dot", "showRipple": true, "followerSize": 44, "followerColor": "rgba(255,99,132,0.5)" }
+    },
+    {
+      "name": "custom-ring 圆环 + 文字提示",
+      "description": "圆环跟随光标并附带文字提示，适合“查看大图”引导。",
+      "src": "https://picsum.photos/id/122/400/300",
+      "config": { "style": "custom-ring", "cursorText": "查看大图", "followerSize": 56, "followerColor": "rgba(16,185,129,0.6)" }
+    },
+    {
+      "name": "crosshair 十字光标",
+      "description": "十字准星光标，适合素材 / 设计类站点定位。",
+      "src": "https://picsum.photos/id/129/400/300",
+      "config": { "style": "crosshair", "enableFollower": true, "followerSize": 36 }
+    },
+    {
+      "name": "custom-plus 加号光标",
+      "description": "加号光标，强调“可添加 / 收藏”等操作。",
+      "src": "https://picsum.photos/id/133/400/300",
+      "config": { "style": "custom-plus", "enableFollower": true, "followerSize": 40, "scaleOnHover": true }
+    }
+  ],
+  "features": [
+    "10 种光标样式（系统光标 + 自定义圆点 / 圆环 / 加号）",
+    "跟随光标：颜色、大小、延迟系数可调",
+    "悬停时跟随光标缩放",
+    "点击涟漪动画",
+    "可附带文字提示",
+    "支持自定义图标 URL",
+    "纯 CSS + 轻量 JS，无依赖"
+  ],
+  "useCases": [
+    "商品详情放大预览",
+    "画廊 / 素材站点",
+    "设计工具类页面",
+    "交互演示与引导",
+    "收藏 / 添加操作的视觉暗示",
+    "创意作品集"
+  ],
+  "notes": [
+    "效果需鼠标在图片上移动 / 悬停 / 点击才会体现，静态截图仅展示初始态。",
+    "移动端无指针设备，建议配合触摸反馈降级，或仅保留 enableFollower 等轻效果。"
+  ]
+}

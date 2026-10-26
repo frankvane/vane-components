@@ -1,0 +1,49 @@
+{
+  "name": "VideoPosterPlugin",
+  "description": "视频海报：将图片作为视频封面，点击播放视频（模态框或内联），支持自动播放、循环、静音与自定义按钮。",
+  "since": "2.0.0",
+  "tags": [
+    "ecommerce",
+    "电商核心"
+  ],
+  "config": [
+    { "name": "videoUrl", "type": "string", "default": "undefined", "description": "视频 URL" },
+    { "name": "autoPlay", "type": "boolean", "default": "true", "description": "自动播放" },
+    { "name": "loop", "type": "boolean", "default": "false", "description": "循环播放" },
+    { "name": "muted", "type": "boolean", "default": "true", "description": "静音（移动端自动播放需静音）" },
+    { "name": "playButtonPosition", "type": "\"center\" | \"top-left\" | \"top-right\" | \"bottom-left\" | \"bottom-right\"", "default": "\"center\"", "description": "播放按钮位置" },
+    { "name": "playButtonSize", "type": "\"small\" | \"medium\" | \"large\"", "default": "\"large\"", "description": "按钮尺寸" },
+    { "name": "playButtonStyle", "type": "React.CSSProperties", "default": "{}", "description": "自定义按钮样式" },
+    { "name": "showPlayButton", "type": "boolean", "default": "true", "description": "是否显示播放按钮" },
+    { "name": "playInModal", "type": "boolean", "default": "true", "description": "模态框播放（否则内联）" },
+    { "name": "playIcon", "type": "ReactNode", "default": "undefined", "description": "自定义播放图标" },
+    { "name": "onPlay", "type": "() => void", "default": "undefined", "description": "播放回调" }
+  ],
+  "example": "// 1. 点击播放按钮，在模态框中播放视频\nconst VideoImage = withPlugins(LazyLoadImageCore, [\n  createVideoPosterPlugin({\n    videoUrl: \"https://example.com/clip.mp4\",\n    playInModal: true,\n    muted: true,\n  }),\n]);\n\n// 2. 内联播放（直接在图片位置播放，带循环与自动播放）\ncreateVideoPosterPlugin({\n  videoUrl: \"https://example.com/clip.mp4\",\n  playInModal: false,\n  autoPlay: true,\n  loop: true,\n  muted: true,\n});\n\n// 3. 在组件中使用\n<VideoImage src=\"https://picsum.photos/id/1015/500/300\" alt=\"商品视频封面\" />;",
+  "examples": [
+    { "name": "基础视频海报（模态框播放）", "description": "点击图片中心播放按钮，在模态框中播放视频。", "src": "https://picsum.photos/id/1015/500/300", "config": { "videoUrl": "https://www.w3schools.com/html/mov_bbb.mp4", "playButtonPosition": "center", "playButtonSize": "large" } },
+    { "name": "内联播放模式", "description": "视频直接在图片位置播放，不弹出模态框。", "src": "https://picsum.photos/id/1018/500/300", "config": { "videoUrl": "https://www.w3schools.com/html/movie.mp4", "playInModal": false, "playButtonPosition": "center", "playButtonSize": "medium", "autoPlay": true, "loop": true, "muted": true } },
+    { "name": "自定义播放按钮样式", "description": "按钮位于右下角，红色背景，小尺寸。", "src": "https://picsum.photos/id/1019/500/300", "config": { "videoUrl": "https://www.w3schools.com/html/mov_bbb.mp4", "playButtonPosition": "bottom-right", "playButtonSize": "small", "playButtonStyle": { "backgroundColor": "rgba(255, 59, 48, 0.9)", "border": "2px solid white" } } },
+    { "name": "自定义播放图标", "description": "示例以默认三角形呈现；可用 playIcon 替换为自定义图标（如 “PLAY” 文字）。", "src": "https://picsum.photos/id/1020/500/300", "config": { "videoUrl": "https://www.w3schools.com/html/mov_bbb.mp4", "playButtonPosition": "center", "playButtonSize": "large" } },
+    { "name": "不同按钮位置", "description": "播放按钮位于左上角，绿色背景。", "src": "https://picsum.photos/id/1021/500/300", "config": { "videoUrl": "https://www.w3schools.com/html/mov_bbb.mp4", "playButtonPosition": "top-left", "playButtonSize": "small", "playButtonStyle": { "backgroundColor": "rgba(52, 199, 89, 0.9)" } } }
+  ],
+  "notes": [
+    "使用提示：确保视频 URL 可访问，否则播放会失败；移动端自动播放可能受浏览器限制，建议设置 muted=true；大视频文件建议使用流媒体服务；模态框播放体验更好但会阻断其它交互；内联播放适合小尺寸视频预览。"
+  ],
+  "features": [
+    "模态框播放（全屏）",
+    "内联播放（图片位置直接播）",
+    "自定义播放按钮大小 / 位置 / 样式",
+    "多位置支持（center / top-left / bottom-left / bottom-right）",
+    "播放控制（自动播放 / 循环 / 静音）",
+    "自定义图标"
+  ],
+  "useCases": [
+    "视频网站",
+    "在线教育",
+    "电商平台（商品视频展示）",
+    "新闻媒体",
+    "视频博客",
+    "企业官网"
+  ]
+}

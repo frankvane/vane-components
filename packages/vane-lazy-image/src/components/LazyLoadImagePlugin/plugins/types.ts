@@ -96,6 +96,10 @@ export interface LazyImageContext
   };
   /** 插件自身配置（createXxxPlugin(config) 传入的那个对象） */
   config?: Record<string, any>;
+  /** 重新加载：会先中止在途请求，再（若仍在视口）重新发起加载 */
+  reload?(): void;
+  /** 重置：回到初始 idle 状态，不重新发起加载（用于「离开即中止」等场景） */
+  reset?(): void;
 }
 
 // ---------- 领域钩子表 ----------

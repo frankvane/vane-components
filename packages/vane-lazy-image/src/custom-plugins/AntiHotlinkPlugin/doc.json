@@ -1,34 +1,65 @@
 {
   "name": "AntiHotlinkPlugin",
-  "description": "防盗链：为 URL 追加签名 token，并限制允许的域名。",
+  "description": "防盗链：为图片 URL 追加动态签名 token 或 referer 标记，配合域名白名单与 referer 校验，防止资源被第三方直链盗用。",
   "since": "2.0.0",
-  "tags": [
-    "network",
-    "网络"
-  ],
+  "tags": ["network", "网络", "防盗链", "签名"],
   "config": [
     {
       "name": "allowedDomains",
       "type": "string[]",
-      "description": ""
+      "description": "域名白名单；仅放行列表内域，其余源原样通过"
     },
     {
       "name": "checkReferer",
       "type": "boolean",
       "default": "false",
-      "description": "仅在浏览器环境有效"
+      "description": "无 referrer 时附加 ref=direct 标记（仅浏览器环境有效）"
     },
     {
       "name": "generateToken",
       "type": "(src: string) => string | undefined",
-      "description": ""
+      "description": "为 URL 生成签名 token（函数型，仅顶层示例展示）"
     },
     {
       "name": "tokenParam",
       "type": "string",
       "default": "\"token\"",
-      "description": "例如 \"token\""
+      "description": "追加到查询参数的键名"
     }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createAntiHotlinkPlugin()]);"
+  "example": "import { LazyLoadImageCore, createAntiHotlinkPlugin, withPlugins } from \"vane-lazy-image\";\n\nconst LazyImage = withPlugins(LazyLoadImageCore, [\n  createAntiHotlinkPlugin({\n    generateToken: (src) => signSrc(src),\n    tokenParam: \"sig\",\n    allowedDomains: [\"images.example.com\"],\n  }),\n]);\n\n<LazyImage src=\"https://images.example.com/photo.jpg\" alt=\"防盗链示例\" />",
+  "examples": [
+    {
+      "name": "白名单 + referer 校验",
+      "description": "仅放行 picsum.photos；无 referer 时附加 ref=direct 标记。",
+      "src": "https://picsum.photos/seed/hotlink/800/600",
+      "config": {
+        "allowedDomains": ["picsum.photos"],
+        "checkReferer": true
+      }
+    },
+    {
+      "name": "仅域名白名单放行",
+      "description": "命中白名单则原样通过，否则不注入任何参数。",
+      "src": "https://picsum.photos/seed/hotlink-2/800/600",
+      "config": {
+        "allowedDomains": ["picsum.photos"]
+      }
+    }
+  ],
+  "features": [
+    "generateToken 为 URL 追加签名参数，防直链盗用",
+    "allowedDomains 白名单：仅放行指定域，其余原样通过",
+    "checkReferer：无 referrer 时附加 ref=direct 标记",
+    "通用参数追加兜底（无 URL 对象时拼接 query）"
+  ],
+  "useCases": [
+    "OSS / 云存储等需签名才能访问的图片",
+    "限制仅本站 referer 可加载"
+  ],
+  "notes": [
+    "generateToken 为函数型，无法进入静态预览配置，仅顶层示例展示",
+    "allowedDomains 为空时对所有源注入 token",
+    "checkReferer 仅在浏览器环境有效"
+  ]
 }

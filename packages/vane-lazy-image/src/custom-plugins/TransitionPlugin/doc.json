@@ -7,36 +7,42 @@
     "视觉"
   ],
   "config": [
+    { "name": "durationMs", "type": "number", "default": "400", "description": "过渡时长 ms" },
+    { "name": "easing", "type": "string", "default": "ease", "description": "缓动函数" },
+    { "name": "fromOpacity", "type": "number", "default": "0", "description": "起始透明度" },
+    { "name": "toOpacity", "type": "number", "default": "1", "description": "结束透明度" },
+    { "name": "fromScale", "type": "number", "default": "1", "description": "起始缩放" },
+    { "name": "toScale", "type": "number", "default": "1", "description": "结束缩放" }
+  ],
+  "example": "// 缩放 + 淡入过渡\nconst TransImage = withPlugins(LazyLoadImageCore, [\n  createTransitionPlugin({\n    durationMs: 500,\n    fromOpacity: 0,\n    toOpacity: 1,\n    fromScale: 1.05,\n    toScale: 1,\n  }),\n]);\n\n<TransImage src=\"https://picsum.photos/seed/transition/600/400\" alt=\"过渡\" />;",
+  "examples": [
     {
-      "name": "durationMs",
-      "type": "number",
-      "description": ""
+      "name": "缩放淡入",
+      "description": "从 1.05 倍淡入到原尺寸，轻盈的入场感。",
+      "src": "https://picsum.photos/seed/transition-zoom/600/400",
+      "config": { "durationMs": 500, "fromOpacity": 0, "toOpacity": 1, "fromScale": 1.05, "toScale": 1 }
     },
     {
-      "name": "easing",
-      "type": "string",
-      "description": ""
-    },
-    {
-      "name": "fromOpacity",
-      "type": "number",
-      "description": ""
-    },
-    {
-      "name": "toOpacity",
-      "type": "number",
-      "description": ""
-    },
-    {
-      "name": "fromScale",
-      "type": "number",
-      "description": ""
-    },
-    {
-      "name": "toScale",
-      "type": "number",
-      "description": ""
+      "name": "纯淡入",
+      "description": "仅透明度过渡，不含缩放。",
+      "src": "https://picsum.photos/seed/transition-fade/600/400",
+      "config": { "durationMs": 400, "fromOpacity": 0, "toOpacity": 1 }
     }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createTransitionPlugin()]);"
+  "features": [
+    "透明度 + 缩放双维度过渡",
+    "起始 / 结束值均可定制",
+    "时长与缓动可调",
+    "相比 FadeIn 更灵活"
+  ],
+  "useCases": [
+    "图片入场动画",
+    "卡片翻转 / 弹出图",
+    "需要缩放感的场景",
+    "与视差 / 滚动联动"
+  ],
+  "notes": [
+    "fromScale=toScale=1 时退化为纯淡入，等价于更轻量的 FadeIn。",
+    "缩放在 transform 上实现，注意父容器 overflow 与定位。"
+  ]
 }

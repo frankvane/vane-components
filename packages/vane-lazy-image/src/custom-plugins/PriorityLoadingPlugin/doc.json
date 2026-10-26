@@ -14,5 +14,35 @@
       "description": ""
     }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createPriorityLoadingPlugin()]);"
+  "example": "// LCP / 首屏主图：立即加载\nconst HeroImage = withPlugins(LazyLoadImageCore, [\n  createPriorityLoadingPlugin({ priority: \"high\" }),\n]);\n\n// 折叠区/长列表底部图：延后加载\nconst BelowImage = withPlugins(LazyLoadImageCore, [\n  createPriorityLoadingPlugin({ priority: \"low\" }),\n]);",
+  "examples": [
+    {
+      "name": "首屏 LCP 图（high）",
+      "description": "关键图立即 eager 加载，缩短最大内容绘制时间。",
+      "config": {
+        "priority": "high"
+      }
+    },
+    {
+      "name": "折叠区图（low）",
+      "description": "非首屏图延后加载，rootMargin 更大，滚动临近才加载。",
+      "config": {
+        "priority": "low"
+      }
+    }
+  ],
+  "features": [
+    "high → loading=eager、rootMargin=0，立即加载",
+    "low → loading=lazy、rootMargin 更大，更晚加载",
+    "medium → 默认 lazy + 适中 rootMargin（约 200px）"
+  ],
+  "useCases": [
+    "把 LCP / 首屏主图设为 high",
+    "把长列表底部、折叠内容图设为 low，错峰加载"
+  ],
+  "notes": [
+    "仅调整 loading 与 rootMargin，不会阻塞其它插件生效。",
+    "与 ScrollIdle、ConcurrencyControl 叠加时可协同控制加载节奏。",
+    "rootMargin 会被合并进核心的 IntersectionObserver 参数。"
+  ]
 }

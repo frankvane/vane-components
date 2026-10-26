@@ -28,7 +28,7 @@
     {
       "name": "ttlMs",
       "type": "number",
-      "default": "7 * 24 * 60 * 60 * 1000",
+      "default": "604800000",
       "description": "过期时间（毫秒）"
     },
     {
@@ -37,5 +37,37 @@
       "description": ""
     }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createIDBCachePlugin()]);"
+  "example": "const LazyImage = withPlugins(LazyLoadImageCore, [\n  createIDBCachePlugin({\n    dbName: \"LLI-Cache\",\n    storeName: \"images\",\n    ttlMs: 7 * 24 * 60 * 60 * 1000, // 7 天\n  }),\n]);",
+  "examples": [
+    {
+      "name": "默认持久缓存",
+      "description": "跨会话缓存图片 Blob，刷新 / 重开应用仍命中，秒开头部图。",
+      "config": {
+        "ttlMs": 604800000
+      }
+    },
+    {
+      "name": "自定义库与过期",
+      "description": "独立库名隔离业务数据，30 天过期。",
+      "config": {
+        "dbName": "App-Img",
+        "storeName": "photos",
+        "ttlMs": 2592000000
+      }
+    }
+  ],
+  "features": [
+    "用 IndexedDB 持久化图片 Blob / dataURL",
+    "支持 TTL（默认 7 天），过期自动清理",
+    "优先存 Blob，其次 dataURL，节省空间"
+  ],
+  "useCases": [
+    "离线优先 / PWA 图片缓存",
+    "重开应用仍需秒开的头部图、用户头像"
+  ],
+  "notes": [
+    "仅在支持 IndexedDB 的环境生效，SSR / Node 端无副作用。",
+    "与 CachePrewarmPlugin 配合可实现“进入视口即落盘”。",
+    "多实例请使用不同 dbName / storeName 避免相互覆盖。"
+  ]
 }

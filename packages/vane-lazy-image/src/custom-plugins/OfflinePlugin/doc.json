@@ -1,18 +1,34 @@
 {
   "name": "OfflinePlugin",
-  "description": "离线支持：网络断开时显示离线提示覆盖层。",
+  "description": "离线降级（v2 真实实现）：在线时把资源预热进 Cache Storage；离线时优先从缓存取同域资源，否则回退 offlineSrc / 内置 SVG 占位图，并在离线时显示状态徽标。不再是纯提示层。",
   "since": "2.0.0",
-  "tags": [
-    "loading",
-    "加载策略"
-  ],
+  "tags": ["loading", "加载策略", "离线", "省流"],
   "config": [
-    {
-      "name": "enabled",
-      "type": "boolean",
-      "default": "true",
-      "description": ""
-    }
+    { "name": "offlineSrc", "type": "string", "default": "内置 SVG 离线占位图（data URI）", "description": "离线且无缓存时回退的占位图，建议用 data URI 避免再次走网络" },
+    { "name": "cacheName", "type": "string", "default": "vane-lazy-image-offline", "description": "Cache Storage 名称，用于预热与离线回退" },
+    { "name": "warm", "type": "boolean", "default": "true", "description": "在线时是否把资源写入 Cache Storage 预热" },
+    { "name": "showBadge", "type": "boolean", "default": "true", "description": "离线时是否显示「离线模式」徽标" }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createOfflinePlugin()]);"
+  "example": "import { LazyLoadImageCore, createOfflinePlugin, withPlugins } from \"vane-lazy-image\";\n\nconst LazyImage = withPlugins(LazyLoadImageCore, [\n  // 离线时回退到内置占位图，并在离线时显示徽标\n  createOfflinePlugin({}),\n]);\n\n// 同域资源在线时会自动预热，离线可直接从缓存读取\n<LazyImage src=\"/images/photo.jpg\" alt=\"离线降级示例\" />",
+  "examples": [
+    { "name": "默认离线降级", "description": "在线正常加载并预热；断网后同域资源走缓存，跨域资源回退到内置 SVG 占位图，并出现「离线模式」徽标。", "src": "https://picsum.photos/seed/offline/800/600", "config": {} },
+    { "name": "自定义离线占位图", "description": "指定 offlineSrc 作为断网回退图（建议 data URI）。", "src": "https://picsum.photos/seed/offline2/800/600", "config": { "offlineSrc": "data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect width='100%25' height='100%25' fill='%23ffe0b2'/%3E%3Ctext x='50%25' y='50%25' fill='%23e65100' text-anchor='middle' font-size='22'%3E无网络%3C/text%3E%3C/svg%3E" } },
+    { "name": "关闭徽标", "description": "showBadge=false，仅做离线资源回退，不显示提示。", "src": "https://picsum.photos/seed/offline3/800/600", "config": { "showBadge": false } }
+  ],
+  "features": [
+    "在线预热进 Cache Storage（真实写入）",
+    "离线从缓存读取同域资源",
+    "无缓存回退 offlineSrc / 内置 SVG 占位",
+    "online/offline 事件监听 + 状态徽标",
+    "warm / showBadge 可开关"
+  ],
+  "useCases": [
+    "弱网 / 断网时的优雅降级",
+    "离线优先 PWA 应用的图片缓存",
+    "省流用户避免无效请求"
+  ],
+  "notes": [
+    "跨域 no-cors 资源缓存后无法读取为 blob，因此跨域图片离线时会回退到 offlineSrc 占位图（预期降级）；同域资源可真正离线显示。",
+    "完整 Service Worker 级别离线由宿主应用负责，本插件提供组件级缓存/回退兜底。"
+  ]
 }

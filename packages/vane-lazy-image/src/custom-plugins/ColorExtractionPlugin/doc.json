@@ -7,24 +7,39 @@
     "视觉"
   ],
   "config": [
+    { "name": "setContainerBg", "type": "boolean", "default": "true", "description": "是否把容器背景设为主色" },
+    { "name": "sampleSize", "type": "number", "default": "4", "description": "采样步长 px，越大越快越不精确" },
+    { "name": "showOverlay", "type": "boolean", "default": "true", "description": "是否在右上角显示主色卡" }
+  ],
+  "example": "// 提取主色填充容器 + 显示色卡\nconst TintImage = withPlugins(LazyLoadImageCore, [\n  createColorExtractionPlugin({\n    setContainerBg: true,\n    sampleSize: 4,\n    showOverlay: true,\n  }),\n]);\n\n<TintImage src=\"https://picsum.photos/seed/color/600/400\" alt=\"主色提取\" crossOrigin=\"anonymous\" />;",
+  "examples": [
     {
-      "name": "setContainerBg",
-      "type": "boolean",
-      "default": "true",
-      "description": "是否设置容器背景为主色"
+      "name": "主色填充容器 + 色卡",
+      "description": "提取主色作为卡片背景，并在右上角显示色卡。",
+      "src": "https://picsum.photos/seed/color-full/600/400",
+      "config": { "setContainerBg": true, "sampleSize": 4, "showOverlay": true }
     },
     {
-      "name": "sampleSize",
-      "type": "number",
-      "default": "4",
-      "description": "采样步长（像素），越大越快但越不精确"
-    },
-    {
-      "name": "showOverlay",
-      "type": "boolean",
-      "default": "true",
-      "description": "在图片右上角显示主色卡"
+      "name": "仅色卡",
+      "description": "不改动容器背景，只在角上显示提取到的主色卡。",
+      "src": "https://picsum.photos/seed/color-chip/600/400",
+      "config": { "setContainerBg": false, "showOverlay": true }
     }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createColorExtractionPlugin()]);"
+  "features": [
+    "canvas 采样主色",
+    "可选填充容器背景",
+    "可选角标色卡展示",
+    "采样精度 / 速度可调"
+  ],
+  "useCases": [
+    "按图自动配色（背景 / 阴影）",
+    "色彩主题联动",
+    "色卡 / 调色板展示",
+    "设计工具取色"
+  ],
+  "notes": [
+    "读取像素需在 <img> 上设置 crossOrigin=\"anonymous\"，且图片服务器需允许跨域，否则 canvas 被污染无法取色（会静默失败）。",
+    "sampleSize 越大采样越稀疏、越快但越不精确。"
+  ]
 }

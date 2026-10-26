@@ -1,45 +1,37 @@
 {
   "name": "WebPPlugin",
-  "description": "WebP 优先：支持 WebP 的环境优先加载 .webp，失败自动回退原图。",
+  "description": "WebP 优先：在支持 WebP 的环境中自动将图片重写为 .webp（或自定义链接），失败时回退原图，体积更小加载更快。",
   "since": "2.0.0",
-  "tags": [
-    "network",
-    "网络"
-  ],
+  "tags": ["other", "网络", "性能", "WebP"],
   "config": [
-    {
-      "name": "enabled",
-      "type": "boolean",
-      "default": "true",
-      "description": ""
-    },
-    {
-      "name": "rewrite",
-      "type": "(src: string, ctx: LazyImageContext) => string | undefined",
-      "description": "自定义重写函数：返回 webp 链接"
-    },
-    {
-      "name": "replaceExtensions",
-      "type": "string[]",
-      "default": "[\"jpg\", \"jpeg\", \"png\"]",
-      "description": "需要替换为 .webp 的扩展名"
-    },
-    {
-      "name": "appendQueryParam",
-      "type": "string",
-      "description": "追加的查询参数，例如 \"format=webp\""
-    },
-    {
-      "name": "onDomains",
-      "type": "string[]",
-      "description": "限定域名（空则不限制）"
-    },
-    {
-      "name": "testSupport",
-      "type": "boolean",
-      "default": "true",
-      "description": "在运行前检测浏览器是否支持 webp"
-    }
+    { "name": "enabled", "type": "boolean", "default": "true", "description": "是否启用" },
+    { "name": "rewrite", "type": "(src, ctx) => string | undefined", "default": "undefined", "description": "自定义重写函数：返回 webp 链接" },
+    { "name": "replaceExtensions", "type": "string[]", "default": "[\"jpg\", \"jpeg\", \"png\"]", "description": "需替换为 .webp 的扩展名" },
+    { "name": "appendQueryParam", "type": "string", "default": "undefined", "description": "追加的查询参数，如 \"format=webp\"" },
+    { "name": "onDomains", "type": "string[]", "default": "[]（不限制）", "description": "限定生效域名" },
+    { "name": "testSupport", "type": "boolean", "default": "true", "description": "运行前检测浏览器是否支持 webp" }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createWebPPlugin()]);"
+  "example": "const WebPImage = withPlugins(LazyLoadImageCore, [\n  createWebPPlugin({\n    replaceExtensions: [\"jpg\", \"jpeg\", \"png\"],\n    testSupport: true,\n  }),\n]);\n\n<WebPImage src=\"https://example.com/photo.jpg\" alt=\"WebP 示例\" />;",
+  "examples": [
+    { "name": "默认 WebP 优化", "description": "对支持的图床自动重写（本示例用无扩展名 URL，不触发改写，仅展示配置）。", "src": "https://picsum.photos/id/1015/500/300", "config": { "enabled": true } },
+    { "name": "限定域名", "description": "仅在指定域名生效，避免误改其它资源。", "src": "https://picsum.photos/id/1021/500/300", "config": { "onDomains": ["cdn.example.com"] } },
+    { "name": "跳过支持检测", "description": "testSupport=false 直接尝试改写（需图床确实提供 webp）。", "src": "https://picsum.photos/id/1026/500/300", "config": { "testSupport": false } }
+  ],
+  "features": [
+    "自动 WebP 改写",
+    "扩展名替换",
+    "查询参数追加",
+    "域名限定",
+    "支持检测",
+    "失败回退原图"
+  ],
+  "useCases": [
+    "图片体积优化",
+    "现代浏览器加速",
+    "CDN WebP 支持",
+    "流量节省"
+  ],
+  "notes": [
+    "启用后若 webp 链接加载失败会自动回退到原图，不会白屏；示例中的 picsum 链接无扩展名，不会触发扩展名改写，可安全预览。"
+  ]
 }

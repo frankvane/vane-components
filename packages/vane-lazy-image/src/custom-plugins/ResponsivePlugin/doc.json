@@ -1,36 +1,34 @@
 {
   "name": "ResponsivePlugin",
-  "description": "响应式图片：注入 srcset/sizes 多宽度资源，可按宽度生成链接。",
+  "description": "响应式图片：注入 srcset/sizes 多宽度资源，浏览器按视口选择最佳尺寸，兼顾清晰度与流量。",
   "since": "2.0.0",
-  "tags": [
-    "network",
-    "网络"
-  ],
+  "tags": ["a11y", "可访问性", "网络", "响应式"],
   "config": [
-    {
-      "name": "enabled",
-      "type": "boolean",
-      "default": "true",
-      "description": ""
-    },
-    {
-      "name": "variants",
-      "type": "ResponsiveVariant[]",
-      "default": "[ { width: 400 }, { width: 800 }, { width: 12...",
-      "description": "生成不同宽度的图片链接"
-    },
-    {
-      "name": "buildSrc",
-      "type": "(baseSrc: string, width: number) => string",
-      "default": "defaultBuildSrc",
-      "description": "自定义生成函数：从基础 src 生成指定宽度的链接"
-    },
-    {
-      "name": "sizes",
-      "type": "string",
-      "default": "\"(max-width: 800px) 100vw, 800px\"",
-      "description": "sizes 属性（例如 \"(max-width: 640px) 100vw, 800px\"）"
-    }
+    { "name": "enabled", "type": "boolean", "default": "true", "description": "是否启用响应式" },
+    { "name": "variants", "type": "{ width: number; src?: string }[]", "default": "[{400},{800},{1200}]", "description": "宽度变体列表" },
+    { "name": "buildSrc", "type": "(baseSrc, width) => string", "default": "defaultBuildSrc（追加 ?w=）", "description": "自定义链接生成（函数型，参见用法示例）" },
+    { "name": "sizes", "type": "string", "default": "\"(max-width: 800px) 100vw, 800px\"", "description": "sizes 属性" }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createResponsivePlugin()]);"
+  "example": "const ResponsiveImage = withPlugins(LazyLoadImageCore, [\n  createResponsivePlugin({\n    variants: [{ width: 400 }, { width: 800 }, { width: 1200 }],\n    sizes: \"(max-width: 800px) 100vw, 800px\",\n    buildSrc: (base, w) => `${base}?w=${w}`,\n  }),\n]);\n\n<ResponsiveImage src=\"https://picsum.photos/id/1015/500/300\" alt=\"响应式示例\" />;",
+  "examples": [
+    { "name": "默认多宽度", "description": "注入 400/800/1200 三档 srcset。", "src": "https://picsum.photos/id/1015/500/300", "config": { "variants": [{ "width": 400 }, { "width": 800 }, { "width": 1200 }], "sizes": "(max-width: 800px) 100vw, 800px" } },
+    { "name": "自定义尺寸档位", "description": "仅 320/640 两档，适合轻量场景。", "src": "https://picsum.photos/id/1021/500/300", "config": { "variants": [{ "width": 320 }, { "width": 640 }], "sizes": "(max-width: 640px) 100vw, 640px" } },
+    { "name": "关闭响应式", "description": "enabled=false 时不注入 srcset。", "src": "https://picsum.photos/id/1026/500/300", "config": { "enabled": false } }
+  ],
+  "features": [
+    "srcset 多宽度",
+    "自定义 buildSrc",
+    "sizes 响应式",
+    "自动适配屏幕/Retina",
+    "可关闭"
+  ],
+  "useCases": [
+    "响应式画廊",
+    "移动端流量优化",
+    "Retina 高清",
+    "CMS 图片"
+  ],
+  "notes": [
+    "buildSrc 为函数型配置，静态预览使用默认追加 ?w= 策略；自定义用法见用法示例。"
+  ]
 }

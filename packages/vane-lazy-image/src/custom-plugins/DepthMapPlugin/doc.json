@@ -1,0 +1,66 @@
+{
+  "name": "DepthMapPlugin",
+  "description": "3D 视差深度效果：鼠标跟随的倾斜 / 视差 / 浮动 / 3D 旋转，带光泽与阴影，纯 CSS transforms 无依赖。",
+  "since": "2.0.0",
+  "tags": ["interaction", "视觉效果与交互", "visual"],
+  "config": [
+    { "name": "style", "type": "\"tilt\" | \"parallax\" | \"float\" | \"rotate-3d\"", "default": "\"tilt\"", "description": "深度效果样式" },
+    { "name": "intensity", "type": "number", "default": "0.5", "description": "效果强度 0~1" },
+    { "name": "maxTilt", "type": "number", "default": "20", "description": "最大倾斜角度" },
+    { "name": "enablePerspective", "type": "boolean", "default": "true", "description": "启用透视效果" },
+    { "name": "perspective", "type": "number", "default": "1000", "description": "透视距离（px）" },
+    { "name": "enableGlare", "type": "boolean", "default": "true", "description": "启用光泽效果" },
+    { "name": "glareColor", "type": "string", "default": "\"rgba(255, 255, 255, 0.3)\"", "description": "光泽颜色" },
+    { "name": "glareOpacity", "type": "number", "default": "0.5", "description": "光泽不透明度 0~1" },
+    { "name": "enableShadow", "type": "boolean", "default": "true", "description": "启用阴影" },
+    { "name": "transitionDuration", "type": "number", "default": "300", "description": "过渡时长（毫秒）" },
+    { "name": "resetOnLeave", "type": "boolean", "default": "true", "description": "离开时重置" }
+  ],
+  "example": "// 1. 鼠标跟随倾斜\nconst DepthImage = withPlugins(LazyLoadImageCore, [\n  createDepthMapPlugin({ style: \"tilt\", maxTilt: 15, enableGlare: true }),\n]);\n\n// 2. 在产品展示中使用\n<DepthImage\n  src=\"https://picsum.photos/id/122/400/300\"\n  alt=\"产品\"\n  style={{ width: 240, height: 160, borderRadius: 8 }}\n/>;\n\n// 3. 3D 旋转 + 阴影\ncreateDepthMapPlugin({\n  style: \"rotate-3d\",\n  intensity: 0.7,\n  enableShadow: true,\n  resetOnLeave: true,\n});",
+  "examples": [
+    {
+      "name": "tilt 倾斜（鼠标跟随）",
+      "description": "鼠标移动时图片随指针方向倾斜，带光泽高光，质感类似实体卡片。",
+      "src": "https://picsum.photos/id/122/400/300",
+      "config": { "style": "tilt", "maxTilt": 15, "intensity": 0.5, "enableGlare": true }
+    },
+    {
+      "name": "parallax 视差",
+      "description": "图片内部图层随鼠标产生位移差，营造纵深感。",
+      "src": "https://picsum.photos/id/129/400/300",
+      "config": { "style": "parallax", "intensity": 0.6, "enablePerspective": true, "perspective": 1000 }
+    },
+    {
+      "name": "rotate-3d 3D 旋转",
+      "description": "围绕多轴的 3D 旋转，配合阴影更具立体感。",
+      "src": "https://picsum.photos/id/133/400/300",
+      "config": { "style": "rotate-3d", "intensity": 0.7, "enableShadow": true, "resetOnLeave": true }
+    },
+    {
+      "name": "float 浮动",
+      "description": "轻微持续上下浮动的呼吸感，适合装饰性产品图。",
+      "src": "https://picsum.photos/id/142/400/300",
+      "config": { "style": "float", "intensity": 0.4, "enableGlare": false }
+    }
+  ],
+  "features": [
+    "4 种深度样式（倾斜 / 视差 / 浮动 / 3D 旋转）",
+    "鼠标跟随实时响应",
+    "光泽（glare）与阴影可开关并调参",
+    "透视距离可调",
+    "离开时一键重置（resetOnLeave）",
+    "纯 CSS transforms，无依赖"
+  ],
+  "useCases": [
+    "产品 3D 展示",
+    "卡片悬浮交互",
+    "3D 封面 / 海报",
+    "作品集与个人主页",
+    "落地页英雄区",
+    "会员 / 旗舰商品位"
+  ],
+  "notes": [
+    "效果依赖鼠标移动产生视差，静态截图仅为初始平面态；移动设备体验有限，建议作为渐进增强。",
+    "intensity 与 maxTilt 控制幅度，强度过高在低端设备上可能引起卡顿，可按需下调。"
+  ]
+}

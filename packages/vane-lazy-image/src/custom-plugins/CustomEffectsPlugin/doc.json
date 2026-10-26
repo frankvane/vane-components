@@ -1,0 +1,94 @@
+{
+  "name": "CustomEffectsPlugin",
+  "description": "自定义效果逃逸舱：把内置视觉插件覆盖不到的任意 CSS 效果（filter / transform / transition / className）直接注入图片与容器，无需新造组件。旧版 CustomEffects 展示页的 v2 等效形态。",
+  "since": "2.0.0",
+  "tags": [
+    "visual",
+    "视觉",
+    "自定义"
+  ],
+  "config": [
+    {
+      "name": "imageStyle",
+      "type": "React.CSSProperties",
+      "default": "{}",
+      "description": "应用到 <img> 的任意内联样式，如 { filter: \"contrast(1.2) saturate(1.4)\" }"
+    },
+    {
+      "name": "imageClassName",
+      "type": "string",
+      "default": "\"\"",
+      "description": "附加到 <img> 的 className"
+    },
+    {
+      "name": "containerStyle",
+      "type": "React.CSSProperties",
+      "default": "{}",
+      "description": "应用到容器（卡片）的任意内联样式"
+    },
+    {
+      "name": "containerClassName",
+      "type": "string",
+      "default": "\"\"",
+      "description": "附加到容器的 className"
+    },
+    {
+      "name": "hoverImageStyle",
+      "type": "React.CSSProperties",
+      "default": "{}",
+      "description": "悬停时叠加到 <img> 的样式（移出还原），如 { transform: \"scale(1.08)\" }"
+    }
+  ],
+  "example": "// 任意 CSS 效果逃逸舱：内置插件没有的视觉，直接以样式注入\nconst ArtImage = withPlugins(LazyLoadImageCore, [\n  createCustomEffectsPlugin({\n    imageStyle: {\n      filter: \"contrast(1.15) saturate(1.4) hue-rotate(-8deg)\",\n      transition: \"filter 240ms ease\",\n    },\n    containerStyle: { borderRadius: 16, overflow: \"hidden\" },\n    hoverImageStyle: { transform: \"scale(1.06)\" },\n  }),\n]);\n\n<ArtImage src=\"https://picsum.photos/seed/custom/600/400\" alt=\"自定义效果\" />;",
+  "examples": [
+    {
+      "name": "复古胶片滤镜（静态）",
+      "description": "sepia + 对比度 + 饱和度组合，模拟胶片质感，并给容器加圆角。",
+      "src": "https://picsum.photos/seed/custom-film/600/400",
+      "config": {
+        "imageStyle": { "filter": "sepia(0.45) contrast(1.1) saturate(1.3)", "transition": "filter 240ms ease" },
+        "containerStyle": { "borderRadius": 16, "overflow": "hidden", "boxShadow": "0 6px 20px rgba(0,0,0,0.18)" }
+      }
+    },
+    {
+      "name": "悬停放大 + 轻微旋转",
+      "description": "平常静态，鼠标悬停时图片放大并旋转 2°，移出自动还原。",
+      "src": "https://picsum.photos/seed/custom-hover/600/400",
+      "config": {
+        "imageStyle": { "transition": "transform 220ms ease" },
+        "hoverImageStyle": { "transform": "scale(1.08) rotate(2deg)" }
+      }
+    },
+    {
+      "name": "叠加到内置插件之上",
+      "description": "与 BorderGlow / Caption 等内置插件叠加：用逃逸舱补一个渐变描边。",
+      "src": "https://picsum.photos/seed/custom-combo/600/400",
+      "config": {
+        "imageClassName": "custom-art-frame",
+        "containerStyle": { "padding": 6, "background": "linear-gradient(135deg,#ff9a9e,#fad0c4)", "borderRadius": 12 }
+      }
+    }
+  ],
+  "features": [
+    "注入任意 CSS filter（模糊 / 灰度 / 复古 / 色相旋转等）",
+    "注入任意 transform（缩放 / 旋转 / 位移）",
+    "为 <img> 与容器分别附加 className 与内联样式",
+    "hoverImageStyle 支持悬停态，移出自动还原",
+    "优先级靠前，可叠加在其它视觉插件之上",
+    "无需为一次性效果新建组件，几行配置即可"
+  ],
+  "useCases": [
+    "内置视觉插件未覆盖的特殊滤镜 / 调色需求",
+    "活动主题需要临时换肤、加描边 / 圆角",
+    "悬停微交互（放大、旋转、投影）",
+    "演示或 A/B 实验时的快速视觉验证",
+    "替代旧版 CustomEffects 展示页的任意效果组合"
+  ],
+  "notes": [
+    "imageStyle / containerStyle 合并进核心渲染的 style，后者优先级更高（叠加而非覆盖）。",
+    "插件会自动保留核心自带的 opacity 渐显：你给 imageStyle.transition 设值时，会追加 opacity 180ms 而非覆盖它。",
+    "hoverImageStyle 通过注入一条纯 CSS `:hover` 规则实现，由浏览器原生处理进入/离开——不触碰 React 受控的内联样式，因此不会出现「移出后图片消失」的旧问题。",
+    "与内置插件叠加时，建议把 CustomEffects 放在 withPlugins 数组靠前位置（其 priority=50 已处理）。",
+    "需要函数式动态样式时，可在业务侧先算出 style 对象再传入，本插件保持配置式以便文档化。"
+  ]
+}

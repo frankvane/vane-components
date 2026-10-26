@@ -1,32 +1,35 @@
 {
   "name": "A11yPlugin",
-  "description": "无障碍支持：装饰性图片、自定义 aria-label、加载状态文本覆盖层。",
+  "description": "无障碍支持：将装饰性图片设为 aria-hidden、自定义 aria-label、注入 role=img 与 aria-busy，并通过 aria-live 区域播报加载状态，提升读屏可用性。",
   "since": "2.0.0",
-  "tags": [
-    "a11y",
-    "可访问性"
-  ],
+  "tags": ["a11y", "可访问性", "SEO"],
   "config": [
-    {
-      "name": "enabled",
-      "type": "boolean",
-      "description": ""
-    },
-    {
-      "name": "decorative",
-      "type": "boolean",
-      "description": "标记为装饰性图片（将 aria-hidden 设为 true，清空 alt）"
-    },
-    {
-      "name": "ariaLabel",
-      "type": "string | ((ctx: LazyImageContext) => string)",
-      "description": "自定义 aria-label（若需要与 alt 区分开）"
-    },
-    {
-      "name": "statusText",
-      "type": "{ loading?: string; loaded?: string; error?: string; }",
-      "description": "状态文本（加载中/加载成功/加载失败）"
-    }
+    { "name": "enabled", "type": "boolean", "default": "true", "description": "是否启用无障碍增强" },
+    { "name": "decorative", "type": "boolean", "default": "false", "description": "标记为装饰性图片（aria-hidden=true 并清空 alt）" },
+    { "name": "ariaLabel", "type": "string | ((ctx) => string)", "default": "undefined", "description": "自定义 aria-label（函数型，参见用法示例）" },
+    { "name": "statusText", "type": "{ loading?; loaded?; error? }", "default": "undefined", "description": "视觉隐藏的状态播报文本" }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createA11yPlugin()]);"
+  "example": "const A11yImage = withPlugins(LazyLoadImageCore, [\n  createA11yPlugin({\n    ariaLabel: (ctx) => `商品主图 ${ctx.src}`,\n    statusText: { loading: \"加载中…\", loaded: \"已加载\", error: \"加载失败\" },\n  }),\n]);\n\n// 装饰性图片也可直接跳过读屏\n<A11yImage src=\"https://picsum.photos/id/1015/500/300\" alt=\"\" />;",
+  "examples": [
+    { "name": "装饰性图片", "description": "decorative=true 时清空 alt 并设 aria-hidden，读屏跳过。", "src": "https://picsum.photos/id/1015/500/300", "config": { "decorative": true } },
+    { "name": "自定义 aria-label（字符串）", "description": "为图片设置区别于 alt 的 aria-label。", "src": "https://picsum.photos/id/1021/500/300", "config": { "ariaLabel": "商品主图" } },
+    { "name": "加载状态播报", "description": "视觉隐藏区域以 aria-live 播报加载中/完成/失败。", "src": "https://picsum.photos/id/1026/500/300", "config": { "statusText": { "loading": "加载中…", "loaded": "已加载", "error": "加载失败" } } }
+  ],
+  "features": [
+    "装饰性图片 aria-hidden",
+    "自定义 aria-label（字符串或函数）",
+    "role=img 明确语义",
+    "aria-busy 随加载态切换",
+    "aria-live 状态播报（视觉隐藏）",
+    "可关闭"
+  ],
+  "useCases": [
+    "无障碍合规（WCAG）",
+    "读屏器适配",
+    "装饰性背景图",
+    "加载状态可读"
+  ],
+  "notes": [
+    "ariaLabel 支持函数型，但静态预览仅支持字符串；函数用法见用法示例。"
+  ]
 }

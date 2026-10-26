@@ -1,37 +1,35 @@
 {
   "name": "PerformanceMonitorPlugin",
-  "description": "性能监控：统计加载耗时并可选覆盖层实时展示。",
+  "description": "性能监控：统计单张图片的加载耗时，可选在四角叠加实时展示耗时面板，并在加载完成时通过 onReport 上报。",
   "since": "2.0.0",
-  "tags": [
-    "monitor",
-    "监控"
-  ],
+  "tags": ["other", "监控", "性能"],
   "config": [
-    {
-      "name": "showOverlay",
-      "type": "boolean",
-      "description": ""
-    },
-    {
-      "name": "overlayPosition",
-      "type": "\"top-left\" | \"top-right\" | \"bottom-left\" | \"bottom-right\"",
-      "description": ""
-    },
-    {
-      "name": "color",
-      "type": "string",
-      "description": ""
-    },
-    {
-      "name": "background",
-      "type": "string",
-      "description": ""
-    },
-    {
-      "name": "onReport",
-      "type": "(data: { src: string; durationMs: number; network?: LazyImageContext[...",
-      "description": ""
-    }
+    { "name": "showOverlay", "type": "boolean", "default": "true", "description": "是否在图片上叠加耗时面板" },
+    { "name": "overlayPosition", "type": "\"top-left\" | \"top-right\" | \"bottom-left\" | \"bottom-right\"", "default": "\"top-right\"", "description": "面板位置（四角）" },
+    { "name": "color", "type": "string", "default": "\"#fff\"", "description": "文字色" },
+    { "name": "background", "type": "string", "default": "\"rgba(0,0,0,0.45)\"", "description": "面板背景" },
+    { "name": "onReport", "type": "(data: { src; durationMs; network?; device? }) => void", "default": "undefined", "description": "加载完成上报回调" }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createPerformanceMonitorPlugin()]);"
+  "example": "const PerfImage = withPlugins(LazyLoadImageCore, [\n  createPerformanceMonitorPlugin({\n    overlayPosition: \"bottom-left\",\n    onReport: (data) => console.log(\"perf\", data),\n  }),\n]);\n\n<PerfImage src=\"https://picsum.photos/id/1015/500/300\" alt=\"性能监控示例\" />;",
+  "examples": [
+    { "name": "默认耗时面板", "description": "右上角显示 Loaded in N ms。", "src": "https://picsum.photos/id/1015/500/300", "config": { "showOverlay": true } },
+    { "name": "左下角面板", "description": "面板移动到左下角。", "src": "https://picsum.photos/id/1021/500/300", "config": { "overlayPosition": "bottom-left" } },
+    { "name": "自定义配色", "description": "蓝色背景 + 白字，突出展示。", "src": "https://picsum.photos/id/1026/500/300", "config": { "background": "rgba(33,118,255,0.6)", "color": "#fff" } }
+  ],
+  "features": [
+    "加载耗时统计",
+    "四角面板可选",
+    "自定义配色",
+    "onReport 上报",
+    "防抖去重"
+  ],
+  "useCases": [
+    "LCP/加载耗时测量",
+    "性能优化验证",
+    "监控告警",
+    "A/B 对比"
+  ],
+  "notes": [
+    "onReport 为函数型配置，静态预览仅展示面板；函数用法见用法示例。"
+  ]
 }

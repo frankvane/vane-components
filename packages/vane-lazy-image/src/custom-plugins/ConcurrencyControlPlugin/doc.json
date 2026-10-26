@@ -38,5 +38,38 @@
       "description": "调试输出"
     }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createConcurrencyControlPlugin()]);"
+  "example": "const LazyImage = withPlugins(LazyLoadImageCore, [\n  createConcurrencyControlPlugin({\n    maxConcurrent: 6,\n    scope: \"perHost\", // 按域名分片，避免单域阻塞\n    adaptive: true,    // 弱网自动降低并发\n  }),\n]);",
+  "examples": [
+    {
+      "name": "全局并发限制",
+      "description": "限制整页同时加载不超过 4 张，避免带宽被瞬间打满。",
+      "config": {
+        "maxConcurrent": 4,
+        "scope": "global"
+      }
+    },
+    {
+      "name": "按域名分片",
+      "description": "每个域名独立并发配额，混合多 CDN 时不互相拖累。",
+      "config": {
+        "maxConcurrent": 6,
+        "scope": "perHost",
+        "adaptive": true
+      }
+    }
+  ],
+  "features": [
+    "全局或按域名（perHost）分片并发门控",
+    "弱网（saveData / 2g / 3g）下自适应降低并发",
+    "acquireTimeoutMs 后不阻塞加载，避免饥饿"
+  ],
+  "useCases": [
+    "瀑布流海量图片，避免一次性发起上百请求",
+    "弱网环境限制并发以保住首屏体验"
+  ],
+  "notes": [
+    "acquireTimeoutMs 保证极端情况下不会永久挂起。",
+    "与 ScrollIdle 搭配可进一步错峰、降低峰值并发。",
+    "并发许可在加载完成后释放，供队列中下一张使用。"
+  ]
 }

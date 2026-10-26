@@ -1,42 +1,78 @@
 {
   "name": "ErrorTrackingPlugin",
-  "description": "错误追踪：上报加载失败详情（端点或自定义函数），可显示徽标。",
+  "description": "错误追踪：在图片加载失败时上报失败详情（地址 / 错误信息 / 网络 / 设备 / 次数）到自定义函数或上报端点，并可显示错误计数角标，用于生产环境图片错误监控。",
   "since": "2.0.0",
-  "tags": [
-    "error",
-    "错误处理"
-  ],
+  "tags": ["error", "错误处理", "监控", "可观测"],
   "config": [
     {
       "name": "reportEndpoint",
       "type": "string",
-      "description": ""
+      "description": "错误上报端点（POST JSON，带 5s 超时与 keepalive）"
     },
     {
       "name": "report",
       "type": "(payload: any) => void",
-      "description": ""
+      "description": "自定义上报函数（与端点二选一或并存）"
     },
     {
       "name": "showBadge",
       "type": "boolean",
-      "description": ""
+      "default": "false",
+      "description": "是否显示错误计数角标（需显式开启）"
     },
     {
       "name": "badgeText",
       "type": "string",
-      "description": ""
+      "default": "\"Error\"",
+      "description": "角标前缀文字"
     },
     {
       "name": "badgeColor",
       "type": "string",
-      "description": ""
+      "default": "\"#fff\"",
+      "description": "角标文字色"
     },
     {
       "name": "badgeBg",
       "type": "string",
-      "description": ""
+      "default": "\"rgba(220,53,69,0.8)\"",
+      "description": "角标背景色"
     }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createErrorTrackingPlugin()]);"
+  "example": "import { LazyLoadImageCore, createErrorTrackingPlugin, withPlugins } from \"vane-lazy-image\";\n\nconst LazyImage = withPlugins(LazyLoadImageCore, [\n  createErrorTrackingPlugin({\n    report: (payload) => {\n      console.warn(\"图片加载失败\", payload);\n    },\n    showBadge: true,\n  }),\n]);\n\n// 故意触发失败以观察上报与角标\n<LazyImage src=\"https://invalid.example.com/x.png\" alt=\"错误追踪示例\" />",
+  "examples": [
+    {
+      "name": "错误计数角标",
+      "description": "开启角标，失败后右上角显示累计错误次数。",
+      "src": "https://invalid.example.com/error-tracking.png",
+      "config": {
+        "showBadge": true,
+        "badgeText": "Err"
+      }
+    },
+    {
+      "name": "端点上报",
+      "description": "失败后 POST 上报到采集端点（演示端点可能 404，代码已静默忽略）。",
+      "src": "https://invalid.example.com/error-tracking-2.png",
+      "config": {
+        "reportEndpoint": "/api/img-errors",
+        "showBadge": true
+      }
+    }
+  ],
+  "features": [
+    "onLoadError 采集 src / message / network / device / 累计次数",
+    "内置 1 秒防抖，避免高频重复上报",
+    "report 自定义函数 或 reportEndpoint 端点二选一 / 并存",
+    "可选角标显示错误次数"
+  ],
+  "useCases": [
+    "生产环境图片错误率监控与告警",
+    "定位经常性失败的图片源 / CDN"
+  ],
+  "notes": [
+    "showBadge 默认 false，需显式开启才显示角标",
+    "端点上报带 5s 超时与 keepalive，页面卸载也能送达",
+    "report 为函数型，无法进入静态预览配置，仅顶层示例展示"
+  ]
 }

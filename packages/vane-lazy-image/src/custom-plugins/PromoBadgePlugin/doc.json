@@ -1,0 +1,90 @@
+{
+  "name": "PromoBadgePlugin",
+  "description": "促销角标：在商品图片上显示 NEW/HOT/SALE 等促销标签，支持脉冲动画和丝带样式，可叠加多个。",
+  "since": "2.0.0",
+  "tags": [
+    "ecommerce",
+    "电商核心"
+  ],
+  "config": [
+    {
+      "name": "type",
+      "type": "\"new\" | \"hot\" | \"sale\" | \"limited\" | \"bestseller\" | \"custom\"",
+      "default": "\"hot\"",
+      "description": "预设标签类型"
+    },
+    {
+      "name": "text",
+      "type": "string",
+      "default": "undefined",
+      "description": "自定义文案（type=custom 时生效）"
+    },
+    {
+      "name": "position",
+      "type": "\"top-left\" | \"top-right\" | \"bottom-left\" | \"bottom-right\"",
+      "default": "\"top-left\"",
+      "description": "角标位置（四角）"
+    },
+    {
+      "name": "backgroundColor",
+      "type": "string",
+      "default": "undefined",
+      "description": "背景色"
+    },
+    {
+      "name": "color",
+      "type": "string",
+      "default": "undefined",
+      "description": "文字色"
+    },
+    {
+      "name": "animate",
+      "type": "boolean",
+      "default": "true",
+      "description": "淡入动画"
+    },
+    {
+      "name": "pulse",
+      "type": "boolean",
+      "default": "false",
+      "description": "脉冲呼吸动画"
+    },
+    {
+      "name": "ribbon",
+      "type": "boolean",
+      "default": "false",
+      "description": "丝带样式（倾斜 45°）"
+    },
+    {
+      "name": "style",
+      "type": "React.CSSProperties",
+      "default": "{}",
+      "description": "自定义叠加样式"
+    }
+  ],
+  "example": "// 1. 单个促销角标\nconst SaleImage = withPlugins(LazyLoadImageCore, [\n  createPromoBadgePlugin({ type: \"sale\", position: \"top-right\", ribbon: true }),\n]);\n\n// 2. 多个角标叠加在同一张图上\nconst HotSaleImage = withPlugins(LazyLoadImageCore, [\n  createPromoBadgePlugin({ type: \"new\", position: \"top-left\" }),\n  createPromoBadgePlugin({ type: \"sale\", position: \"top-right\", ribbon: true }),\n  createPromoBadgePlugin({ type: \"hot\", position: \"bottom-right\", pulse: true }),\n]);\n\n// 3. 在组件中使用\n<HotSaleImage src=\"https://picsum.photos/id/220/500/400\" alt=\"促销商品\" />;",
+  "examples": [
+    { "name": "NEW 新品标签", "description": "左上角绿色 NEW 角标。", "src": "https://picsum.photos/id/168/300/300", "config": { "type": "new", "position": "top-left" } },
+    { "name": "HOT 热门标签（脉冲动画）", "description": "右上角红色 HOT，带脉冲呼吸效果。", "src": "https://picsum.photos/id/175/300/300", "config": { "type": "hot", "position": "top-right", "pulse": true } },
+    { "name": "SALE 促销丝带", "description": "右上角红色丝带（倾斜 45°）。", "src": "https://picsum.photos/id/188/300/300", "config": { "type": "sale", "position": "top-right", "ribbon": true } },
+    { "name": "LIMITED 限量标签", "description": "右上角紫色 LIMITED，带脉冲。", "src": "https://picsum.photos/id/196/300/300", "config": { "type": "limited", "position": "top-right", "pulse": true } },
+    { "name": "BESTSELLER 畅销标签", "description": "右下角橙色 BEST 角标。", "src": "https://picsum.photos/id/203/300/300", "config": { "type": "bestseller", "position": "bottom-right" } },
+    { "name": "自定义标签（VIP 专享）", "description": "自定义文案、背景色与文字色。", "src": "https://picsum.photos/id/211/300/300", "config": { "type": "custom", "text": "VIP专享", "position": "top-left", "backgroundColor": "#FFD700", "color": "#000" } },
+    { "name": "多个标签组合", "description": "一张图同时叠加 NEW + SALE（丝带）+ HOT（脉冲），不同位置不同样式。", "src": "https://picsum.photos/id/220/500/400", "configs": [ { "type": "new", "position": "top-left" }, { "type": "sale", "position": "top-right", "ribbon": true }, { "type": "hot", "position": "bottom-right", "pulse": true } ] }
+  ],
+  "features": [
+    "6 种预设类型：NEW / HOT / SALE / LIMITED / BESTSELLER / custom",
+    "支持自定义文字、背景色、文字颜色",
+    "脉冲动画效果（吸引注意力）",
+    "丝带样式（倾斜 45°）",
+    "4 个位置可选（四角）",
+    "支持同一图片显示多个标签"
+  ],
+  "useCases": [
+    "新品上市标记",
+    "热销商品突出",
+    "促销活动标识",
+    "限时限量提醒",
+    "VIP / 会员专享"
+  ]
+}

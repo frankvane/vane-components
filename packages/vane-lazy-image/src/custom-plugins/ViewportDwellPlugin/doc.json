@@ -1,36 +1,34 @@
 {
   "name": "ViewportDwellPlugin",
-  "description": "停留门槛：在视口内停留不足 dwellMs 则跳过加载，避免快速滚动浪费。",
+  "description": "视口驻留门控（v2 真实实现）：在真正加载前要求图片在视口内持续停留 dwellMs，快速划过（停留不足且离开）则中止加载；超过 maxWaitMs 后放行以防饥饿。",
   "since": "2.0.0",
-  "tags": [
-    "viewport",
-    "视口"
-  ],
+  "tags": ["viewport", "视口与交互", "驻留", "省流量"],
   "config": [
-    {
-      "name": "dwellMs",
-      "type": "number",
-      "default": "180",
-      "description": "需要在视口中持续停留的时间（毫秒），否则视为跳过不加载"
-    },
-    {
-      "name": "maxWaitMs",
-      "type": "number",
-      "default": "1000",
-      "description": "最长等待时间（毫秒），避免长时间滚动导致饥饿；到时仍可继续加载"
-    },
-    {
-      "name": "onlyWhenIntersecting",
-      "type": "boolean",
-      "default": "true",
-      "description": "仅在进入视口时生效（true），否则所有加载都会应用驻留判断"
-    },
-    {
-      "name": "debug",
-      "type": "boolean",
-      "default": "false",
-      "description": "调试输出"
-    }
+    { "name": "dwellMs", "type": "number", "default": "250", "description": "需要在视口中持续停留的时间（毫秒），不足视为「划过」不加载" },
+    { "name": "maxWaitMs", "type": "number", "default": "1500", "description": "最长等待时间（毫秒），超时仍允许加载以防饥饿" },
+    { "name": "onlyWhenIntersecting", "type": "boolean", "default": "true", "description": "仅在进入视口时应用驻留判断；离开且未达上限则中止" },
+    { "name": "debug", "type": "boolean", "default": "false", "description": "是否输出调试日志" }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createViewportDwellPlugin()]);"
+  "example": "const DwellImage = withPlugins(LazyLoadImageCore, [\n  // 停留不足 250ms 的划过不加载，长留才加载\n  createViewportDwellPlugin({ dwellMs: 250, maxWaitMs: 1500 }),\n]);\n\n<DwellImage src=\"https://picsum.photos/id/1015/500/300\" alt=\"视口驻留示例\" />;",
+  "examples": [
+    { "name": "默认驻留（250ms）", "description": "划过即中止，停留足够才加载，提升命中率。", "src": "https://picsum.photos/id/1015/500/300", "config": { "dwellMs": 250 } },
+    { "name": "延长驻留时间", "description": "400ms 驻留门槛，适合快速浏览场景。", "src": "https://picsum.photos/id/1021/500/300", "config": { "dwellMs": 400 } },
+    { "name": "开启调试日志", "description": "控制台输出驻留门控过程，便于调参。", "src": "https://picsum.photos/id/1026/500/300", "config": { "dwellMs": 250, "debug": true } }
+  ],
+  "features": [
+    "门控钩子真正延迟/中止加载（非空头）",
+    "驻留时间不足且离开 → 中止加载",
+    "maxWaitMs 饥饿保护（超时放行）",
+    "仅在进入视口时生效",
+    "调试日志输出"
+  ],
+  "useCases": [
+    "无限滚动信息流",
+    "防止快速滑动误加载",
+    "节省带宽与请求数",
+    "提升有效加载命中率"
+  ],
+  "notes": [
+    "v2 起通过引擎 onBeforeLoad 门控真实生效（旧版写在被引擎丢弃的钩子上，实际未拦截）；与 ViewportAware 的 rootMargin 搭配可进一步调优触发时机。"
+  ]
 }

@@ -23,5 +23,36 @@
       "description": ""
     }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createNetworkAnalyticsPlugin()]);"
+  "example": "const LazyImage = withPlugins(LazyLoadImageCore, [\n  createNetworkAnalyticsPlugin({\n    trackCDN: true,\n    report: (event, data) => {\n      // event: \"load\" | \"error\" | \"cache-hit\" ...\n      // data:  { src, durationMs, host, cached }\n      analytics.track(event, data);\n    },\n  }),\n]);",
+  "examples": [
+    {
+      "name": "本地调试上报",
+      "description": "未配置端点时写入 console，便于本地观察耗时与命中情况。",
+      "config": {
+        "trackCDN": true
+      }
+    },
+    {
+      "name": "上报到监控端点",
+      "description": "把事件 POST 到监控服务（keepalive，不阻塞页面卸载）。",
+      "config": {
+        "reportEndpoint": "https://api.example.com/lli",
+        "trackCDN": true
+      }
+    }
+  ],
+  "features": [
+    "上报加载耗时、成功率、CDN 分布",
+    "内置事件去重 + 100ms 防抖，避免刷屏",
+    "优先使用自定义 report 函数，其次 reportEndpoint"
+  ],
+  "useCases": [
+    "线上图片加载性能监控",
+    "定位慢 CDN / 高失败率域名"
+  ],
+  "notes": [
+    "不提供 reportEndpoint 也不提供 report 时，默认 console.debug 输出。",
+    "上报事件含 src / host / durationMs / cached 等字段。",
+    "report 为函数，需在“用法示例”中以代码传入；静态预览使用纯配置（无端点时仅本地打点）。"
+  ]
 }

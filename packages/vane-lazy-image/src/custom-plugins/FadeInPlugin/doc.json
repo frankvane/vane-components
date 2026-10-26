@@ -7,18 +7,38 @@
     "视觉"
   ],
   "config": [
+    { "name": "durationMs", "type": "number", "default": "400", "description": "淡入时长 ms" },
+    { "name": "easing", "type": "string", "default": "ease", "description": "缓动函数（CSS easing）" }
+  ],
+  "example": "// 加载完成后淡入\nconst FadeImage = withPlugins(LazyLoadImageCore, [\n  createFadeInPlugin({ durationMs: 450 }),\n]);\n\n<FadeImage src=\"https://picsum.photos/seed/fadein/600/400\" alt=\"淡入\" />;",
+  "examples": [
     {
-      "name": "durationMs",
-      "type": "number",
-      "default": "400",
-      "description": ""
+      "name": "默认淡入",
+      "description": "450ms 标准 ease 淡入，干净利落。",
+      "src": "https://picsum.photos/seed/fadein-default/600/400",
+      "config": { "durationMs": 450 }
     },
     {
-      "name": "easing",
-      "type": "string",
-      "default": "\"ease\"",
-      "description": ""
+      "name": "慢速缓出",
+      "description": "800ms ease-out，让图片「缓缓浮现」。",
+      "src": "https://picsum.photos/seed/fadein-slow/600/400",
+      "config": { "durationMs": 800, "easing": "ease-out" }
     }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createFadeInPlugin()]);"
+  "features": [
+    "加载成功淡入显示",
+    "时长可调",
+    "缓动函数可定制（ease / ease-out / cubic-bezier 等）",
+    "与 BlurUp 互补"
+  ],
+  "useCases": [
+    "画廊 / 相册图片入场",
+    "内容型站点图片显现",
+    "与滚动进入联动的柔和出现",
+    "任意需要「渐显」的场景"
+  ],
+  "notes": [
+    "easing 接受任意 CSS timing-function 字符串。",
+    "与 Transition 不同，FadeIn 仅处理「淡入」单一维度，更简单。"
+  ]
 }

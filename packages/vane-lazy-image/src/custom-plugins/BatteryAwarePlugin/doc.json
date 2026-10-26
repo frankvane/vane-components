@@ -1,36 +1,33 @@
 {
   "name": "BatteryAwarePlugin",
-  "description": "低电量降级：电量低于阈值时缩小请求宽度并禁用预连接。",
+  "description": "电量感知：当设备电量低于阈值或开启省流模式时，自动将图片请求宽度降级并禁用预连接，兼顾体验与续航/流量。",
   "since": "2.0.0",
-  "tags": [
-    "loading",
-    "加载策略"
-  ],
+  "tags": ["other", "加载策略", "性能", "省流量"],
   "config": [
-    {
-      "name": "enabled",
-      "type": "boolean",
-      "default": "true",
-      "description": ""
-    },
-    {
-      "name": "lowBatteryThreshold",
-      "type": "number",
-      "default": "0.2",
-      "description": "0-1"
-    },
-    {
-      "name": "downgradeWidth",
-      "type": "number",
-      "default": "640",
-      "description": ""
-    },
-    {
-      "name": "disablePreconnect",
-      "type": "boolean",
-      "default": "true",
-      "description": ""
-    }
+    { "name": "enabled", "type": "boolean", "default": "true", "description": "是否启用" },
+    { "name": "lowBatteryThreshold", "type": "number", "default": "0.2", "description": "低电量阈值(0~1)" },
+    { "name": "downgradeWidth", "type": "number", "default": "640", "description": "降级时的请求宽度(px)" },
+    { "name": "disablePreconnect", "type": "boolean", "default": "true", "description": "低电量时是否禁用预连接" }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createBatteryAwarePlugin()]);"
+  "example": "const BatteryImage = withPlugins(LazyLoadImageCore, [\n  createBatteryAwarePlugin({ lowBatteryThreshold: 0.3, downgradeWidth: 480 }),\n]);\n\n<BatteryImage src=\"https://picsum.photos/id/1015/500/300\" alt=\"电量感知示例\" />;",
+  "examples": [
+    { "name": "默认降级", "description": "电量<20% 或省流时降宽至 640 并禁用预连接。", "src": "https://picsum.photos/id/1015/500/300", "config": { "enabled": true } },
+    { "name": "放宽阈值", "description": "电量<30% 才降级，更保守。", "src": "https://picsum.photos/id/1021/500/300", "config": { "lowBatteryThreshold": 0.3 } },
+    { "name": "保留预连接", "description": "disablePreconnect=false，降级时仍允许预连接。", "src": "https://picsum.photos/id/1026/500/300", "config": { "disablePreconnect": false } }
+  ],
+  "features": [
+    "低电量自动降宽",
+    "省流模式联动",
+    "可禁用预连接",
+    "可关闭"
+  ],
+  "useCases": [
+    "移动端续航优化",
+    "流量节省",
+    "弱网/低电场景",
+    "全球低端设备"
+  ],
+  "notes": [
+    "依赖 navigator.getBattery() 与网络 saveData；不支持的环境（如桌面/无该 API）不降级，不影响加载。"
+  ]
 }

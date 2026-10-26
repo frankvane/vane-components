@@ -1,36 +1,34 @@
 {
   "name": "MemoryPressureAbortPlugin",
-  "description": "内存压力降级：设备内存不足或移动端时改请求低清图。",
+  "description": "内存压力降级 + 离开中止（v2 真实实现）：低内存 / 移动端 / 省流时把图片重写为低清版本；离开视口且仍在加载时，调用 context.reset() 真正取消在途元素加载，回收内存。",
   "since": "2.0.0",
-  "tags": [
-    "loading",
-    "加载策略"
-  ],
+  "tags": ["loading", "加载策略", "降质", "中止", "低端设备"],
   "config": [
-    {
-      "name": "enabled",
-      "type": "boolean",
-      "default": "true",
-      "description": ""
-    },
-    {
-      "name": "deviceMemoryThreshold",
-      "type": "number",
-      "default": "4",
-      "description": "设备内存<=该阈值时启用降质（GB）"
-    },
-    {
-      "name": "preferOnMobile",
-      "type": "boolean",
-      "default": "true",
-      "description": "移动端或省流模式时强制启用降质"
-    },
-    {
-      "name": "lowWidth",
-      "type": "number",
-      "default": "640",
-      "description": "重写到低清晰度：针对常见图片域名的宽度参数"
-    }
+    { "name": "enabled", "type": "boolean", "default": "true", "description": "是否启用" },
+    { "name": "deviceMemoryThreshold", "type": "number", "default": "4", "description": "设备内存 ≤ 该阈值(GB)时启用降质" },
+    { "name": "preferOnMobile", "type": "boolean", "default": "true", "description": "移动端或省流模式时强制启用降质" },
+    { "name": "lowWidth", "type": "number", "default": "640", "description": "重写到的低清晰度宽度参数" },
+    { "name": "abortOnLeave", "type": "boolean", "default": "true", "description": "离开视口且仍在加载时，是否中止在途加载（context.reset）" }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createMemoryPressureAbortPlugin()]);"
+  "example": "import { LazyLoadImageCore, createMemoryPressureAbortPlugin, withPlugins } from \"vane-lazy-image\";\n\nconst LazyImage = withPlugins(LazyLoadImageCore, [\n  // 命中压力条件时降质；用户滑走仍在加载的图会被中止\n  createMemoryPressureAbortPlugin({ lowWidth: 480 }),\n]);\n\n<LazyImage src=\"https://picsum.photos/seed/mem/1200/800\" alt=\"内存压力降级示例\" />",
+  "examples": [
+    { "name": "默认降级 + 离开中止", "description": "低内存/移动端/省流命中即低清；离开视口且在加载中的图会被 context.reset 取消。", "src": "https://picsum.photos/seed/mem/1200/800", "config": {} },
+    { "name": "激进降质", "description": "更低宽度 + 移动端强制降质。", "src": "https://picsum.photos/seed/mem-aggressive/1200/800", "config": { "lowWidth": 320, "deviceMemoryThreshold": 8, "preferOnMobile": true } },
+    { "name": "仅降质不中止", "description": "abortOnLeave=false，只做低清重写，不在离开时取消加载。", "src": "https://picsum.photos/seed/mem-noabort/1200/800", "config": { "abortOnLeave": false } }
+  ],
+  "features": [
+    "三条件任一即触发低清重写（onLoad 返回改写 URL）",
+    "unsplash / 360buy 优化 w 参数；通用源附加 ?w&auto=format&fit=crop",
+    "离开视口且在加载 → context.reset() 真正取消元素在途加载",
+    "abortOnLeave 可开关"
+  ],
+  "useCases": [
+    "低端设备防 OOM（降质）",
+    "快速滑动列表回收在途请求（中止）",
+    "弱网 / 省流节省流量"
+  ],
+  "notes": [
+    "中止通过 context.reset() 移除 <img> 元素来取消其下载，是图片元素层面的真实中止；若使用 FetchLoaderPlugin，可在 fetch 层进一步中断。",
+    "降质判定依赖 navigator.deviceMemory 与 deviceInfo.type。"
+  ]
 }

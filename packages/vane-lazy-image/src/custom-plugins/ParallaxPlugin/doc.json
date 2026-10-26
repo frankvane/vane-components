@@ -7,16 +7,38 @@
     "视觉"
   ],
   "config": [
+    { "name": "strength", "type": "number", "default": "0.2", "description": "偏移强度 0..1" },
+    { "name": "axis", "type": "\"y\" | \"x\"", "default": "\"y\"", "description": "偏移轴向" }
+  ],
+  "example": "// 垂直视差：滚动时图片缓慢位移\nconst ParallaxImage = withPlugins(LazyLoadImageCore, [\n  createParallaxPlugin({ strength: 0.2, axis: \"y\" }),\n]);\n\n<ParallaxImage src=\"https://picsum.photos/seed/parallax/600/400\" alt=\"视差\" />;",
+  "examples": [
     {
-      "name": "strength",
-      "type": "number",
-      "description": "0..1，偏移强度（默认 0.2）"
+      "name": "垂直视差",
+      "description": "中等强度 y 轴视差，滚动时图片缓移，营造纵深。",
+      "src": "https://picsum.photos/seed/parallax-y/600/400",
+      "config": { "strength": 0.2, "axis": "y" }
     },
     {
-      "name": "axis",
-      "type": "\"y\" | \"x\"",
-      "description": "轴向"
+      "name": "轻微视差",
+      "description": "低强度视差，含蓄的层次感，不喧宾夺主。",
+      "src": "https://picsum.photos/seed/parallax-light/600/400",
+      "config": { "strength": 0.1, "axis": "y" }
     }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createParallaxPlugin()]);"
+  "features": [
+    "随滚动偏移图片（y / x 轴）",
+    "强度可调（0~1）",
+    "纯 transform 实现，性能友好",
+    "增强页面纵深与动感"
+  ],
+  "useCases": [
+    "落地页 / Hero 区背景",
+    "长图文滚动叙事",
+    "作品集视差画廊",
+    "需要纵深氛围的视觉场景"
+  ],
+  "notes": [
+    "视差依赖页面滚动，demo 小卡片内滚动幅度有限，效果在长页面更明显。",
+    "strength 过大可能导致图片露出边缘，建议配合 overflow:hidden 容器。"
+  ]
 }

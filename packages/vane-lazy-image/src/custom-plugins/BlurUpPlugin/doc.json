@@ -7,24 +7,39 @@
     "视觉"
   ],
   "config": [
+    { "name": "startBlur", "type": "number", "default": "8", "description": "起始模糊半径 px" },
+    { "name": "endBlur", "type": "number", "default": "0", "description": "结束模糊半径 px" },
+    { "name": "durationMs", "type": "number", "default": "400", "description": "过渡时长 ms" }
+  ],
+  "example": "// 模糊渐显：从 8px 模糊过渡到清晰\nconst BlurImage = withPlugins(LazyLoadImageCore, [\n  createBlurUpPlugin({\n    startBlur: 8,\n    endBlur: 0,\n    durationMs: 450,\n  }),\n]);\n\n<BlurImage src=\"https://picsum.photos/seed/blurup/600/400\" alt=\"模糊渐显\" />;",
+  "examples": [
     {
-      "name": "startBlur",
-      "type": "number",
-      "default": "8",
-      "description": "px"
+      "name": "柔和模糊渐显",
+      "description": "8px 起始模糊，450ms 平滑过渡到清晰。",
+      "src": "https://picsum.photos/seed/blurup-soft/600/400",
+      "config": { "startBlur": 8, "endBlur": 0, "durationMs": 450 }
     },
     {
-      "name": "endBlur",
-      "type": "number",
-      "default": "0",
-      "description": "px"
-    },
-    {
-      "name": "durationMs",
-      "type": "number",
-      "default": "400",
-      "description": ""
+      "name": "强模糊长过渡",
+      "description": "16px 大模糊，700ms 慢过渡，营造「水雾散去」感。",
+      "src": "https://picsum.photos/seed/blurup-strong/600/400",
+      "config": { "startBlur": 16, "endBlur": 0, "durationMs": 700 }
     }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createBlurUpPlugin()]);"
+  "features": [
+    "加载期模糊占位，避免白屏突兀",
+    "加载成功平滑过渡到清晰",
+    "起始 / 结束模糊与时长可调",
+    "常与 Skeleton / LQIP 配合"
+  ],
+  "useCases": [
+    "图片画廊 / 相册",
+    "首屏大图加载",
+    "内容型站点图片过渡",
+    "与骨架屏互补的视觉占位"
+  ],
+  "notes": [
+    "与 Skeleton 叠加时建议 blur 图层级略高于骨架，过渡更自然。",
+    "durationMs 过大会让「清晰」显得迟缓，一般 300~500ms 为宜。"
+  ]
 }

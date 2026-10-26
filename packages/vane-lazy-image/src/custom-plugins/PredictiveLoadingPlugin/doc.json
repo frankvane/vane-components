@@ -1,41 +1,34 @@
 {
   "name": "PredictiveLoadingPlugin",
-  "description": "预测性预加载：按启发式或自定义模型预加载后续图片。",
+  "description": "预测性预加载（v2 真实实现）：未提供 predict 时，内置启发式按 URL 末尾数字段递增/递减派生「下一张」并注入 <link rel=\"preload\"> 预取；也可传入 predict 自定义预测目标。",
   "since": "2.0.0",
-  "tags": [
-    "loading",
-    "加载策略"
-  ],
+  "tags": ["loading", "加载策略", "预取"],
   "config": [
-    {
-      "name": "model",
-      "type": "\"heuristic\" | \"ml\"",
-      "default": "\"heuristic\"",
-      "description": ""
-    },
-    {
-      "name": "predict",
-      "type": "(context: LazyImageContext) => string[] | Promise<string[]>",
-      "description": "返回需要预加载的图片链接列表"
-    },
-    {
-      "name": "maxPreload",
-      "type": "number",
-      "default": "5",
-      "description": ""
-    },
-    {
-      "name": "as",
-      "type": "\"image\" | \"fetch\"",
-      "default": "\"image\"",
-      "description": ""
-    },
-    {
-      "name": "crossOrigin",
-      "type": "\"anonymous\" | \"use-credentials\" | null",
-      "default": "\"anonymous\"",
-      "description": ""
-    }
+    { "name": "model", "type": "\"heuristic\" | \"ml\"", "default": "\"heuristic\"", "description": "预测模型；ml 当前同样走启发式（真正模型由 predict 提供）" },
+    { "name": "strategy", "type": "\"increment\" | \"decrement\"", "default": "\"increment\"", "description": "内置启发式：派生方向（递增/递减 URL 末尾数字段）" },
+    { "name": "predict", "type": "(context) => string[] | Promise<string[]>", "default": "未设置（用内置启发式）", "description": "自定义预测：返回需要预加载的图片链接列表，优先级高于内置启发式" },
+    { "name": "maxPreload", "type": "number", "default": "3", "description": "单次最多预取数量" },
+    { "name": "as", "type": "\"image\" | \"fetch\"", "default": "\"image\"", "description": "preload 资源类型" },
+    { "name": "crossOrigin", "type": "\"anonymous\" | \"use-credentials\" | null", "default": "\"anonymous\"", "description": "跨域策略" }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createPredictiveLoadingPlugin()]);"
+  "example": "const LazyImage = withPlugins(LazyLoadImageCore, [\n  // 无 predict：内置启发式按 URL 末尾数字递增预取下 3 张\n  createPredictiveLoadingPlugin({ model: \"heuristic\", strategy: \"increment\", maxPreload: 3 }),\n]);\n\n// 例：src=.../id/1015/ 会预取 .../id/1016/、1017/、1018/\n<LazyImage src=\"https://picsum.photos/id/1015/500/300\" alt=\"预测预加载示例\" />;",
+  "examples": [
+    { "name": "内置启发式递增", "description": "按 URL 末尾数字递增派生下 3 张并预取（如相册下一页）。", "src": "https://picsum.photos/id/1015/500/300", "config": { "model": "heuristic", "strategy": "increment", "maxPreload": 3 } },
+    { "name": "内置启发式递减", "description": "递减派生上一张方向预取。", "src": "https://picsum.photos/id/1020/500/300", "config": { "strategy": "decrement", "maxPreload": 3 } },
+    { "name": "自定义预测", "description": "用业务上下文决定预加载目标，限制为 3 张。", "src": "https://picsum.photos/id/1018/500/300", "config": { "maxPreload": 3 } }
+  ],
+  "features": [
+    "内置启发式真实派生「下一张」并注入 preload（非空头）",
+    "predict 自定义预测优先级更高",
+    "strategy 递增/递减可选",
+    "maxPreload 限制数量，相同 href 不重复注入"
+  ],
+  "useCases": [
+    "相册 / 轮播：预加载下一张，切换无白屏",
+    "详情页：预加载相关推荐图"
+  ],
+  "notes": [
+    "仅注入 preload 提示，实际加载仍由浏览器调度；preload 在 Network 面板可见（见 HoverPrefetch 同类展示）。",
+    "URL 中无数字段时启发式无候选，可改用 predict 显式给出。"
+  ]
 }

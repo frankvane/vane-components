@@ -1,0 +1,75 @@
+{
+  "name": "MorphPlugin",
+  "description": "形变过渡效果：圆角/缩放/旋转/倾斜/弹性/液态等多种形变动画，纯 CSS transforms，支持加载触发、悬停触发与持续动画。",
+  "since": "2.0.0",
+  "tags": ["interaction", "视觉效果与交互", "visual"],
+  "config": [
+    { "name": "type", "type": "\"circle-to-square\" | \"square-to-circle\" | \"rounded-corners\" | \"scale-morph\" | \"rotate-morph\" | \"skew-morph\" | \"elastic\" | \"liquid\" | \"custom\"", "default": "\"elastic\"", "description": "形变类型" },
+    { "name": "duration", "type": "number", "default": "800", "description": "持续时间（毫秒）" },
+    { "name": "delay", "type": "number", "default": "0", "description": "延迟（毫秒）" },
+    { "name": "easing", "type": "string", "default": "\"cubic-bezier(0.68, -0.55, 0.265, 1.55)\"", "description": "缓动函数" },
+    { "name": "triggerOnHover", "type": "boolean", "default": "false", "description": "是否悬停触发" },
+    { "name": "continuous", "type": "boolean", "default": "false", "description": "是否持续动画" },
+    { "name": "fromBorderRadius", "type": "string", "default": "\"50%\"", "description": "rounded-corners 起始圆角" },
+    { "name": "toBorderRadius", "type": "string", "default": "\"0%\"", "description": "rounded-corners 结束圆角" },
+    { "name": "fromScale", "type": "number", "default": "1", "description": "scale-morph 起始缩放" },
+    { "name": "toScale", "type": "number", "default": "1", "description": "scale-morph 结束缩放" },
+    { "name": "fromRotate", "type": "number", "default": "0", "description": "rotate-morph 起始角度" },
+    { "name": "toRotate", "type": "number", "default": "0", "description": "rotate-morph 结束角度" },
+    { "name": "fromSkew", "type": "number", "default": "0", "description": "skew-morph 起始倾斜" },
+    { "name": "toSkew", "type": "number", "default": "0", "description": "skew-morph 结束倾斜" }
+  ],
+  "example": "// 1. 弹性形变\nconst MorphImage = withPlugins(LazyLoadImageCore, [\n  createMorphPlugin({ type: \"elastic\", duration: 1000 }),\n]);\n\n// 2. 在头像 / 卡片中使用\n<MorphImage\n  src=\"https://picsum.photos/id/1080/400/300\"\n  alt=\"头像\"\n  style={{ width: 160, height: 160, borderRadius: 80 }}\n/>;\n\n// 3. 圆角过渡（加载触发）\ncreateMorphPlugin({\n  type: \"rounded-corners\",\n  fromBorderRadius: \"50%\",\n  toBorderRadius: \"12%\",\n});",
+  "examples": [
+    {
+      "name": "elastic 弹性形变",
+      "description": "加载完成后以弹性缓动“弹”入，适合头像与卡片。",
+      "src": "https://picsum.photos/id/1080/400/300",
+      "config": { "type": "elastic", "duration": 1000, "easing": "cubic-bezier(0.68, -0.55, 0.265, 1.55)" }
+    },
+    {
+      "name": "rounded-corners 圆角过渡",
+      "description": "从圆形过渡为圆角矩形，强调形态变化。",
+      "src": "https://picsum.photos/id/1084/400/300",
+      "config": { "type": "rounded-corners", "fromBorderRadius": "50%", "toBorderRadius": "12%", "duration": 900 }
+    },
+    {
+      "name": "scale-morph 缩放形变",
+      "description": "从 0.85 倍放大到原尺寸，配合淡入更自然。",
+      "src": "https://picsum.photos/id/110/400/300",
+      "config": { "type": "scale-morph", "fromScale": 0.85, "toScale": 1, "duration": 800 }
+    },
+    {
+      "name": "rotate-morph 旋转形变",
+      "description": "带角度旋转的进入，动感十足。",
+      "src": "https://picsum.photos/id/111/400/300",
+      "config": { "type": "rotate-morph", "fromRotate": -12, "toRotate": 0, "duration": 900 }
+    },
+    {
+      "name": "liquid 液态（持续）",
+      "description": "持续液态流动效果，适合做背景或装饰图。",
+      "src": "https://picsum.photos/id/119/400/300",
+      "config": { "type": "liquid", "continuous": true, "duration": 2000 }
+    }
+  ],
+  "features": [
+    "9 种形变类型（圆角 / 缩放 / 旋转 / 倾斜 / 弹性 / 液态等）",
+    "三种触发：加载触发 / 悬停触发 / 持续动画",
+    "圆角、缩放、旋转、倾斜均参数化起止值",
+    "弹性缓动可定制",
+    "纯 CSS transforms，性能好",
+    "无运行时依赖"
+  ],
+  "useCases": [
+    "头像形变入场",
+    "按钮 / 卡片交互反馈",
+    "Logo 动画",
+    "加载态过渡",
+    "图片墙动态呈现",
+    "装饰性背景图"
+  ],
+  "notes": [
+    "continuous: true 会持续播放；配合 triggerOnHover: true 可在鼠标悬停时播放单次，更省资源。",
+    "悬停触发的场景需在图片上移动 / 悬停鼠标才能看到形变，静态截图仅展示初始态。"
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "name": "ColorSwatchPlugin",
+  "description": "颜色选择器：自动提取商品图片主要颜色，支持交互选择、颜色代码显示与悬停放大。",
+  "since": "2.0.0",
+  "tags": [
+    "ecommerce",
+    "电商核心"
+  ],
+  "config": [
+    { "name": "maxColors", "type": "number", "default": "5", "description": "提取颜色数量上限" },
+    { "name": "showPalette", "type": "boolean", "default": "true", "description": "是否显示色板" },
+    { "name": "position", "type": "\"bottom\" | \"overlay\" | \"bottom-center\"", "default": "\"bottom\"", "description": "色板位置" },
+    { "name": "swatchSize", "type": "number", "default": "32", "description": "色块尺寸（px）" },
+    { "name": "interactive", "type": "boolean", "default": "true", "description": "是否可点击选择" },
+    { "name": "showColorCode", "type": "boolean", "default": "false", "description": "是否显示 HEX 代码" },
+    { "name": "gap", "type": "number", "default": "8", "description": "色块间距（px）" },
+    { "name": "onColorSelect", "type": "(color) => void", "default": "undefined", "description": "颜色选择回调" },
+    { "name": "style", "type": "React.CSSProperties", "default": "{}", "description": "自定义叠加样式" }
+  ],
+  "example": "// 1. 可交互色板（点击选择颜色）\nconst SwatchImage = withPlugins(LazyLoadImageCore, [\n  createColorSwatchPlugin({ maxColors: 6, onColorSelect: (c) => console.log(c) }),\n]);\n\n// 2. 在色块下方显示 HEX 代码\ncreateColorSwatchPlugin({\n  maxColors: 5,\n  position: \"bottom-center\",\n  showColorCode: true,\n  gap: 12,\n});\n\n// 3. 在组件中使用\n<SwatchImage src=\"https://picsum.photos/id/100/500/400\" alt=\"服装图\" />;",
+  "examples": [
+    { "name": "底部色板（可交互）", "description": "点击色块可选择颜色，悬停放大。", "src": "https://picsum.photos/id/100/500/400", "config": { "maxColors": 6, "showPalette": true, "position": "bottom", "interactive": true, "swatchSize": 36 } },
+    { "name": "居中叠加", "description": "色板居中浮于图片之上。", "src": "https://picsum.photos/id/106/500/400", "config": { "maxColors": 5, "showPalette": true, "position": "overlay", "interactive": true, "swatchSize": 40, "gap": 10 } },
+    { "name": "显示颜色代码", "description": "每个色块下方显示 HEX 代码。", "src": "https://picsum.photos/id/116/500/400", "config": { "maxColors": 5, "showPalette": true, "position": "bottom-center", "interactive": true, "swatchSize": 32, "showColorCode": true, "gap": 12 } },
+    { "name": "多颜色小色块", "description": "更多颜色、更小色块、更小间距。", "src": "https://picsum.photos/id/129/500/400", "config": { "maxColors": 8, "showPalette": true, "position": "bottom", "interactive": true, "swatchSize": 24, "gap": 6 } }
+  ],
+  "notes": [
+    "跨域提示：本示例使用的 picsum.photos 图片没有 CORS 头，无法提取真实颜色，当前显示的是默认演示色。实际使用中请确保图片服务器配置了正确的 CORS 头，或使用同域图片，插件才能正确提取图片的真实颜色。"
+  ],
+  "features": [
+    "自动提取图片主要颜色",
+    "智能过滤黑白和透明色",
+    "可配置提取颜色数量",
+    "3 种显示位置（底部 / 居中 / 底部居中）",
+    "交互式颜色选择",
+    "显示 HEX 颜色代码",
+    "悬停放大效果",
+    "选中状态标识"
+  ],
+  "useCases": [
+    "服装多颜色选择",
+    "艺术品 / 设计作品配色",
+    "家具 / 装饰品颜色筛选",
+    "鞋包配色选择",
+    "礼品个性化定制"
+  ]
+}

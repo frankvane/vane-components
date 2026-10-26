@@ -1,24 +1,32 @@
 {
   "name": "CropPlugin",
-  "description": "焦点裁剪：通过 objectPosition 将裁剪焦点设在指定相对坐标。",
+  "description": "焦点裁剪：通过 object-fit: cover 与 object-position 将裁剪焦点设在指定相对坐标，统一多图主体构图。",
   "since": "2.0.0",
-  "tags": [
-    "visual",
-    "视觉"
-  ],
+  "tags": ["other", "视觉", "裁剪"],
   "config": [
-    {
-      "name": "enabled",
-      "type": "boolean",
-      "default": "true",
-      "description": ""
-    },
-    {
-      "name": "focusPoint",
-      "type": "{ x: number; y: number }",
-      "default": "{ x: 0.5, y: 0.5 }",
-      "description": "0~1 相对坐标"
-    }
+    { "name": "enabled", "type": "boolean", "default": "true", "description": "是否启用裁剪" },
+    { "name": "focusPoint", "type": "{ x: number; y: number }", "default": "{ x: 0.5, y: 0.5 }", "description": "裁剪焦点(0~1 相对坐标)" }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createCropPlugin()]);"
+  "example": "const CropImage = withPlugins(LazyLoadImageCore, [\n  createCropPlugin({ focusPoint: { x: 0.3, y: 0.4 } }),\n]);\n\n<CropImage src=\"https://picsum.photos/id/1015/500/300\" alt=\"焦点裁剪示例\" />;",
+  "examples": [
+    { "name": "居中焦点（默认）", "description": "x=0.5,y=0.5，主体居中裁切。", "src": "https://picsum.photos/id/1015/500/300", "config": { "focusPoint": { "x": 0.5, "y": 0.5 } } },
+    { "name": "左上方焦点", "description": "x=0.3,y=0.3，主体偏左上裁切。", "src": "https://picsum.photos/id/1021/500/300", "config": { "focusPoint": { "x": 0.3, "y": 0.3 } } },
+    { "name": "右下焦点", "description": "x=0.7,y=0.7，突出右下主体。", "src": "https://picsum.photos/id/1026/500/300", "config": { "focusPoint": { "x": 0.7, "y": 0.7 } } }
+  ],
+  "features": [
+    "object-position 焦点裁剪",
+    "cover 填充",
+    "任意焦点坐标",
+    "overlay 标识焦点",
+    "可关闭"
+  ],
+  "useCases": [
+    "头像/封面统一构图",
+    "商品主图裁剪",
+    "列表缩略图",
+    "跨尺寸适配"
+  ],
+  "notes": [
+    "当前为最小实现：通过 CSS object-position 模拟裁剪焦点；加载容器需固定宽高以体现裁切效果。"
+  ]
 }

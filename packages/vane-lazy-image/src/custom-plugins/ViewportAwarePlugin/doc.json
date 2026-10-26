@@ -1,27 +1,38 @@
 {
   "name": "ViewportAwarePlugin",
-  "description": "视口状态可视化：显示进入/离开指示点并给 DOM 打标记。",
+  "description": "视口感知加载：真正把 IntersectionObserver 的 rootMargin / threshold / once 下发给核心，控制图片「提前多少距离 / 多灵敏」才触发加载，并在四角显示绿/灰指示点辅助观察。",
   "since": "2.0.0",
-  "tags": [
-    "viewport",
-    "视口"
-  ],
+  "tags": ["viewport", "视口与交互", "懒加载"],
   "config": [
-    {
-      "name": "showDot",
-      "type": "boolean",
-      "description": ""
-    },
-    {
-      "name": "dotPosition",
-      "type": "\"top-left\" | \"top-right\" | \"bottom-left\" | \"bottom-right\"",
-      "description": ""
-    },
-    {
-      "name": "hideWhenOut",
-      "type": "boolean",
-      "description": "是否在不在视口时隐藏指示点（默认显示为灰色）"
-    }
+    { "name": "rootMargin", "type": "string", "default": "未设置（沿用 Core 默认 0px）", "description": "IO 边距，控制提前/延后触发。如 \"200px\" 表示进入视口前 200px 就开始加载（预加载），\"-50px\" 表示进入后再等 50px" },
+    { "name": "threshold", "type": "number | number[]", "default": "未设置", "description": "IO 触发阈值（0~1），控制加载灵敏度" },
+    { "name": "once", "type": "boolean", "default": "true", "description": "是否只加载一次：true=进入视口加载后停止观察（省资源）；false=持续观察" },
+    { "name": "unobserveOnVisible", "type": "boolean", "default": "由 once 推导", "description": "显式下发，优先级高于 once" },
+    { "name": "showDot", "type": "boolean", "default": "false", "description": "是否显示视口指示点（仅辅助观察，非核心能力）" },
+    { "name": "dotPosition", "type": "\"top-left\" | \"top-right\" | \"bottom-left\" | \"bottom-right\"", "default": "\"bottom-right\"", "description": "指示点位置" },
+    { "name": "hideWhenOut", "type": "boolean", "default": "false", "description": "离开视口时隐藏指示点" }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createViewportAwarePlugin()]);"
+  "example": "const ViewportImage = withPlugins(LazyLoadImageCore, [\n  // 提前 200px 预加载，进入视口即就绪，滚动更顺滑\n  createViewportAwarePlugin({ rootMargin: \"200px\", threshold: 0.01, showDot: true }),\n]);\n\n<ViewportImage src=\"https://picsum.photos/id/1015/500/300\" alt=\"视口感知示例\" />;",
+  "examples": [
+    { "name": "提前预加载（rootMargin 200px）", "description": "元素进入视口前 200px 就开始加载，滚到时图片已就绪，消除白屏。", "src": "https://picsum.photos/id/1015/500/300", "config": { "rootMargin": "200px", "threshold": 0.01, "showDot": true } },
+    { "name": "严格进入才加载（rootMargin 0px）", "description": "默认行为：图片真正进入视口边缘才触发加载。", "src": "https://picsum.photos/id/1024/500/300", "config": { "rootMargin": "0px", "showDot": true, "dotPosition": "top-left" } },
+    { "name": "离开时隐藏指示点", "description": "仅在进入视口显示绿点，离开后隐藏。", "src": "https://picsum.photos/id/1035/500/300", "config": { "rootMargin": "100px", "showDot": true, "dotPosition": "top-right", "hideWhenOut": true } }
+  ],
+  "features": [
+    "rootMargin 真正下发，控制提前/延后加载距离",
+    "threshold 调节加载灵敏度",
+    "once / unobserveOnVisible 控制是否只加载一次",
+    "四角可选指示点（辅助观察真实 IO 状态）",
+    "onEnterViewport / onLeaveViewport 事件钩子"
+  ],
+  "useCases": [
+    "长列表滚动预加载（rootMargin 提前量）",
+    "调试图片加载时机（配合指示点）",
+    "无限滚动 / 瀑布流场景",
+    "首屏 LCP 图片前的视口调度"
+  ],
+  "notes": [
+    "核心能力是 transformProps 把 IO 配置下发给核心，而不是装饰层；showDot 仅为观察辅助，可关闭。",
+    "once=false 仅表示持续观察，核心仍按加载状态只加载一次；如需「离开再回来重新加载」请配合 reload/reset 钩子。"
+  ]
 }

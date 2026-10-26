@@ -1,65 +1,97 @@
 {
   "name": "ErrorBadgePlugin",
-  "description": "错误徽标：加载失败时在角落显示错误徽标。",
+  "description": "错误徽标：图片加载失败（或回退成功后）在指定角落显示错误徽标，便于在大批量图片列表中快速定位失败项。",
   "since": "2.0.0",
-  "tags": [
-    "error",
-    "错误处理"
-  ],
+  "tags": ["error", "错误处理", "错误反馈"],
   "config": [
     {
       "name": "text",
       "type": "string | ((context: LazyImageContext) => string)",
       "default": "\"Error\"",
-      "description": ""
+      "description": "徽标文字；支持函数按 ctx 动态生成（函数型仅顶层示例展示）"
     },
     {
       "name": "position",
       "type": "\"top-left\" | \"top-right\" | \"bottom-left\" | \"bottom-right\" | \"center\"",
       "default": "\"top-right\"",
-      "description": ""
+      "description": "徽标定位角落"
     },
     {
       "name": "bgColor",
       "type": "string",
       "default": "\"rgba(220, 53, 69, 0.85)\"",
-      "description": ""
+      "description": "背景色"
     },
     {
       "name": "color",
       "type": "string",
       "default": "\"#fff\"",
-      "description": ""
+      "description": "文字颜色"
     },
     {
       "name": "fontSize",
       "type": "number",
       "default": "12",
-      "description": ""
+      "description": "字号(px)"
     },
     {
       "name": "padding",
       "type": "string",
       "default": "\"2px 6px\"",
-      "description": ""
+      "description": "内边距"
     },
     {
       "name": "borderRadius",
       "type": "number",
       "default": "4",
-      "description": ""
+      "description": "圆角(px)"
     },
     {
       "name": "zIndex",
       "type": "number",
-      "description": ""
+      "default": "100",
+      "description": "层级，默认较高避免被其它覆盖层遮挡"
     },
     {
       "name": "persistAfterFallback",
       "type": "boolean",
       "default": "true",
-      "description": ""
+      "description": "回退图加载成功后是否仍显示徽标"
     }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createErrorBadgePlugin()]);"
+  "example": "import { LazyLoadImageCore, createErrorBadgePlugin, withPlugins } from \"vane-lazy-image\";\n\nconst LazyImage = withPlugins(LazyLoadImageCore, [\n  createErrorBadgePlugin({\n    text: (ctx) => `加载失败: ${ctx.src}`,\n    position: \"bottom-right\",\n    bgColor: \"rgba(220,53,69,0.9)\",\n  }),\n]);\n\n// 故意触发失败以观察徽标\n<LazyImage src=\"https://invalid.example.com/x.png\" alt=\"错误徽标示例\" />",
+  "examples": [
+    {
+      "name": "默认错误徽标",
+      "description": "加载失败后，在右上角显示红底 Error 徽标。",
+      "src": "https://invalid.example.com/error-badge.png",
+      "config": {}
+    },
+    {
+      "name": "自定义文案与位置",
+      "description": "底部右侧、深色背景 + 高亮文字的失败徽标。",
+      "src": "https://invalid.example.com/error-badge-2.png",
+      "config": {
+        "text": "图片加载失败",
+        "position": "bottom-right",
+        "bgColor": "rgba(0,0,0,0.7)",
+        "color": "#ffd166"
+      }
+    }
+  ],
+  "features": [
+    "加载或回退失败后，在图片角落显示错误徽标",
+    "支持 5 种定位（四角 + 居中）与背景/文字/字号/圆角定制",
+    "persistAfterFallback：回退图已显示仍保留徽标，便于排查",
+    "通过 sharedData 标记 had-error，与 FallbackImage / RetryOnError / ErrorOverlay 联动"
+  ],
+  "useCases": [
+    "图片墙 / 商品列表快速识别加载失败项",
+    "大批量图片加载健康度可视化"
+  ],
+  "notes": [
+    "text 支持函数型 (ctx) => string，但函数无法进入静态预览配置，仅顶层示例展示",
+    "默认 zIndex=100，高于多数覆盖层，避免被遮挡",
+    "与 ErrorOverlay 区别：徽标是轻量角标，覆盖层是整图遮罩"
+  ]
 }

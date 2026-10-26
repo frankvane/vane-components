@@ -1,5 +1,6 @@
 import React from "react";
 import type { Plugin, PluginContext } from "../types";
+import { PluginErrorBoundary } from "../sandbox/PluginErrorBoundary";
 
 export type SlotHookName = "renderOverlay" | "renderHeader" | "renderFooter";
 
@@ -34,8 +35,12 @@ export function renderPluginSlot<TProps = any, TData = any>(
       try {
         const node = (plugin.hooks as any)[hook](context);
         if (node === null || node === undefined) return null;
+        // 每个插件单独一层错误边界：某个插件渲染期抛错只丢它自己，
+        // 不会连带清空整条插槽（否则一个坏配置会让所有叠加层一起消失）。
         return (
-          <React.Fragment key={`vane-slot-${plugin.name}-${index}`}>{node}</React.Fragment>
+          <PluginErrorBoundary key={`vane-slot-${plugin.name}-${index}`}>
+            {node}
+          </PluginErrorBoundary>
         );
       } catch (error) {
         console.warn(`[vane/plugin-core] 插件 ${plugin.name} 的 ${hook} 渲染失败`, error);

@@ -44,5 +44,39 @@
       "description": "调试输出"
     }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createScrollIdlePlugin()]);"
+  "example": "const LazyImage = withPlugins(LazyLoadImageCore, [\n  createScrollIdlePlugin({\n    idleMs: 160,\n    onlyWhenIntersecting: true,\n    maxWaitMs: 1200, // 最多等 1.2s，避免饥饿\n  }),\n]);",
+  "examples": [
+    {
+      "name": "滚动停止后加载",
+      "description": "用户停止滚动 160ms 后再加载，滚动过程中不打断主线程与带宽。",
+      "config": {
+        "idleMs": 160,
+        "onlyWhenIntersecting": true,
+        "maxWaitMs": 1200
+      }
+    },
+    {
+      "name": "更敏感空闲",
+      "description": "80ms 即判定空闲，适合加载较轻的图标 / 缩略图。",
+      "config": {
+        "idleMs": 80,
+        "maxWaitMs": 800
+      }
+    }
+  ],
+  "features": [
+    "监听滚动，空闲（停止滚动 idleMs）后才发起加载",
+    "默认仅进入视口后生效，不拖累首屏外元素",
+    "maxWaitMs 兜底，防止长时间连续滚动导致饥饿",
+    "支持 window / 容器两种监听对象"
+  ],
+  "useCases": [
+    "长列表滚动时避免与主线程 / 带宽争抢",
+    "低端机滚动卡顿优化"
+  ],
+  "notes": [
+    "与 ConcurrencyControl 叠加效果最佳。",
+    "maxWaitMs 务必设置，否则连续滚动可能长期不加载。",
+    "容器模式会使用 context.containerRef.current 作为监听目标。"
+  ]
 }

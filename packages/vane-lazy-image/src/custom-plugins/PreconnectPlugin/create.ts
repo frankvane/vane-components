@@ -1,8 +1,14 @@
 import type { LazyImagePlugin, LazyImageContext } from "../../components/LazyLoadImagePlugin/plugins/types";
 
+import React from "react";
+
+import { createPreloadBadge } from "../_shared/preloadBadge";
+
 export interface PreconnectPluginConfig {
   domains?: string[]; // 额外预连接域名
   crossOrigin?: string | null; // "anonymous" | "use-credentials" | null
+  /** 是否在卡片上显示「已预连 N」徽标（便于观察注入效果） */
+  showBadge?: boolean;
 }
 
 function addPreconnect(origin: string, crossOrigin: string | null = "anonymous") {
@@ -33,10 +39,13 @@ function getOrigin(src: string): string | null {
   }
 }
 
+const Badge = createPreloadBadge("lli-preconnect-", "已预连");
+
 export function createPreconnectPlugin(config: PreconnectPluginConfig = {}): LazyImagePlugin {
+  const { showBadge = false } = config;
   return {
     name: "preconnect",
-    version: "1.0.0",
+    version: "2.0.0",
     config,
     hooks: {
       onMount: (context: LazyImageContext) => {
@@ -57,6 +66,7 @@ export function createPreconnectPlugin(config: PreconnectPluginConfig = {}): Laz
         const origin = getOrigin(next);
         if (origin) addPreconnect(origin, config.crossOrigin ?? "anonymous");
       },
+      renderOverlay: () => (showBadge ? React.createElement(Badge) : null),
     },
   };
 }

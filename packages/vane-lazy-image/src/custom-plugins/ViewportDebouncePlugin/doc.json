@@ -1,30 +1,34 @@
 {
   "name": "ViewportDebouncePlugin",
-  "description": "视口防抖：对进出视口事件去抖，防止快速滚动反复触发。",
+  "description": "视口防抖（v2 真实实现）：进入视口后并不立即加载，而是等待元素「稳定停留 debounceMs」才放行；若期间离开视口且未达 maxWaitMs 上限，则中止本次加载，真正避免快速滚动时误加载/重复加载。",
   "since": "2.0.0",
-  "tags": [
-    "loading",
-    "加载策略"
-  ],
+  "tags": ["viewport", "视口与交互", "防抖"],
   "config": [
-    {
-      "name": "debounceMs",
-      "type": "number",
-      "default": "150",
-      "description": "进出视口事件的去抖间隔"
-    },
-    {
-      "name": "onlyWhenIntersecting",
-      "type": "boolean",
-      "default": "true",
-      "description": "仅在进入视口时应用去抖"
-    },
-    {
-      "name": "debug",
-      "type": "boolean",
-      "default": "false",
-      "description": ""
-    }
+    { "name": "debounceMs", "type": "number", "default": "200", "description": "进入视口后需稳定停留的时长（毫秒），到时才放行加载" },
+    { "name": "maxWaitMs", "type": "number", "default": "1200", "description": "最长等待上限，避免快速来回一直不加载（饥饿保护）" },
+    { "name": "onlyWhenIntersecting", "type": "boolean", "default": "true", "description": "仅在进入视口时门控；若离开且未达 maxWaitMs 则中止本次加载" },
+    { "name": "debug", "type": "boolean", "default": "false", "description": "是否输出调试日志" }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createViewportDebouncePlugin()]);"
+  "example": "const StableImage = withPlugins(LazyLoadImageCore, [\n  // 进入视口稳定 200ms 才加载，快速划过直接放弃\n  createViewportDebouncePlugin({ debounceMs: 200, maxWaitMs: 1200 }),\n]);\n\n<StableImage src=\"https://picsum.photos/id/1015/500/300\" alt=\"视口防抖示例\" />;",
+  "examples": [
+    { "name": "默认防抖（200ms）", "description": "快速滚动时抑制抖动：元素需稳定停留 200ms 才加载，一闪而过的不加载。", "src": "https://picsum.photos/id/1015/500/300", "config": { "debounceMs": 200 } },
+    { "name": "加大防抖间隔", "description": "300ms 间隔，更适合惯性较大的移动端滚动。", "src": "https://picsum.photos/id/1020/500/300", "config": { "debounceMs": 300 } },
+    { "name": "开启调试日志", "description": "控制台输出稳定/中止判定日志，便于排查。", "src": "https://picsum.photos/id/1025/500/300", "config": { "debounceMs": 200, "debug": true } }
+  ],
+  "features": [
+    "门控钩子真正延迟加载到稳定期",
+    "快速划过（离开未达上限）中止加载",
+    "maxWaitMs 饥饿保护",
+    "可调防抖间隔与上限",
+    "调试日志输出"
+  ],
+  "useCases": [
+    "快速滚动列表 / 瀑布流",
+    "移动端惯性滚动",
+    "防止抖动导致的重复加载",
+    "仅加载用户真正停留浏览的图片"
+  ],
+  "notes": [
+    "依赖引擎门控能力（onBeforeLoad 返回 false 中止加载），已在本插件中落地；与 ViewportAware 的 rootMargin 搭配可进一步调优触发时机。"
+  ]
 }

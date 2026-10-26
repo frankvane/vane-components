@@ -264,6 +264,8 @@ export const LazyLoadImageCore = forwardRef<
     displaySrc: null,
     error: null,
   });
+  /** 最近一次发起加载的 src（错误态下用于判断是否换了图） */
+  const lastAttemptSrcRef = useRef<string | null>(null);
 
   // Issue #0: 智能加载策略
   // LCP 图片或 eager 模式下直接加载，无需等待视口
@@ -320,6 +322,12 @@ export const LazyLoadImageCore = forwardRef<
   const startLoad = useCallback(async () => {
     // Issue #1: 使用新的状态检查
     if (state.status === "loading" || state.status === "loaded") return;
+    // 加载失败后不要自动重试：否则 startLoad 随 state.status 变化而重建，
+    // 触发自动加载 effect 再次 dispatch LOAD_START，把 error 状态覆盖回
+    // loading —— 表现为「图片 404 却永远停在 Loading...」。
+    // 只有被显式重置（reload()）或 src 变化时才允许再次发起加载。
+    if (state.status === "error" && lastAttemptSrcRef.current === src) return;
+    lastAttemptSrcRef.current = src;
 
     // Issue #23: 标记加载开始
     performanceMonitorRef.current?.mark('load-start');
@@ -351,6 +359,11 @@ export const LazyLoadImageCore = forwardRef<
     } catch (error: any) {
       // Issue #2: 忽略因取消导致的错误
       if (currentController.signal.aborted) {
+        return;
+      }
+      // 插件 onBeforeLoad 返回 false 触发的门控中止：不视为错误、不进入 error 态，
+      // 也不进入 loading 态，直接放弃本次加载（图像保持 idle/占位）。
+      if (error?.message === "LLI_PLUGIN_GATE") {
         return;
       }
 

@@ -1,0 +1,69 @@
+{
+  "name": "GlitchEffectPlugin",
+  "description": "故障艺术效果：赛博朋克风格 RGB 分离 / 扫描线 / 数字失真 / 混合 / 强烈五种风格，纯 CSS 无依赖，支持持续、一次性、悬停触发。",
+  "since": "2.0.0",
+  "tags": ["interaction", "视觉效果与交互", "visual"],
+  "config": [
+    { "name": "style", "type": "\"rgb-split\" | \"scan-lines\" | \"digital\" | \"glitch-mix\" | \"intense\"", "default": "\"glitch-mix\"", "description": "故障风格" },
+    { "name": "continuous", "type": "boolean", "default": "false", "description": "是否持续动画" },
+    { "name": "duration", "type": "number", "default": "1000", "description": "一次性触发时长（毫秒）" },
+    { "name": "intensity", "type": "number", "default": "0.7", "description": "效果强度 0~1" },
+    { "name": "triggerOnHover", "type": "boolean", "default": "false", "description": "是否悬停触发" },
+    { "name": "rgbOffset", "type": "number", "default": "3", "description": "RGB 分离距离（px）" },
+    { "name": "scanLineCount", "type": "number", "default": "30", "description": "扫描线数量" },
+    { "name": "animateScanLines", "type": "boolean", "default": "true", "description": "扫描线是否动画" }
+  ],
+  "example": "// 1. 持续 RGB 分离故障特效\nconst GlitchImage = withPlugins(LazyLoadImageCore, [\n  createGlitchEffectPlugin({ style: \"rgb-split\", continuous: true, rgbOffset: 4 }),\n]);\n\n// 2. 在封面中使用\n<GlitchImage\n  src=\"https://picsum.photos/id/1043/400/300\"\n  alt=\"封面\"\n  style={{ width: 240, height: 160, borderRadius: 8 }}\n/>;\n\n// 3. 悬停触发（更省电、不干扰阅读）\ncreateGlitchEffectPlugin({ style: \"glitch-mix\", triggerOnHover: true });",
+  "examples": [
+    {
+      "name": "glitch-mix 混合（持续）",
+      "description": "混合风格默认效果，持续播放，适合做氛围封面。",
+      "src": "https://picsum.photos/id/1043/400/300",
+      "config": { "style": "glitch-mix", "continuous": true, "intensity": 0.7 }
+    },
+    {
+      "name": "rgb-split RGB 分离（持续）",
+      "description": "红蓝通道错位产生色散，赛博朋克典型观感。",
+      "src": "https://picsum.photos/id/1062/400/300",
+      "config": { "style": "rgb-split", "continuous": true, "rgbOffset": 5 }
+    },
+    {
+      "name": "scan-lines 扫描线（悬停触发）",
+      "description": "叠加扫描线纹理，悬停时启动，平时保持干净。",
+      "src": "https://picsum.photos/id/1074/400/300",
+      "config": { "style": "scan-lines", "triggerOnHover": true, "scanLineCount": 40, "animateScanLines": true }
+    },
+    {
+      "name": "digital 数字失真（一次性）",
+      "description": "加载/进入时触发一次数字故障，随后恢复清晰。",
+      "src": "https://picsum.photos/id/1080/400/300",
+      "config": { "style": "digital", "continuous": false, "duration": 900 }
+    },
+    {
+      "name": "intense 高强度",
+      "description": "强度拉满的强烈故障，冲击力强，适合标题位。",
+      "src": "https://picsum.photos/id/1084/400/300",
+      "config": { "style": "intense", "continuous": true, "intensity": 1 }
+    }
+  ],
+  "features": [
+    "5 种故障风格（RGB 分离 / 扫描线 / 数字失真 / 混合 / 强烈）",
+    "三种触发模式：持续 / 一次性 / 悬停触发",
+    "效果强度 0~1 可调",
+    "扫描线数量与是否动画可配",
+    "RGB 错位距离可调",
+    "纯 CSS 实现，无运行时依赖"
+  ],
+  "useCases": [
+    "赛博朋克风格站点",
+    "海报 / 专辑封面",
+    "活动营销页",
+    "游戏官网",
+    "暗色主题视觉",
+    "品牌焕新 / 限时活动"
+  ],
+  "notes": [
+    "持续动画（continuous: true）会一直占用合成层，建议对大图或大量实例谨慎使用。",
+    "阅读型内容可用 triggerOnHover: true，仅在鼠标悬停时播放，避免干扰。"
+  ]
+}

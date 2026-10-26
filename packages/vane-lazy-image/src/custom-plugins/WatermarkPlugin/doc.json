@@ -7,60 +7,54 @@
     "视觉"
   ],
   "config": [
+    { "name": "text", "type": "string | ((src: string) => string)", "default": "\"© 2024 Vane\"", "description": "水印文本；可传函数按 src 动态生成" },
+    { "name": "position", "type": "\"top-left\" | \"top-right\" | \"bottom-left\" | \"bottom-right\" | \"center\"", "default": "\"bottom-right\"", "description": "水印位置" },
+    { "name": "opacity", "type": "number", "default": "0.8", "description": "0~1 透明度" },
+    { "name": "fontSize", "type": "number", "default": "12", "description": "px 字号" },
+    { "name": "color", "type": "string", "default": "\"#fff\"", "description": "文字颜色" },
+    { "name": "offsetX", "type": "number", "default": "8", "description": "px 水平偏移" },
+    { "name": "offsetY", "type": "number", "default": "8", "description": "px 垂直偏移" },
+    { "name": "zIndex", "type": "number", "default": "2", "description": "层叠顺序" },
+    { "name": "enabled", "type": "boolean", "default": "true", "description": "是否启用" }
+  ],
+  "example": "// 版权水印：右下角、半透明\nconst MarkedImage = withPlugins(LazyLoadImageCore, [\n  createWatermarkPlugin({\n    text: \"© 2026 Vane\",\n    position: \"bottom-right\",\n    opacity: 0.6,\n    fontSize: 14,\n    color: \"#ffffff\",\n  }),\n]);\n\n// 按图片地址动态派生水印\ncreateWatermarkPlugin({\n  text: (src) => `watermark • ${src.split(\"/\").pop()}`,\n  position: \"center\",\n  opacity: 0.22,\n  fontSize: 28,\n});",
+  "examples": [
     {
-      "name": "text",
-      "type": "string | ((src: string) => string)",
-      "default": "\"© 2024 Vane\"",
-      "description": ""
+      "name": "版权水印（右下角）",
+      "description": "半透明白字落在右下角，常见版权标识场景。",
+      "src": "https://picsum.photos/seed/wm-copyright/600/400",
+      "config": { "text": "© 2026 Vane", "position": "bottom-right", "opacity": 0.6, "fontSize": 14, "color": "#ffffff" }
     },
     {
-      "name": "position",
-      "type": "\"top-left\" | \"top-right\" | \"bottom-left\" | \"bottom-right\" | \"center\"",
-      "default": "\"bottom-right\"",
-      "description": ""
+      "name": "中心品牌水印",
+      "description": "居中、低透明度大字，适合图库/作品集防盗用。",
+      "src": "https://picsum.photos/seed/wm-center/600/400",
+      "config": { "text": "VANE", "position": "center", "opacity": 0.22, "fontSize": 30, "color": "#ffffff" }
     },
     {
-      "name": "opacity",
-      "type": "number",
-      "default": "0.8",
-      "description": "0~1"
-    },
-    {
-      "name": "fontSize",
-      "type": "number",
-      "default": "12",
-      "description": "px"
-    },
-    {
-      "name": "color",
-      "type": "string",
-      "default": "\"#fff\"",
-      "description": ""
-    },
-    {
-      "name": "offsetX",
-      "type": "number",
-      "default": "8",
-      "description": "px"
-    },
-    {
-      "name": "offsetY",
-      "type": "number",
-      "default": "8",
-      "description": "px"
-    },
-    {
-      "name": "zIndex",
-      "type": "number",
-      "default": "2",
-      "description": ""
-    },
-    {
-      "name": "enabled",
-      "type": "boolean",
-      "default": "true",
-      "description": ""
+      "name": "左上角说明水印",
+      "description": "左上角小字，作来源/批次标注。",
+      "src": "https://picsum.photos/seed/wm-topleft/600/400",
+      "config": { "text": "内部素材 • 勿外传", "position": "top-left", "opacity": 0.85, "fontSize": 12, "color": "#ffd400" }
     }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createWatermarkPlugin()]);"
+  "features": [
+    "五位置可选（四角 + 中心）",
+    "文本支持静态字符串或函数动态派生",
+    "可调透明度 / 字号 / 颜色 / 偏移",
+    "可整体启停（enabled）",
+    "层叠顺序可控（zIndex）"
+  ],
+  "useCases": [
+    "图片版权 / 品牌标识",
+    "图库与作品集防盗用",
+    "内部素材来源 / 批次标注",
+    "活动海报统一角标",
+    "按用户 / 租户动态打标"
+  ],
+  "notes": [
+    "text 传函数时按图片 src 动态生成（如嵌入 ID），但场景示例画廊需用静态文本以保证实时预览。",
+    "中心水印透明度建议低于 0.3，避免遮挡主体内容。",
+    "水印为覆盖层（renderOverlay），不参与图片本身像素，导出原图不会被打标。"
+  ]
 }

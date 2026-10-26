@@ -7,18 +7,38 @@
     "视觉"
   ],
   "config": [
+    { "name": "scale", "type": "number", "default": "1.08", "description": "放大倍数" },
+    { "name": "durationMs", "type": "number", "default": "180", "description": "过渡时长 ms" }
+  ],
+  "example": "// 悬停放大 1.15 倍\nconst ZoomImage = withPlugins(LazyLoadImageCore, [\n  createHoverZoomPlugin({ scale: 1.15, durationMs: 180 }),\n]);\n\n<ZoomImage src=\"https://picsum.photos/seed/hoverzoom/600/400\" alt=\"悬停放大\" />;",
+  "examples": [
     {
-      "name": "scale",
-      "type": "number",
-      "default": "1.08",
-      "description": "default 1.08"
+      "name": "悬停放大 1.15",
+      "description": "鼠标悬停放大到 1.15 倍，180ms 平滑过渡。",
+      "src": "https://picsum.photos/seed/hoverzoom-115/600/400",
+      "config": { "scale": 1.15, "durationMs": 180 }
     },
     {
-      "name": "durationMs",
-      "type": "number",
-      "default": "180",
-      "description": "default 180ms"
+      "name": "轻微放大",
+      "description": "克制的 1.08 倍，仅给一点点呼吸感。",
+      "src": "https://picsum.photos/seed/hoverzoom-108/600/400",
+      "config": { "scale": 1.08, "durationMs": 200 }
     }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createHoverZoomPlugin()]);"
+  "features": [
+    "悬停平滑放大",
+    "放大倍数可调",
+    "过渡时长可调",
+    "常与 Caption / BorderGlow 叠加"
+  ],
+  "useCases": [
+    "商品图悬停预览细节",
+    "相册悬停聚焦",
+    "卡片悬停微交互",
+    "与灯箱配合的轻量前奏"
+  ],
+  "notes": [
+    "放大会溢出原尺寸，通常需父容器 overflow:hidden 裁切，仅放大中心区域。",
+    "与 Transition 的 fromScale 不同，HoverZoom 仅在 hover 时触发。"
+  ]
 }

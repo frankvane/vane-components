@@ -91,6 +91,10 @@
       "types": "./dist/custom-plugins/ColorExtractionPlugin/index.d.ts",
       "import": "./dist/custom-plugins/ColorExtractionPlugin/index.js"
     },
+    "./custom-plugins/ColorSwatchPlugin": {
+      "types": "./dist/custom-plugins/ColorSwatchPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ColorSwatchPlugin/index.js"
+    },
     "./custom-plugins/ComparisonPlugin": {
       "types": "./dist/custom-plugins/ComparisonPlugin/index.d.ts",
       "import": "./dist/custom-plugins/ComparisonPlugin/index.js"
@@ -114,6 +118,10 @@
     "./custom-plugins/DominantColorPlugin": {
       "types": "./dist/custom-plugins/DominantColorPlugin/index.d.ts",
       "import": "./dist/custom-plugins/DominantColorPlugin/index.js"
+    },
+    "./custom-plugins/DownloadButtonPlugin": {
+      "types": "./dist/custom-plugins/DownloadButtonPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/DownloadButtonPlugin/index.js"
     },
     "./custom-plugins/ErrorBadgePlugin": {
       "types": "./dist/custom-plugins/ErrorBadgePlugin/index.d.ts",
@@ -167,9 +175,17 @@
       "types": "./dist/custom-plugins/ImageOptimizationPlugin/index.d.ts",
       "import": "./dist/custom-plugins/ImageOptimizationPlugin/index.js"
     },
+    "./custom-plugins/InventoryStatusPlugin": {
+      "types": "./dist/custom-plugins/InventoryStatusPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/InventoryStatusPlugin/index.js"
+    },
     "./custom-plugins/LQIPPlugin": {
       "types": "./dist/custom-plugins/LQIPPlugin/index.d.ts",
       "import": "./dist/custom-plugins/LQIPPlugin/index.js"
+    },
+    "./custom-plugins/LocalizationPlugin": {
+      "types": "./dist/custom-plugins/LocalizationPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/LocalizationPlugin/index.js"
     },
     "./custom-plugins/MemoryPressureAbortPlugin": {
       "types": "./dist/custom-plugins/MemoryPressureAbortPlugin/index.d.ts",
@@ -203,6 +219,10 @@
       "types": "./dist/custom-plugins/PredictiveLoadingPlugin/index.d.ts",
       "import": "./dist/custom-plugins/PredictiveLoadingPlugin/index.js"
     },
+    "./custom-plugins/PriceTagPlugin": {
+      "types": "./dist/custom-plugins/PriceTagPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/PriceTagPlugin/index.js"
+    },
     "./custom-plugins/PriorityLoadingPlugin": {
       "types": "./dist/custom-plugins/PriorityLoadingPlugin/index.d.ts",
       "import": "./dist/custom-plugins/PriorityLoadingPlugin/index.js"
@@ -210,6 +230,10 @@
     "./custom-plugins/ProgressOverlayPlugin": {
       "types": "./dist/custom-plugins/ProgressOverlayPlugin/index.d.ts",
       "import": "./dist/custom-plugins/ProgressOverlayPlugin/index.js"
+    },
+    "./custom-plugins/PromoBadgePlugin": {
+      "types": "./dist/custom-plugins/PromoBadgePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/PromoBadgePlugin/index.js"
     },
     "./custom-plugins/RedactionPlugin": {
       "types": "./dist/custom-plugins/RedactionPlugin/index.d.ts",
@@ -235,6 +259,10 @@
       "types": "./dist/custom-plugins/SkeletonPlugin/index.d.ts",
       "import": "./dist/custom-plugins/SkeletonPlugin/index.js"
     },
+    "./custom-plugins/SocialSharePlugin": {
+      "types": "./dist/custom-plugins/SocialSharePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/SocialSharePlugin/index.js"
+    },
     "./custom-plugins/SvgPlaceholderPlugin": {
       "types": "./dist/custom-plugins/SvgPlaceholderPlugin/index.d.ts",
       "import": "./dist/custom-plugins/SvgPlaceholderPlugin/index.js"
@@ -246,6 +274,10 @@
     "./custom-plugins/UserBehaviorPlugin": {
       "types": "./dist/custom-plugins/UserBehaviorPlugin/index.d.ts",
       "import": "./dist/custom-plugins/UserBehaviorPlugin/index.js"
+    },
+    "./custom-plugins/VideoPosterPlugin": {
+      "types": "./dist/custom-plugins/VideoPosterPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/VideoPosterPlugin/index.js"
     },
     "./custom-plugins/ViewportAwarePlugin": {
       "types": "./dist/custom-plugins/ViewportAwarePlugin/index.d.ts",
@@ -274,6 +306,10 @@
     "./presets/content-long-read": {
       "types": "./dist/presets/content-long-read/index.d.ts",
       "import": "./dist/presets/content-long-read/index.js"
+    },
+    "./presets/ecommerce": {
+      "types": "./dist/presets/ecommerce/index.d.ts",
+      "import": "./dist/presets/ecommerce/index.js"
     },
     "./presets/offline-first": {
       "types": "./dist/presets/offline-first/index.d.ts",
@@ -337,24 +373,30 @@
     "react": ">=16.8.0",
     "react-dom": ">=16.8.0"
   },
-  "dependencies": {},
   "devDependencies": {
-    "@vane/plugin-core": "workspace:*",
     "@types/node": "^20.19.18",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
+    "@types/react-syntax-highlighter": "^15.5.13",
+    "@types/react-window": "^1.8.8",
+    "@vane/build-config": "workspace:*",
+    "@vane/eslint-config": "workspace:*",
+    "@vane/plugin-core": "workspace:*",
+    "@vane/tsconfig": "workspace:*",
+    "@vane/vitest-config": "workspace:*",
     "@vitejs/plugin-react": "^4.3.1",
+    "happy-dom": "^15.11.7",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-markdown": "^10.1.0",
+    "react-router-dom": "^6",
+    "react-syntax-highlighter": "^15.6.6",
+    "react-window": "^1.8.11",
+    "remark-gfm": "^4.0.1",
     "typescript": "^5.5.3",
     "vite": "^5.4.1",
     "vite-plugin-dts": "^4.5.4",
-    "vitest": "^2.1.9",
-    "happy-dom": "^15.11.7",
-    "@vane/build-config": "workspace:*",
-    "@vane/vitest-config": "workspace:*",
-    "@vane/eslint-config": "workspace:*",
-    "@vane/tsconfig": "workspace:*"
+    "vitest": "^2.1.9"
   },
   "vane": {
     "sizeBudgetKb": 25,

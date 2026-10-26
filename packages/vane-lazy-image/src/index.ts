@@ -80,11 +80,15 @@ export type {
   PerformanceMonitorConfig,
 } from "./utils/PerformanceMonitor";
 
-// ---------- 自定义插件与配方：走子路径按需引入（见文件头说明） ----------
-// export * from "./custom-plugins";  ← 不在根入口桶导出，避免静态导入图膨胀
-// export * from "./presets";         ← 同上；用法：
-//   import { createBlurUpPlugin } from "vane-lazy-image/custom-plugins/BlurUpPlugin";
-//   import { socialFeedPreset } from "vane-lazy-image/presets/social-feed";
+// ---------- 高级能力（依赖解析 / 沙箱 / 版本工具）----------
+export * from "./advanced";
+
+// ---------- 自定义插件与配方：根入口便捷桶导出（按需引入仍 tree-shakeable）----------
+// 说明：ADR-6 初衷是避免“无脑 import 整个包”导致静态图膨胀；但 tree-shaking 下
+// `export *` 仅暴露命名绑定，消费方只取所需符号不会被整包打入。为兼容旧版示例
+// `import { createXxxPlugin } from "vane-lazy-image"` 的写法并降低上层接入成本，
+// 这里在根入口聚合所有插件工厂（含旧名别名 createIDBCachePlugin 等）。
+export * from "./custom-plugins";
 
 // ---------- 版本 ----------
 export const LAZY_IMAGE_CORE_VERSION = "2.0.0";

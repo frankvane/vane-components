@@ -1,18 +1,28 @@
 {
   "name": "ExifOrientationPlugin",
-  "description": "EXIF 方向校正：按拍摄方向旋转图片，避免竖拍横显。",
+  "description": "EXIF 方向：根据图片自带的方向信息（EXIF Orientation）自动校正显示，避免手机竖拍照片横显。",
   "since": "2.0.0",
-  "tags": [
-    "loading",
-    "加载策略"
-  ],
+  "tags": ["a11y", "可访问性", "加载策略"],
   "config": [
-    {
-      "name": "enabled",
-      "type": "boolean",
-      "default": "true",
-      "description": ""
-    }
+    { "name": "enabled", "type": "boolean", "default": "true", "description": "是否启用方向校正" }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createExifOrientationPlugin()]);"
+  "example": "const OrientImage = withPlugins(LazyLoadImageCore, [\n  createExifOrientationPlugin({ enabled: true }),\n]);\n\n<OrientImage src=\"https://picsum.photos/id/1015/500/300\" alt=\"方向校正示例\" />;",
+  "examples": [
+    { "name": "启用方向校正（默认）", "description": "imageOrientation: from-image，跟随 EXIF 方向。", "src": "https://picsum.photos/id/1015/500/300", "config": { "enabled": true } },
+    { "name": "关闭校正", "description": "enabled=false 时不注入方向样式。", "src": "https://picsum.photos/id/1021/500/300", "config": { "enabled": false } }
+  ],
+  "features": [
+    "按 EXIF Orientation 自动校正",
+    "imageOrientation: from-image",
+    "无需手动旋转",
+    "可关闭"
+  ],
+  "useCases": [
+    "手机/相机照片",
+    "用户上传图",
+    "竖拍横显修复"
+  ],
+  "notes": [
+    "依赖浏览器对 image-orientation: from-image 的支持，现代浏览器均已支持。"
+  ]
 }

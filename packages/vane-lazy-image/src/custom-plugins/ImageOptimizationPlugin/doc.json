@@ -50,5 +50,39 @@
       "description": "例如 \"format\""
     }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createImageOptimizationPlugin()]);"
+  "example": "const LazyImage = withPlugins(LazyLoadImageCore, [\n  createImageOptimizationPlugin({\n    maxWidth: 1200,\n    quality: 0.8,\n    format: \"webp\",\n    widthParam: \"w\",\n    qualityParam: \"q\",\n    formatParam: \"format\",\n  }),\n]);",
+  "examples": [
+    {
+      "name": "自动 webp + 约束宽度",
+      "description": "自动选择最优格式（按 Accept 协商 webp），并把宽度限制在 1200。",
+      "config": {
+        "maxWidth": 1200,
+        "quality": 0.8,
+        "format": "webp"
+      }
+    },
+    {
+      "name": "固定 jpg 中质量",
+      "description": "统一输出 jpg、质量 0.7，适合对兼容性要求较高的场景。",
+      "config": {
+        "maxWidth": 800,
+        "quality": 0.7,
+        "format": "jpg"
+      }
+    }
+  ],
+  "features": [
+    "自动追加宽度 / 质量 / 格式查询参数",
+    "format=auto 按 Accept 头协商 webp",
+    "参数名可配置以适配不同 CDN / 图片网关"
+  ],
+  "useCases": [
+    "任意源图统一走优化网关（imgix / 云存储样式）",
+    "响应式不同屏宽下发不同尺寸"
+  ],
+  "notes": [
+    "需图片服务支持对应参数，否则仅作为普通查询参数透传。",
+    "与 DataSaver 叠加时，省流质量会进一步覆盖此处质量。",
+    "format=auto 依赖浏览器 Accept 头，无需手动指定。"
+  ]
 }

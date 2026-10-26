@@ -8,6 +8,8 @@ export interface MemoryPressureAbortConfig {
   preferOnMobile?: boolean;
   /** 重写到低清晰度：针对常见图片域名的宽度参数 */
   lowWidth?: number;
+  /** 离开视口且仍在加载时，是否中止在途加载（调用 context.reset 取消元素加载） */
+  abortOnLeave?: boolean;
 }
 
 function rewriteToLowQuality(src: string, width: number): string {
@@ -15,7 +17,6 @@ function rewriteToLowQuality(src: string, width: number): string {
     const url = new URL(src, window.location.href);
     const host = url.host;
     const params = url.searchParams;
-    // 常见源：unsplash 与京东图片服务
     if (/images\.unsplash\.com$/i.test(host)) {
       params.set("w", String(width));
       params.set("auto", "format");
@@ -30,7 +31,6 @@ function rewriteToLowQuality(src: string, width: number): string {
       url.search = params.toString();
       return url.toString();
     }
-    // 通用：若无查询参数则附加一个常见压缩参数集合
     if (!url.search || url.search === "") {
       url.search = `?w=${width}&auto=format&fit=crop`;
     }
@@ -48,6 +48,7 @@ export function createMemoryPressureAbortPlugin(
     deviceMemoryThreshold = 4,
     preferOnMobile = true,
     lowWidth = 640,
+    abortOnLeave = true,
   } = config;
 
   const shouldDowngrade = (ctx: LazyImageContext): boolean => {
@@ -64,19 +65,25 @@ export function createMemoryPressureAbortPlugin(
 
   return {
     name: "memory-pressure-abort",
-    version: "1.0.0",
+    version: "2.0.0",
     config,
     hooks: {
+      // 真实降质：低内存 / 移动端 / 省流时把 src 改写为低清版本
       onLoad: (context) => {
         if (!enabled) return undefined;
         if (!shouldDowngrade(context)) return undefined;
-        const downgraded = rewriteToLowQuality(context.src, lowWidth);
-        return downgraded;
+        return rewriteToLowQuality(context.src, lowWidth);
       },
+      // 真实中止：离开视口且仍在加载时，调用 context.reset() 取消元素在途加载
       onLeaveViewport: (context) => {
-        // 若后续集成 FetchLoaderPlugin，可在此中断下载；目前仅保留接口用于演示
-        void context;
+        if (!enabled || !abortOnLeave) return;
+        const st = context.imageState;
+        if (st && st.isLoading) {
+          try {
+            context.reset?.();
+          } catch {}
+        }
       },
     },
-  } as LazyImagePlugin;
+  };
 }

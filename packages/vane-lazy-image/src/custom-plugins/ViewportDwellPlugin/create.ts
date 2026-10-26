@@ -1,127 +1,75 @@
 import type { LazyImagePlugin, LazyImageContext } from "../../components/LazyLoadImagePlugin/plugins/types";
 
 export interface ViewportDwellConfig {
-  /** 需要在视口中持续停留的时间（毫秒），否则视为跳过不加载 */
+  /** 需要在视口中连续停留的时间（毫秒），不足则视为「划过」不加载 */
   dwellMs?: number;
-  /** 最长等待时间（毫秒），避免长时间滚动导致饥饿；到时仍可继续加载 */
+  /** 最长等待时间（毫秒）：避免滚动过快导致一直饥饿，到时仍可加载 */
   maxWaitMs?: number;
-  /** 仅在进入视口时生效（true），否则所有加载都会应用驻留判断 */
+  /** 仅在进入视口时生效门控；离开且未达上限则中止加载 */
   onlyWhenIntersecting?: boolean;
-  /** 调试输出 */
   debug?: boolean;
 }
 
 /**
- * 视口驻留阈值插件：
- * - 在 onEnterViewport 记录进入时间；
- * - 在 onLeaveViewport 标记离开；
- * - 在 onLoad 中等待驻留时间，若期间离开则返回 false 阻止后续加载；
- * - 超过 maxWaitMs 时仍允许继续（避免饥饿）。
+ * 视口驻留门控插件（v2 真实实现）：
+ * - onEnterViewport / onLeaveViewport 把实时在视口状态写入 sharedData；
+ * - onBeforeLoad（引擎门控钩子）轮询：累计停留达到 dwellMs 才放行加载；
+ *   若期间离开视口且未达 maxWaitMs，则返回 false 中止本次加载，避免为「一闪而过」的图片浪费带宽。
  */
 export function createViewportDwellPlugin(config: ViewportDwellConfig = {}): LazyImagePlugin {
   const {
-    dwellMs = 180,
-    maxWaitMs = 1000,
+    dwellMs = 250,
+    maxWaitMs = 1500,
     onlyWhenIntersecting = true,
     debug = false,
   } = config;
 
-  const ENTER_KEY = "viewport-dwell:enteredAt";
-  const LEFT_KEY = "viewport-dwell:left";
-
-  const setEnter = (context: LazyImageContext, t: number) => {
-    try { context.sharedData?.set(ENTER_KEY, t); } catch {}
-    try { context.sharedData?.set(LEFT_KEY, false); } catch {}
-  };
-  const setLeft = (context: LazyImageContext, left: boolean) => {
-    try { context.sharedData?.set(LEFT_KEY, left); } catch {}
-  };
-  const getEnter = (context: LazyImageContext): number | undefined => {
-    return context.sharedData?.get(ENTER_KEY) as number | undefined;
-  };
-  const getLeft = (context: LazyImageContext): boolean => {
-    return !!context.sharedData?.get(LEFT_KEY);
-  };
+  const INVIEW = "viewport-dwell:inView";
 
   return {
     name: "viewport-dwell",
-    version: "1.0.0",
+    version: "2.0.0",
     config,
     hooks: {
-      // 在真正加载前进行驻留时间门控：返回 false 可阻止加载
-      onBeforeLoad: async (context: LazyImageContext) => {
-        // 仅在进入视口时进行驻留判断；否则不拦截（交由其它策略处理）
-        if (onlyWhenIntersecting && !context.isIntersecting) {
-          return true;
-        }
-
-        const startTs = Date.now();
-        let enteredAt = getEnter(context);
-        if (!enteredAt) {
-          enteredAt = startTs;
-          setEnter(context, enteredAt);
-        }
-
-        const elapsed = Date.now() - enteredAt;
-        const waitNeeded = Math.max(0, dwellMs - elapsed);
-        const waitBudget = Math.max(0, maxWaitMs);
-
-        if (debug) {
-          try {
-            console.debug("[ViewportDwell] gating onBeforeLoad", {
-              src: context.src,
-              waitNeeded,
-              waitBudget,
-              elapsed,
-            });
-          } catch {}
-        }
-
-        // 若已满足驻留，直接放行
-        if (waitNeeded <= 0) return true;
-
-        // 等待驻留或达到最长等待
-        const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-        const waitMs = Math.min(waitNeeded, waitBudget);
-        try {
-          await sleep(waitMs);
-        } catch {}
-
-        // 等待期间若离开且尚未达到 maxWait，阻止加载
-        const left = getLeft(context);
-        const waited = Date.now() - startTs;
-        if (left && waited < maxWaitMs) {
-          if (debug) {
-            try { console.debug("[ViewportDwell] aborted due to leave", { src: context.src }); } catch {}
-          }
-          return false; // 阻止加载
-        }
-
-        // 到此：要么满足驻留，要么达到最长等待（避免饥饿），允许加载
-        return true;
-      },
       onEnterViewport: (context: LazyImageContext) => {
-        setEnter(context, Date.now());
+        try { context.sharedData?.set(INVIEW, true); } catch {}
         if (debug) {
-          try { console.debug("[ViewportDwell] enter", { src: context.src }); } catch {}
+          try { console.debug("[ViewportDwell] enter", context.src); } catch {}
         }
       },
       onLeaveViewport: (context: LazyImageContext) => {
-        setLeft(context, true);
+        try { context.sharedData?.set(INVIEW, false); } catch {}
         if (debug) {
-          try { console.debug("[ViewportDwell] leave", { src: context.src }); } catch {}
+          try { console.debug("[ViewportDwell] leave", context.src); } catch {}
         }
       },
-      // 不替换加载逻辑，仅保持默认行为
-      onLoad: (_context: LazyImageContext) => {
-        return undefined;
+      // 门控：累计停留达到 dwellMs 才放行；离开且未达 maxWait 则中止
+      onBeforeLoad: async (context: LazyImageContext) => {
+        const start = Date.now();
+        const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+        if (debug) {
+          try { console.debug("[ViewportDwell] gating", { src: context.src, dwellMs, maxWaitMs }); } catch {}
+        }
+        while (true) {
+          const inView = !!context.sharedData?.get(INVIEW);
+          const elapsed = Date.now() - start;
+          if (!inView && onlyWhenIntersecting && elapsed < maxWaitMs) {
+            if (debug) {
+              try { console.debug("[ViewportDwell] aborted (left before dwell)", context.src); } catch {}
+            }
+            return false; // 中止本次加载
+          }
+          if (elapsed >= dwellMs) {
+            if (debug) {
+              try { console.debug("[ViewportDwell] proceed", context.src, { elapsed }); } catch {}
+            }
+            return true; // 放行
+          }
+          await sleep(30);
+        }
       },
       onUnmount: (context: LazyImageContext) => {
-        // 清理共享数据标记
-        try {
-          context.sharedData?.delete(ENTER_KEY);
-          context.sharedData?.delete(LEFT_KEY);
-        } catch {}
+        try { context.sharedData?.delete(INVIEW); } catch {}
       },
     },
   };

@@ -7,31 +7,41 @@
     "视觉"
   ],
   "config": [
+    { "name": "showWhen", "type": "\"always\" | \"loading\"", "default": "\"loading\"", "description": "何时显示" },
+    { "name": "height", "type": "number", "default": "3", "description": "进度条高度 px" },
+    { "name": "color", "type": "string", "default": "#4a90e2", "description": "进度条颜色" },
+    { "name": "background", "type": "string", "default": "transparent", "description": "背景遮罩色" },
+    { "name": "showPercentText", "type": "boolean", "default": "false", "description": "是否显示百分比文本" }
+  ],
+  "example": "// 顶部进度条 + 百分比文本\nconst ProgressImage = withPlugins(LazyLoadImageCore, [\n  createProgressOverlayPlugin({\n    showWhen: \"loading\",\n    height: 3,\n    color: \"#4a90e2\",n    showPercentText: true,\n  }),\n]);\n\n<ProgressImage src=\"https://picsum.photos/seed/progress/600/400\" alt=\"进度蒙层\" />;",
+  "examples": [
     {
-      "name": "showWhen",
-      "type": "\"always\" | \"loading\"",
-      "description": ""
+      "name": "顶部进度条 + 百分比",
+      "description": "细进度条置于顶部，并显示实时百分比。",
+      "src": "https://picsum.photos/seed/progress-top/600/400",
+      "config": { "showWhen": "loading", "height": 3, "color": "#4a90e2", "showPercentText": true }
     },
     {
-      "name": "height",
-      "type": "number",
-      "description": "进度条高度"
-    },
-    {
-      "name": "color",
-      "type": "string",
-      "description": "进度条颜色"
-    },
-    {
-      "name": "background",
-      "type": "string",
-      "description": "背景遮罩色"
-    },
-    {
-      "name": "showPercentText",
-      "type": "boolean",
-      "description": "是否显示百分比文本"
+      "name": "半透明遮罩 + 百分比",
+      "description": "加载期覆盖半透明遮罩，中心显示百分比，适合大图。",
+      "src": "https://picsum.photos/seed/progress-mask/600/400",
+      "config": { "showWhen": "loading", "height": 4, "color": "#22c55e", "background": "rgba(0,0,0,0.12)", "showPercentText": true }
     }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createProgressOverlayPlugin()]);"
+  "features": [
+    "顶部 / 覆盖式进度条",
+    "实时百分比文本",
+    "颜色 / 高度 / 背景可调",
+    "加载完成后自动消失"
+  ],
+  "useCases": [
+    "大图 / 慢网络加载反馈",
+    "视频封面缓冲提示",
+    "需要明确进度感知的场景",
+    "与 Skeleton 配合提升占位体验"
+  ],
+  "notes": [
+    "进度数据来自内核 progress 事件，跨域或缓存命中时可能很快跳到 100%。",
+    "与 Skeleton 同时使用时，进度条层级通常高于骨架。"
+  ]
 }

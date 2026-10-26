@@ -1,32 +1,34 @@
 {
   "name": "LQIPPlugin",
-  "description": "低清晰度占位图（LQIP）：加载期叠加模糊小图，支持自定义透明度与层级。",
+  "description": "低清预览（LQIP）：在清晰图加载期间叠加模糊的小图作为占位，加载完成后自动隐藏，实现渐进式加载体验。",
   "since": "2.0.0",
-  "tags": [
-    "visual",
-    "视觉"
-  ],
+  "tags": ["other", "视觉", "占位", "渐进加载"],
   "config": [
-    {
-      "name": "lqipSrc",
-      "type": "string | ((src: string) => string)",
-      "description": ""
-    },
-    {
-      "name": "blur",
-      "type": "number",
-      "description": "px"
-    },
-    {
-      "name": "opacity",
-      "type": "number",
-      "description": "0~1"
-    },
-    {
-      "name": "zIndex",
-      "type": "number",
-      "description": ""
-    }
+    { "name": "lqipSrc", "type": "string | ((src) => string)", "default": "undefined", "description": "低清预览图地址或生成函数" },
+    { "name": "blur", "type": "number", "default": "12", "description": "模糊半径(px)" },
+    { "name": "opacity", "type": "number", "default": "1", "description": "不透明度(0~1)" },
+    { "name": "zIndex", "type": "number", "default": "2", "description": "叠加层级" }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createLqipPlugin()]);"
+  "example": "const LqipImage = withPlugins(LazyLoadImageCore, [\n  createLqipPlugin({ lqipSrc: (src) => src + \"?w=20\", blur: 14 }),\n]);\n\n<LqipImage src=\"https://picsum.photos/id/1015/500/300\" alt=\"LQIP 示例\" />;",
+  "examples": [
+    { "name": "模糊小图占位", "description": "14px 模糊小图作为加载期占位。", "src": "https://picsum.photos/id/1015/500/300", "config": { "lqipSrc": "https://picsum.photos/id/1015/20/20", "blur": 14 } },
+    { "name": "低不透明度", "description": "降低占位图不透明度，弱化视觉存在。", "src": "https://picsum.photos/id/1021/500/300", "config": { "lqipSrc": "https://picsum.photos/id/1021/20/20", "blur": 12, "opacity": 0.6 } },
+    { "name": "清晰后淡出", "description": "加载完成自动隐藏模糊层，过渡到清晰图。", "src": "https://picsum.photos/id/1026/500/300", "config": { "lqipSrc": "https://picsum.photos/id/1026/20/20", "blur": 16 } }
+  ],
+  "features": [
+    "模糊低清占位",
+    "可调模糊/透明度/层级",
+    "加载完成自动隐藏",
+    "支持函数/字符串来源",
+    "渐进式加载"
+  ],
+  "useCases": [
+    "渐进式图片加载",
+    "慢网占位",
+    "画廊/相册",
+    "提升感知性能"
+  ],
+  "notes": [
+    "lqipSrc 为函数型配置，静态预览使用字符串小图；函数用法见用法示例。"
+  ]
 }

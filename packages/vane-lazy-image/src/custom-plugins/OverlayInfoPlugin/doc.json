@@ -7,56 +7,47 @@
     "视觉"
   ],
   "config": [
+    { "name": "content", "type": "string | ((context: LazyImageContext) => string)", "default": "\"\"", "description": "覆盖层文本；可传函数按 context 派生" },
+    { "name": "position", "type": "\"top\" | \"bottom\" | \"center\"", "default": "\"bottom\"", "description": "文本位置" },
+    { "name": "background", "type": "string", "default": "transparent", "description": "背景色" },
+    { "name": "color", "type": "string", "default": "#fff", "description": "文字颜色" },
+    { "name": "fontSize", "type": "number", "default": "12", "description": "字号 px" },
+    { "name": "padding", "type": "string", "default": "6px 10px", "description": "内边距" },
+    { "name": "borderRadius", "type": "number", "default": "0", "description": "圆角 px" },
+    { "name": "zIndex", "type": "number", "default": "2", "description": "层叠顺序" },
+    { "name": "showWhen", "type": "\"always\" | \"loading\" | \"loaded\" | \"error\"", "default": "\"always\"", "description": "何时显示" },
+    { "name": "trigger", "type": "\"always\" | \"hover\"", "default": "\"always\"", "description": "触发方式" }
+  ],
+  "example": "// 底部信息条（常显）\nconst InfoImage = withPlugins(LazyLoadImageCore, [\n  createOverlayInfoPlugin({\n    content: \"来源：picsum.photos\",\n    position: \"bottom\",\n    background: \"rgba(0,0,0,0.45)\",\n    color: \"#fff\",\n  }),\n]);\n\n// 按加载状态动态文本\ncreateOverlayInfoPlugin({\n  content: (ctx) => ctx.imageState === \"loading\" ? \"加载中…\" : \"已加载\",\n  position: \"center\",\n});",
+  "examples": [
     {
-      "name": "content",
-      "type": "string | ((context: LazyImageContext) => string)",
-      "description": ""
+      "name": "底部信息条（常显）",
+      "description": "半透明黑底白字信息条，常显于底部。",
+      "src": "https://picsum.photos/seed/overlay-bottom/600/400",
+      "config": { "content": "来源：picsum.photos", "position": "bottom", "background": "rgba(0,0,0,0.45)", "color": "#fff", "showWhen": "always", "trigger": "always" }
     },
     {
-      "name": "position",
-      "type": "\"top\" | \"bottom\" | \"center\"",
-      "description": ""
-    },
-    {
-      "name": "background",
-      "type": "string",
-      "description": ""
-    },
-    {
-      "name": "color",
-      "type": "string",
-      "description": ""
-    },
-    {
-      "name": "fontSize",
-      "type": "number",
-      "description": ""
-    },
-    {
-      "name": "padding",
-      "type": "string",
-      "description": ""
-    },
-    {
-      "name": "borderRadius",
-      "type": "number",
-      "description": ""
-    },
-    {
-      "name": "zIndex",
-      "type": "number",
-      "description": ""
-    },
-    {
-      "name": "showWhen",
-      "type": "\"always\" | \"loading\" | \"loaded\" | \"error\"",
-      "description": ""
-    },
-    {
-      "name": "trigger",
-      "type": "\"always\" | \"hover\"",
-      "description": ""
+      "name": "悬停显示信息",
+      "description": "平时干净，鼠标悬停时居中浮出提示文字。",
+      "src": "https://picsum.photos/seed/overlay-hover/600/400",
+      "config": { "content": "悬停查看详情", "position": "center", "background": "rgba(0,0,0,0.5)", "color": "#fff", "showWhen": "always", "trigger": "hover" }
     }
   ],
-  "example": "withPlugins(LazyLoadImageCore, [createOverlayInfoPlugin()]);"
+  "features": [
+    "顶部 / 底部 / 居中三位置",
+    "文本支持静态或函数动态派生",
+    "背景 / 颜色 / 字号 / 圆角可调",
+    "可常显或悬停触发",
+    "可按加载状态（loading/loaded/error）显示"
+  ],
+  "useCases": [
+    "图片来源 / 版权信息",
+    "悬停浮出操作提示",
+    "加载 / 错误态文案",
+    "图库元信息展示"
+  ],
+  "notes": [
+    "content 传函数时可按 context（含 imageState / src）派生，但场景示例画廊用静态文本以保证实时预览。",
+    "与 Caption 的区别：OverlayInfo 更通用（任意文本 + 触发时机 + 加载态），Caption 专注单一图注。"
+  ]
 }
