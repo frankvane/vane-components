@@ -39,6 +39,10 @@
       "types": "./dist/custom-plugins/AltTextPlugin/index.d.ts",
       "import": "./dist/custom-plugins/AltTextPlugin/index.js"
     },
+    "./custom-plugins/AnimatedCursorPlugin": {
+      "types": "./dist/custom-plugins/AnimatedCursorPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/AnimatedCursorPlugin/index.js"
+    },
     "./custom-plugins/AntiHotlinkPlugin": {
       "types": "./dist/custom-plugins/AntiHotlinkPlugin/index.d.ts",
       "import": "./dist/custom-plugins/AntiHotlinkPlugin/index.js"
@@ -107,6 +111,10 @@
       "types": "./dist/custom-plugins/CropPlugin/index.d.ts",
       "import": "./dist/custom-plugins/CropPlugin/index.js"
     },
+    "./custom-plugins/CustomEffectsPlugin": {
+      "types": "./dist/custom-plugins/CustomEffectsPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/CustomEffectsPlugin/index.js"
+    },
     "./custom-plugins/DataSaverPlugin": {
       "types": "./dist/custom-plugins/DataSaverPlugin/index.d.ts",
       "import": "./dist/custom-plugins/DataSaverPlugin/index.js"
@@ -114,6 +122,10 @@
     "./custom-plugins/DecodeAfterIdlePlugin": {
       "types": "./dist/custom-plugins/DecodeAfterIdlePlugin/index.d.ts",
       "import": "./dist/custom-plugins/DecodeAfterIdlePlugin/index.js"
+    },
+    "./custom-plugins/DepthMapPlugin": {
+      "types": "./dist/custom-plugins/DepthMapPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/DepthMapPlugin/index.js"
     },
     "./custom-plugins/DominantColorPlugin": {
       "types": "./dist/custom-plugins/DominantColorPlugin/index.d.ts",
@@ -163,6 +175,10 @@
       "types": "./dist/custom-plugins/GalleryPlugin/index.d.ts",
       "import": "./dist/custom-plugins/GalleryPlugin/index.js"
     },
+    "./custom-plugins/GlitchEffectPlugin": {
+      "types": "./dist/custom-plugins/GlitchEffectPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/GlitchEffectPlugin/index.js"
+    },
     "./custom-plugins/HoverPrefetchPlugin": {
       "types": "./dist/custom-plugins/HoverPrefetchPlugin/index.d.ts",
       "import": "./dist/custom-plugins/HoverPrefetchPlugin/index.js"
@@ -190,6 +206,10 @@
     "./custom-plugins/MemoryPressureAbortPlugin": {
       "types": "./dist/custom-plugins/MemoryPressureAbortPlugin/index.d.ts",
       "import": "./dist/custom-plugins/MemoryPressureAbortPlugin/index.js"
+    },
+    "./custom-plugins/MorphPlugin": {
+      "types": "./dist/custom-plugins/MorphPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/MorphPlugin/index.js"
     },
     "./custom-plugins/NetworkAnalyticsPlugin": {
       "types": "./dist/custom-plugins/NetworkAnalyticsPlugin/index.d.ts",
@@ -246,6 +266,10 @@
     "./custom-plugins/RetryOnErrorPlugin": {
       "types": "./dist/custom-plugins/RetryOnErrorPlugin/index.d.ts",
       "import": "./dist/custom-plugins/RetryOnErrorPlugin/index.js"
+    },
+    "./custom-plugins/RevealAnimationPlugin": {
+      "types": "./dist/custom-plugins/RevealAnimationPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/RevealAnimationPlugin/index.js"
     },
     "./custom-plugins/SEOPlugin": {
       "types": "./dist/custom-plugins/SEOPlugin/index.d.ts",
