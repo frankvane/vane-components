@@ -269,6 +269,13 @@ const WaterfallCore = forwardRef<WaterfallCoreRef, WaterfallCoreProps>(
     const layoutTimerRef = useRef<number>();
     const lastScrollTimeRef = useRef(0);
     const isCalculatingLayoutRef = useRef(false);
+    /** 布局在跑时被挡下的请求：结束时补跑一次，不静默丢弃 */
+    const pendingRelayoutRef = useRef(false);
+    /** 正在跑的那次布局用的参数签名（判重：同参数不必补跑） */
+    const activeSigRef = useRef("");
+    const activeHooksRef = useRef<LayoutHooks | undefined>(undefined);
+    /** 始终指向最新 `calculateLayout`，供长生命周期回调使用（见下方赋值处的说明） */
+    const calculateLayoutRef = useRef<() => Promise<void>>(async () => {});
     const hasInitialLayoutRef = useRef(false);
     const hasRequestedLayoutRef = useRef(false);
     const visibleItemsRef = useRef<Set<number>>(new Set());
@@ -312,14 +319,32 @@ const WaterfallCore = forwardRef<WaterfallCoreRef, WaterfallCoreProps>(
     });
     const [, forceUpdateState] = useState({});
     positionsRef.current = itemPositions;
+    /**
+     * `layoutInfo` 的镜像：只在 calculateLayout 里写。
+     * 不跟着 render 同步 —— 它要表达的是「最近一次算完的布局」，
+     * 插件在 onLayoutComplete 里读的必须是刚算出来那份，而不是上一帧的 state。
+     */
+    const layoutInfoRef = useRef<LayoutInfo>(layoutInfo);
 
     // ---- 布局 ----
     const calculateLayout = useCallback(async () => {
       const container = containerRef.current;
       if (!container) return;
-      if (isCalculatingLayoutRef.current) return;
+      // 已有布局在跑：不能直接丢（丢了这一帧就永远停在旧列数上），置脏等它收尾再补一次。
+      // 但如果这次请求的布局参数和正在跑的那一次完全一样，补跑没有意义 ——
+      // 挂载时「挂载 effect + items effect」本来就会各来一次，补跑只会让
+      // onLayoutComplete 多触发一遍（埋点类插件会重复上报）。
+      const sig = `${columns}|${columnGapValue}|${rowGapValue}|${paddingValues.top},${paddingValues.right},${paddingValues.bottom},${paddingValues.left}|${alignmentMode}|${virtual?.estimateHeight ?? ""}`;
+      if (isCalculatingLayoutRef.current) {
+        if (sig !== activeSigRef.current || layoutHooks !== activeHooksRef.current) {
+          pendingRelayoutRef.current = true;
+        }
+        return;
+      }
 
       isCalculatingLayoutRef.current = true;
+      activeSigRef.current = sig;
+      activeHooksRef.current = layoutHooks;
       hasRequestedLayoutRef.current = false;
 
       const beforeResult = await onBeforeLayout?.();
@@ -354,7 +379,7 @@ const WaterfallCore = forwardRef<WaterfallCoreRef, WaterfallCoreProps>(
         hooks: layoutHooks,
       });
 
-      setLayoutInfo({
+      const nextInfo: LayoutInfo = {
         columns: result.columns,
         columnWidth: result.columnWidth,
         gap: columnGapValue,
@@ -362,7 +387,13 @@ const WaterfallCore = forwardRef<WaterfallCoreRef, WaterfallCoreProps>(
         totalHeight: result.totalHeight,
         containerWidth,
         containerHeight: container.clientHeight,
-      });
+      };
+      // 先写镜像再 setState：onLayoutComplete 里插件读的是 ref 镜像，
+      // 而 setState 要等下一次提交才生效 —— 只写 state 的话，补跑那一轮
+      // 插件读到的是上一帧的位置（曾经表现为 ctx.getItemPosition(0) === undefined）
+      layoutInfoRef.current = nextInfo;
+      positionsRef.current = result.positions;
+      setLayoutInfo(nextInfo);
       setItemPositions(result.positions);
       hasInitialLayoutRef.current = true;
 
@@ -377,6 +408,13 @@ const WaterfallCore = forwardRef<WaterfallCoreRef, WaterfallCoreProps>(
 
       onLayoutComplete?.();
       isCalculatingLayoutRef.current = false;
+
+      // 布局期间被丢弃的请求在这里补一次：用 ref 取最新闭包，
+      // 否则补的那次会带着触发时的旧 props（典型后果：列数改了又被排回去）
+      if (pendingRelayoutRef.current) {
+        pendingRelayoutRef.current = false;
+        void calculateLayoutRef.current();
+      }
     }, [
       columns,
       columnGapValue,
@@ -393,12 +431,20 @@ const WaterfallCore = forwardRef<WaterfallCoreRef, WaterfallCoreProps>(
       itemRefsMap,
     ]);
 
+    // 长生命周期回调（容器的 ResizeObserver、每项的 ResizeObserver、防抖定时器）都在挂载时
+    // 建好、之后不再重建，它们捕获的 `calculateLayout` 会一直是**首帧**那份。列数 / 间距是
+    // props，首帧闭包里的值永远是旧值 —— 表现就是「拖了列数，排一下又弹回去」。
+    // 所以这类回调一律走 ref，永远取最新实现的闭包。
+    calculateLayoutRef.current = calculateLayout;
+
     const throttledCalculateLayout = useCallback(() => {
       if (layoutTimerRef.current) window.clearTimeout(layoutTimerRef.current);
       layoutTimerRef.current = window.setTimeout(() => {
-        void calculateLayout();
+        void calculateLayoutRef.current();
       }, debounceDelay);
-    }, [calculateLayout, debounceDelay]);
+      // 身份刻意稳定（不依赖 calculateLayout）：它被 items effect、ResizeObserver、
+      // 项 ref 回调长期持有，跟着 props 一起变会让那些 effect 反复重跑。
+    }, [debounceDelay]);
 
     // ---- 视口 ----
     const updateViewportInfo = useCallback((isScrolling: boolean) => {
@@ -543,13 +589,22 @@ const WaterfallCore = forwardRef<WaterfallCoreRef, WaterfallCoreProps>(
       throttledCalculateLayout();
     }, [items, throttledCalculateLayout]);
 
-    // 列参数变化 → 立即重排（等防抖会让画面明显跳一下）
+    // 布局参数变化 → 立即重排（等防抖会让画面明显跳一下）
+    // 这里的依赖表就是「一切影响布局结果的入参」：漏一个就会表现为该 prop 改了没反应
     useEffect(() => {
       hasInitialLayoutRef.current = false;
       hasRequestedLayoutRef.current = false;
       void calculateLayout();
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [columns, columnGapValue, rowGapValue]);
+    }, [
+      columns,
+      columnGapValue,
+      rowGapValue,
+      paddingValues,
+      alignmentMode,
+      virtual?.estimateHeight,
+      layoutHooks,
+    ]);
 
     // ---- 项的 ref 回调：按 index 缓存成稳定函数 ----
     const itemRefHandlerRef = useRef<(index: number, el: HTMLDivElement | null) => void>(
@@ -685,8 +740,8 @@ const WaterfallCore = forwardRef<WaterfallCoreRef, WaterfallCoreProps>(
         },
         getItemPosition: (index) => positionsRef.current.get(index) ?? null,
         getAllItemPositions: () => positionsRef.current,
-        getColumnHeights: () => layoutInfo.columnHeights,
-        getLayoutInfo: () => layoutInfo,
+        getColumnHeights: () => layoutInfoRef.current.columnHeights,
+        getLayoutInfo: () => layoutInfoRef.current,
         getViewportInfo: () => {
           const container = containerRef.current;
           if (!container) return viewportInfo;

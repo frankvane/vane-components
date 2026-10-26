@@ -25,7 +25,7 @@ export const meta: DemoMeta = {
   props: ["columns={3}", "containerStyle={{ height: 420 }}"],
   note: "与 virtualize 互斥：一个隐藏 DOM、一个卸载 DOM，同开会互相打架（可见项被另一套逻辑当成离屏）。",
   controls: [
-    { key: "poolSize", label: "poolSize", kind: "number", init: 24, min: 4, max: 80, step: 2 },
+    { key: "poolSize", label: "poolSize", kind: "number", init: 24, min: 4, max: 80, step: 2, nonLayout: true },
   ],
 };
 

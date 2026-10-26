@@ -29,7 +29,10 @@ export function buildDemoCode(meta: DemoMeta, cfg: DemoCfg): string {
     .map((p) => `  ${p.fn}(${p.cfg ? `{ ${fill(p.cfg, cfg)} }` : ""}),`)
     .join("\n");
 
-  const propLines = meta.props.map((p) => `      ${fill(p, cfg)}`).join("\n");
+  const propLines = meta.props
+    .filter((p) => typeof p === "string" || !p.when || p.when(cfg))
+    .map((p) => `      ${fill(typeof p === "string" ? p : p.text, cfg)}`)
+    .join("\n");
 
   const body = meta.plugs.length
     ? `const Waterfall = withPlugins(WaterfallCore, [

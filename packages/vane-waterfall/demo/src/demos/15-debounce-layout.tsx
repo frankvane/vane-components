@@ -27,7 +27,7 @@ export const meta: DemoMeta = {
   props: ["columns={3}", "containerStyle={{ height: 420 }}"],
   note: "防抖太大会有「松手后卡片才归位」的观感，200–300ms 是比较稳的区间。和 ThrottlePlugin 分工不同：那个管回调、这个管重排。",
   controls: [
-    { key: "delay", label: "delay（ms）", kind: "number", init: 300, min: 0, max: 600, step: 20 },
+    { key: "delay", label: "delay（ms）", kind: "number", init: 300, min: 0, max: 600, step: 20, nonLayout: true },
     { key: "simWidth", label: "容器宽", kind: "number", init: 780, min: 380, max: 1080, step: 10 },
   ],
 };

@@ -32,7 +32,22 @@ export interface DemoControl {
   /** select 的选项；value 一律用字符串，舞台自行转换 */
   options?: Array<{ label: string; value: string }>;
   hint?: string;
+  /**
+   * 条件显示：返回 false 时这一项不出现在控件条里（值仍留在 cfg 里）。
+   * 用于「A 生效时 B 没意义」的成对参数，例如 gap 与 rowGap/columnGap 互斥。
+   */
+  when?: (cfg: DemoCfg) => boolean;
+  /**
+   * 这一项不改版式，只影响耗时 / 渲染条数 / 触发阈值。
+   * 体检脚本据此放过它（否则会把「throttleDelay 拉满也没有几何变化」当成缺陷）。
+   */
+  nonLayout?: boolean;
 }
+
+/** 装配代码里的一行 props；`when` 为假时该行不生成 */
+export type DemoPropLine =
+  | string
+  | { text: string; when?: (cfg: DemoCfg) => boolean };
 
 export interface DemoPlug {
   /** 插件工厂名，必须是 custom-plugins 的导出（如 createGapPlugin） */
@@ -63,7 +78,7 @@ export interface DemoMeta {
   why: string;
   plugs: DemoPlug[];
   /** 装配代码里 `<Waterfall>` 上的 props，每行一条；支持 `{{key}}` 替换 */
-  props: string[];
+  props: DemoPropLine[];
   /** 坑位提醒 */
   note?: string;
   controls?: DemoControl[];

@@ -23,5 +23,10 @@ vane-waterfall 2.0.0：插件系统内核更换为 `@vane/plugin-core`，钩子�
 - `AutoColumnPlugin` / `ResponsiveColumnsPlugin` 改走 D1-A 布局钩子 `calculateColumns`，拿到的是**容器**宽度而不是 `window.innerWidth`。
 - `ClickAnalytics` / `HeatmapAnalytics` / `StickyHeader` 的 `showOverlay` 默认改为 `false`。
 - 布局抽成纯函数 `computeLayout` / `computeVisibleRange` 并对外导出，配 8 组数字快照做等价性断言。
+- **布局 props 变化后的重排修好了**：`columns` / `gap` / `padding` / `alignmentMode` 变化会立即重排；重排之后项级 `ResizeObserver` 再触发也不会用**首帧闭包**把结果盖回旧值（此前把列数从 3 拖到 5，排完又被 3 列覆盖，现象像「控件没接上」）。
+- **布局期间到达的请求不再被丢弃**：改为「等这次收尾后补跑一次」，且按参数签名判重（同参数不补跑，`onLayoutComplete` 不会重复触发）。
+- `layoutInfo` / `itemPositions` 的镜像改为在布局完成瞬间写入，插件在 `onLayoutComplete` 里读到的永远是刚算出来的那份（此前可能拿到上一帧的值，极端情况是空 `Map`）。
+- `GapPlugin` 的 `responsive.sm` 只在小屏（`< 768`）生效，不再被当作兜底档把桌面端显式传入的 `columnGap` / `rowGap` 顶掉。
 - 3 个配方：`presets/photo-feed` / `presets/product-feed` / `presets/dashboard`。
-- 演示站重建为「插件工坊（26 插件勾选实时装配）+ 场景库（13 个真实版式，一卡两份源码，页面内几何体检）」。
+- 演示站重建为「插件工坊（26 插件勾选实时装配）+ 场景库（13 个真实版式，一卡两份源码，页面内几何体检）+ 逐项示例（34 页，一插件一页，参数可拖、装配代码跟着变）」。
+- 演示站加第三道闸门 `audit:controls`：逐页把每个滑杆推到两端比较逐项指纹，抓「控件没接上」这类几何合法但功能失效的缺陷。

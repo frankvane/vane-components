@@ -71,7 +71,9 @@ createGapPlugin({
 });
 ```
 
-`responsive` 的键是 `sm|md|lg|xl`，阈值分别是 768 / 992 / 1200。
+`responsive` 的键是 `sm|md|lg|xl`，阈值分别是 768 / 992 / 1200。`sm` 只在 `< 768` 生效，不会被当成兜底档套到桌面端。
+
+命中即覆盖：桌面窗口 ≥1200 又配了 `lg`，那 `columnGap` / `rowGap` 在这一档就不起作用 —— 想让手写值生效，就别给该档位配 `responsive`。
 
 ### FixedHeightPlugin `priority 45`
 

@@ -28,8 +28,8 @@ export const meta: DemoMeta = {
   props: ["columns={3}", "containerStyle={{ height: 420 }}"],
   note: "节流的是回调，不是布局。想让「连续改尺寸时的重排」慢下来用 DebounceLayout（下一页）。",
   controls: [
-    { key: "scroll", label: "scroll（ms）", kind: "number", init: 16, min: 0, max: 200, step: 8 },
-    { key: "resize", label: "resize（ms）", kind: "number", init: 120, min: 0, max: 400, step: 20 },
+    { key: "scroll", label: "scroll（ms）", kind: "number", init: 16, min: 0, max: 200, step: 8, nonLayout: true },
+    { key: "resize", label: "resize（ms）", kind: "number", init: 120, min: 0, max: 400, step: 20, nonLayout: true },
   ],
 };
 

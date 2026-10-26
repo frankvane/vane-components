@@ -18,12 +18,12 @@ export const meta: DemoMeta = {
   plugs: [
     {
       fn: "createGapPlugin",
-      cfg: "columnGap: {{columnGap}}, rowGap: {{rowGap}}, responsive: { sm: { columnGap: 8, rowGap: 8 }, lg: { columnGap: 20, rowGap: 20 } }",
+      cfg: "columnGap: {{columnGap}}, rowGap: {{rowGap}}, responsive: { sm: { columnGap: 8, rowGap: 8 } }",
       why: "间距集中配置，并按 sm/md/lg/xl 自动换档（阈值 768/992/1200）",
     },
   ],
   props: ["columns={3}", "containerStyle={{ height: 420 }}"],
-  note: "responsive 的档位看的是窗口宽度，不是容器宽。所以它和 AutoColumn（按容器宽）会「一个看窗口、一个看容器」，混用时注意别互相打脸。",
+  note: "responsive 是「命中即覆盖」：桌面端如果也配了 lg，上面两个滑杆就会被 lg 顶掉（看着像没接上）。这页只给 sm，所以桌面端用手写值、窄于 768px 才切 8px。档位看的是 window 宽度，不是容器宽。",
   controls: [
     { key: "columnGap", label: "columnGap", kind: "number", init: 16, min: 0, max: 40 },
     { key: "rowGap", label: "rowGap", kind: "number", init: 16, min: 0, max: 40 },
@@ -38,9 +38,9 @@ export default createFeedStage({
     createGapPlugin({
       columnGap: Number(api.cfg.columnGap),
       rowGap: Number(api.cfg.rowGap),
+      // 只配 sm：桌面端要能拖滑杆看到手写值生效；断点一旦配了同档位就会顶掉手写值
       responsive: {
         sm: { columnGap: 8, rowGap: 8 },
-        lg: { columnGap: 20, rowGap: 20 },
       },
     }),
   ],

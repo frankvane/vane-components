@@ -129,7 +129,15 @@ demo/               演示站：34 页逐项示例 + 工坊 + 13 场景（不随
 pnpm --filter vane-waterfall dev               # 开发（端口 3300）
 pnpm --filter vane-waterfall demo              # 构建 + 静态托管 demo-dist
 pnpm --filter vane-waterfall verify:scenarios  # 目录 / 源码 / 插件名一致性闸门（场景 + 示例）
-PLAYWRIGHT_PATH=<playwright> node scripts/audit-demos.mjs   # 37 个页面逐页几何体检
+PLAYWRIGHT_PATH=<playwright> node scripts/audit-demos.mjs      # 37 个页面逐页几何体检
+PLAYWRIGHT_PATH=<playwright> node scripts/audit-controls.mjs   # 每个滑杆推开看版式是否真变
 ```
 
-两道闸门的区别：`verify:scenarios` 是静态核对（元信息 ↔ 源码 ↔ 插件名双向），`audit-demos` 用真浏览器量几何（重叠 / 越界 / 零尺寸 / `scrollHeight` 盖不住底边）—— 后者能抓住「文字看不出来、但版式已经坏了」的问题。
+三道闸门各管一段，缺一段就有盲区：
+
+| 闸门 | 抓什么 | 抓不到什么 |
+| --- | --- | --- |
+| `verify:scenarios` | 元信息 ↔ 源码 ↔ 插件名双向对不上（写了没实现、实现了没登记） | 运行时行为 |
+| `audit-demos` | 真浏览器里的几何坏味道：重叠 / 越界 / 零尺寸 / `scrollHeight` 盖不住底边 | 「控件没接上」——3 列排得整整齐齐也是合法几何 |
+| `audit:controls` | 逐个滑杆推到两端，比较逐项指纹（列号 + 位置 + 列宽 + 总高 + 渲染项数）；标了 `nonLayout` 的（耗时 / 池大小 / 阈值）跳过 | 耗时类参数的效果（得看读数或日志） |
+

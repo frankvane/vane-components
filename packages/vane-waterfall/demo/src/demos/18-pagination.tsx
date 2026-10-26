@@ -43,17 +43,23 @@ export default createFeedStage({
   plugins: (api) => [
     createPaginationPlugin({ pageSize: Number(api.cfg.pageSize), scrollToTop: true }),
   ],
-  coreProps: (api) => ({
-    columns: 4,
-    gap: 12,
-    pageIndex: Number(api.cfg.pageIndex),
-    pageSize: Number(api.cfg.pageSize),
-    scrollToTopOnPageChange: true,
-  }),
+  coreProps: (api) => {
+    // 页数由 pageSize 决定，pageIndex 的滑杆上限是死的 → 超出就钳到最后一页，
+    // 否则拖到头会得到一个「第 12 / 2 页」的空舞台
+    const pages = Math.max(1, Math.ceil(48 / Number(api.cfg.pageSize)));
+    return {
+      columns: 4,
+      gap: 12,
+      pageIndex: Math.min(Number(api.cfg.pageIndex), pages),
+      pageSize: Number(api.cfg.pageSize),
+      scrollToTopOnPageChange: true,
+    };
+  },
   chrome: (api) => {
     const size = Number(api.cfg.pageSize);
-    const page = Number(api.cfg.pageIndex);
+    const asked = Number(api.cfg.pageIndex);
     const pages = Math.max(1, Math.ceil(api.items.length / size));
+    const page = Math.min(asked, pages);
     return (
       <div className="stage-pager">
         <button
@@ -65,6 +71,7 @@ export default createFeedStage({
         </button>
         <span>
           第 <b>{page}</b> / {pages} 页 · 每页 {size} · 共 {api.items.length} 项
+          {asked > pages ? "（滑杆已越界，钳到最后一页）" : ""}
         </span>
         <button
           type="button"

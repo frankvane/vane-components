@@ -21,51 +21,53 @@ export function ControlBar({
 }) {
   return (
     <div className="ctl-bar">
-      {controls.map((c) => {
-        const value = cfg[c.key];
-        return (
-          <label className="ctl" key={c.key} title={c.hint}>
-            <span className="ctl-label">
-              {c.label}
-              <b className="ctl-val">
-                {c.kind === "switch" ? (value ? "开" : "关") : String(value)}
-              </b>
-            </span>
-            {c.kind === "switch" ? (
-              <button
-                type="button"
-                className={`ctl-switch${value ? " is-on" : ""}`}
-                onClick={() => onChange(c.key, !value)}
-                aria-pressed={Boolean(value)}
-              >
-                <i />
-              </button>
-            ) : c.kind === "select" ? (
-              <select
-                className="ctl-select"
-                value={String(value)}
-                onChange={(e) => onChange(c.key, e.target.value)}
-              >
-                {(c.options ?? []).map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {o.label}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <input
-                className="ctl-range"
-                type="range"
-                min={c.min ?? 0}
-                max={c.max ?? 100}
-                step={c.step ?? 1}
-                value={Number(value)}
-                onChange={(e) => onChange(c.key, Number(e.target.value))}
-              />
-            )}
-          </label>
-        );
-      })}
+      {controls
+        .filter((c) => !c.when || c.when(cfg))
+        .map((c) => {
+          const value = cfg[c.key];
+          return (
+            <label className="ctl" key={c.key} title={c.hint}>
+              <span className="ctl-label">
+                {c.label}
+                <b className="ctl-val">
+                  {c.kind === "switch" ? (value ? "开" : "关") : String(value)}
+                </b>
+              </span>
+              {c.kind === "switch" ? (
+                <button
+                  type="button"
+                  className={`ctl-switch${value ? " is-on" : ""}`}
+                  onClick={() => onChange(c.key, !value)}
+                  aria-pressed={Boolean(value)}
+                >
+                  <i />
+                </button>
+              ) : c.kind === "select" ? (
+                <select
+                  className="ctl-select"
+                  value={String(value)}
+                  onChange={(e) => onChange(c.key, e.target.value)}
+                >
+                  {(c.options ?? []).map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  className="ctl-range"
+                  type="range"
+                  min={c.min ?? 0}
+                  max={c.max ?? 100}
+                  step={c.step ?? 1}
+                  value={Number(value)}
+                  onChange={(e) => onChange(c.key, Number(e.target.value))}
+                />
+              )}
+            </label>
+          );
+        })}
     </div>
   );
 }

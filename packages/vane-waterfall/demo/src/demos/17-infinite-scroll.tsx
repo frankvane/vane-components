@@ -28,7 +28,7 @@ export const meta: DemoMeta = {
   props: ["onLoadMore={loadMore}", "columns={3}", "containerStyle={{ height: 420 }}"],
   note: "与 PaginationPlugin 互斥：一个追加、一个切片，同开会「翻到第 2 页又看到第 1 页」。到上限时让插件 setState({ hasMore: false }) 或像这里在 onLoadMore 里短路。",
   controls: [
-    { key: "threshold", label: "threshold（px）", kind: "number", init: 400, min: 100, max: 900, step: 50 },
+    { key: "threshold", label: "threshold（px）", kind: "number", init: 400, min: 100, max: 900, step: 50, nonLayout: true },
   ],
 };
 

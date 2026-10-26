@@ -43,8 +43,8 @@ export const meta: DemoMeta = {
       hint: "balanced 列高会不齐，但每列张数接近",
     },
     { key: "useTransform", label: "useTransform", kind: "switch", init: true },
-    { key: "throttle", label: "throttleDelay", kind: "number", init: 16, min: 0, max: 120, step: 8 },
-    { key: "debounce", label: "debounceDelay", kind: "number", init: 150, min: 0, max: 600, step: 10 },
+    { key: "throttle", label: "throttleDelay", kind: "number", init: 16, min: 0, max: 120, step: 8, nonLayout: true },
+    { key: "debounce", label: "debounceDelay", kind: "number", init: 150, min: 0, max: 600, step: 10, nonLayout: true },
     { key: "debug", label: "debug", kind: "switch", init: false, hint: "控制台打印布局耗时" },
   ],
 };

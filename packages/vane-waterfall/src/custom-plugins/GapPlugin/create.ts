@@ -20,7 +20,10 @@ function pickResponsive(config: GapConfig): { columnGap?: number; rowGap?: numbe
   if (w >= 1200 && r.xl) return r.xl;
   if (w >= 992 && r.lg) return r.lg;
   if (w >= 768 && r.md) return r.md;
-  if (r.sm) return r.sm;
+  // sm 是「小屏档」，不是「兜底档」：早先这里无条件返回 sm，导致只配了 sm 时
+  // 桌面端也被窄屏间距覆盖 —— 显式传进来的 columnGap / rowGap 永远不生效，
+  // 调参时看着像插件没接上。
+  if (w < 768 && r.sm) return r.sm;
   return {};
 }
 

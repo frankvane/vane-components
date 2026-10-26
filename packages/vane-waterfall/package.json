@@ -181,7 +181,8 @@
     "audit:demos": "node scripts/audit-demos.mjs",
     "serve:demo": "node scripts/serve-demo.cjs",
     "demo": "pnpm build:demo && node scripts/serve-demo.cjs",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "audit:controls": "node scripts/audit-controls.mjs"
   },
   "peerDependencies": {
     "@vane/plugin-core": "workspace:*",
