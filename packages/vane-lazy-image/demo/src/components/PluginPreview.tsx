@@ -29,7 +29,19 @@ type DemoAction = {
   emptyAlt?: boolean;
   multi?: boolean;
   scroll?: boolean;
+  /** 换一个请求地址（如受保护资源），用于演示「凭证校验失败」这条真实回路 */
+  src?: string;
 };
+
+/**
+ * 受保护资源：由 `scripts/serve-demo.cjs` 提供，会真的校验凭证。
+ *   - 不带凭证        → 401 missing_credentials
+ *   - access_token=expired-token → 401 invalid_token（可重试）
+ *   - 其他未知 token  → 403 insufficient_scope（应降级）
+ *   - 合法 token      → 200，返回一张写着 AUTHORIZED 的图
+ * 这样「鉴权失败 → 降级 / 重试」不再只是口头推论，页面上能真的走一遍。
+ */
+const PROTECTED_IMG = "http://127.0.0.1:3200/protected/image";
 
 const DEMO_ACTIONS: Record<string, DemoAction[]> = {
   "alt-text": [
@@ -49,9 +61,22 @@ const DEMO_ACTIONS: Record<string, DemoAction[]> = {
   ],
   auth: [
     {
-      label: "注入访问凭证",
-      hint: "请求 URL 追加 access_token=demo-token，看观察台「请求 URL」",
+      label: "受保护资源 + 凭证（200）",
+      hint: "换成会真校验凭证的 /protected/image（需先 pnpm serve:demo），注入 access_token 后返回 200，图上写着 AUTHORIZED",
+      src: PROTECTED_IMG,
       patch: { token: "demo-token-1f2e3d", tokenParam: "access_token", crossOrigin: "anonymous" },
+    },
+    {
+      label: "令牌过期（401 可重试）",
+      hint: "token=expired-token：服务端回 401 invalid_token，观察台「传输 / 解码」显示 HTTP 401",
+      src: PROTECTED_IMG,
+      patch: { token: "expired-token", tokenParam: "access_token", crossOrigin: "anonymous" },
+    },
+    {
+      label: "无权限（403 应降级）",
+      hint: "token=wrong-token：服务端回 403 insufficient_scope，重试无意义，应由上层降级",
+      src: PROTECTED_IMG,
+      patch: { token: "wrong-token", tokenParam: "access_token", crossOrigin: "anonymous" },
     },
   ],
   "cache-memory": [
@@ -87,6 +112,18 @@ const DEMO_ACTIONS: Record<string, DemoAction[]> = {
       label: "灰度 + 悬停恢复",
       hint: "filter=none 时没有任何效果，这里切成 grayscale 且悬停还原",
       patch: { filter: "grayscale", amount: 1, hover: true },
+    },
+  ],
+  "fallback-image": [
+    {
+      label: "401 → 自动回退",
+      hint: "换成受保护资源且不带凭证（需先 pnpm serve:demo），服务端回 401，插件把 src 换成 fallbackSrc（回退图会显示出来）",
+      src: PROTECTED_IMG,
+    },
+    {
+      label: "403 → 同样回退",
+      hint: "?force=403：无权限（而非令牌过期）也走同一套降级，回退图照常顶上",
+      src: `${PROTECTED_IMG}?force=403`,
     },
   ],
   "priority-loading": [
@@ -312,6 +349,10 @@ export const PluginPreview: React.FC<{ pluginId: string }> = ({ pluginId }) => {
       // 演示写入的参数同样进 touched：否则会被示例预设覆盖回去
       Object.keys(a.patch).forEach((k) => touchedRef.current.add(k));
       setValues((v) => ({ ...v, ...a.patch }));
+    }
+    if (a.src) {
+      setUseError(false);
+      setSrc(a.src);
     }
     if (a.env) setEnvState({ ...getEnvState(), ...a.env });
     if (a.emptyAlt) setEmptyAlt(true);

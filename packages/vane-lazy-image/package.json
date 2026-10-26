@@ -366,7 +366,9 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run --pool=threads",
     "lint": "eslint .",
-    "sync:exports": "node ../../scripts/sync-exports.mjs"
+    "sync:exports": "node ../../scripts/sync-exports.mjs",
+    "serve:demo": "node scripts/serve-demo.cjs",
+    "demo": "pnpm build:demo && node scripts/serve-demo.cjs"
   },
   "peerDependencies": {
     "@vane/plugin-core": "workspace:*",

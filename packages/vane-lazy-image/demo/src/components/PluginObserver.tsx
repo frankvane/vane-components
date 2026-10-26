@@ -216,12 +216,30 @@ function readSnapshot(
   let timing = "-";
   let cacheHit = false;
   // 量化「这张图到底花了多少字节 / 多久」——性能收益类结论需要它，
-  // 只有「行为是否发生」的证据不足以支撑优化收益
-  let perf: { kb: string; decoded: string; duration: number } | null = null;
+  // 只有「行为是否发生」的证据不足以支撑优化收益。
+  // status 取 Resource Timing 的 responseStatus（Chrome 109+），
+  // 鉴权类插件的 401/403 只能从这里看到——它不体现在 DOM 上。
+  let perf: { kb: string; decoded: string; duration: number; status: number } | null = null;
   const src = img?.currentSrc || img?.src || "";
   if (src) {
     try {
-      const entries = performance.getEntriesByName(src, "resource") as PerformanceResourceTiming[];
+      let entries = performance.getEntriesByName(src, "resource") as PerformanceResourceTiming[];
+      if (!entries.length) {
+        // 开发服务器（vite）下 currentSrc 与实际记录名偶尔不一致（查询串被规范化 / HMR 重挂载），
+        // 精确名匹配会空手而归，退一步按 origin + pathname 匹配同一次请求
+        let key = "";
+        try {
+          const u = new URL(src, window.location.href);
+          key = u.origin + u.pathname;
+        } catch {
+          /* ignore */
+        }
+        if (key) {
+          entries = (performance.getEntriesByType("resource") as PerformanceResourceTiming[]).filter(
+            (e) => e.name.startsWith(key)
+          );
+        }
+      }
       if (entries.length) {
         const e = entries[entries.length - 1];
         const kb = e.transferSize ? (e.transferSize / 1024).toFixed(1) + "KB" : "缓存/0KB";
@@ -233,6 +251,7 @@ function readSnapshot(
           kb: e.transferSize ? (e.transferSize / 1024).toFixed(1) + "KB" : "0KB（缓存）",
           decoded: e.decodedBodySize ? (e.decodedBodySize / 1024).toFixed(1) + "KB" : "—",
           duration: Math.round(e.duration),
+          status: Number((e as any).responseStatus || 0),
         };
       }
     } catch {
@@ -357,7 +376,12 @@ function buildRows(s: Snap): Row[] {
   push(
     "transfer",
     "传输 / 解码",
-    s.perf ? `${s.perf.kb} · 解码 ${s.perf.decoded} · 耗时 ${s.perf.duration}ms` : "",
+    s.perf
+      ? `${s.perf.kb} · 解码 ${s.perf.decoded} · 耗时 ${s.perf.duration}ms` +
+        (s.perf.status ? ` · HTTP ${s.perf.status}` : "")
+      : "",
+    // 只看不标 ●：任何插件的错误态都会回 404，若让它参与信号判定，
+    // 所有插件都会被误判成「错误态可见」，反而把分层口径搞乱
     false
   );
   push("lcp", "LCP", s.lcp ? `${s.lcp}ms${s.lcpTag ? `（${s.lcpTag}）` : ""}` : "", false);
