@@ -7,24 +7,126 @@
     "电商核心"
   ],
   "config": [
-    { "name": "status", "type": "\"in-stock\" | \"out-of-stock\" | \"low-stock\" | \"pre-order\"", "default": "\"in-stock\"", "description": "初始库存状态" },
-    { "name": "stockCount", "type": "number", "default": "undefined", "description": "库存数量" },
-    { "name": "lowStockThreshold", "type": "number", "default": "10", "description": "低库存阈值" },
-    { "name": "showBadge", "type": "boolean", "default": "true", "description": "是否显示角标" },
-    { "name": "autoRefresh", "type": "boolean", "default": "false", "description": "是否自动刷新库存" },
-    { "name": "refreshInterval", "type": "number", "default": "30000", "description": "刷新间隔（毫秒）" },
-    { "name": "fetchStock", "type": "() => Promise<{ status?; count? }>", "default": "undefined", "description": "自定义库存获取函数" },
-    { "name": "onStatusChange", "type": "(status) => void", "default": "undefined", "description": "状态变更回调" },
-    { "name": "position", "type": "\"top-left\" | \"top-right\" | \"bottom-left\" | \"bottom-right\"", "default": "\"top-right\"", "description": "角标位置" },
-    { "name": "style", "type": "React.CSSProperties", "default": "{}", "description": "自定义叠加样式" }
+    {
+      "name": "status",
+      "type": "\"in-stock\" | \"out-of-stock\" | \"low-stock\" | \"pre-order\"",
+      "default": "\"in-stock\"",
+      "description": "初始库存状态"
+    },
+    {
+      "name": "stockCount",
+      "type": "number",
+      "default": "undefined",
+      "description": "库存数量"
+    },
+    {
+      "name": "lowStockThreshold",
+      "type": "number",
+      "default": "10",
+      "description": "低库存阈值"
+    },
+    {
+      "name": "showBadge",
+      "type": "boolean",
+      "default": "true",
+      "description": "是否显示角标"
+    },
+    {
+      "name": "autoRefresh",
+      "type": "boolean",
+      "default": "false",
+      "description": "是否自动刷新库存"
+    },
+    {
+      "name": "refreshInterval",
+      "type": "number",
+      "default": "30000",
+      "description": "刷新间隔（毫秒）"
+    },
+    {
+      "name": "fetchStock",
+      "type": "() => Promise<{ status?; count? }>",
+      "default": "undefined",
+      "description": "自定义库存获取函数"
+    },
+    {
+      "name": "onStatusChange",
+      "type": "(status) => void",
+      "default": "undefined",
+      "description": "状态变更回调"
+    },
+    {
+      "name": "position",
+      "type": "\"top-left\" | \"top-right\" | \"bottom-left\" | \"bottom-right\"",
+      "default": "\"top-right\"",
+      "description": "角标位置"
+    },
+    {
+      "name": "style",
+      "type": "React.CSSProperties",
+      "default": "{}",
+      "description": "自定义叠加样式"
+    }
   ],
   "example": "// 1. 静态库存状态\nconst StockImage = withPlugins(LazyLoadImageCore, [\n  createInventoryStatusPlugin({ status: \"low-stock\", stockCount: 5 }),\n]);\n\n// 2. 自动刷新库存（定时拉取最新数量）\ncreateInventoryStatusPlugin({\n  status: \"in-stock\",\n  stockCount: 50,\n  autoRefresh: true,\n  refreshInterval: 5000,\n  fetchStock: async () => {\n    const res = await fetch(\"/api/products/123/stock\");\n    return res.json(); // { status, count }\n  },\n});\n\n// 3. 在组件中使用\n<StockImage src=\"https://picsum.photos/id/164/280/280\" alt=\"商品图\" />;",
   "examples": [
-    { "name": "有货（100 件）", "description": "绿色角标，显示库存数量。", "src": "https://picsum.photos/id/152/280/280", "config": { "status": "in-stock", "stockCount": 100, "showBadge": true, "position": "top-right" } },
-    { "name": "库存紧张（5 件）", "description": "低于阈值 → 橙色预警角标。", "src": "https://picsum.photos/id/164/280/280", "config": { "status": "low-stock", "stockCount": 5, "lowStockThreshold": 10, "showBadge": true, "position": "top-right" } },
-    { "name": "缺货", "description": "红色缺货角标。", "src": "https://picsum.photos/id/177/280/280", "config": { "status": "out-of-stock", "stockCount": 0, "showBadge": true, "position": "top-right" } },
-    { "name": "预订", "description": "蓝色预订角标。", "src": "https://picsum.photos/id/183/280/280", "config": { "status": "pre-order", "showBadge": true, "position": "top-right" } },
-    { "name": "自动刷新库存（每 5 秒）", "description": "通过 fetchStock 定时刷新状态（示例中省略函数，可配 interval）。", "src": "https://picsum.photos/id/225/400/300", "config": { "status": "in-stock", "stockCount": 50, "showBadge": true, "autoRefresh": true, "refreshInterval": 5000, "position": "top-right" } }
+    {
+      "name": "有货（100 件）",
+      "description": "绿色角标，显示库存数量。",
+      "src": "https://picsum.photos/id/152/280/280",
+      "config": {
+        "status": "in-stock",
+        "stockCount": 100,
+        "showBadge": true,
+        "position": "top-right"
+      }
+    },
+    {
+      "name": "库存紧张（5 件）",
+      "description": "低于阈值 → 橙色预警角标。",
+      "src": "https://picsum.photos/id/164/280/280",
+      "config": {
+        "status": "low-stock",
+        "stockCount": 5,
+        "lowStockThreshold": 10,
+        "showBadge": true,
+        "position": "top-right"
+      }
+    },
+    {
+      "name": "缺货",
+      "description": "红色缺货角标。",
+      "src": "https://picsum.photos/id/177/280/280",
+      "config": {
+        "status": "out-of-stock",
+        "stockCount": 0,
+        "showBadge": true,
+        "position": "top-right"
+      }
+    },
+    {
+      "name": "预订",
+      "description": "蓝色预订角标。",
+      "src": "https://picsum.photos/id/183/280/280",
+      "config": {
+        "status": "pre-order",
+        "showBadge": true,
+        "position": "top-right"
+      }
+    },
+    {
+      "name": "自动刷新库存（每 5 秒）",
+      "description": "通过 fetchStock 定时刷新状态（示例中省略函数，可配 interval）。",
+      "src": "https://picsum.photos/id/225/400/300",
+      "config": {
+        "status": "in-stock",
+        "stockCount": 50,
+        "showBadge": true,
+        "autoRefresh": true,
+        "refreshInterval": 5000,
+        "position": "top-right"
+      }
+    }
   ],
   "features": [
     "4 种库存状态：有货 / 低库存 / 缺货 / 预订",
@@ -40,5 +142,9 @@
     "在线商城首页",
     "门票 / 课程售卖",
     "限时抢购活动"
+  ],
+  "notes": [
+    "`stockCount <= lowStockThreshold` 时会自动归为「库存紧张」，无需手动改 `status`。",
+    "`autoRefresh` 需配合 `refreshInterval` 与 `fetchStock` 才有意义，静态示例页不会轮询。"
   ]
 }

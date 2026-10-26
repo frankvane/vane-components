@@ -11,7 +11,7 @@
       "name": "respectSaveData",
       "type": "boolean",
       "default": "true",
-      "description": ""
+      "description": "仅在 navigator.connection.saveData=true 时降质（关闭则强制降质）"
     },
     {
       "name": "fallbackQuality",
@@ -23,7 +23,7 @@
       "name": "disablePreload",
       "type": "boolean",
       "default": "true",
-      "description": ""
+      "description": "省流量模式下禁用 preload / prefetch 预取"
     },
     {
       "name": "qualityParam",

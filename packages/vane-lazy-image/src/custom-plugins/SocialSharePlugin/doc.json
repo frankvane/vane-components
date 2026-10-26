@@ -7,22 +7,128 @@
     "电商核心"
   ],
   "config": [
-    { "name": "platforms", "type": "Array<\"facebook\"|\"twitter\"|\"pinterest\"|\"linkedin\"|\"whatsapp\"|\"wechat\">", "default": "[\"facebook\",\"twitter\",\"pinterest\"]", "description": "分享平台列表" },
-    { "name": "position", "type": "\"top-left\" | \"top-right\" | \"bottom-left\" | \"bottom-right\"", "default": "\"top-right\"", "description": "主按钮位置" },
-    { "name": "showOnHover", "type": "boolean", "default": "false", "description": "悬停显示模式" },
-    { "name": "title", "type": "string", "default": "\"分享图片\"", "description": "分享标题" },
-    { "name": "description", "type": "string", "default": "\"\"", "description": "分享描述" },
-    { "name": "ogImage", "type": "string", "default": "undefined", "description": "Pinterest 等使用的媒体图" },
-    { "name": "size", "type": "\"small\" | \"medium\" | \"large\"", "default": "\"medium\"", "description": "按钮尺寸" },
-    { "name": "onShare", "type": "(platform) => void", "default": "undefined", "description": "分享回调" },
-    { "name": "style", "type": "React.CSSProperties", "default": "{}", "description": "自定义容器样式" }
+    {
+      "name": "platforms",
+      "type": "Array<\"facebook\"|\"twitter\"|\"pinterest\"|\"linkedin\"|\"whatsapp\"|\"wechat\">",
+      "default": "[\"facebook\",\"twitter\",\"pinterest\"]",
+      "description": "分享平台列表"
+    },
+    {
+      "name": "position",
+      "type": "\"top-left\" | \"top-right\" | \"bottom-left\" | \"bottom-right\"",
+      "default": "\"top-right\"",
+      "description": "主按钮位置"
+    },
+    {
+      "name": "showOnHover",
+      "type": "boolean",
+      "default": "false",
+      "description": "悬停显示模式"
+    },
+    {
+      "name": "title",
+      "type": "string",
+      "default": "\"分享图片\"",
+      "description": "分享标题"
+    },
+    {
+      "name": "description",
+      "type": "string",
+      "default": "\"\"",
+      "description": "分享描述"
+    },
+    {
+      "name": "ogImage",
+      "type": "string",
+      "default": "undefined",
+      "description": "Pinterest 等使用的媒体图"
+    },
+    {
+      "name": "size",
+      "type": "\"small\" | \"medium\" | \"large\"",
+      "default": "\"medium\"",
+      "description": "按钮尺寸"
+    },
+    {
+      "name": "onShare",
+      "type": "(platform) => void",
+      "default": "undefined",
+      "description": "分享回调"
+    },
+    {
+      "name": "style",
+      "type": "React.CSSProperties",
+      "default": "{}",
+      "description": "自定义容器样式"
+    }
   ],
   "example": "// 1. 指定分享平台，点击展开具体入口\nconst ShareImage = withPlugins(LazyLoadImageCore, [\n  createSocialSharePlugin({\n    platforms: [\"facebook\", \"twitter\", \"wechat\"],\n    title: \"Amazing Product\",\n    description: \"Check out this amazing product!\",\n    onShare: (platform) => track(platform),\n  }),\n]);\n\n// 2. 悬停才显示分享按钮\ncreateSocialSharePlugin({\n  platforms: [\"facebook\", \"twitter\", \"linkedin\", \"whatsapp\"],\n  position: \"top-right\",\n  showOnHover: true,\n});\n\n// 3. 在组件中使用\n<ShareImage src=\"https://picsum.photos/id/237/500/400\" alt=\"商品图\" />;",
   "examples": [
-    { "name": "默认分享按钮", "description": "点击主按钮展开具体平台，再点平台进行分享。", "src": "https://picsum.photos/id/237/500/400", "config": { "platforms": ["facebook", "twitter", "pinterest"], "position": "top-right", "showOnHover": false, "title": "Amazing Product", "description": "Check out this amazing product!" } },
-    { "name": "悬停显示（鼠标悬停时出现）", "description": "默认隐藏，鼠标悬停图片才显示分享按钮。", "src": "https://picsum.photos/id/247/500/400", "config": { "platforms": ["facebook", "twitter", "linkedin", "whatsapp"], "position": "top-right", "showOnHover": true, "size": "medium" } },
-    { "name": "更多平台（包含微信）", "description": "小尺寸、右下角，覆盖 6 个平台。", "src": "https://picsum.photos/id/257/500/400", "config": { "platforms": ["facebook", "twitter", "pinterest", "linkedin", "whatsapp", "wechat"], "position": "bottom-right", "showOnHover": false, "size": "small" } },
-    { "name": "大尺寸按钮", "description": "左上角大尺寸分享按钮。", "src": "https://picsum.photos/id/267/500/400", "config": { "platforms": ["facebook", "twitter", "pinterest"], "position": "top-left", "showOnHover": false, "size": "large" } }
+    {
+      "name": "默认分享按钮",
+      "description": "点击主按钮展开具体平台，再点平台进行分享。",
+      "src": "https://picsum.photos/id/237/500/400",
+      "config": {
+        "platforms": [
+          "facebook",
+          "twitter",
+          "pinterest"
+        ],
+        "position": "top-right",
+        "showOnHover": false,
+        "title": "Amazing Product",
+        "description": "Check out this amazing product!"
+      }
+    },
+    {
+      "name": "悬停显示（鼠标悬停时出现）",
+      "description": "默认隐藏，鼠标悬停图片才显示分享按钮。",
+      "src": "https://picsum.photos/id/247/500/400",
+      "config": {
+        "platforms": [
+          "facebook",
+          "twitter",
+          "linkedin",
+          "whatsapp"
+        ],
+        "position": "top-right",
+        "showOnHover": true,
+        "size": "medium"
+      }
+    },
+    {
+      "name": "更多平台（包含微信）",
+      "description": "小尺寸、右下角，覆盖 6 个平台。",
+      "src": "https://picsum.photos/id/257/500/400",
+      "config": {
+        "platforms": [
+          "facebook",
+          "twitter",
+          "pinterest",
+          "linkedin",
+          "whatsapp",
+          "wechat"
+        ],
+        "position": "bottom-right",
+        "showOnHover": false,
+        "size": "small"
+      }
+    },
+    {
+      "name": "大尺寸按钮",
+      "description": "左上角大尺寸分享按钮。",
+      "src": "https://picsum.photos/id/267/500/400",
+      "config": {
+        "platforms": [
+          "facebook",
+          "twitter",
+          "pinterest"
+        ],
+        "position": "top-left",
+        "showOnHover": false,
+        "size": "large"
+      }
+    }
   ],
   "features": [
     "支持 6 大社交平台：Facebook / Twitter / Pinterest / LinkedIn / WhatsApp / WeChat",
@@ -40,5 +146,9 @@
     "照片 / 图片社区",
     "礼物推荐分享",
     "房产 / 旅游分享"
+  ],
+  "notes": [
+    "`showOnHover: true` 时分享条只在悬停出现；示例页默认常驻便于观察。",
+    "微信没有可直接打开的分享 URL，走 `onShare` 回调由业务方接入。"
   ]
 }

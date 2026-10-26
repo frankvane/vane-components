@@ -11,19 +11,19 @@
       "name": "enabled",
       "type": "boolean",
       "default": "true",
-      "description": ""
+      "description": "是否启用 IndexedDB 缓存（关闭后每次都走网络）"
     },
     {
       "name": "dbName",
       "type": "string",
       "default": "\"LLI-Cache\"",
-      "description": ""
+      "description": "IndexedDB 数据库名，多实例共用同一个库"
     },
     {
       "name": "storeName",
       "type": "string",
       "default": "\"images\"",
-      "description": ""
+      "description": "对象仓库名，缓存条目存在该 store 下"
     },
     {
       "name": "ttlMs",
@@ -34,7 +34,7 @@
     {
       "name": "debug",
       "type": "boolean",
-      "description": ""
+      "description": "是否输出读写 / 命中调试日志"
     }
   ],
   "example": "const LazyImage = withPlugins(LazyLoadImageCore, [\n  createIDBCachePlugin({\n    dbName: \"LLI-Cache\",\n    storeName: \"images\",\n    ttlMs: 7 * 24 * 60 * 60 * 1000, // 7 天\n  }),\n]);",

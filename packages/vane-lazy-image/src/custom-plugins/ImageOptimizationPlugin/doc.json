@@ -11,7 +11,7 @@
       "name": "enabled",
       "type": "boolean",
       "default": "true",
-      "description": ""
+      "description": "是否启用 URL 改写优化"
     },
     {
       "name": "maxWidth",
@@ -29,7 +29,7 @@
       "name": "format",
       "type": "\"auto\" | \"webp\" | \"jpg\" | \"png\"",
       "default": "\"auto\"",
-      "description": ""
+      "description": "目标格式；auto 交给浏览器 / CDN 协商"
     },
     {
       "name": "widthParam",

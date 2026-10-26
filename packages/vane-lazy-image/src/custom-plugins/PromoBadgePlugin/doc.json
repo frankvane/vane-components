@@ -64,13 +64,87 @@
   ],
   "example": "// 1. 单个促销角标\nconst SaleImage = withPlugins(LazyLoadImageCore, [\n  createPromoBadgePlugin({ type: \"sale\", position: \"top-right\", ribbon: true }),\n]);\n\n// 2. 多个角标叠加在同一张图上\nconst HotSaleImage = withPlugins(LazyLoadImageCore, [\n  createPromoBadgePlugin({ type: \"new\", position: \"top-left\" }),\n  createPromoBadgePlugin({ type: \"sale\", position: \"top-right\", ribbon: true }),\n  createPromoBadgePlugin({ type: \"hot\", position: \"bottom-right\", pulse: true }),\n]);\n\n// 3. 在组件中使用\n<HotSaleImage src=\"https://picsum.photos/id/220/500/400\" alt=\"促销商品\" />;",
   "examples": [
-    { "name": "NEW 新品标签", "description": "左上角绿色 NEW 角标。", "src": "https://picsum.photos/id/168/300/300", "config": { "type": "new", "position": "top-left" } },
-    { "name": "HOT 热门标签（脉冲动画）", "description": "右上角红色 HOT，带脉冲呼吸效果。", "src": "https://picsum.photos/id/175/300/300", "config": { "type": "hot", "position": "top-right", "pulse": true } },
-    { "name": "SALE 促销丝带", "description": "右上角红色丝带（倾斜 45°）。", "src": "https://picsum.photos/id/188/300/300", "config": { "type": "sale", "position": "top-right", "ribbon": true } },
-    { "name": "LIMITED 限量标签", "description": "右上角紫色 LIMITED，带脉冲。", "src": "https://picsum.photos/id/196/300/300", "config": { "type": "limited", "position": "top-right", "pulse": true } },
-    { "name": "BESTSELLER 畅销标签", "description": "右下角橙色 BEST 角标。", "src": "https://picsum.photos/id/203/300/300", "config": { "type": "bestseller", "position": "bottom-right" } },
-    { "name": "自定义标签（VIP 专享）", "description": "自定义文案、背景色与文字色。", "src": "https://picsum.photos/id/211/300/300", "config": { "type": "custom", "text": "VIP专享", "position": "top-left", "backgroundColor": "#FFD700", "color": "#000" } },
-    { "name": "多个标签组合", "description": "一张图同时叠加 NEW + SALE（丝带）+ HOT（脉冲），不同位置不同样式。", "src": "https://picsum.photos/id/220/500/400", "configs": [ { "type": "new", "position": "top-left" }, { "type": "sale", "position": "top-right", "ribbon": true }, { "type": "hot", "position": "bottom-right", "pulse": true } ] }
+    {
+      "name": "NEW 新品标签",
+      "description": "左上角绿色 NEW 角标。",
+      "src": "https://picsum.photos/id/168/300/300",
+      "config": {
+        "type": "new",
+        "position": "top-left"
+      }
+    },
+    {
+      "name": "HOT 热门标签（脉冲动画）",
+      "description": "右上角红色 HOT，带脉冲呼吸效果。",
+      "src": "https://picsum.photos/id/175/300/300",
+      "config": {
+        "type": "hot",
+        "position": "top-right",
+        "pulse": true
+      }
+    },
+    {
+      "name": "SALE 促销丝带",
+      "description": "右上角红色丝带（倾斜 45°）。",
+      "src": "https://picsum.photos/id/188/300/300",
+      "config": {
+        "type": "sale",
+        "position": "top-right",
+        "ribbon": true
+      }
+    },
+    {
+      "name": "LIMITED 限量标签",
+      "description": "右上角紫色 LIMITED，带脉冲。",
+      "src": "https://picsum.photos/id/196/300/300",
+      "config": {
+        "type": "limited",
+        "position": "top-right",
+        "pulse": true
+      }
+    },
+    {
+      "name": "BESTSELLER 畅销标签",
+      "description": "右下角橙色 BEST 角标。",
+      "src": "https://picsum.photos/id/203/300/300",
+      "config": {
+        "type": "bestseller",
+        "position": "bottom-right"
+      }
+    },
+    {
+      "name": "自定义标签（VIP 专享）",
+      "description": "自定义文案、背景色与文字色。",
+      "src": "https://picsum.photos/id/211/300/300",
+      "config": {
+        "type": "custom",
+        "text": "VIP专享",
+        "position": "top-left",
+        "backgroundColor": "#FFD700",
+        "color": "#000"
+      }
+    },
+    {
+      "name": "多个标签组合",
+      "description": "一张图同时叠加 NEW + SALE（丝带）+ HOT（脉冲），不同位置不同样式。",
+      "src": "https://picsum.photos/id/220/500/400",
+      "configs": [
+        {
+          "type": "new",
+          "position": "top-left"
+        },
+        {
+          "type": "sale",
+          "position": "top-right",
+          "ribbon": true
+        },
+        {
+          "type": "hot",
+          "position": "bottom-right",
+          "pulse": true
+        }
+      ]
+    }
   ],
   "features": [
     "6 种预设类型：NEW / HOT / SALE / LIMITED / BESTSELLER / custom",
@@ -86,5 +160,9 @@
     "促销活动标识",
     "限时限量提醒",
     "VIP / 会员专享"
+  ],
+  "notes": [
+    "`type` 只是预设（new/hot/sale/limited/bestseller），`text` 可覆盖预设文案与颜色。",
+    "`ribbon: true` 渲染角部绶带，容器需 overflow:hidden 才不会溢出圆角。"
   ]
 }

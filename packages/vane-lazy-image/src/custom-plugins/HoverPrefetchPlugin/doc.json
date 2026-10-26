@@ -2,23 +2,102 @@
   "name": "HoverPrefetchPlugin",
   "description": "悬停预取：当用户将鼠标悬停（或触摸）在图片上时，提前向浏览器插入 preload 链接拉取下一张资源，实现零延迟切换。",
   "since": "2.0.0",
-  "tags": ["viewport", "视口与交互", "预取", "性能"],
+  "tags": [
+    "viewport",
+    "视口与交互",
+    "预取",
+    "性能"
+  ],
   "config": [
-    { "name": "getNextSrc", "type": "(context) => string | string[] | Promise<...>", "default": "undefined", "description": "计算需要预取的下一张图片（函数型，参见用法示例）" },
-    { "name": "target", "type": "\"container\" | \"image\"", "default": "\"container\"", "description": "绑定事件的目标（容器或图片元素）" },
-    { "name": "trigger", "type": "\"mouseenter\" | \"touchstart\"", "default": "\"mouseenter\"", "description": "触发事件类型" },
-    { "name": "as", "type": "\"image\" | \"fetch\"", "default": "\"image\"", "description": "预取资源类型" },
-    { "name": "max", "type": "number", "default": "2", "description": "预取的最大数量" },
-    { "name": "dedupe", "type": "boolean", "default": "true", "description": "去重，避免重复插入相同的预取链接" },
-    { "name": "crossOrigin", "type": "\"anonymous\" | \"use-credentials\" | null", "default": "\"anonymous\"", "description": "跨域策略" },
-    { "name": "showBadge", "type": "boolean", "default": "false", "description": "是否在卡片上显示「已预取 N」徽标（便于观察注入效果）" },
-    { "name": "debug", "type": "boolean", "default": "false", "description": "是否输出调试日志" }
+    {
+      "name": "getNextSrc",
+      "type": "(context) => string | string[] | Promise<...>",
+      "default": "undefined",
+      "description": "计算需要预取的下一张图片（函数型，参见用法示例）"
+    },
+    {
+      "name": "target",
+      "type": "\"container\" | \"image\"",
+      "default": "\"container\"",
+      "description": "绑定事件的目标（容器或图片元素）"
+    },
+    {
+      "name": "trigger",
+      "type": "\"mouseenter\" | \"touchstart\"",
+      "default": "\"mouseenter\"",
+      "description": "触发事件类型"
+    },
+    {
+      "name": "as",
+      "type": "\"image\" | \"fetch\"",
+      "default": "\"image\"",
+      "description": "预取资源类型"
+    },
+    {
+      "name": "max",
+      "type": "number",
+      "default": "2",
+      "description": "预取的最大数量"
+    },
+    {
+      "name": "dedupe",
+      "type": "boolean",
+      "default": "true",
+      "description": "去重，避免重复插入相同的预取链接"
+    },
+    {
+      "name": "crossOrigin",
+      "type": "\"anonymous\" | \"use-credentials\" | null",
+      "default": "\"anonymous\"",
+      "description": "跨域策略"
+    },
+    {
+      "name": "showBadge",
+      "type": "boolean",
+      "default": "false",
+      "description": "是否在卡片上显示「已预取 N」徽标（便于观察注入效果）"
+    },
+    {
+      "name": "debug",
+      "type": "boolean",
+      "default": "false",
+      "description": "是否输出调试日志"
+    }
   ],
   "example": "const PrefetchImage = withPlugins(LazyLoadImageCore, [\n  createHoverPrefetchPlugin({\n    target: \"container\",\n    trigger: \"mouseenter\",\n    as: \"image\",\n    max: 1,\n    dedupe: true,\n    getNextSrc: (ctx) => ctx.src, // 预取同一张，实际场景可返回下一张 URL\n  }),\n]);\n\n// 在组件中使用\n<PrefetchImage src=\"https://picsum.photos/id/1015/500/300\" alt=\"悬停预取示例\" />;",
   "examples": [
-    { "name": "容器悬停预取（默认）", "description": "鼠标进入容器即插入 preload，预取下一张图片（默认按 URL 末尾数字派生），卡片左上角显示「已预取 N」。", "src": "https://picsum.photos/id/1015/500/300", "config": { "target": "container", "trigger": "mouseenter", "max": 2, "as": "image", "showBadge": true } },
-    { "name": "图片悬停预取", "description": "事件直接绑定在图片元素上。", "src": "https://picsum.photos/id/1021/500/300", "config": { "target": "image", "trigger": "mouseenter", "max": 1 } },
-    { "name": "触摸预取", "description": "移动端用 touchstart 触发预取。", "src": "https://picsum.photos/id/1026/500/300", "config": { "target": "container", "trigger": "touchstart", "max": 1 } }
+    {
+      "name": "容器悬停预取（默认）",
+      "description": "鼠标进入容器即插入 preload，预取下一张图片（默认按 URL 末尾数字派生），卡片左上角显示「已预取 N」。",
+      "src": "https://picsum.photos/id/1015/500/300",
+      "config": {
+        "target": "container",
+        "trigger": "mouseenter",
+        "max": 2,
+        "as": "image",
+        "showBadge": true
+      }
+    },
+    {
+      "name": "图片悬停预取",
+      "description": "事件直接绑定在图片元素上。",
+      "src": "https://picsum.photos/id/1021/500/300",
+      "config": {
+        "target": "image",
+        "trigger": "mouseenter",
+        "max": 1
+      }
+    },
+    {
+      "name": "触摸预取",
+      "description": "移动端用 touchstart 触发预取。",
+      "src": "https://picsum.photos/id/1026/500/300",
+      "config": {
+        "target": "container",
+        "trigger": "touchstart",
+        "max": 1
+      }
+    }
   ],
   "features": [
     "悬停 / 触摸即预取",
@@ -33,5 +112,9 @@
     "图片轮播预加载",
     "列表项快速切换",
     "移动端触摸预载"
+  ],
+  "notes": [
+    "必须提供 `getNextSrc` 才会真正预取；不传时只绑定事件、不产生请求。",
+    "`showBadge: true` 会在卡片上显示「已预取 N」，是验收该插件最直接的方式。"
   ]
 }

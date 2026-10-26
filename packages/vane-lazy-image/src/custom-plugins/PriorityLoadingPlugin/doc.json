@@ -11,7 +11,7 @@
       "name": "priority",
       "type": "\"high\" | \"medium\" | \"low\"",
       "default": "\"medium\"",
-      "description": ""
+      "description": "加载优先级：high→loading=eager / low→lazy+大 rootMargin / medium→lazy"
     }
   ],
   "example": "// LCP / 首屏主图：立即加载\nconst HeroImage = withPlugins(LazyLoadImageCore, [\n  createPriorityLoadingPlugin({ priority: \"high\" }),\n]);\n\n// 折叠区/长列表底部图：延后加载\nconst BelowImage = withPlugins(LazyLoadImageCore, [\n  createPriorityLoadingPlugin({ priority: \"low\" }),\n]);",

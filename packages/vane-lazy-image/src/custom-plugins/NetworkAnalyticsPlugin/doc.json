@@ -10,7 +10,7 @@
     {
       "name": "reportEndpoint",
       "type": "string",
-      "description": ""
+      "description": "上报地址（POST JSON）；留空则只在本地统计"
     },
     {
       "name": "report",
@@ -20,7 +20,7 @@
     {
       "name": "trackCDN",
       "type": "boolean",
-      "description": ""
+      "description": "是否按图片域名分组统计，便于比较不同 CDN 表现"
     }
   ],
   "example": "const LazyImage = withPlugins(LazyLoadImageCore, [\n  createNetworkAnalyticsPlugin({\n    trackCDN: true,\n    report: (event, data) => {\n      // event: \"load\" | \"error\" | \"cache-hit\" ...\n      // data:  { src, durationMs, host, cached }\n      analytics.track(event, data);\n    },\n  }),\n]);",

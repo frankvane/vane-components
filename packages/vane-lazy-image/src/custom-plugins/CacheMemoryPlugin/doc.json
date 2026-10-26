@@ -11,7 +11,7 @@
       "name": "enabled",
       "type": "boolean",
       "default": "true",
-      "description": ""
+      "description": "是否启用内存缓存"
     },
     {
       "name": "maxEntries",
@@ -28,7 +28,7 @@
       "name": "debug",
       "type": "boolean",
       "default": "false",
-      "description": ""
+      "description": "是否输出 LRU 命中 / 淘汰调试日志"
     }
   ],
   "example": "const LazyImage = withPlugins(LazyLoadImageCore, [\n  createMemoryCachePlugin({\n    maxEntries: 300,\n    ttlMs: 5 * 60 * 1000, // 5 分钟过期\n  }),\n]);",

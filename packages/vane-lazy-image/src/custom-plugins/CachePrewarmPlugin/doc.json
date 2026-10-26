@@ -11,7 +11,7 @@
       "name": "enabled",
       "type": "boolean",
       "default": "true",
-      "description": ""
+      "description": "是否启用预热"
     },
     {
       "name": "trigger",
@@ -29,7 +29,7 @@
       "name": "debug",
       "type": "boolean",
       "default": "false",
-      "description": ""
+      "description": "是否输出预热调试日志"
     },
     {
       "name": "showBadge",
