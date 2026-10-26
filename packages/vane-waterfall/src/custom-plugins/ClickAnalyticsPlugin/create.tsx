@@ -7,28 +7,48 @@ export type ClickAnalyticsConfig = {
   showOverlay?: boolean;
 };
 
+/** `getStats()` 的返回形状：够平，直接 `JSON.stringify` 就能上报 */
+export type ClickAnalyticsStats = {
+  total: number;
+  byIndex: Array<{ index: number; clicks: number }>;
+};
+
 /**
  * ClickAnalyticsPlugin - 点击分析（基础版）
  * - 统计点击次数，向 bus 发送事件：analytics:click
  * - 可选控制台输出日志
+ * - `getStats()` 把内存里的计数吐出来，方便接到自己的上报通道
  */
-export function createClickAnalyticsPlugin<T = any>(config: ClickAnalyticsConfig = {}): WaterfallPlugin<T> {
+export function createClickAnalyticsPlugin<T = any>(
+  config: ClickAnalyticsConfig = {}
+): WaterfallPlugin<T> & { getStats: () => ClickAnalyticsStats } {
   const { log = false, showOverlay = false } = config;
+  /** 按 index 计数：总数从它求和得到，避免两处状态不同步 */
+  const clicks = new Map<number, number>();
+  const total = () => Array.from(clicks.values()).reduce((a, b) => a + b, 0);
+
   return {
     name: "ClickAnalyticsPlugin",
     enabled: true,
+    getStats: () => ({
+      total: total(),
+      byIndex: Array.from(clicks.entries())
+        .map(([index, count]) => ({ index, clicks: count }))
+        .sort((a, b) => a.index - b.index),
+    }),
     hooks: {
       onMount: (context) => {
-        context.sharedData?.set("click-count", 0);
+        context.sharedData?.set("click-count", total());
       },
       onItemClick: (context, index, item, event) => {
-        const prev = context.sharedData?.get("click-count") || 0;
-        const next = prev + 1;
-        context.sharedData?.set("click-count", next);
-        context.bus?.emit("analytics:click", { index, item, event, total: next });
+        const next = (clicks.get(index) ?? 0) + 1;
+        clicks.set(index, next);
+        const sum = total();
+        context.sharedData?.set("click-count", sum);
+        context.bus?.emit("analytics:click", { index, item, event, total: sum });
         if (log) {
           // 基本日志输出，避免过多信息
-          console.log(`[ClickAnalytics] item=${index} total=${next}`);
+          console.log(`[ClickAnalytics] item=${index} total=${sum}`);
         }
       },
       renderOverlay: (context) => {

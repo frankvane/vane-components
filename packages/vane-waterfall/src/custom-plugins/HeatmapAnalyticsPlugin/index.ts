@@ -3,7 +3,7 @@
  * 文档数据见同目录 doc.json；工厂实现见 create.tsx。
  */
 import { createHeatmapAnalyticsPlugin as create } from "./create";
-import type { HeatmapAnalyticsConfig } from "./create";
+import type { HeatmapAnalyticsConfig, HeatmapAnalyticsStats } from "./create";
 import doc from "./doc.json";
 import type { PluginDoc } from "@vane/plugin-core";
 
@@ -15,4 +15,4 @@ export const createHeatmapAnalyticsPlugin = Object.assign(create, { meta: doc as
   meta: PluginDoc;
 };
 
-export type { HeatmapAnalyticsConfig };
+export type { HeatmapAnalyticsConfig, HeatmapAnalyticsStats };

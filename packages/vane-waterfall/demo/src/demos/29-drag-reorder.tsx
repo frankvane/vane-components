@@ -29,11 +29,11 @@ export const meta: DemoMeta = {
     {
       fn: "createDragReorderPlugin",
       cfg: "showHandle: true, onReorder: (from, to) => setItems((prev) => move(prev, from, to))",
-      why: "包一层 draggable + 手柄，把起止索引交回来；数据变更完全由页面掌控",
+      why: "鼠标走 HTML5 draggable、触屏走长按 + pointer，把起止索引交回来；数据变更完全由页面掌控",
     },
   ],
   props: ["columns={3}", "containerStyle={{ height: 420 }}"],
-  note: "showHandle 只是「虚线手柄」，接真实版式时关掉。插件不写 localStorage 也不调接口 —— 落库要自己在 onReorder 里做。",
+  note: "showHandle 只是「虚线手柄」，接真实版式时关掉。插件不写 localStorage 也不调接口 —— 落库要自己在 onReorder 里做。鼠标走原生 HTML5 拖拽；触屏上 `draggable` 根本不触发，所以另有 pointer 路径（长按 180ms 进入拖拽，可用 touchHoldMs 调）。",
 };
 
 export default createFeedStage({
@@ -50,5 +50,9 @@ export default createFeedStage({
     }),
   ],
   coreProps: () => ({ columns: 3, gap: 12 }),
-  chrome: () => <p className="stage-tip">拖卡片右上角的手柄，松手后看位置与顺序变化</p>,
+  chrome: () => (
+    <p className="stage-tip">
+      鼠标：拖卡片右上角手柄 · 触屏：长按卡片 180ms 后拖动 —— 松手后看位置与顺序变化
+    </p>
+  ),
 });

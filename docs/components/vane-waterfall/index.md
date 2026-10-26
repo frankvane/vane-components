@@ -8,7 +8,8 @@
 
 - **布局是纯函数**：`computeLayout` 不碰 DOM，可以直接对数字快照做等价性单测（8 组断言锁住旧行为）
 - **布局钩子有执行点**：`calculateColumns` / `calculateColumnWidth` / `calculateItemPosition` 三个钩子真的会被调用（旧版声明了但从不执行，插件因此空转）
-- **虚拟化只裁渲染**：未渲染项按 `estimateHeight` 占位，总高不缩水、滚动条不跳
+- **虚拟化只裁渲染**：未渲染项按估值占位（默认跟实测样本的中位数走），总高不缩水、滚动条不跳
+- **量到就重排**：项挂载量到真高与位置不一致时，下一帧立刻修正，不等布局防抖 —— 这是「快速滚动时卡片重叠」的真正解法（抬高估值只是把误差换成滚动条虚长）
 - **钩子有生命周期**：`onMount` 返回的函数会在卸载时执行，监听不会泄漏
 - **priority 越大越先执行**：与旧版语义同向，不做 `1000 - x` 反转
 - **零运行时依赖**（`@vane/plugin-core` / react / react-dom 均为 peer），不引 CSS 文件
@@ -67,7 +68,7 @@ export function Feed({ items }: { items: Item[] }) {
 WaterfallCore      测量 / 布局 / 滚动 / ref 契约，不含业务行为
 withPlugins        装配层：内核 runtime + 领域上下文 + Core 回调桥接
 layout.ts           computeLayout 纯函数（含 3 个布局钩子执行点）
-virtualize.ts       computeVisibleRange 纯函数 + 占位高度策略
+virtualize.ts       computeVisibleRange + 占位高度策略（resolveEstimateHeight）
 custom-plugins/     26 个领域插件（5 组）
 presets/            photo-feed / product-feed / dashboard
 demo/               演示站：34 页逐项示例 + 工坊 + 13 场景（不随包发布）
@@ -84,6 +85,34 @@ demo/               演示站：34 页逐项示例 + 工坊 + 13 场景（不随
 | 语义与状态 | A11y / Grouping / StickyHeader / Bookmark / StatePersistence / URLSync | 可访问性、分组、吸顶、位置书签、状态与 URL 同步 |
 
 完整配置项见 [插件](plugins.md)。
+
+## 虚拟化的估值策略
+
+虚拟化只渲染视口附近的项，**没渲染的项测不到高度**，只能用估值占位。这是它唯一算不准的地方，也是最容易翻车的地方：
+
+| 估值偏低 | 估值偏高 |
+| --- | --- |
+| 同一列后面按估值排的项会压上来 —— 卡片重叠 | 总高虚长，滚动条比实际长 |
+
+默认策略（`adaptiveEstimate: true`）：
+
+- **`estimateHeight` 只是冷启动兜底**：还没有实测样本时用它，样本够 8 个就不再看了；
+- **改用实测样本的中位数**：中位数让「总高 = 所有项高度之和」的误差最小。实测 1000 项、项高 190–350 的数据集，中位数估值下总高 95337px，实际 94700px（+0.7%）；换成 P90 会虚长到 117225px（+24%），滚动条一眼就不对；
+- **重叠不靠抬高估值解决**：真正管用的是「量到真高就立刻重排」（一帧内合并，不等布局防抖）。实测快速滚动 20 屏，可见重叠 0 帧；拖动滚动条瞬移时最多 1–3 帧、≤60px，停手即收敛；
+- **`estimateQuantile` 可调**：项高分布极离散时往上调（0.9 / 1），代价是总高偏大。
+
+```ts
+// 默认：自适应中位数
+virtualize={{ overscan: 1 }}
+
+// 项等高（商品卡）→ 估值就是精确值，关掉自适应更省一次采样
+virtualize={{ estimateHeight: 320, adaptiveEstimate: false }}
+
+// 项高分布极离散，宁可留空也不要重叠
+virtualize={{ estimateQuantile: 0.95 }}
+```
+
+演示站的两个能力页把这几个参数做成了控件：`#/demo/virtual`（虚拟瀑布流）与 `#/demo/virtual-dynamic`（动态高度）—— 拖分位、关自适应，都能当场看到总高与重叠的变化。
 
 ## 从 1.x 迁移
 

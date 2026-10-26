@@ -1,6 +1,6 @@
 {
   "name": "DragReorderPlugin",
-  "description": "用原生 draggable 给每个项加上拖拽能力，松手时回调 `onReorder(from, to)`，同时向 bus 发 `drag:reorder`。旧版只记录 from/to、不回调，这里补上真回调。",
+  "description": "给每个项加拖拽能力，松手时回调 `onReorder(from, to)`，同时向 bus 发 `drag:reorder`。鼠标走原生 HTML5 拖拽，触屏走「长按 + pointer」——触摸设备上 `draggable` 根本不触发，旧版因此在手机上完全失效。",
   "since": "2.0.0",
   "tags": [
     "interaction",
@@ -24,13 +24,19 @@
       "type": "boolean",
       "default": "false",
       "description": "是否显示虚线边框提示可拖"
+    },
+    {
+      "name": "touchHoldMs",
+      "type": "number",
+      "default": "180",
+      "description": "触屏长按多久进入拖拽（ms），0 表示不需要长按"
     }
   ],
-  "example": "// 给项加 HTML5 拖拽，松手时回调 onReorder(from, to)。\nconst Waterfall = withPlugins(WaterfallCore, [\n  createDragReorderPlugin({\n    enabled: true,\n    showHandle: false,\n  }),\n]);\n\n<Waterfall items={items} renderItem={(item) => <Card data={item} />} />;",
+  "example": "// 鼠标走 HTML5 draggable，触屏走长按 + pointer，松手时回调 onReorder(from, to)。\nconst Waterfall = withPlugins(WaterfallCore, [\n  createDragReorderPlugin({\n    enabled: true,\n    showHandle: false,\n    touchHoldMs: 180,\n  }),\n]);\n\n<Waterfall items={items} renderItem={(item) => <Card data={item} />} />;",
   "features": [
-    "原生 HTML5 拖拽，无额外依赖",
-    "onReorder 回调真正可用",
-    "bus `drag:reorder` 事件"
+    "鼠标：原生 HTML5 拖拽，无额外依赖",
+    "触屏：长按 180ms 后 pointer 拖拽（可配 touchHoldMs）",
+    "onReorder 回调真正可用，bus 发 `drag:reorder`"
   ],
   "useCases": [
     "后台卡片排序",
@@ -39,6 +45,6 @@
   ],
   "notes": [
     "插件只负责「拖」和「告诉你从哪到哪」，数组重排由调用方在 onReorder 里做。",
-    "触屏浏览器不支持 HTML5 拖拽；移动端请自行接 pointer 事件。"
+    "触屏用长按区分「想滚」和「想拖」：不这样做，手指一滑就变成拖拽，页面滚不动。"
   ]
 }

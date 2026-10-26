@@ -1,6 +1,6 @@
 {
   "name": "ClickAnalyticsPlugin",
-  "description": "统计每次项点击并累计总数，向 bus 发 `analytics:click`（带 index / item / total）。默认只上报不显示角标，接入真实版式时不会被调试面板盖住内容。",
+  "description": "统计每次项点击并累计总数，向 bus 发 `analytics:click`（带 index / item / total），`getStats()` 可随时取出按 index 的计数。默认只上报不显示角标，接入真实版式时不会被调试面板盖住内容。",
   "since": "2.0.0",
   "tags": [
     "interaction",
@@ -22,7 +22,7 @@
   ],
   "example": "// 统计项点击次数，发 `analytics:click` 事件，可选角标与日志。\nconst Waterfall = withPlugins(WaterfallCore, [\n  createClickAnalyticsPlugin({\n    log: false,\n    showOverlay: false,\n  }),\n]);\n\n<Waterfall items={items} renderItem={(item) => <Card data={item} />} />;",
   "features": [
-    "点击总量统计（sharedData）",
+    "点击总量 + 按 index 明细（getStats）",
     "bus 事件可被外部订阅上报",
     "角标默认关闭"
   ],
@@ -32,6 +32,7 @@
     "调试点击行为"
   ],
   "notes": [
-    "生产环境请把数据从 bus 事件接到自己的埋点 SDK，不要让插件直接打日志。"
+    "生产环境请把数据从 bus 事件或 getStats() 接到自己的埋点 SDK，不要让插件直接打日志。",
+    "计数只在内存里，刷新即清零 —— 想持久化要自己定时取 getStats() 上报。"
   ]
 }

@@ -142,7 +142,8 @@ createReducedMotionPlugin({ disableTransform: true, removeTransitions: true });
 
 > **与 TransitionPlugin 同开等于把过渡关掉**——不是冲突，是预期行为，但别以为动效还在。
 > 清除动作发生在 `onItemMount` 与 `onLayoutComplete`（晚于 TransitionPlugin 在 `onLayout` 里写的内联样式），所以不会被覆盖回来。
-> 偏好只在工厂创建时读一次，运行中改系统设置需要刷新。
+> 只压 `transition-duration` 并记住原值，不写 `transition: none` —— 写简写会把对方的过渡整条覆盖，撤销偏好后无从还原。
+> 偏好监听 `matchMedia` 的 `change`：运行中改系统设置即时生效（`useTransform` 这种 props 层的要等下一次重渲染才切过来）。
 
 ---
 
@@ -213,6 +214,8 @@ createClickAnalyticsPlugin({ showOverlay: true, log: false });
 
 `showOverlay` 默认 **false**（生产版式不该有角标），示例页打开它是为了肉眼确认钩子真的触发。
 
+`getStats()` 把内存里的计数吐成 `{ total, byIndex: [{ index, clicks }] }`，接到自己的上报通道时直接取它（示例页的「导出 JSON」就是干这个）。
+
 ### HeatmapAnalyticsPlugin `priority 0`
 
 统计每项**曝光次数**与点击次数，可选顶栏汇总条。
@@ -221,11 +224,13 @@ createClickAnalyticsPlugin({ showOverlay: true, log: false });
 createHeatmapAnalyticsPlugin({ showOverlay: true });
 ```
 
-`onLayoutComplete` 里补一次首屏曝光统计，避免首帧显示 0。
+`onLayoutComplete` 里补一次首屏曝光统计，避免首帧显示 0。`getStats()` 返回 `{ totalViews, totalClicks, items: [{ index, views, clicks }] }`。
+
+计数只在内存里，刷新即清零 —— 定时取 `getStats()` 上报，别指望插件自己持久化。
 
 ### DragReorderPlugin `priority 0`
 
-HTML5 原生拖拽，松手时把 `from/to` 交给页面。
+拖拽重排，松手时把 `from/to` 交给页面。两条输入路径：**鼠标**走原生 HTML5 拖拽，**触屏**走「长按 + pointer」（触摸设备上 `draggable` 根本不触发）。
 
 ```ts
 createDragReorderPlugin({
@@ -239,6 +244,7 @@ createDragReorderPlugin({
 | `enabled` | `boolean` | `true` | 关掉后完全不包 DOM |
 | `onReorder` | `(from, to, item) => void` | — | **数组怎么改由页面决定**，插件不碰数据 |
 | `showHandle` | `boolean` | `false` | 虚线边框提示可拖，接入真实版式时要关 |
+| `touchHoldMs` | `number` | `180` | 触屏长按多久进入拖拽；不设就一滑即拖，页面没法正常滚动 |
 
 装配位置：`onReorder` 要改组件 state 时，把 `withPlugins` 放进 `useMemo`，不要放模块顶层（闭包拿不到 `setState`）。
 

@@ -32,7 +32,8 @@
     "低性能设备"
   ],
   "notes": [
-    "命中偏好时会持续清掉项上的 transition（onItemMount + onLayoutComplete 各清一次），所以和 TransitionPlugin 同装也不会被覆盖回原样。",
-    "偏好只在工厂创建时读一次；用户中途改系统设置需刷新页面。"
+    "偏好由 matchMedia 驱动，并监听 change：运行中改系统设置即时生效（定位方式要等下一次重渲染才切过来）。",
+    "只压 `transition-duration`，不写 `transition: none` —— 写简写会把 TransitionPlugin 的过渡整条覆盖，撤销偏好后无从还原。",
+    "与 TransitionPlugin 同装不是冲突：ReducedMotion 优先级更高，会先执行并压住过渡。"
   ]
 }

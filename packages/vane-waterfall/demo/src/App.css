@@ -2040,6 +2040,7 @@ a.link-card:hover {
 .stage-anchors,
 .stage-search,
 .stage-a11y,
+.stage-stats,
 .stage-storage {
   display: flex;
   align-items: center;
@@ -2052,6 +2053,7 @@ a.link-card:hover {
 .stage-pager button,
 .stage-anchors button,
 .stage-a11y button,
+.stage-stats button,
 .stage-storage button {
   padding: 4px 10px;
   border: 1px solid var(--line);
@@ -2066,6 +2068,7 @@ a.link-card:hover {
 .stage-pager button:hover:not(:disabled),
 .stage-anchors button:hover,
 .stage-a11y button:hover,
+.stage-stats button:hover,
 .stage-storage button:hover {
   border-color: var(--accent);
   color: var(--text);

@@ -3,7 +3,7 @@
  * 文档数据见同目录 doc.json；工厂实现见 create.tsx。
  */
 import { createClickAnalyticsPlugin as create } from "./create";
-import type { ClickAnalyticsConfig } from "./create";
+import type { ClickAnalyticsConfig, ClickAnalyticsStats } from "./create";
 import doc from "./doc.json";
 import type { PluginDoc } from "@vane/plugin-core";
 
@@ -15,4 +15,4 @@ export const createClickAnalyticsPlugin = Object.assign(create, { meta: doc as P
   meta: PluginDoc;
 };
 
-export type { ClickAnalyticsConfig };
+export type { ClickAnalyticsConfig, ClickAnalyticsStats };

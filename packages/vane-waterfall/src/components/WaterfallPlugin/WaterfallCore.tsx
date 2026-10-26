@@ -43,7 +43,7 @@ import {
   type AlignmentMode,
   type LayoutHooks,
 } from "./layout";
-import { computeVisibleRange, type VirtualizeOptions } from "./virtualize";
+import { computeVisibleRange, resolveEstimateHeight, type VirtualizeOptions } from "./virtualize";
 
 // ============ Props ============
 
@@ -179,12 +179,20 @@ function normalizeVirtualize(
 ): VirtualizeOptions | null {
   if (!value) return null;
   if (value === true) {
-    return { overscan: 1, estimateHeight: 240, dynamicHeights: true };
+    return {
+      overscan: 1,
+      estimateHeight: 240,
+      dynamicHeights: true,
+      adaptiveEstimate: true,
+      estimateQuantile: 0.5,
+    };
   }
   return {
     overscan: value.overscan ?? 1,
     estimateHeight: value.estimateHeight ?? 240,
     dynamicHeights: value.dynamicHeights ?? true,
+    adaptiveEstimate: value.adaptiveEstimate ?? true,
+    estimateQuantile: value.estimateQuantile ?? 0.5,
   };
 }
 
@@ -267,8 +275,12 @@ const WaterfallCore = forwardRef<WaterfallCoreRef, WaterfallCoreProps>(
     const containerObserverRef = useRef<ResizeObserver | null>(null);
     const scrollEndTimerRef = useRef<number>();
     const layoutTimerRef = useRef<number>();
+    /** 一帧内合并的「立即重排」句柄（测量到漂移时用，不等防抖） */
+    const layoutRafRef = useRef<number | null>(null);
     const lastScrollTimeRef = useRef(0);
     const isCalculatingLayoutRef = useRef(false);
+    /** 当前采用的未测量项估值（自适应估值带滞回，见 calculateLayout 里的说明） */
+    const estimateRef = useRef(0);
     /** 布局在跑时被挡下的请求：结束时补跑一次，不静默丢弃 */
     const pendingRelayoutRef = useRef(false);
     /** 正在跑的那次布局用的参数签名（判重：同参数不必补跑） */
@@ -334,7 +346,7 @@ const WaterfallCore = forwardRef<WaterfallCoreRef, WaterfallCoreProps>(
       // 但如果这次请求的布局参数和正在跑的那一次完全一样，补跑没有意义 ——
       // 挂载时「挂载 effect + items effect」本来就会各来一次，补跑只会让
       // onLayoutComplete 多触发一遍（埋点类插件会重复上报）。
-      const sig = `${columns}|${columnGapValue}|${rowGapValue}|${paddingValues.top},${paddingValues.right},${paddingValues.bottom},${paddingValues.left}|${alignmentMode}|${virtual?.estimateHeight ?? ""}`;
+      const sig = `${columns}|${columnGapValue}|${rowGapValue}|${paddingValues.top},${paddingValues.right},${paddingValues.bottom},${paddingValues.left}|${alignmentMode}|${virtual?.estimateHeight ?? ""}|${virtual?.adaptiveEstimate ?? ""}|${virtual?.estimateQuantile ?? ""}`;
       if (isCalculatingLayoutRef.current) {
         if (sig !== activeSigRef.current || layoutHooks !== activeHooksRef.current) {
           pendingRelayoutRef.current = true;
@@ -367,6 +379,26 @@ const WaterfallCore = forwardRef<WaterfallCoreRef, WaterfallCoreProps>(
         return measuredHeightsRef.current.get(index) ?? 0;
       });
 
+      // 未测量项的估值：默认跟随实测样本（见 virtualize.ts 的说明）。
+      // 用中位数而不是高分位，是因为总高 = 所有项高度之和，中位数让总高误差最小；
+      // 重叠由「量到真高就立刻重排」兜住（误差只存在一帧，且多数落在视口外），
+      // 而不是靠把估值整体抬高 —— 抬高只是把误差从「重叠」换成「滚动条虚长」。
+      let estimate: number | undefined;
+      if (virtual) {
+        if (virtual.adaptiveEstimate === false) {
+          estimate = virtual.estimateHeight;
+        } else {
+          const raw = resolveEstimateHeight(
+            measuredHeightsRef.current.values(),
+            virtual.estimateHeight ?? 240,
+            virtual.estimateQuantile
+          );
+          // 滞回：样本每多一项就换一次估值会让画面持续微抖，差 8px 以内不更新
+          if (Math.abs(raw - estimateRef.current) > 8) estimateRef.current = raw;
+          estimate = estimateRef.current || raw;
+        }
+      }
+
       const result = computeLayout({
         heights,
         columns,
@@ -375,7 +407,7 @@ const WaterfallCore = forwardRef<WaterfallCoreRef, WaterfallCoreProps>(
         rowGap: rowGapValue,
         padding: paddingValues,
         alignmentMode,
-        estimateHeight: virtual?.estimateHeight,
+        estimateHeight: estimate,
         hooks: layoutHooks,
       });
 
@@ -401,7 +433,7 @@ const WaterfallCore = forwardRef<WaterfallCoreRef, WaterfallCoreProps>(
         console.timeEnd("[WaterfallCore] layout");
         if (result.estimatedCount > 0) {
           console.debug(
-            `[WaterfallCore] ${result.estimatedCount} 项按估值占位（estimateHeight=${virtual?.estimateHeight}）`
+            `[WaterfallCore] ${result.estimatedCount} 项按估值占位（estimateHeight=${estimate}）`
           );
         }
       }
@@ -445,6 +477,21 @@ const WaterfallCore = forwardRef<WaterfallCoreRef, WaterfallCoreProps>(
       // 身份刻意稳定（不依赖 calculateLayout）：它被 items effect、ResizeObserver、
       // 项 ref 回调长期持有，跟着 props 一起变会让那些 effect 反复重跑。
     }, [debounceDelay]);
+
+    /**
+     * 立刻重排，但一帧内只排一次。
+     *
+     * 用于「项挂载后量到的高度与位置对不上」——这种场景等 `debounceDelay` 再排的话，
+     * 那几十到一百多毫秒里该列后面的项就压在它身上（滚动中最刺眼的就是这个）。
+     * 容器 resize 那种连续输入仍走上面的防抖，避免布局风暴。
+     */
+    const scheduleLayoutNow = useCallback(() => {
+      if (layoutRafRef.current != null) return;
+      layoutRafRef.current = requestAnimationFrame(() => {
+        layoutRafRef.current = null;
+        void calculateLayoutRef.current();
+      });
+    }, []);
 
     // ---- 视口 ----
     const updateViewportInfo = useCallback((isScrolling: boolean) => {
@@ -578,6 +625,10 @@ const WaterfallCore = forwardRef<WaterfallCoreRef, WaterfallCoreProps>(
         itemResizeObserversRef.current.clear();
         if (scrollEndTimerRef.current) window.clearTimeout(scrollEndTimerRef.current);
         if (layoutTimerRef.current) window.clearTimeout(layoutTimerRef.current);
+        if (layoutRafRef.current != null) {
+          cancelAnimationFrame(layoutRafRef.current);
+          layoutRafRef.current = null;
+        }
       };
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -614,6 +665,8 @@ const WaterfallCore = forwardRef<WaterfallCoreRef, WaterfallCoreProps>(
       paddingValues,
       alignmentMode,
       virtual?.estimateHeight,
+      virtual?.adaptiveEstimate,
+      virtual?.estimateQuantile,
       layoutHooks,
     ]);
 
@@ -645,10 +698,10 @@ const WaterfallCore = forwardRef<WaterfallCoreRef, WaterfallCoreProps>(
 
               if (!pos) {
                 // 这一项还没有位置（首屏并发挂载时常见）→ 必须补一次布局
-                throttledCalculateLayout();
+                scheduleLayoutNow();
               } else if (drifted && !repaired) {
                 heightRepairRef.current.set(index, h);
-                throttledCalculateLayout();
+                scheduleLayoutNow();
               }
             });
             try {

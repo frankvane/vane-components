@@ -45,9 +45,9 @@ export type { InfiniteScrollConfig } from "./InfiniteScrollPlugin";
 
 // ---------------- interaction · 交互与埋点 ----------------
 export { createClickAnalyticsPlugin } from "./ClickAnalyticsPlugin";
-export type { ClickAnalyticsConfig } from "./ClickAnalyticsPlugin";
+export type { ClickAnalyticsConfig, ClickAnalyticsStats } from "./ClickAnalyticsPlugin";
 export { createHeatmapAnalyticsPlugin } from "./HeatmapAnalyticsPlugin";
-export type { HeatmapAnalyticsConfig } from "./HeatmapAnalyticsPlugin";
+export type { HeatmapAnalyticsConfig, HeatmapAnalyticsStats } from "./HeatmapAnalyticsPlugin";
 export { createDragReorderPlugin } from "./DragReorderPlugin";
 export type { DragReorderConfig } from "./DragReorderPlugin";
 export { createScrollAnchorPlugin } from "./ScrollAnchorPlugin";

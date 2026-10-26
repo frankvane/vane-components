@@ -19,13 +19,33 @@ export const meta: DemoMeta = {
   why: "图片类瀑布流必然「先估后测」。要保证滚动条不跳、总高最终准确，就得理解 estimateHeight 与 dynamicHeights 各自管什么。",
   plugs: [],
   props: [
-    "virtualize={{ overscan: 1, estimateHeight: {{estimateHeight}}, dynamicHeights: {{{dynamicHeights}}} }}",
+    "virtualize={{ overscan: 1, adaptiveEstimate: {{adaptive}}, dynamicHeights: {{{dynamicHeights}}} }}",
+    {
+      text: "  // adaptiveEstimate 关掉时才需要自己给 estimateHeight",
+      when: (c) => !c.adaptive,
+    },
     "columns={3}",
     "containerStyle={{ height: 420 }}",
   ],
-  note: "dynamicHeights 关闭后，项高度变化不会触发重排 —— 需要自己调 ref.relayout()。虚拟化下项可能已卸载，measureItem 会返回缓存值而不是实时量。",
+  note: "dynamicHeights 关闭后，项高度变化不会触发重排 —— 需要自己调 ref.relayout()。虚拟化下项可能已卸载，measureItem 会返回缓存值而不是实时量。自适应估值（默认开）会跟着实测样本走，所以上面这一下 ×1.5 之后，未测量项的估值也会自动抬上去。",
   controls: [
-    { key: "estimateHeight", label: "estimateHeight", kind: "number", init: 240, min: 120, max: 360, step: 20 },
+    {
+      key: "adaptive",
+      label: "自适应估值",
+      kind: "switch",
+      init: true,
+      hint: "关掉后严格用 estimateHeight 排未测量项",
+    },
+    {
+      key: "estimateHeight",
+      label: "estimateHeight",
+      kind: "number",
+      init: 240,
+      min: 120,
+      max: 360,
+      step: 20,
+      when: (c) => !c.adaptive,
+    },
     { key: "dynamicHeights", label: "dynamicHeights", kind: "switch", init: true, hint: "关掉后高度变化不自动重排" },
   ],
 };
@@ -40,6 +60,7 @@ export default createFeedStage({
     gap: 12,
     virtualize: {
       overscan: 1,
+      adaptiveEstimate: Boolean(api.cfg.adaptive),
       estimateHeight: Number(api.cfg.estimateHeight),
       dynamicHeights: Boolean(api.cfg.dynamicHeights),
     },
@@ -56,7 +77,8 @@ export default createFeedStage({
   chrome: (api) => (
     <p className="stage-tip">
       {api.items.length} 项 · 渲染 <b>{api.meter.rendered}</b> · 总高{" "}
-      <b>{Math.round(api.meter.totalHeight)}</b>px · dynamicHeights{" "}
+      <b>{Math.round(api.meter.totalHeight)}</b>px · 自适应{" "}
+      <b>{api.cfg.adaptive ? "开" : "关"}</b> · dynamicHeights{" "}
       <b>{api.cfg.dynamicHeights ? "开" : "关"}</b>
     </p>
   ),

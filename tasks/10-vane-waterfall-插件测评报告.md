@@ -18,7 +18,7 @@
 7. [七、逐插件测评](#七逐插件测评) —— 功能 / 场景 / 参数 / 证据 / 评分 / 建议
 8. [八、高级 API 与内核能力页](#八高级-API-与内核能力页) —— 6 个基础与高级页 + 2 个虚拟化能力页
 9. [九、三道闸门](#九三道闸门) —— 静态核对 / 几何体检 / 控件响应
-10. [十、遗留问题与下一步](#十遗留问题与下一步) —— 诚实清单
+10. [十、遗留问题处理情况](#十遗留问题处理情况) —— 6 修 1 留，附实测数据
 11. [十一、附录](#十一附录) —— 复现方式与数据文件
 
 ---
@@ -50,7 +50,17 @@
 | **P1-1** | `24-url-sync` 输入关键词后列表不动、地址栏也不变（页面承诺「地址栏跟着变」） | 三处装配错误：① `keys: ["query"]` 但 props 上根本没有 `query` 这个键（应是 `searchQuery`）；② 过滤写成了 Core 的 `filterFn`，而 Core 并不消费它（只有 FilterPlugin 读）；③ 插件 `onMount` 广播的 `urlsync:init` 无人消费 | 改成 `keys: ["searchQuery"]` + 装 `SearchPlugin` + 挂载时读一次 `location.search` 回填控件 | 该示例页；顺带把「Core 不消费 filterFn」这条写进 note |
 | **P2-1** | 几何闸门对「关掉 transform 定位」的页面报 `empty`（容器里没有已布局项） | `translateOf()` 只读 `transform`，遇到 `useTransform: false`（ReducedMotion 会切过去）直接返回 null，所有项被跳过 | 读不到 transform 时退回 `offsetLeft/offsetTop` | `scripts/audit-demos.mjs` 这道闸门本身 |
 
-修复后复测：`audit:demos` 37 页 0 命中、`audit:controls` 23 个滑杆全响应、`pnpm verify` 全绿（lint 0 error / tsc 0 / 37 单测 / 包体积达标）。
+### 2.1 第二轮：按第十章遗留清单继续修
+
+| 编号 | 现象 | 根因 | 改法 |
+| --- | --- | --- | --- |
+| **P0-3** | 虚拟化页快速滚动时卡片仍会瞬时重叠（逐帧采样：13% 的帧有重叠，最大 109px） | P0-1 只是让「量到真高后会重排」，但重排走的是布局防抖（`debounceDelay`），几十到一百多毫秒内重叠就摆在那儿；同时未测量项固定按 240 排，而真实项高 190–350 | ① 测量到漂移改走 `requestAnimationFrame` 合并的立即重排；② 估值改为跟实测样本的中位数走（`adaptiveEstimate`，`estimateHeight` 退为冷启动兜底） |
+| **P0-4** | ReducedMotion 关掉系统偏好后，过渡再也回不来（一直 `0s`） | 它写的是 `transition: none`，而 Chrome 会把 TransitionPlugin 的简写拆成 property/timing/delay/duration 四条长属性 —— 写 none 等于把对方的过渡整条覆盖，撤销时无从还原 | 改为只压 `transition-duration` 并记住原值，撤销时写回 |
+| **P1-2** | 触屏上拖拽完全不工作 | 只绑了 HTML5 `draggable`，触摸设备根本不触发 | 补 pointer 路径（长按 `touchHoldMs` + `elementFromPoint`），鼠标仍走 HTML5 |
+| **P2-2** | 虚拟化页改 `adaptiveEstimate` / `estimateQuantile` 不重排 | 这两项没进「布局参数变化」的依赖表，要等下一次布局才生效 | 依赖表补全 |
+| **P2-3** | 分析类插件的数据只活在内存里，接入时要翻源码才知道形状 | 只往 `sharedData` 写了个总数 | 两个插件加 `getStats()`，示例页加「导出 JSON」 |
+
+修复后复测：`audit:demos` 37 页 0 命中、`audit:controls` 21 个滑杆全响应、`verify:scenarios` 13 场景 + 34 示例 / 插件覆盖 26÷26、`pnpm verify` 全绿（lint 0 error / tsc 0 / 37 单测 / 包体积达标）、虚拟化逐帧采样快速滚动可见重叠 0 帧。
 
 ## 三、测评方法与评分口径
 
@@ -650,19 +660,30 @@ lazy-image 的效果取证靠「画面 / 属性 / 请求」三层，瀑布流没
 
 另外修了第二道闸门的一个盲区：`translateOf()` 原先只读 `transform`，遇到 `useTransform: false`（ReducedMotion 会切过去）就认为容器里没有已布局项，报 `empty` 假警。现在读不到 transform 时退回 `offsetLeft/offsetTop`。
 
-## 十、遗留问题与下一步
+## 十、遗留问题处理情况
 
-| # | 问题 | 影响 | 建议 |
+测评列出的 7 条遗留，本轮全部过了一遍：6 条修掉，1 条判定为可接受。
+
+| # | 问题 | 状态 | 怎么处理的 / 实测结果 |
 | --- | --- | --- | --- |
-| 1 | 快速连续滚动时（每 120ms 滚 600px）虚拟化页仍会出现瞬时重叠，停手后 1s 内自愈 | 观感；截图取证时可能拍到中间态 | 滚动期间用「上一次实测高度」的保守值而非纯 `estimateHeight`；或给滚动中的项加 `will-change` 并延后绘制 |
-| 2 | `estimateHeight` 与实际项高差异越大，滚动条长度跳动越明显 | 体验 | 按首屏实测高度的中位数回填默认估值，而不是固定 240 |
-| 3 | Recycle 与 Virtual 的差别只能从读数看出（300 项 / 渲染 300） | 选型困难 | 加一个「DOM 数 + 长任务数」的 A/B 对比页 |
-| 4 | ReducedMotion 的 `prefersReduce` 在工厂创建时求值，运行中切系统设置不会即时生效 | 边界场景 | 监听 `matchMedia().addEventListener("change")`，运行时切换 |
-| 5 | 拖拽只支持 HTML5 drag（触屏不可用） | 移动端 | 补 pointer 事件路径或长按拖拽 |
-| 6 | 分析类插件（Click / Heatmap）的计数只存在内存，刷新即清零 | 演示够用，接入需自己上报 | 示例页加一行「导出 JSON」，把数据形状展示出来 |
-| 7 | 3 个插件的效果仍无法「一眼看见」（Recycle 无可视差异、ReducedMotion 依赖系统偏好、A11y 落在属性层） | 验收成本 | 已给出页面内读数 / 检查按钮 / 系统偏好模拟说明，属于可接受 |
+| 1 | 快速连续滚动时虚拟化页出现瞬时重叠 | ✅ 已修 | 根因是「未测量项按固定 240 排，真实项高 190–350」。两手：① 项级 RO 量到真高与位置不符时改走 `requestAnimationFrame` 合并的**立即重排**，不再等布局防抖；② 估值改为跟实测样本走（中位数）。逐帧采样：快速滚动 20 屏**可见重叠 0 帧**；拖动滚动条瞬移最多 1–3 帧、≤60px，停手即收敛 |
+| 2 | `estimateHeight` 与实际项高差异越大，滚动条跳动越明显 | ✅ 已修 | 新增 `adaptiveEstimate`（默认开）+ `estimateQuantile`（默认 0.5）。`estimateHeight` 退为冷启动兜底。实测 1000 项数据集：总高 95337px vs 实际 94700px（**+0.7%**）；此前固定 240 是 84183（−11%），P90 会虚长到 117225（+24%） |
+| 3 | Recycle 与 Virtual 的差别只能从读数看出 | ✅ 已修 | `16-recycle` 加「改用 virtualize」开关：同一份 300 项数据，一边 300 个 DOM 只隐藏绘制，一边只挂几十个。读数同时给出 DOM 数 / 总高 / 布局耗时 |
+| 4 | ReducedMotion 的偏好在工厂创建时求值，运行中切系统设置不生效 | ✅ 已修 | 监听 `matchMedia` 的 `change`，并自己维护已挂载元素表（偏好变化不触发布局，没有别的入口能遍历元素）。顺带修掉「撤销偏好后过渡回不来」：只压 `transition-duration` 并记住原值，实测切回后回到 0.24s |
+| 5 | 拖拽只支持 HTML5 drag（触屏不可用） | ✅ 已修 | 补 pointer 路径：长按 `touchHoldMs`（默认 180ms）进入拖拽，`elementFromPoint` 找落点。实测合成 touch 事件把 #0 拖到 #3，数组真的重排 |
+| 6 | 分析类插件计数只在内存，刷新即清零 | ✅ 已修 | 两个插件加 `getStats()`（`{total, byIndex}` / `{totalViews, totalClicks, items}`），示例页加「导出 JSON」按钮顺带演示接入姿势 |
+| 7 | 3 个插件的效果无法「一眼看见」（Recycle / ReducedMotion / A11y） | ⏸ 保留 | 属于取证难度而非质量问题。已给页面内读数、「重新检测」按钮、系统偏好模拟说明 |
 
-下一步建议（按优先级）：发布 `vane-waterfall@2.0.0`（changeset 已备）→ 补 3 个 `config` 字段的默认值说明 → 把 `audit:controls` 接进 CI。
+顺带修掉两个连带缺陷：
+
+- **虚拟化页的估值参数改了不重排**：`adaptiveEstimate` / `estimateQuantile` 不在布局参数变化的依赖表里，只改这两项要等下一次布局才生效。
+- **`estimateHeight` 不再是下限**：以前是 `max(estimateHeight, 样本分位)`，现在样本够 8 个就完全按分位走 —— 语义是「冷启动兜底」，写进类型的注释与文档了。
+
+下一步建议（按优先级）：
+
+1. 发布 `vane-waterfall@2.0.0`（changeset 已备，含本轮 8 条修复）；
+2. 把 `audit:demos` / `audit:controls` 接进 CI（本地已稳定）；
+3. 补 3 个 `config` 字段的默认值说明（`RecyclePlugin.poolSize` 之类只在源码里有默认）。
 
 ## 十一、附录
 
@@ -725,7 +746,7 @@ pnpm build && pnpm build:demo            # 核心 + 示例站产物（demo-dist�
 node scripts/serve-demo.cjs             # 静态托管 demo-dist（3300）
 pnpm verify:scenarios                   # 闸门一：目录 / 源码 / 插件名一致
 PLAYWRIGHT_PATH=<playwright> node scripts/audit-demos.mjs      # 闸门二：几何体检（37 页）
-PLAYWRIGHT_PATH=<playwright> node scripts/audit-controls.mjs   # 闸门三：控件响应（23 个滑杆）
+PLAYWRIGHT_PATH=<playwright> node scripts/audit-controls.mjs   # 闸门三：控件响应（21 个滑杆）
 ```
 
 本报告的采集脚本：

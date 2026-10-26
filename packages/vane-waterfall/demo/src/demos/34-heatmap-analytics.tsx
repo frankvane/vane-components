@@ -9,7 +9,12 @@
  */
 import { createHeatmapAnalyticsPlugin } from "vane-waterfall/custom-plugins";
 import { createFeedStage } from "./stages/feed";
+import { FeedCard } from "../components/FeedCard";
+import type { SeedCard } from "../data/seed";
 import type { DemoMeta } from "./types";
+
+// 提到模块级：chrome 里的「导出」按钮要读同一份统计
+const heatPlugin = createHeatmapAnalyticsPlugin<SeedCard>({ showOverlay: true });
 
 export const meta: DemoMeta = {
   slug: "heatmap-analytics",
@@ -26,14 +31,14 @@ export const meta: DemoMeta = {
     },
   ],
   props: ["columns={4}", "containerStyle={{ height: 420 }}"],
-  note: "首屏曝光靠 onLayoutComplete 补一次，否则第一帧显示 0。真实上报要自己做去重与批次（插件只负责计数）。",
+  note: "首屏曝光靠 onLayoutComplete 补一次，否则第一帧显示 0。真实上报要自己做去重与批次（插件只负责计数）——「导出 JSON」拿到的就是 `getStats()` 的形状：总曝光、总点击、每项明细。",
 };
 
 export default createFeedStage({
   count: 36,
   seed: 5001,
   instrument: true,
-  plugins: () => [createHeatmapAnalyticsPlugin({ showOverlay: true })],
+  plugins: () => [heatPlugin],
   coreProps: (api) => {
     let seen = 0;
     return {
@@ -46,5 +51,21 @@ export default createFeedStage({
       },
     };
   },
-  chrome: () => <p className="stage-tip">滚一遍：顶部条是开关，卡片角上是单卡曝光/点击次数</p>,
+  chrome: (api) => (
+    <div className="stage-stats">
+      <p className="stage-tip">滚一遍：顶部条是开关，卡片角上是单卡曝光/点击次数</p>
+      <button
+        type="button"
+        onClick={() => {
+          const stats = heatPlugin.getStats();
+          api.log(
+            `getStats() → 曝光 ${stats.totalViews} / 点击 ${stats.totalClicks} / 有数据项 ${stats.items.length}`,
+          );
+          void navigator.clipboard?.writeText(JSON.stringify(stats, null, 2)).catch(() => {});
+        }}
+      >
+        导出 JSON
+      </button>
+    </div>
+  ),
 });

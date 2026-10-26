@@ -1,6 +1,6 @@
 {
   "name": "HeatmapAnalyticsPlugin",
-  "description": "按项统计「进入视口次数」与「点击次数」，用于粗粒度热力分析。首次布局会补记一次当前可见范围的曝光，避免首屏全是 0。",
+  "description": "统计每项进入视口次数与点击次数，可选顶部汇总条，`getStats()` 取出每项明细。曝光是瀑布流里最容易统计错的东西（滚动时反复进出视口），交给插件比自己写 IntersectionObserver 少踩坑。",
   "since": "2.0.0",
   "tags": [
     "interaction",
@@ -23,9 +23,9 @@
   ],
   "example": "// 统计每项曝光次数与点击次数，可显示汇总条。\nconst Waterfall = withPlugins(WaterfallCore, [\n  createHeatmapAnalyticsPlugin({\n    showOverlay: false,\n  }),\n]);\n\n<Waterfall items={items} renderItem={(item) => <Card data={item} />} />;",
   "features": [
-    "逐项曝光 / 点击计数",
-    "首屏曝光自动补记",
-    "汇总条默认关闭"
+    "按项的曝光 / 点击双计数",
+    "首屏曝光在 onLayoutComplete 补一次",
+    "getStats() 输出可上报的扁平结构"
   ],
   "useCases": [
     "信息流曝光分析",
@@ -33,6 +33,8 @@
     "调试曝光策略"
   ],
   "notes": [
-    "计数只存在内存里，刷新即清零；要持久化请订阅 bus 事件自行上报。"
+    "首屏曝光靠 onLayoutComplete 补一次，否则第一帧显示 0。",
+    "真实上报要自己做去重与批次（插件只负责计数，不区分「同一项第几次进入」）。",
+    "计数只在内存里，刷新即清零 —— 定时取 getStats() 上报。"
   ]
 }
