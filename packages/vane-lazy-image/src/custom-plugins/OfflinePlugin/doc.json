@@ -19,7 +19,7 @@
     "在线预热进 Cache Storage（真实写入）",
     "离线从缓存读取同域资源",
     "无缓存回退 offlineSrc / 内置 SVG 占位",
-    "online/offline 事件监听 + 状态徽标",
+    "在线 / 离线状态统一取自 GlobalContext（全 App 单处监听）+ 状态徽标",
     "warm / showBadge 可开关"
   ],
   "useCases": [

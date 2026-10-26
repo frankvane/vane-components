@@ -42,7 +42,7 @@ class GlobalContextManager {
   private initListeners(): void {
     if (typeof window === "undefined") return;
 
-    // 监听网络变化
+    // 监听网络类型/速率变化
     const nav: any = typeof navigator !== "undefined" ? navigator : undefined;
     const conn = nav?.connection || nav?.mozConnection || nav?.webkitConnection;
     if (conn) {
@@ -51,6 +51,14 @@ class GlobalContextManager {
         this.notifyListeners();
       });
     }
+
+    // 🆕 监听在线/离线事件（最常用网络信号，此前缺失）
+    const handleOnline = () => {
+      this.networkInfo = undefined; // 强制重新检测 online 字段
+      this.notifyListeners();
+    };
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOnline);
 
     // 监听视口大小变化（使用节流优化）
     let resizeTimer: number | undefined;
@@ -89,14 +97,16 @@ class GlobalContextManager {
    * 检测网络信息
    */
   private detectNetwork(): NetworkInfo | undefined {
-    const nav: any = typeof navigator !== "undefined" ? navigator : undefined;
+    if (typeof navigator === "undefined") return undefined; // SSR 环境无 networkInfo
+    const nav: any = navigator;
     const conn = nav?.connection || nav?.mozConnection || nav?.webkitConnection;
-    if (!conn) return undefined;
     return {
-      effectiveType: conn.effectiveType || "4g",
-      downlink: Number(conn.downlink || 10),
-      rtt: Number(conn.rtt || 50),
-      saveData: Boolean(conn.saveData || false),
+      // 🆕 在线状态取自 navigator.onLine，并由 online/offline 事件维护
+      online: nav.onLine !== undefined ? nav.onLine : true,
+      effectiveType: conn?.effectiveType || "4g",
+      downlink: Number(conn?.downlink || 10),
+      rtt: Number(conn?.rtt || 50),
+      saveData: Boolean(conn?.saveData || false),
     };
   }
 

@@ -85,6 +85,10 @@ class IntersectionObserverPool {
   // 🆕 Observer 统计信息
   private observerStats = new Map<string, ObserverStats>();
 
+  // 🆕 滚动根身份表：用 WeakMap 为不同 root 元素分配稳定 id，避免 tagName+className 碰撞
+  private rootIds = new WeakMap<Element, string>();
+  private rootIdCounter = 0;
+
   // 🆕 性能统计
   private totalCallbackExecutions = 0;
 
@@ -160,12 +164,25 @@ class IntersectionObserverPool {
   }
 
   /**
+   * 为 root 元素分配稳定的字符串身份（WeakMap 持有，元素 GC 后自动释放，无泄漏）
+   */
+  private getRootId(root: Element | null | undefined): string {
+    if (!root) return "null";
+    let id = this.rootIds.get(root);
+    if (!id) {
+      id = `r${++this.rootIdCounter}`;
+      this.rootIds.set(root, id);
+    }
+    return id;
+  }
+
+  /**
    * 生成 Observer 配置的唯一键
    */
   private getConfigKey(config: ObserverConfig): string {
     const { root, rootMargin = "0px", threshold = 0 } = config;
-    // 使用 root 的标识 + rootMargin + threshold 生成唯一键
-    const rootId = root ? `root-${root.tagName}-${root.className}` : "root-null";
+    // 用 root 元素的稳定身份（而非 tagName+className）生成键，避免两个不同滚动根同 class 碰撞到同一 observer
+    const rootId = `root-${this.getRootId(root)}`;
     const thresholdStr = Array.isArray(threshold) ? threshold.join(",") : String(threshold);
     return `${rootId}|${rootMargin}|${thresholdStr}`;
   }

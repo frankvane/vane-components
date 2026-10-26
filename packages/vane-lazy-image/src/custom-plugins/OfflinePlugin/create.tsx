@@ -23,7 +23,9 @@ const DEFAULT_OFFLINE_SVG =
  * 离线降级插件（v2 真实实现）：
  * - 在线时（warm=true）把资源最佳努力写入 Cache Storage 预热；
  * - 离线时优先从 Cache Storage 取缓存（同域可读），否则回退 offlineSrc / 内置 SVG 占位；
- * - 监听 online/offline 事件，在离线时显示状态徽标。
+ * - 在线/离线状态统一取自 GlobalContext（utils/GlobalContext 经 online/offline 事件维护，
+ *   并由 withPlugins 注入到 context.networkInfo 且在网络切换时驱动组件重渲染），
+ *   因此本插件不再自挂 window 监听——全 App 仅 GlobalContext 一处监听，避免 N 个实例重复注册。
  * 注意：跨域 no-cors 资源缓存后无法读取为 blob，因此离线真正可用的是「同域资源」或
  * 显式提供的 offlineSrc；跨域离线回退到占位图是预期降级路径。
  */
@@ -35,46 +37,17 @@ export function createOfflinePlugin(config: OfflineConfig = {}): LazyImagePlugin
     showBadge = true,
   } = config;
 
-  const ONLINE = "offline:online";
-
-  const getOnline = () =>
-    typeof navigator !== "undefined" ? navigator.onLine : true;
+  // 全局 GlobalContext 维护的 online 优先；退化到 navigator.onLine，保证首屏/SSR 也能拿到值。
+  const isOnline = (context: LazyImageContext): boolean =>
+    context.networkInfo ? context.networkInfo.online : typeof navigator !== "undefined" ? navigator.onLine : true;
 
   return {
     name: "offline",
     version: "2.0.0",
     config,
     hooks: {
-      onMount: (context: LazyImageContext) => {
-        try {
-          context.sharedData?.set(ONLINE, getOnline());
-        } catch {}
-        if (typeof window === "undefined") return;
-        const onOnline = () => {
-          try { context.sharedData?.set(ONLINE, true); } catch {}
-        };
-        const onOffline = () => {
-          try { context.sharedData?.set(ONLINE, false); } catch {}
-        };
-        window.addEventListener("online", onOnline);
-        window.addEventListener("offline", onOffline);
-        try {
-          context.sharedData?.set("offline:cleanup", () => {
-            window.removeEventListener("online", onOnline);
-            window.removeEventListener("offline", onOffline);
-          });
-        } catch {}
-      },
-      onUnmount: (context: LazyImageContext) => {
-        const cleanup = context.sharedData?.get("offline:cleanup");
-        if (typeof cleanup === "function") {
-          try { cleanup(); } catch {}
-        }
-        try { context.sharedData?.delete(ONLINE); } catch {}
-      },
       onLoad: async (context: LazyImageContext) => {
-        const online = getOnline();
-        if (online) {
+        if (isOnline(context)) {
           // 在线：预热进 Cache Storage（同域资源可被离线读取）
           if (warm && typeof caches !== "undefined") {
             try {
@@ -110,8 +83,7 @@ export function createOfflinePlugin(config: OfflineConfig = {}): LazyImagePlugin
       },
       renderOverlay: (context: LazyImageContext) => {
         if (!showBadge) return null;
-        const online = !!context.sharedData?.get(ONLINE);
-        if (online) return null;
+        if (isOnline(context)) return null;
         return (
           <div
             style={{

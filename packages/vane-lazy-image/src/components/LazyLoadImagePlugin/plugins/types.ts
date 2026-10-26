@@ -39,6 +39,8 @@ export interface ProgressInfo {
 }
 
 export interface NetworkInfo {
+  /** 是否在线（取自 navigator.onLine，由 GlobalContext 经 online/offline 事件维护） */
+  online: boolean;
   effectiveType: "4g" | "3g" | "2g" | "slow-2g";
   downlink: number; // Mbps
   rtt: number; // ms
