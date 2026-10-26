@@ -35,7 +35,7 @@ vane-waterfall 2.0.0：插件系统内核更换为 `@vane/plugin-core`，钩子�
 - 示例页 `24-url-sync` 修通：`keys` 写的是 props 上不存在的 `query`、过滤用了 Core 并不消费的 `filterFn`、`urlsync:init` 无人消费 —— 现在 `keys: ["searchQuery"]` + `SearchPlugin` + 挂载时读 `location.search` 回填，输入即写 URL、刷新即回填。
 - `scripts/audit-demos.mjs` 的两处盲区：只读 `transform` 定位（`useTransform: false` 时会误报「容器里没有已布局项」），现在回退到 `offsetLeft/offsetTop`；`scripts/audit-controls.mjs` 的还原检查对虚拟化页忽略 `scrollHeight`（实测高度替换估值会让总高合法变大）。
 - **虚拟化新增自适应估值**（`virtualize.adaptiveEstimate`，默认 `true`）：`estimateHeight` 退为「冷启动兜底」，样本够 8 个后改用实测高度的中位数（`estimateQuantile`，默认 0.5）。理由：总高是所有项高度之和，中位数让总高误差最小；实测 1000 项数据集总高 95337px vs 实际 94700px（+0.7%），而 P90 会虚长到 117225px（+24%）。关掉它则严格用 `estimateHeight`。
-- **虚拟化「量到真高就立刻重排」**：项级 `ResizeObserver` 发现位置高度与实测不符时改走 `requestAnimationFrame` 合并的立即重排，不再等布局防抖（此前重叠要等 `debounceDelay` 才修，滚动中肉眼可见）。实测快速滚动 20 屏可见重叠 0 帧；拖动滚动条瞬移时最多 1–3 帧、≤60px（估值式虚拟化的固有取舍，停手即收敛）。
+- **虚拟化「量到真高就立刻重排」**：项级 `ResizeObserver` 发现位置高度与实测不符时改走 `requestAnimationFrame` 合并的立即重排，不再等布局防抖（此前重叠要等 `debounceDelay` 才修，滚动中肉眼可见）。实测快速滚动 20 屏可见重叠 0 帧；拖动滚动条瞬移时最多十来帧（≤0.2s）、峰值 60px，停手即收敛（估值式虚拟化的固有取舍，停手即收敛）。
 - **`DragReorderPlugin` 支持触屏**：鼠标仍走原生 HTML5 拖拽；触摸设备上 `draggable` 根本不触发（旧版因此在手机上完全失效），现在补了 pointer 路径 —— 长按 `touchHoldMs`（默认 180ms）进入拖拽，用 `elementFromPoint` 找落点。`doc.json` 同步收录新参数。
 - **`ClickAnalytics` / `HeatmapAnalytics` 新增 `getStats()`**：把内存里的按项计数吐成扁平结构（`{ total, byIndex }` / `{ totalViews, totalClicks, items }`），方便接自己的上报通道。演示站两个页面加了「导出 JSON」按钮，把数据形状直接展示出来。
 - `ReducedMotionPlugin` 监听 `matchMedia` 的 `change`：运行中改系统设置即时生效，不必刷新页面（定位方式 `useTransform` 要等下一次重渲染才切过来）。
