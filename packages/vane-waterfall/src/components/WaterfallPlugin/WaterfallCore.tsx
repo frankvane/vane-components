@@ -582,10 +582,21 @@ const WaterfallCore = forwardRef<WaterfallCoreRef, WaterfallCoreProps>(
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    /**
+     * 已经为「这个高度」补过一次重排的项。
+     *
+     * 用途是防止来回震荡：插件可以通过 calculateItemPosition 把项高度改写成自己的值
+     * （FixedHeight 之类），此时 DOM 高度和 position.height 会长期不一致，
+     * 若每次量到都重排就会无限循环。按 index 记住补过的实测高度，同一个高度只补一次。
+     */
+    const heightRepairRef = useRef(new Map<number, number>());
+
     // items 变化 → 重新布局
     useEffect(() => {
       hasInitialLayoutRef.current = false;
       hasRequestedLayoutRef.current = false;
+      // 换了数据集，之前为「某个高度补过一次」的记录就失效了（index 含义变了）
+      heightRepairRef.current.clear();
       throttledCalculateLayout();
     }, [items, throttledCalculateLayout]);
 
@@ -622,9 +633,21 @@ const WaterfallCore = forwardRef<WaterfallCoreRef, WaterfallCoreProps>(
             const ro = new ResizeObserver(() => {
               const h = el.offsetHeight;
               if (h <= 0) return;
-              const changed = measuredHeightsRef.current.get(index) !== h;
               measuredHeightsRef.current.set(index, h);
-              if (changed || !positionsRef.current.has(index)) {
+
+              // 光看「测量值变了」不够：ref 回调已经把高度写进 measuredHeights 了，
+              // 这里再比就永远是 false。真正要问的是「当前这份位置，是按这个高度算的吗」——
+              // 虚拟化下项先按 estimateHeight 落位、挂上来才量到真高，位置高度必然对不上，
+              // 此时若不重排，同一列就会按估值高度紧紧码着，实测高度更大的项相互重叠。
+              const pos = positionsRef.current.get(index);
+              const drifted = pos ? Math.abs(pos.height - h) > 0.5 : false;
+              const repaired = heightRepairRef.current.get(index) === h;
+
+              if (!pos) {
+                // 这一项还没有位置（首屏并发挂载时常见）→ 必须补一次布局
+                throttledCalculateLayout();
+              } else if (drifted && !repaired) {
+                heightRepairRef.current.set(index, h);
                 throttledCalculateLayout();
               }
             });

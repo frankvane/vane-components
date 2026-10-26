@@ -21,9 +21,6 @@
     }
   ],
   "example": "// 尊重系统「减少动画」偏好：关掉 transform 定位与项过渡。\nconst Waterfall = withPlugins(WaterfallCore, [\n  createReducedMotionPlugin({\n    disableTransform: true,\n    removeTransitions: true,\n  }),\n]);\n\n<Waterfall items={items} renderItem={(item) => <Card data={item} />} />;",
-  "conflicts": [
-    "TransitionPlugin"
-  ],
   "features": [
     "系统偏好驱动，零配置生效",
     "两项能力可分别关闭",
@@ -35,6 +32,7 @@
     "低性能设备"
   ],
   "notes": [
-    "偏好只在挂载时读一次；用户中途改系统设置需刷新页面。"
+    "命中偏好时会持续清掉项上的 transition（onItemMount + onLayoutComplete 各清一次），所以和 TransitionPlugin 同装也不会被覆盖回原样。",
+    "偏好只在工厂创建时读一次；用户中途改系统设置需刷新页面。"
   ]
 }

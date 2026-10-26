@@ -50,11 +50,14 @@ const ROUTES = [
 const AUDIT_JS = `(() => {
   const TOL = 1.5;
   const issues = [];
-  const translateOf = (el) => {
+  // 两种定位方式都要认：默认用 transform（useTransform），
+  // ReducedMotion 插件命中系统偏好后会切成 left/top —— 只读 transform 会把这些项全漏掉，
+  // 表现为「容器里没有任何已布局的项」（假报警）。
+  const posOf = (el) => {
     const t = getComputedStyle(el).transform;
-    if (!t || t === "none") return null;
-    const m = /matrix\\(([^)]+)\\)/.exec(t);
-    if (!m) return null;
+    if (!t || t === "none") return { x: el.offsetLeft, y: el.offsetTop };
+    const m = /matrix\(([^)]+)\)/.exec(t);
+    if (!m) return { x: el.offsetLeft, y: el.offsetTop };
     const p = m[1].split(",").map(Number);
     return { x: p[4], y: p[5] };
   };
@@ -63,7 +66,7 @@ const AUDIT_JS = `(() => {
   containers.forEach((box, ci) => {
     const cards = [];
     box.querySelectorAll("[data-index]").forEach((el) => {
-      const pos = translateOf(el);
+      const pos = posOf(el);
       const w = el.offsetWidth, h = el.offsetHeight;
       if (!pos || w <= 0 || h <= 0) return;
       cards.push({ i: Number(el.dataset.index), x: pos.x, y: pos.y, w, h });

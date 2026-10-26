@@ -132,7 +132,7 @@ createTransitionPlugin({ duration: 240, easing: "cubic-bezier(.22,.61,.36,1)" })
 
 过渡会让「位置变化」有 200–300ms 的中间态，所以自动化量几何时要么等过渡结束，要么关掉它。
 
-### ReducedMotionPlugin `priority 65`
+### ReducedMotionPlugin `priority 70`
 
 检测 `prefers-reduced-motion: reduce`，命中后关掉 `useTransform`、清掉过渡。
 
@@ -141,6 +141,8 @@ createReducedMotionPlugin({ disableTransform: true, removeTransitions: true });
 ```
 
 > **与 TransitionPlugin 同开等于把过渡关掉**——不是冲突，是预期行为，但别以为动效还在。
+> 清除动作发生在 `onItemMount` 与 `onLayoutComplete`（晚于 TransitionPlugin 在 `onLayout` 里写的内联样式），所以不会被覆盖回来。
+> 偏好只在工厂创建时读一次，运行中改系统设置需要刷新。
 
 ---
 

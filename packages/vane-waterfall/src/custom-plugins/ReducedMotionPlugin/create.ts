@@ -21,6 +21,7 @@ export function createReducedMotionPlugin<T = any>(
   const prefersReduce = mq?.matches ?? false;
   const disableTransform = config.disableTransform ?? true;
   const removeTransitions = config.removeTransitions ?? true;
+  const shouldStrip = prefersReduce && removeTransitions;
 
   return {
     name: "ReducedMotionPlugin",
@@ -38,6 +39,20 @@ export function createReducedMotionPlugin<T = any>(
           next.itemStyle = { ...(props.itemStyle ?? {}), transition: "none" };
         }
         return next;
+      },
+      /**
+       * 只改 itemStyle 不够：TransitionPlugin 之类会直接在元素上写 `style.transition`
+       * （onItemMount / onLayout 里），内联样式比 itemStyle 更晚生效，覆盖回来就白改了。
+       * onLayoutComplete 在全部 onLayout 之后执行，在这里再清一次才真的「没有过渡」。
+       */
+      onItemMount: (_context, _index, element) => {
+        if (shouldStrip) element.style.transition = "none";
+      },
+      onLayoutComplete: (context) => {
+        if (!shouldStrip) return;
+        context.itemRefs.forEach((el) => {
+          if (el) el.style.transition = "none";
+        });
       },
     },
   };

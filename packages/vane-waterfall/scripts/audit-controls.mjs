@@ -52,7 +52,10 @@ const pages = files
   .map((f) => {
     const src = fs.readFileSync(path.join(DEMO_DIR, f), "utf8");
     const slug = /slug:\s*"([^"]+)"/.exec(src)?.[1] ?? f;
-    return { file: f, slug, skip: nonLayoutLabels(src) };
+    // 开了虚拟化的页面，scrollHeight 会随着「估值高度被实测高度替换」单调变化，
+    // 这是正确行为（estimateHeight 的意义就在这），不能当「还原失败」。
+    const virtual = /virtualize\s*[:=]/.test(src);
+    return { file: f, slug, virtual, skip: nonLayoutLabels(src) };
   })
   .filter((p) => pick.length === 0 || pick.includes(p.slug));
 
@@ -108,6 +111,12 @@ const readRange = (index) =>
   }, index);
 
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+/** 虚拟化页只比「结构」：项数 / 列宽 / 间距 / 前 12 项的列号与坐标，不比内容总高 */
+const sameGeometry = (a, b, ignoreHeight) => {
+  if (!ignoreHeight) return same(a, b);
+  const strip = (o) => (o ? { ...o, scrollH: 0 } : o);
+  return same(strip(a), strip(b));
+};
 const failures = [];
 const notes = [];
 let checked = 0;
@@ -118,7 +127,7 @@ await page.goto(`${BASE}/demo/index.html#/demo/${pages[0]?.slug ?? "basic"}`, {
 });
 await page.waitForTimeout(1200);
 
-for (const { slug, skip } of pages) {
+for (const { slug, skip, virtual } of pages) {
   await page.evaluate((s) => {
     location.hash = `#/demo/${s}`;
   }, slug);
@@ -149,7 +158,8 @@ for (const { slug, skip } of pages) {
     checked += 1;
 
     if (same(base, atMax) && same(base, atMin)) dead.push(info.label);
-    else if (!same(base, restored)) unstable.push(info.label);
+    // 还原一致性：虚拟化页忽略内容总高（实测高度替换估值会让它变大）
+    else if (!sameGeometry(base, restored, virtual)) unstable.push(info.label);
   }
 
   const mark = dead.length === 0 ? "✓" : "✗";

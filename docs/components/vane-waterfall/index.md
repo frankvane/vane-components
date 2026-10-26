@@ -136,3 +136,5 @@ PLAYWRIGHT_PATH=<playwright> node scripts/audit-controls.mjs   # 每个滑杆推
 | `audit-demos` | 真浏览器里的几何坏味道：重叠 / 越界 / 零尺寸 / `scrollHeight` 盖不住底边 | 「控件没接上」——3 列排得整整齐齐也是合法几何 |
 | `audit:controls` | 逐个滑杆推到两端，比较逐项指纹（列号 + 位置 + 列宽 + 总高 + 渲染项数）；标了 `nonLayout` 的（耗时 / 池大小 / 阈值）跳过 | 耗时类参数的效果（得看读数或日志） |
 
+两个判定细节，都是被误报逼出来的：`audit-demos` 读不到 `transform` 时会退回 `offsetLeft/offsetTop`（`-prefers-reduced-motion` 下 ReducedMotion 会把定位切成 `left/top`，只读 transform 会误报「容器里没有已布局项」）；`audit:controls` 的「拖回原值」检查对开了 `virtualize` 的页面忽略 `scrollHeight`（估值高度被实测高度替换后总高合法变大）。
+

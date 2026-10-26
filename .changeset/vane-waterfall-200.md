@@ -30,3 +30,7 @@ vane-waterfall 2.0.0：插件系统内核更换为 `@vane/plugin-core`，钩子�
 - 3 个配方：`presets/photo-feed` / `presets/product-feed` / `presets/dashboard`。
 - 演示站重建为「插件工坊（26 插件勾选实时装配）+ 场景库（13 个真实版式，一卡两份源码，页面内几何体检）+ 逐项示例（34 页，一插件一页，参数可拖、装配代码跟着变）」。
 - 演示站加第三道闸门 `audit:controls`：逐页把每个滑杆推到两端比较逐项指纹，抓「控件没接上」这类几何合法但功能失效的缺陷。
+- **虚拟化滚动后的同列重叠修好了**：项先按 `estimateHeight` 落位，挂载后量到真高却不会触发重排（`ResizeObserver` 里判断的是「测量值有没有变」，而 ref 回调已经写过），于是估值高度一直用下去 —— 实测滚动到 30%/60%/95% 处各有 9–13 处重叠。现在改为比较「当前 position.height 与实测高度是否一致」，并用 `heightRepairRef` 记住补过的高度（插件改写项高时不会来回震荡）。修后三处位置重叠均为 0。
+- **`ReducedMotionPlugin` 真的能清掉过渡了**：此前只在 `transformProps` 里写 `itemStyle.transition`，被 `TransitionPlugin` 在 `onItemMount` / `onLayout` 里写的内联样式覆盖回来（读数说「已清掉」，元素上还是 0.24s）。补 `onItemMount` / `onLayoutComplete` 两个钩子，在过渡插件之后再清一次。
+- 示例页 `24-url-sync` 修通：`keys` 写的是 props 上不存在的 `query`、过滤用了 Core 并不消费的 `filterFn`、`urlsync:init` 无人消费 —— 现在 `keys: ["searchQuery"]` + `SearchPlugin` + 挂载时读 `location.search` 回填，输入即写 URL、刷新即回填。
+- `scripts/audit-demos.mjs` 的两处盲区：只读 `transform` 定位（`useTransform: false` 时会误报「容器里没有已布局项」），现在回退到 `offsetLeft/offsetTop`；`scripts/audit-controls.mjs` 的还原检查对虚拟化页忽略 `scrollHeight`（实测高度替换估值会让总高合法变大）。
