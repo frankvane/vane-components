@@ -12,19 +12,32 @@ function computeDominantColor(img: HTMLImageElement, sampleSize = 4): string | n
     const canvas = document.createElement("canvas");
     const w = Math.min(img.naturalWidth || img.width, 256);
     const h = Math.min(img.naturalHeight || img.height, 256);
+    if (!w || !h) return null;
     canvas.width = w;
     canvas.height = h;
     const ctx = canvas.getContext("2d");
     if (!ctx) return null;
     ctx.drawImage(img, 0, 0, w, h);
     const data = ctx.getImageData(0, 0, w, h).data;
-    let r = 0, g = 0, b = 0, count = 0;
-    for (let i = 0; i < data.length; i += 4 * sampleSize) {
-      r += data[i];
-      g += data[i + 1];
-      b += data[i + 2];
-      count++;
+
+    // 采样步长必须是 ≥1 的整数：sampleSize 传 0 / 负数 / NaN 时，
+    // 旧实现 `i += 4 * sampleSize` 步长为 0 会直接死循环，把整个渲染进程卡死。
+    const stride = Math.max(1, Math.floor(Number(sampleSize)) || 1);
+    let r = 0,
+      g = 0,
+      b = 0,
+      count = 0;
+    for (let y = 0; y < h; y += stride) {
+      for (let x = 0; x < w; x += stride) {
+        const i = (y * w + x) * 4;
+        if (data[i + 3] === 0) continue; // 跳过全透明像素
+        r += data[i];
+        g += data[i + 1];
+        b += data[i + 2];
+        count++;
+      }
     }
+    if (!count) return null;
     r = Math.round(r / count);
     g = Math.round(g / count);
     b = Math.round(b / count);

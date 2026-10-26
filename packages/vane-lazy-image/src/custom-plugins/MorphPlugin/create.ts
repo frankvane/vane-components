@@ -131,12 +131,9 @@ export function createMorphPlugin(config: MorphConfig = {}): LazyImagePlugin {
           img.addEventListener("mouseleave", reset);
           return;
         }
+        // fill-mode 为 both：动画结束后保持末帧形态。此前在 animationend 里把
+        // style.animation 清空，会让形变结果当场回弹（等于白播一次），故不再清理。
         img.style.animation = `${animName} ${duration}ms ${easing} ${delay}ms both`;
-        const cleanup = () => {
-          img.style.animation = "";
-          img.removeEventListener("animationend", cleanup);
-        };
-        img.addEventListener("animationend", cleanup);
       },
     },
   };

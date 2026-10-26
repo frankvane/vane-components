@@ -184,6 +184,16 @@ export function withPlugins(
         throw new Error("LLI_PLUGIN_GATE");
       }
       const result = await execute("onLoad");
+      // 门控放行后才会真正开始请求，此刻把「加载中」同步给插件上下文。
+      // 此前 isLoading 从不上报 true（只在成功/失败时置 false），
+      // 导致 skeleton / svg-placeholder / progress-overlay / aria-busy 等
+      // 依赖加载态的插件永远不渲染。
+      setImageState({
+        isIdle: false,
+        isLoading: true,
+        isLoaded: false,
+        isError: false,
+      });
       return result as string | undefined;
     }, [execute]);
 

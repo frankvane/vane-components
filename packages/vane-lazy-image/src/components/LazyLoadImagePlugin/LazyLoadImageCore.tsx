@@ -112,6 +112,10 @@ export interface LazyLoadImageCoreProps {
   imageClassName?: string;
   /** 允许插件/调用方为 <img> 设置跨域策略，以支持像素读取等功能 */
   crossOrigin?: "anonymous" | "use-credentials" | "" | null;
+  /** 解码策略（decode-after-idle 等插件通过 transformProps 注入） */
+  decoding?: "async" | "sync" | "auto";
+  /** 防盗链 / 隐私场景的 Referer 策略（auth 等插件注入） */
+  referrerPolicy?: React.HTMLAttributeReferrerPolicy;
   // 供 HOC 传入的外部引用，便于插件访问真实 DOM
   containerRefExternal?: React.RefObject<HTMLDivElement | null>;
   imageRefExternal?: React.RefObject<HTMLImageElement | null>;
@@ -495,6 +499,10 @@ export const LazyLoadImageCore = forwardRef<
           {...(finalFetchPriority !== "auto" && { fetchpriority: finalFetchPriority })}
           // 提前设置跨域策略，保证加载过程具备像素读取权限（如 Canvas 提取主色）
           crossOrigin={props.crossOrigin ?? undefined}
+          // 内核不吞插件下发的解码 / Referer 策略：这两个属性此前被静默丢弃，
+          // 导致 decode-after-idle、auth 等插件「配了却没有任何效果」
+          decoding={props.decoding ?? undefined}
+          referrerPolicy={props.referrerPolicy ?? undefined}
           onLoad={() => {
             // Issue #23: 标记加载完成并测量
             performanceMonitorRef.current?.mark('load-end');

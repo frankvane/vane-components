@@ -15,17 +15,23 @@ export interface WebPPluginConfig {
 }
 
 let webpSupportPromise: Promise<boolean> | null = null;
+/**
+ * 检测浏览器是否支持 WebP。
+ *
+ * 此前用一个手抄的「极小 webp」base64 做 Image 嗅探，但那串 base64 是截断的
+ * （RIFF 声明长度 34，实际只有 33 字节），浏览器解码必然失败，
+ * detectWebPSupport() 恒为 false —— web-p 插件因此从来没生效过。
+ * 改为 canvas 嗅探：同步、无需魔法字符串，也不会因数据损坏而误判。
+ */
 function detectWebPSupport(): Promise<boolean> {
   if (webpSupportPromise) return webpSupportPromise;
-  // 2x1 的极小 webp 测试图片（base64）
-  const dataUrl =
-    "data:image/webp;base64,UklGRiIAAABXRUJQVlA4ICAAAADwAQCdASoBAAEALm0AAA/vv///8AA";
   webpSupportPromise = new Promise<boolean>((resolve) => {
     try {
-      const img = new Image();
-      img.onload = () => resolve(true);
-      img.onerror = () => resolve(false);
-      img.src = dataUrl;
+      const canvas = document.createElement("canvas");
+      canvas.width = 1;
+      canvas.height = 1;
+      const dataUrl = canvas.toDataURL("image/webp");
+      resolve(typeof dataUrl === "string" && dataUrl.indexOf("data:image/webp") === 0);
     } catch {
       resolve(false);
     }
