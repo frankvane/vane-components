@@ -48,7 +48,7 @@ import type {
 
 type JsonThemeName = "auto" | "light" | "dark";
 
-export interface JsonPreviewConfig {
+export interface JsonPreviewPluginConfig {
   /** 超过这个字节数直接拒绝渲染。默认 5MB */
   maxFileSize?: number;
   /** 顶部搜索框。默认 true */
@@ -151,7 +151,7 @@ function JsonBody({
   config,
 }: {
   context: FilePreviewPluginContext;
-  config: Required<JsonPreviewConfig>;
+  config: Required<JsonPreviewPluginConfig>;
 }) {
   const { file } = context;
   const jsonView = useDynamicModule(loadJsonView);
@@ -423,9 +423,9 @@ function JsonBody({
 }
 
 export function createJsonPreviewPlugin(
-  config: JsonPreviewConfig = {}
+  config: JsonPreviewPluginConfig = {}
 ): FilePreviewPlugin {
-  const resolved: Required<JsonPreviewConfig> = {
+  const resolved: Required<JsonPreviewPluginConfig> = {
     maxFileSize: config.maxFileSize ?? 5 * 1024 * 1024,
     enableSearch: config.enableSearch ?? true,
     enableCopy: config.enableCopy ?? true,

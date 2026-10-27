@@ -244,6 +244,31 @@
    因为「注册顺序决定渲染器」是没人能调试的隐式规则（P3-B 单测里把 office 挪到第一位就换过赢家，
    所以 `DocxPreviewPlugin` 的 priority 从 7 提到 8，与 Office 的 7 拉开）。
 
+9. **D9 · C 批四个「拆分 / 重构」级插件的四条硬约束**（P3-C 实装时补的）。
+
+   - **`rehype-raw` 默认关闭（安全边界，不是可选优化）。** Markdown 预览的输入是**用户上传的文件**，
+     而 `rehype-raw` 会把文件里的 `<img onerror>` 原样变成 DOM —— 这是存储型 XSS 的教科书入口。
+     所以拆成两个 loader：`loadMarkdownSafe`（默认，不含 raw）与 `loadMarkdownWithRaw`
+     （`allowHtml: true` 才动态 import）。**双向断言**：默认关时断言 `<img>` 不进 DOM，
+     开启时断言它真的进 —— 只测「默认关」的话，把开关写死成永久关闭也会通过。
+     顺带删掉 `remark-math` / `rehype-katex`（两个都没在用），保留 `remarkPlugins` / `rehypePlugins` 扩展点。
+   - **41 套 prism 主题 → `one-light` + `vsc-dark-plus` + `auto`。** 一个主题桶实测拖出 792KB chunk。
+     `auto` 用 `prefers-color-scheme` 跟随系统，用户仍可用工具栏切到显式主题（选择存 localStorage，
+     键带 `vane-file-preview:code:prefs` 前缀且 `storage: false` 时全 noop —— 组件库不经允许不该写宿主存储）。
+     语言偏好按**扩展名**存（`detectLanguageFromFilename` 从 `includes` 改精确基名匹配，
+     否则 `Makefile.js` 会被判成 makefile）。
+   - **CSV 拆成 4 个文件，且让出 `.txt`。** `parse.ts` 是纯函数（`decodeText`：BOM → UTF-8(fatal) →
+     GB18030 → 宽容 UTF-8；`parseCsv` 用 papaparse 的 `meta.delimiter`；`toCsvText` 按 RFC 4180），
+     可以脱离 DOM 单测（12 条）。`supportedExtensions` 只留 `.csv`/`.tsv` ——
+     迁移前它声明了 `.txt` 与 `text/plain`，把纯文本、日志、代码全抢了。
+   - **EPUB 用 ArrayBuffer 而不是 `blob:` URL，并做两级前置校验。** 详见偏离 21 / 22：
+     epub.js 的 `determineType()` 只按扩展名猜类型，无扩展名的 `blob:` URL 会被判成
+     「已解压目录」再去请求 `META-INF/container.xml`；校验则必须两级，因为 EPUB 与普通 zip
+     魔数完全相同。**这两条都只有在真浏览器里才暴露**，happy-dom 单测全绿。
+   - **桶入口的体积口径独立。** `dist/custom-plugins/index.js` 是 17 个插件的并集（实测 raw 86.5KB），
+     按「单文件 ≤60KB」必然红。给它独立上限 140KB 且**不计入 220KB 总量**：
+     该守的是「单个子路径入口 ≤60KB」—— 那才是按需引入的真实代价。
+
 **关键判断（写在这里防止复发）**：
 
 - **这是「单赢家路由」，不是 vane-card 的「多插件合成」。** 一个文件只能有一个插件渲染正文，
@@ -264,7 +289,23 @@
 **代价**：消费者要按文件类型自己装 peer（文档里给一张「文件类型 → 需要装什么」的表）；
 根入口只管 6 个轻量插件，剩下 11 个要写子路径 import。
 
-**验证**：体积三口径（根入口 ≤**14KB** / `./core` ≤8KB / 全量并集 ≤90KB，P3-B 实测 12.9 / 6.5 / 32.2）+ `dist` 内联断言 +
-`resolvePreview` 对 17 种文件的赢家断言 + `MissingDependency` 的 mock reject 单测。
-入口预算是 P3-A 迁完 6 个插件后从 12KB 上调的（实测 12.5KB：装配 6.4 + 6 插件约 6 + 共享工具栏 1.5），
-P1 定的 12KB 是在插件还没迁入时拍的，不是真实上限。
+**验证**：体积三口径 + `dist` 内联断言 + `resolvePreview` 对 17 种文件的赢家断言 +
+`MissingDependency` 的 mock reject 单测。P3-B 时根入口预算从 12KB 上调到 **14KB**
+（P1 定的 12KB 是在插件还没迁入时拍的，不是真实上限）。
+
+**体积口径（P3-C 澄清，此前两批混用过两种算法）**：
+
+| 口径 | 根入口 | `./core` | 17 个子路径 |
+| --- | --- | --- | --- |
+| **A · 消费方真实代价**（esbuild 压缩 + gzip，peer 全部 external） | **9.7KB** | 4.9KB | 59.2KB（各自独立打包后合计） |
+| B · `dist` 各文件 gzip 之和（入口静态闭包） | 15.2KB | 6.5KB | 65.1KB |
+| 预算 | ≤14KB | ≤8KB | ≤90KB |
+
+**以 A 为准**：它算的才是 `import { FilePreviewCore } from "vane-file-preview"` 真正加进
+用户 bundle 的字节数。B 会把同一个共享 chunk（`withPlugins` / `ToolbarComponents`）
+在多个入口里重复计入，所以 B 的根入口数比 A 大 5.5KB，看起来像「超预算」。
+历史提交里写的 12.9 / 6.5 / 32.2（P3-B）与 13.0 / 6.5 / 64.7（P3-C 施工中）属于 B 类口径，
+且早期几次连「闭包里算哪些 chunk」都没统一，**数值不可严格对比** —— 从这一版起固定用 A。
+复现：`esbuild dist/index.js --bundle --minify --format=esm --packages=external` 后 gzip。
+`dist` 的三条硬闸门（`import("pkg")` 原样保留 / 无整库内联标识 / raw 单文件 ≤60KB、总量 ≤220KB、桶 ≤140KB）
+仍由 `test/dist-external.test.ts` 断言，与上面这张表不是同一件事。

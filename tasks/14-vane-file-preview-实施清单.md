@@ -239,25 +239,25 @@ demo            13 个示例页 + Home + ReadmeDemo + _layout
 
 ### P3.3 C 级 4 个（拆分 / 重构）
 
-- [ ] `CodePreviewPlugin`（1572 / 7 文件）—— **41 套 prism 主题 → 2~3 套**（实测一个主题桶就拖出 792KB chunk）；`preferences.ts` 的 localStorage 键加前缀且可关
-- [ ] `MarkdownPreviewPlugin`（601）—— `rehype-raw` **默认关闭**（XSS 面），开启需 `allowHtml: true`；`remark-breaks` 可内联实现
-- [ ] `CsvPreviewPlugin`（730 / 单文件）—— 拆 `parse.ts` / `Table.tsx` / `Toolbar.tsx`；37 处内联样式只留几何值
-- [ ] `SimpleReactReaderEpubPlugin`（186 / `react-reader`）—— 独立子路径；文档标注「引入约 200KB+（epub.js）」
-- [ ] `shared/ToolbarComponents.tsx` —— **`FileInfo` 组件改名 `FileMeta`**（与文件元数据类型 `FileInfo` 撞名，分析 4.6）
-- [ ] `styles/isolatedStyles.ts` —— 显式标 `React.CSSProperties` 返回类型（修 `TS2742`），并升级为公共 toolkit
+- [x] `CodePreviewPlugin`（1572 / 7 文件）—— **41 套 prism 主题 → `one-light` + `vsc-dark-plus` + `auto`**（`auto` 走 `prefers-color-scheme`）；`preferences.ts` 的 localStorage 键加 `vane-file-preview:code:prefs` 前缀且 `storage: false` 时全 noop；语言按**扩展名**存；`detectLanguageFromFilename` 从 `includes` 改精确基名匹配（`Makefile.js` 不再被判成 makefile）；`maxBytes` 默认 2MB 超限退化成 `<pre>`
+- [x] `MarkdownPreviewPlugin`（601）—— `rehype-raw` **默认关闭**，`allowHtml: true` 才加载 `loadMarkdownWithRaw`（两个 loader 分离，不把 raw 进主 chunk）；删 `remark-math`/`rehype-katex` 留 `remarkPlugins`/`rehypePlugins` 扩展点；`resolveMarkdownUrl` 白名单协议 + `urlTransform`（相对路径按 `file.url` 解析）；170 行内联 CSS 收成一份 `MARKDOWN_CSS` + CSS 变量双主题
+- [x] `CsvPreviewPlugin`（730 / 单文件）—— 拆 `parse.ts`（`decodeText` BOM→UTF-8(fatal)→GB18030→宽容、`parseCsv` 用 `meta.delimiter`、`toCsvText` RFC 4180）/ `CsvTable.tsx` / `CsvToolbar.tsx` / `index.tsx`；排序按**列下标** + `numeric: true`；`supportedExtensions` 只留 `.csv`/`.tsv`（不再抢 `.txt`）
+- [x] `EpubPreviewPlugin`（186 / `react-reader`）—— 独立子路径；旧名 `createSimpleReactReaderEpubPlugin` 留别名；**两级前置校验**（zip 魔数 + `META-INF/container.xml`）；内容以 **ArrayBuffer** 交给 epub.js（不是 `blob:` URL，见偏离 21）；删掉正文里第二条工具栏
+- [x] `shared/ToolbarComponents.tsx` —— **`FileInfo` 组件改名 `FileMeta`**（与文件元数据类型 `FileInfo` 撞名，分析 4.6）
+- [x] `isolatedStyles.ts` —— 显式 `import type React` + 三个函数标 `React.CSSProperties` 返回类型（修 `TS2742`），落地在 `components/FilePreviewPlugin/shared/isolatedStyles.ts`（与 P4.4 面板同目录，而不是清单里写的 `src/styles/`）
 
 ### P3.4 桶文件与 doc
 
-- [ ] `custom-plugins/index.ts`：17 个导出，按 `media`（5）/ `document`（5）/ `data`（3）/ `archive`（1）/ `other`（3）分组
-- [ ] `src/plugins.ts`：**只出 6 个轻量插件**（Image / Pdf / Video / Audio / Download / Office）
-- [ ] `pnpm docs:plugins` 生成 17 行
+- [x] `custom-plugins/index.ts`：17 个导出，按 `media`（5）/ `document`（5）/ `data`（3）/ `archive`（1）/ `other`（3）分组，另出 `PLUGIN_FACTORIES` + `createAllPlugins()`
+- [x] `src/plugins.ts`：**只出 6 个轻量插件**（Image / Pdf / Video / Audio / Download / Office）—— P3-A 已建
+- [x] `pnpm docs:plugins` 生成 17 行
 
 ### P3.5 单测（第三批）
 
-- [ ] 每个插件：工厂返回 `{ name, hooks }`、`doc.json` 可解析、`config` 字段完整（17 × 3 表驱动）
-- [ ] 端到端 3 个：CSV 解析出首行表头 / DOCX 两种模式命中不同插件 / 未知类型落到 `unsupported`
+- [x] 每个插件：工厂返回 `{ name, hooks }`、`doc.json` 可解析、`config` 字段完整（17 × 3 表驱动，`plugins-a/b/c.test.ts` 三批合起来覆盖 17/17）
+- [x] 端到端 3 个：CSV 解析出首行表头（`csv-parse.test.ts`）/ DOCX 两种模式命中不同插件（`plugins-b.test.ts` 三种 `docxMode` × 两种注册顺序）/ 未知类型落到 `unsupported`（`lifecycle.test.tsx`）
 
-**验收门 P3**：`doc.json` **17/17**；桶文件 17 导出无遗漏；`docs:plugins` 生成 17 行；`typecheck` 0 错；`test` ≥ 40 通过。
+**验收门 P3**：`doc.json` **17/17** ✅；桶文件 17 导出无遗漏 ✅；`docs:plugins` 生成 17 行 ✅；`typecheck` 0 错 ✅；`test` **240 通过 / 16 文件**（清单写 ≥ 40）✅。
 
 ---
 
@@ -402,6 +402,42 @@ demo            13 个示例页 + Home + ReadmeDemo + _layout
 18. **`xlsx` 在 npm 上停在 0.18.5。** SheetJS 从 0.19 起改在自己的 CDN 分发，
    npm 包不再更新（License 仍是 Apache-2.0）。这条写进了 `doc.json` 的 notes 与插件头注释，
    免得消费方以为 `npm i xlsx` 拿到的是最新版。
+19. **`matchExtension` 必须按「段边界」匹配，否则 `"rar".endsWith("r")` 成立。**
+   17 个插件全接入后跑矩阵，`a.rar` 的赢家是 `CodePreviewPlugin` —— 它声明了 `.r`（R 语言），
+   而旧实现是 `ext.endsWith(pat)`，于是压缩包被当成 R 脚本渲染成一片乱码。
+   改成 `ext === pat || ext.endsWith("." + pat)`。**这条错误只有在「短扩展名 + 长扩展名同后缀」时触发**，
+   17 个插件单测各自都绿，只有两两组合的矩阵能抓到 —— 所以 `routing-all.test.ts` 不是重复劳动。
+20. **桶入口的体积口径要单独算，不能混进单文件上限。**
+   `dist/custom-plugins/index.js` 是「17 个插件的并集」，必然大于任何一个单独插件（实测 86.5KB），
+   按「单文件 ≤ 60KB」直接红。给它**独立上限 140KB**，并且**不计入 220KB 总量**
+   —— 否则总量 267KB 也红。理由：桶文件是「一次装齐 17 个」的便利入口，
+   真正该守住的是「单个子路径入口 ≤ 60KB」，这才是消费者按需引入时的真实代价。
+21. **EPUB 不能把 `blob:` URL 交给 epub.js —— 它只按扩展名猜类型。**
+   第一版 `URL.createObjectURL(blob)` 后在 happy-dom 单测里「通过」（那里根本没跑 epub.js），
+   真浏览器里是 react-reader 内部一句 `Error loading book`、iframe 数量 0。
+   根因在 `Book.determineType()`：`blob:http://host/8f3a-…` 没有扩展名 →
+   `if (!extension) return INPUT_TYPE.DIRECTORY` → 走 `openContainer()` 去请求相对的
+   `META-INF/container.xml`（相对 blob URL 必然失败）→ `openFailed`。
+   改成把 **ArrayBuffer 直接传进去**：非字符串输入走 `INPUT_TYPE.BINARY` → `openEpub()` → JSZip 原地解压，
+   一次网络都不发，还省掉 `revokeObjectURL` 的时机问题。
+   **教训：happy-dom 里「渲染不报错」对这类重依赖插件几乎零证明力**，必须看真浏览器。
+22. **EPUB 的两级校验：zip 魔数拦不住「普通 zip 改后缀」。**
+   EPUB 就是 zip，`sample.zip` 与真 EPUB 的魔数完全相同，所以第一版的「魔数校验应报错」
+   在真浏览器里既没报错也没渲染 —— 它一路交给了 epub.js 去炸。
+   加第二级：在原始字节里扫 `META-INF/container.xml`（zip 的 local header / 中央目录都把文件名明文存着，
+   不解析 zip 也能判断），普通 zip 就落到「这看起来是一个普通 ZIP，不是 EPUB」。
+   同时把 demo 的样本换成一个真的 zip 改名 `fake-book.epub` —— 原来那条 `sample.zip`
+   是 `application/zip` + `.zip`，压根不会路由到 EPUB 插件，**样本和它声称的验证目标不是一回事**。
+23. **Office 的扩展名声明不全，`.dotx` / `.xlsm` 这些会掉到兜底下载。**
+   矩阵里 `a.dotx` 的赢家是 `DownloadPlugin`：Office 只声明了 `.docx/.xlsx/.pptx` 等 6 个主扩展名。
+   补齐 `.docm/.dotx/.xlsm/.xltx/.pptm/.potx`（这几种 LibreOffice / OnlyOffice 一样能打开）。
+24. **StrictMode 下 dev 会多一条 `META-INF/container.xml` 404，生产没有。**
+   `Book.destroy()` 会把 `archived` 重置为 `false`，而 epub.js 的 open 链是异步的；
+   组件在打开途中被销毁（React StrictMode 双挂载必然发生一次）后，链尾的 `openContainer()`
+   退回网络请求，按页面基址拼出 `/demo/META-INF/container.xml`。
+   **验证方式**：`build:demo` 后起静态服务（无 SPA fallback）重跑同一探针，
+   `errors=[]` 且 `failed-requests=[]` —— 否则这条只能算「猜的」。
+   写进 `doc.json` 的 notes，免得后来者去追这条只在 dev 出现的 404。
 ---
 
 ## 执行记录（随实施追加）
@@ -413,6 +449,7 @@ demo            13 个示例页 + Home + ReadmeDemo + _layout
 | P2 | 2026-10-27 | 装配器接内核 + 单赢家路由纯函数（54 单测） |
 | P3-A | 2026-10-27 | 6 个轻量插件 + 共享模块 + 6 份 doc.json（88 单测） |
 | P3-B | 2026-10-27 | 7 个重依赖插件动态化 + external 正则 + 缺失依赖面板 + demo 文档页（126 单测） |
+| P3-C | 2026-10-27 | Code（41→2 主题）/ Markdown（raw 默认关）/ Csv（拆 4 文件）/ Epub（ArrayBuffer + 两级校验）+ 桶文件 + 17 行文档 + demo 第三页（240 单测） |
 | P4 | — | — |
 | P5 | — | — |
 | P6 | — | — |

@@ -100,3 +100,45 @@ export function isPubliclyReachableUrl(url: string): boolean {
 
   return true;
 }
+
+/**
+ * 复制文本到剪贴板。
+ *
+ * 两条路，都要：
+ *   1. `navigator.clipboard.writeText` —— 现代 API，但**只在 secure context**
+ *      （https / localhost）可用。内网 http 页面里 `navigator.clipboard` 是 undefined，
+ *      直接调用会抛 TypeError。
+ *   2. 退到隐藏 `<textarea>` + `document.execCommand("copy")` —— 已废弃，
+ *      但它是 http 页面里唯一还能用的办法。
+ *
+ * 迁移前 Code 插件只写了第一条，于是「复制」按钮在内网环境下点了没反应，
+ * 也没有任何提示（错误只进了 console）。
+ */
+export async function copyToClipboard(text: string): Promise<boolean> {
+  if (typeof document === "undefined") return false;
+
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch {
+    // 落到下面的兜底路径
+  }
+
+  try {
+    const area = document.createElement("textarea");
+    area.value = text;
+    area.setAttribute("readonly", "");
+    area.style.position = "fixed";
+    area.style.top = "-1000px";
+    area.style.opacity = "0";
+    document.body.appendChild(area);
+    area.select();
+    const ok = document.execCommand("copy");
+    document.body.removeChild(area);
+    return ok;
+  } catch {
+    return false;
+  }
+}

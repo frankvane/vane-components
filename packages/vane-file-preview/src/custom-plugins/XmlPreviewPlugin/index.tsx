@@ -53,7 +53,7 @@ import type {
   FilePreviewPluginContext,
 } from "../../components/FilePreviewPlugin/plugins/types";
 
-export interface XmlPreviewConfig {
+export interface XmlPreviewPluginConfig {
   /** 超过这个字节数直接拒绝渲染。默认 10MB */
   maxFileSize?: number;
   /** 顶部搜索框（只统计命中行数，不做高亮）。默认 true */
@@ -139,7 +139,7 @@ function XmlBody({
   config,
 }: {
   context: FilePreviewPluginContext;
-  config: Required<XmlPreviewConfig>;
+  config: Required<XmlPreviewPluginConfig>;
 }) {
   const { file } = context;
   const viewer = useDynamicModule(loadXmlViewer);
@@ -310,9 +310,9 @@ function XmlBody({
 }
 
 export function createXmlPreviewPlugin(
-  config: XmlPreviewConfig = {}
+  config: XmlPreviewPluginConfig = {}
 ): FilePreviewPlugin {
-  const resolved: Required<XmlPreviewConfig> = {
+  const resolved: Required<XmlPreviewPluginConfig> = {
     maxFileSize: config.maxFileSize ?? 10 * 1024 * 1024,
     enableSearch: config.enableSearch ?? true,
     enableCopy: config.enableCopy ?? true,

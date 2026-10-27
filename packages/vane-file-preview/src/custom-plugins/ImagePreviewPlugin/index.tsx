@@ -28,9 +28,10 @@
  * 所以下面把正文与工具栏各自包成组件，钩子函数只负责**返回元素**。
  */
 
-import React, { useCallback } from "react";
+import React from "react";
 
 import { triggerDownload } from "../../components/FilePreviewPlugin/shared/fileHelpers";
+import { useSharedValue } from "../../components/FilePreviewPlugin/shared/useSharedValue";
 import {
   FileMeta,
   ToolbarButton,
@@ -55,35 +56,12 @@ export interface ImagePreviewPluginConfig {
 
 type ResolvedConfig = Required<ImagePreviewPluginConfig>;
 
-const KEY_SCALE = "imageScale";
-const KEY_ROTATION = "imageRotation";
+// 带插件前缀：sharedData 是一张跨插件的表，裸 key 会和别的插件互踩
+const KEY_SCALE = "image:scale";
+const KEY_ROTATION = "image:rotation";
 
 const SCALE_STEP = 0.2;
 const ROTATE_STEP = 90;
-
-/**
- * 从 `sharedData` 读写一个值。
- *
- * `sharedData` 不是响应式的（它是普通 Map），所以写入后必须显式 `forceUpdate()`，
- * 否则工具栏按钮点了没反应 —— 这正是迁移前那个 bug 的成因。
- *
- * 读的是「本次渲染时」的值，不做本地副本：本地副本就是迁移前三份状态互相同步的起点。
- */
-function useSharedValue<T>(
-  context: FilePreviewPluginContext,
-  key: string,
-  fallback: T
-): [T, (next: T) => void] {
-  const value = (context.sharedData.get(key) as T | undefined) ?? fallback;
-  const setValue = useCallback(
-    (next: T) => {
-      context.sharedData.set(key, next);
-      context.forceUpdate();
-    },
-    [context, key]
-  );
-  return [value, setValue];
-}
 
 function clampScale(scale: number, config: ResolvedConfig): number {
   return Math.min(Math.max(scale, config.minZoom), config.maxZoom);

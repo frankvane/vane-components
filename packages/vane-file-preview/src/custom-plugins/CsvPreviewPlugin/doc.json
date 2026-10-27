@@ -1,0 +1,47 @@
+{
+  "name": "CsvPreviewPlugin",
+  "description": "CSV / TSV 表格预览：分页、搜索、排序、列宽拖拽、导出当前结果。自动识别 GBK 编码与分隔符。依赖 papaparse（optional peer）。",
+  "since": "2.0.0",
+  "tags": ["csv", "table", "表格", "data"],
+  "config": [
+    {
+      "name": "pageSize",
+      "type": "number",
+      "default": "50",
+      "description": "每页行数"
+    },
+    {
+      "name": "maxPreviewRows",
+      "type": "number",
+      "default": "1000",
+      "description": "最多解析多少数据行（不含表头），超出在页脚提示。避免几万行的表一次性产出几十万个单元格"
+    },
+    {
+      "name": "enableSearch",
+      "type": "boolean",
+      "default": "true",
+      "description": "工具栏显示搜索框（全单元格包含匹配）"
+    },
+    {
+      "name": "enableExport",
+      "type": "boolean",
+      "default": "true",
+      "description": "页脚显示「导出当前结果」（导出的是过滤 + 排序后的内容，与所见一致）"
+    }
+  ],
+  "example": "import { createCsvPreviewPlugin } from \"vane-file-preview/custom-plugins/CsvPreviewPlugin\";\n\nconst plugins = [createCsvPreviewPlugin({ pageSize: 100, maxPreviewRows: 5000 })];\n// 别忘了装依赖：npm i papaparse",
+  "features": [
+    "分隔符交给 papaparse 的 meta.delimiter 判断（, ; \\t | ），也可以在工具栏手动指定",
+    "编码真检测：BOM → UTF-8(fatal) → GB18030 逐级回落，中文 Excel 导出的 GBK CSV 不再满屏乱码",
+    "排序按 numeric 比较（\"10\" 排在 \"9\" 后面），且按列下标定位、表头重名也不错列",
+    "列宽可拖拽，行号固定、表头吸附",
+    "依赖缺失时渲染安装提示面板，不是白屏"
+  ],
+  "useCases": ["运营数据快速核对", "导出文件内容确认", "埋点 / 日志 CSV 排查"],
+  "notes": [
+    "papaparse 是 optional peer。",
+    "只认领 .csv / .tsv —— 迁移前还认领 .txt 与 text/plain，结果打开一个 README.txt 得到「表格是空的」面板；纯文本现在归 CodePreviewPlugin。",
+    "导出用自己实现的 RFC 4180 序列化（约 10 行），而不是再拉一次 papaparse.unparse：导出必须与屏幕上「过滤 + 排序后」的内容完全一致。",
+    "整表解析在内存里做，maxPreviewRows 之外的行不解析也不导出。几十万行的 CSV 请走服务端分页。"
+  ]
+}

@@ -268,7 +268,21 @@ export function createOfficePreviewPlugin(
     version: "1.0.0",
     description: "Office 文档在线预览（Office Online / Google Docs Viewer）",
     supportedTypes: OFFICE_MIME,
-    supportedExtensions: [".docx", ".xlsx", ".pptx", ".doc", ".xls", ".ppt"],
+    // 带上宏 / 模板变体：Office Online 能看，而 mammoth / docx-preview / xlsx 都读不了
+    supportedExtensions: [
+      ".docx",
+      ".docm",
+      ".dotx",
+      ".xlsx",
+      ".xlsm",
+      ".xltx",
+      ".pptx",
+      ".pptm",
+      ".potx",
+      ".doc",
+      ".xls",
+      ".ppt",
+    ],
     // 声明式 7 是「非 docx」的默认值；docx 上由 priorityOf 按 config 覆盖成 9
     priority: 7,
     config: resolved,

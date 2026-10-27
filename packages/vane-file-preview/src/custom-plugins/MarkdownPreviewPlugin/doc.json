@@ -1,0 +1,70 @@
+{
+  "name": "MarkdownPreviewPlugin",
+  "description": "Markdown 预览：GFM 表格 / 任务列表 / 删除线、行内换行、代码高亮，可切原文与主题。依赖 react-markdown（optional peer）。",
+  "since": "2.0.0",
+  "tags": ["markdown", "document", "文档", "text"],
+  "config": [
+    {
+      "name": "showRaw",
+      "type": "boolean",
+      "default": "true",
+      "description": "工具栏显示「原文 / 预览」切换"
+    },
+    {
+      "name": "enableGfm",
+      "type": "boolean",
+      "default": "true",
+      "description": "启用 remark-gfm：表格、任务列表、删除线、自动链接"
+    },
+    {
+      "name": "enableBreaks",
+      "type": "boolean",
+      "default": "true",
+      "description": "启用 remark-breaks：单个换行也渲染成 <br>（中文写作习惯）"
+    },
+    {
+      "name": "enableSyntaxHighlight",
+      "type": "boolean",
+      "default": "true",
+      "description": "启用 rehype-highlight：围栏代码块按语言高亮"
+    },
+    {
+      "name": "allowHtml",
+      "type": "boolean",
+      "default": "false",
+      "description": "是否渲染 Markdown 里的原始 HTML（开启 rehype-raw）。默认关闭，这是 XSS 面"
+    },
+    {
+      "name": "theme",
+      "type": "\"auto\" | \"light\" | \"dark\"",
+      "default": "\"auto\"",
+      "description": "初始主题。auto 按 prefers-color-scheme 解析"
+    },
+    {
+      "name": "remarkPlugins",
+      "type": "unknown[]",
+      "default": "-",
+      "description": "追加 remark 插件（例如自己装 remark-math 做公式）"
+    },
+    {
+      "name": "rehypePlugins",
+      "type": "unknown[]",
+      "default": "-",
+      "description": "追加 rehype 插件（例如自己装 rehype-katex 渲染公式）"
+    }
+  ],
+  "example": "import { createMarkdownPreviewPlugin } from \"vane-file-preview/custom-plugins/MarkdownPreviewPlugin\";\n\n// 默认安全：文件里的 HTML 不会进 DOM\nconst safe = createMarkdownPreviewPlugin();\n\n// 需要渲染 HTML 时显式打开，并自行保证输入已清洗\nconst html = createMarkdownPreviewPlugin({ allowHtml: true });\n\n// 需要公式：自己装 remark-math + rehype-katex + katex CSS\n// const math = createMarkdownPreviewPlugin({\n//   remarkPlugins: [remarkMath],\n//   rehypePlugins: [[rehypeKatex, {}]],\n// });\n// npm i react-markdown remark-gfm remark-breaks rehype-highlight",
+  "features": [
+    "rehype-raw 默认关闭 —— 迁移前它无条件开启，被预览的 .md 里任何 <img onerror> 都会真的执行",
+    "相对路径按文件位置解析：![](images/a.png) 指向文件同目录，而不是宿主页面根目录",
+    "代码块高亮用 CSS 变量实现亮 / 暗双主题，迁移前是两套各 100+ 行的内联样式",
+    "提供 remarkPlugins / rehypePlugins 扩展点，需要公式的人自己接 katex（不为「可能有公式」给所有人加 200KB CSS）"
+  ],
+  "useCases": ["README 预览", "产品文档附件", "笔记 / 需求文档快速查看"],
+  "notes": [
+    "react-markdown / remark-gfm / remark-breaks / rehype-highlight 都是 optional peer。",
+    "allowHtml: true 时会把文件里的原始 HTML 直接插进 DOM。文件预览的输入通常不可信（用户上传 / 别人发来的），开启前请自行做 HTML 清洗。",
+    "不内置 KaTeX：katex 的样式表 200KB+，而公式在文件预览里是低频需求。用 remarkPlugins / rehypePlugins 自己接。",
+    "主题跟随系统只在渲染时读一次 prefers-color-scheme，不监听变化（避免每个实例挂一个 matchMedia 监听器）。"
+  ]
+}

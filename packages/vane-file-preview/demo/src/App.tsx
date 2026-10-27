@@ -1,5 +1,6 @@
 import { useState, type CSSProperties } from "react";
 import { BasicDemo } from "./pages/BasicDemo";
+import { CodeDemo } from "./pages/CodeDemo";
 import { DocumentsDemo } from "./pages/DocumentsDemo";
 
 const shell: CSSProperties = {
@@ -11,7 +12,7 @@ const shell: CSSProperties = {
   color: "#1f2329",
 };
 
-type Tab = "media" | "documents";
+type Tab = "media" | "documents" | "code";
 
 const TABS: Array<{ id: Tab; label: string; hint: string }> = [
   {
@@ -23,6 +24,11 @@ const TABS: Array<{ id: Tab; label: string; hint: string }> = [
     id: "documents",
     label: "B 批 · 文档与数据 7 个",
     hint: "Json / Xml / Xlsx / Pptx / Zip / Docx×2，重依赖走 dynamic import",
+  },
+  {
+    id: "code",
+    label: "C 批 · 代码与文档 4 个",
+    hint: "Code（41 主题→2）/ Markdown（rehype-raw 默认关）/ Csv（拆 4 文件）/ Epub",
   },
 ];
 
@@ -36,7 +42,7 @@ export function App() {
         vane-file-preview
       </h1>
       <p style={{ margin: "0 0 20px", fontSize: 13, color: "#8a8a8a" }}>
-        P3 已迁入 13 个插件，页面按子路径引入。样本是{" "}
+        P3 已迁入全部 17 个插件，页面按子路径引入。样本是{" "}
         <code>demo/public/samples/</code> 里的真文件 —— data URL 骗得过图片，
         骗不过 PDF 查看器、视频解码器与 xlsx 解析器。
       </p>
@@ -65,7 +71,13 @@ export function App() {
         {active.hint}
       </p>
 
-      {tab === "media" ? <BasicDemo /> : <DocumentsDemo />}
+      {tab === "media" ? (
+        <BasicDemo />
+      ) : tab === "documents" ? (
+        <DocumentsDemo />
+      ) : (
+        <CodeDemo />
+      )}
     </main>
   );
 }

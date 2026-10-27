@@ -42,7 +42,14 @@ export function matchMimeType(fileType: string, pattern: string): boolean {
  */
 export function matchExtension(extension: string, pattern: string): boolean {
   const norm = (s: string) => s.toLowerCase().replace(/^\./, "");
-  return norm(extension).endsWith(norm(pattern));
+  const ext = norm(extension);
+  const pat = norm(pattern);
+  if (!ext || !pat) return false;
+  // **必须是段边界**，不能直接 endsWith：
+  // "rar".endsWith("r") 为 true，于是 .rar / .tar / .jar 全被 CodePreviewPlugin
+  // 的 `.r`（R 语言）认领 —— 一个压缩包被当成源码打开。
+  // 加一个点做边界：`d.ts` 仍然命中 `.ts`，而 `rar` 不再命中 `.r`。
+  return ext === pat || ext.endsWith(`.${pat}`);
 }
 
 /**

@@ -49,7 +49,24 @@ const DYNAMIC_IMPORTS: Array<[entry: string, dep: string]> = [
   ["custom-plugins/XlsxPreviewPlugin/index.js", "xlsx"],
   ["custom-plugins/DocxPreviewPlugin/index.js", "docx-preview"],
   ["custom-plugins/MammothDocxPlugin/index.js", "mammoth/mammoth.browser"],
+  // C 批：Code 的三条 import 被 rollup 提到 chunks/themes-*.js（themes.ts 与组件同入口）
+  ["chunks", "react-syntax-highlighter"],
+  ["chunks", "react-syntax-highlighter/dist/esm/styles/prism/one-light"],
+  ["chunks", "react-syntax-highlighter/dist/esm/styles/prism/vsc-dark-plus"],
+  ["custom-plugins/MarkdownPreviewPlugin/index.js", "react-markdown"],
+  ["custom-plugins/MarkdownPreviewPlugin/index.js", "remark-gfm"],
+  ["custom-plugins/MarkdownPreviewPlugin/index.js", "remark-breaks"],
+  ["custom-plugins/MarkdownPreviewPlugin/index.js", "rehype-highlight"],
+  ["custom-plugins/MarkdownPreviewPlugin/index.js", "rehype-raw"],
+  ["custom-plugins/CsvPreviewPlugin/index.js", "papaparse"],
+  ["custom-plugins/EpubPreviewPlugin/index.js", "react-reader"],
 ];
+
+/**
+ * `["chunks", dep]` 表示「这个依赖的 import() 在某个共享 chunk 里」——
+ * 入口拆分是 rollup 的自由，把 chunk 名写死在断言里只会在无关重构时变红。
+ */
+const CHUNK_MARKER = "chunks";
 
 /**
  * 各库的「体积特征串」。
@@ -63,10 +80,21 @@ const FORBIDDEN_SIGNATURES = [
   "SheetJS", // xlsx 的 banner
   "--w-rjv-", // @uiw/react-json-view 的 CSS 变量前缀
   "docx-wrapper", // docx-preview 生成的容器 class
+  "Papa Parse", // papaparse 的 @license banner（源码里只出现这一次）
+  "EpubView", // react-reader 的组件名
 ];
 
 const MAX_FILE_BYTES = 60 * 1024;
 const MAX_TOTAL_BYTES = 220 * 1024;
+
+/**
+ * 单文件上限对**桶入口**不适用：`custom-plugins/index.ts` 按定义就是
+ * 「17 个插件的并集」，它必然大于任何一个单独插件（实测 85.7KB）。
+ * 给它一条独立的、更宽松的上限 —— 重依赖一旦内联，这个数字会跳到 MB 级，
+ * 所以 140KB 仍然是有意义的闸门（而不是「干脆不查」）。
+ */
+const AGGREGATE_ENTRIES = new Set([path.join("custom-plugins", "index.js")]);
+const MAX_AGGREGATE_BYTES = 140 * 1024;
 
 const hasDist = existsSync(distDir);
 
@@ -76,7 +104,19 @@ describe("dist 闸门 · 重依赖不得内联", () => {
   });
 
   it.skipIf(!hasDist)("每个重依赖都保留为 import() 外部模块", () => {
+    // chunks/*：共享 chunk 里的 import() 也算法（rollup 会把公共依赖提到 chunk）
+    const chunkSources = collectJs(path.join(distDir, "chunks"))
+      .map((f) => readFileSync(f, "utf-8"))
+      .join("\n");
+
     for (const [entry, dep] of DYNAMIC_IMPORTS) {
+      if (entry === CHUNK_MARKER) {
+        expect(
+          chunkSources.includes(`import("${dep}")`),
+          `dist/chunks/* 里没有 import("${dep}") —— 依赖被内联了`
+        ).toBe(true);
+        continue;
+      }
       const file = path.join(distDir, entry);
       expect(existsSync(file), `${entry} 不存在`).toBe(true);
       const code = readFileSync(file, "utf-8");
@@ -104,15 +144,24 @@ describe("dist 闸门 · 重依赖不得内联", () => {
     let total = 0;
     for (const file of files) {
       const { size } = statSync(file);
+      const rel = path.relative(distDir, file);
+      // 桶入口不计入总量：它是「全部入口再打一遍」的并集，算进去等于把 dist 数两遍
+      if (AGGREGATE_ENTRIES.has(rel)) {
+        expect(
+          size,
+          `${rel} = ${(size / 1024).toFixed(1)}KB，桶入口超过 140KB —— 有重依赖被内联`
+        ).toBeLessThanOrEqual(MAX_AGGREGATE_BYTES);
+        continue;
+      }
       total += size;
       expect(
         size,
-        `${path.relative(distDir, file)} = ${(size / 1024).toFixed(1)}KB，超过单文件上限 60KB`
+        `${rel} = ${(size / 1024).toFixed(1)}KB，超过单文件上限 60KB`
       ).toBeLessThanOrEqual(MAX_FILE_BYTES);
     }
     expect(
       total,
-      `dist 全部 .js 合计 ${(total / 1024).toFixed(1)}KB，超过 220KB 上限`
+      `dist 全部 .js 合计 ${(total / 1024).toFixed(1)}KB（不含桶入口），超过 220KB 上限`
     ).toBeLessThanOrEqual(MAX_TOTAL_BYTES);
   });
 });

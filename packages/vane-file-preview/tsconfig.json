@@ -11,6 +11,12 @@
       ],
       "vane-file-preview/core": [
         "./src/core.ts"
+      ],
+      "vane-file-preview/plugins": [
+        "./src/plugins.ts"
+      ],
+      "vane-file-preview/custom-plugins/*": [
+        "./src/custom-plugins/*"
       ]
     },
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.tsbuildinfo"

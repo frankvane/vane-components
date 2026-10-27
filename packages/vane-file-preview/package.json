@@ -23,13 +23,41 @@
       "types": "./dist/custom-plugins/AudioPreviewPlugin/index.d.ts",
       "import": "./dist/custom-plugins/AudioPreviewPlugin/index.js"
     },
+    "./custom-plugins/CodePreviewPlugin": {
+      "types": "./dist/custom-plugins/CodePreviewPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/CodePreviewPlugin/index.js"
+    },
+    "./custom-plugins/CsvPreviewPlugin": {
+      "types": "./dist/custom-plugins/CsvPreviewPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/CsvPreviewPlugin/index.js"
+    },
+    "./custom-plugins/DocxPreviewPlugin": {
+      "types": "./dist/custom-plugins/DocxPreviewPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/DocxPreviewPlugin/index.js"
+    },
     "./custom-plugins/DownloadPlugin": {
       "types": "./dist/custom-plugins/DownloadPlugin/index.d.ts",
       "import": "./dist/custom-plugins/DownloadPlugin/index.js"
     },
+    "./custom-plugins/EpubPreviewPlugin": {
+      "types": "./dist/custom-plugins/EpubPreviewPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/EpubPreviewPlugin/index.js"
+    },
     "./custom-plugins/ImagePreviewPlugin": {
       "types": "./dist/custom-plugins/ImagePreviewPlugin/index.d.ts",
       "import": "./dist/custom-plugins/ImagePreviewPlugin/index.js"
+    },
+    "./custom-plugins/JsonPreviewPlugin": {
+      "types": "./dist/custom-plugins/JsonPreviewPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/JsonPreviewPlugin/index.js"
+    },
+    "./custom-plugins/MammothDocxPlugin": {
+      "types": "./dist/custom-plugins/MammothDocxPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/MammothDocxPlugin/index.js"
+    },
+    "./custom-plugins/MarkdownPreviewPlugin": {
+      "types": "./dist/custom-plugins/MarkdownPreviewPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/MarkdownPreviewPlugin/index.js"
     },
     "./custom-plugins/OfficePreviewPlugin": {
       "types": "./dist/custom-plugins/OfficePreviewPlugin/index.d.ts",
@@ -39,9 +67,29 @@
       "types": "./dist/custom-plugins/PdfPreviewPlugin/index.d.ts",
       "import": "./dist/custom-plugins/PdfPreviewPlugin/index.js"
     },
+    "./custom-plugins/PptxPreviewPlugin": {
+      "types": "./dist/custom-plugins/PptxPreviewPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/PptxPreviewPlugin/index.js"
+    },
     "./custom-plugins/VideoPreviewPlugin": {
       "types": "./dist/custom-plugins/VideoPreviewPlugin/index.d.ts",
       "import": "./dist/custom-plugins/VideoPreviewPlugin/index.js"
+    },
+    "./custom-plugins/XlsxPreviewPlugin": {
+      "types": "./dist/custom-plugins/XlsxPreviewPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/XlsxPreviewPlugin/index.js"
+    },
+    "./custom-plugins/XmlPreviewPlugin": {
+      "types": "./dist/custom-plugins/XmlPreviewPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/XmlPreviewPlugin/index.js"
+    },
+    "./custom-plugins/ZipPreviewPlugin": {
+      "types": "./dist/custom-plugins/ZipPreviewPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ZipPreviewPlugin/index.js"
+    },
+    "./custom-plugins": {
+      "types": "./dist/custom-plugins/index.d.ts",
+      "import": "./dist/custom-plugins/index.js"
     },
     "./custom-plugins/*": {
       "types": "./dist/custom-plugins/*/index.d.ts",
@@ -91,9 +139,17 @@
     "docx-preview": "^0.3.0",
     "jszip": "^3.10.0",
     "mammoth": "^1.6.0",
+    "papaparse": "^5.5.0",
     "react": ">=16.8.0",
     "react-dom": ">=16.8.0",
+    "react-markdown": ">=9",
+    "react-reader": ">=2",
+    "react-syntax-highlighter": ">=15",
     "react-xml-viewer": "^3.0.0",
+    "rehype-highlight": ">=7",
+    "rehype-raw": ">=7",
+    "remark-breaks": ">=4",
+    "remark-gfm": ">=4",
     "xlsx": "^0.18.5"
   },
   "peerDependenciesMeta": {
@@ -109,7 +165,31 @@
     "mammoth": {
       "optional": true
     },
+    "papaparse": {
+      "optional": true
+    },
+    "react-markdown": {
+      "optional": true
+    },
+    "react-reader": {
+      "optional": true
+    },
+    "react-syntax-highlighter": {
+      "optional": true
+    },
     "react-xml-viewer": {
+      "optional": true
+    },
+    "rehype-highlight": {
+      "optional": true
+    },
+    "rehype-raw": {
+      "optional": true
+    },
+    "remark-breaks": {
+      "optional": true
+    },
+    "remark-gfm": {
       "optional": true
     },
     "xlsx": {
@@ -118,8 +198,10 @@
   },
   "devDependencies": {
     "@types/node": "^20.19.18",
+    "@types/papaparse": "^5.5.2",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
+    "@types/react-syntax-highlighter": "^15.5.13",
     "@uiw/react-json-view": "2.0.0-alpha.44",
     "@vane/build-config": "workspace:*",
     "@vane/eslint-config": "workspace:*",
@@ -131,10 +213,18 @@
     "happy-dom": "^15.11.7",
     "jszip": "^3.10.2",
     "mammoth": "^1.13.0",
+    "papaparse": "^5.7.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-markdown": "^10.1.0",
+    "react-reader": "^2.0.15",
     "react-router-dom": "^6.26.2",
+    "react-syntax-highlighter": "^15.6.6",
     "react-xml-viewer": "^3.0.5",
+    "rehype-highlight": "^7.0.2",
+    "rehype-raw": "^7.0.0",
+    "remark-breaks": "^4.0.0",
+    "remark-gfm": "^4.0.1",
     "typescript": "^5.5.3",
     "vite": "^5.4.1",
     "vite-plugin-dts": "^4.5.4",
