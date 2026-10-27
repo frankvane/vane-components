@@ -24,11 +24,21 @@ import {
 
 type CodeTab = "minimal" | "data";
 
+/** 会自己占住头部媒体位的插件 —— 装了它们就不再画「空媒体位」 */
+const MEDIA_PLUGIN = /^(createImagePlugin|createGalleryPlugin|createVideoPlugin)$/;
+
 export function DemoPage({ entry, order }: { entry: DemoEntry; order: number }) {
   const { meta, Stage } = entry;
   const [cfg, setCfg] = useState<DemoCfg>(() => initialCfg(meta));
   const [lines, setLines] = useState<LogLine[]>([]);
   const [tab, setTab] = useState<CodeTab>("minimal");
+
+  /**
+   * 空媒体位只在「本该是完整卡、但本页只演示某几个插件」的页面上出现。
+   * compound 例外：pc-price / pc-stock 这些页并排展示的是子组件，本来就不是
+   * 一张完整卡，给它留媒体位反而像「卡缺了张图」。
+   */
+  const showMediaSeat = meta.group !== "compound" && !meta.plugs.some((p) => MEDIA_PLUGIN.test(p.fn));
 
   const log = useCallback((text: string, kind: DemoLogKind = "event") => {
     const at = new Date().toLocaleTimeString("zh-CN", { hour12: false });
@@ -109,7 +119,7 @@ export function DemoPage({ entry, order }: { entry: DemoEntry; order: number }) 
             className={`plate-body demo-stage${meta.tone === "light" ? " tone-light" : ""}`}
             style={{ "--card-w": `${meta.stageWidth ?? 360}px` } as React.CSSProperties}
           >
-            <div className="demo-card" data-card-stage>
+            <div className={`demo-card${showMediaSeat ? " is-no-media" : ""}`} data-card-stage>
               <Stage cfg={cfg} log={log} setCfg={onChange} />
             </div>
           </div>

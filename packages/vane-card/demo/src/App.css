@@ -3834,3 +3834,41 @@ time {
   padding-left: 14px;
   padding-right: 14px;
 }
+
+/* —— 空媒体位 ——
+   38 个逐项示例里有 22 页只装功能插件（SKU / 数量 / 价格 / 倒计时…），
+   卡片顶部就空着。空着有两个问题：不像一张真实的卡，也让人怀疑是不是图挂了。
+
+   为什么不用占位图：那会真的像「图片加载失败」。
+   为什么不给这些页加 ImagePlugin：右侧「最小装配」要能直接抄进项目，
+   多塞一个插件就不叫最小了，也看不出本页到底在演示谁。
+
+   所以画一条虚线槽：斜纹 + 虚线 + 一行小字，明确是「这里本该有图，本页没装」。
+   挂在 [data-card-id]::before 上（卡片根节点的第一个子元素），
+   38 个 Stage 一行都不用改。 */
+.demo-card.is-no-media [data-card-id]::before {
+  content: "媒体位 · 本页未装媒体插件";
+  display: grid;
+  place-items: center;
+  /* 按 16:9 给高，再用 max-height 压住：4:3 在 360 宽的卡上会占掉六成高度，
+     整张卡头重脚轻，就不像「一条空槽」了。
+     width 必须写死 100%：只给 aspect-ratio 时，max-height 一旦生效，
+     宽高比会反过来把宽度也算成 168×16/9 ≈ 299px，右边留一道白。 */
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  max-height: 168px;
+  /* 四角圆角 + 全虚线：一个「完整的空槽」。只画底部虚线会变成开口朝下的框，
+     读者不知道它是不是被下面内容截断了。 */
+  border: 1px dashed rgba(28, 31, 24, 0.26);
+  border-radius: 10px;
+  background-color: #fbfbf7;
+  background-image: repeating-linear-gradient(
+    135deg,
+    rgba(28, 31, 24, 0.03) 0 7px,
+    transparent 7px 14px
+  );
+  color: rgba(28, 31, 24, 0.5);
+  font-family: var(--ff-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+}
