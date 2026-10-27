@@ -50,11 +50,26 @@ export function createPluginBus(): PluginBus {
   };
 
   const getData = <T = any>(key: string): T | undefined => store.get(key);
+
+  /**
+   * 写入数据并**通知该键的订阅方**。
+   *
+   * 通知是必须的：插件的消费侧统一用 `bus.on(key, ...)` 订阅数据键
+   * （vane-card 的 setupForceUpdateOnBusKeys、曝光/价格联动都靠它）。
+   * 早期实现只 store.set 不 emit，导致「写进去了但订阅方永远收不到」——
+   * 表现为选了规格主图不换、套了券合计不掉，而且不会有任何报错。
+   */
   const setData = (key: string, value: any) => {
+    const prev = store.get(key);
     store.set(key, value);
+    if (prev !== value) emit(key, value);
   };
+
+  /** 删除数据并通知订阅方（载荷为 undefined，便于区分「删掉」与「改成 falsy」） */
   const deleteData = (key: string) => {
+    const existed = store.has(key);
     store.delete(key);
+    if (existed) emit(key, undefined);
   };
   const hasData = (key: string) => store.has(key);
   const getAll = () => {

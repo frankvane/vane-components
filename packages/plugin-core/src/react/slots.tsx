@@ -25,7 +25,10 @@ export function renderPluginSlot<TProps = any, TData = any>(
   return plugins
     .filter((p) => p.enabled !== false)
     .filter((p) => typeof p.hooks?.[hook] === "function")
-    .filter((p) => (p.config?.slotPosition ?? position) === position)
+    // 未声明 slotPosition 的插件默认落 after。
+    // 这里曾经写成 `p.config?.slotPosition ?? position`，等价于「缺省时匹配任意 position」，
+    // 于是同一个 header 插件会在 before 段和 after 段各渲染一次（图片/视频会重影）。
+    .filter((p) => (p.config?.slotPosition ?? "after") === position)
     .sort(
       (a, b) =>
         (a.config?.order ?? 0) - (b.config?.order ?? 0) ||
