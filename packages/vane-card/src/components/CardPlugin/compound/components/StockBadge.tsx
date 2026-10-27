@@ -1,5 +1,6 @@
 import React from "react";
 import { useProductCard } from "../ProductCard";
+import { matchVariant, variantListOf } from "../../types/product";
 
 export type StockBadgeProps = {
   className?: string;
@@ -30,27 +31,14 @@ export const StockBadge: React.FC<StockBadgeProps> = ({
 }) => {
   const { data, state } = useProductCard();
 
-  // 根据当前 attributes 与 data.variants 匹配选中变体
-  const getActiveVariant = (): any | undefined => {
-    const attrs = state.attributes || {};
-    const variants: any[] | undefined = (data?.variants && Array.isArray(data.variants)) ? data.variants : undefined;
-    if (!variants || !Object.keys(attrs).length) return undefined;
-    return variants.find((v) => {
-      const opts = (v.options || v.attributes) || {};
-      return Object.keys(attrs).every((k) => String(opts[k]) === String((attrs as any)[k]));
-    });
-  };
-
-  // 获取当前选中规格的库存
-  const getCurrentStock = () => {
-    const selected = getActiveVariant();
-    if (selected && selected.stock !== undefined) {
-      return selected.stock as number;
-    }
-    return (data?.inventory as number | undefined) ?? 0;
-  };
-
-  const currentStock = getCurrentStock();
+  // 选中变体库存优先，与 Quantity / Inventory 同一口径
+  const selected = matchVariant(variantListOf(data), state.attributes);
+  const currentStock =
+    typeof selected?.stock === "number"
+      ? selected.stock
+      : typeof data?.inventory === "number"
+        ? data.inventory
+        : 0;
 
   // 确定库存状态
   const getStockStatus = () => {

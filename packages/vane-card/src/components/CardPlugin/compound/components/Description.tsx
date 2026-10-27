@@ -14,7 +14,7 @@ export const Description: React.FC<DescriptionProps> = ({ children, style, class
   const clampStyles: React.CSSProperties = lines
     ? {
         display: "-webkit-box",
-        WebkitBoxOrient: "vertical" as any,
+        WebkitBoxOrient: "vertical",
         WebkitLineClamp: lines,
         overflow: "hidden",
       }

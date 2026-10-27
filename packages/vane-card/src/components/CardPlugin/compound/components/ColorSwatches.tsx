@@ -10,7 +10,7 @@ export type ColorSwatchesProps = {
 
 export const ColorSwatches: React.FC<ColorSwatchesProps> = ({ colors, attributeName = "color", className, style }) => {
   const { data, state, setState } = useProductCard();
-  const list: Array<{ name: string; hex: string }> = (colors ?? data?.colors ?? []).map((c: any) =>
+  const list: Array<{ name: string; hex: string }> = (colors ?? data?.colors ?? []).map((c) =>
     typeof c === "string" ? { name: c, hex: c } : c
   );
   if (!list.length) return null;

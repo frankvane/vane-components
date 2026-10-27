@@ -25,6 +25,10 @@ export { withPlugins, usePluginSlot, renderDomainSlot } from "./plugins";
 export { BusKeys } from "./plugins";
 export type { BusKey } from "./plugins";
 
+// 商品数据类型（复合组件的公共契约）
+export { matchVariant, variantListOf, attributeMapOf, variantOptionsOf } from "./types/product";
+export type { ProductData, ProductVariant, ProductAttributes } from "./types/product";
+
 // 自定义插件统一导出
 export * from "./custom-plugins";
 

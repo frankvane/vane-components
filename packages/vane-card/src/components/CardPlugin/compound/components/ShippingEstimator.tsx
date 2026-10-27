@@ -72,12 +72,12 @@ export const ShippingEstimator: React.FC<ShippingEstimatorProps> = ({
   const effectiveWeight = React.useMemo(() => {
     if (typeof weightKg === "number") return Math.max(0, weightKg);
     if (weightFromData) {
-      const unit = (data as any)?.unitWeight ?? unitWeightKgFallback;
+      const unit = data?.unitWeight ?? unitWeightKgFallback;
       const qty = state.quantity ?? 1;
       return Math.max(0, Number(unit) * Number(qty));
     }
     return 0;
-  }, [weightKg, weightFromData, (data as any)?.unitWeight, unitWeightKgFallback, state.quantity]);
+  }, [weightKg, weightFromData, data?.unitWeight, unitWeightKgFallback, state.quantity]);
 
   const estimate = React.useMemo<ShippingEstimateResult>(() => {
     const base = region.baseFee;

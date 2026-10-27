@@ -11,6 +11,8 @@ import CardCore, {
 } from "../src/components/CardPlugin/core/CardCore";
 import { withPlugins } from "../src/components/CardPlugin/plugins/withPlugins";
 import type { CardPlugin } from "../src/components/CardPlugin/plugins/types";
+import { ProductCard } from "../src/components/CardPlugin/compound/ProductCard";
+import type { ProductData } from "../src/components/CardPlugin/types/product";
 
 (globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -122,8 +124,7 @@ export function renderCard(
 /** 直接渲染 CardCore（不带插件系统），用于 Core 单测 */
 export function renderCore(
   props: Partial<CardCoreProps<any>> = {}
-): RenderHandle {
-  const ref = React.createRef<CardCoreRef>();
+): RenderHandle {  const ref = React.createRef<CardCoreRef>();
   const container = document.createElement("div");
   document.body.appendChild(container);
   const root = createRoot(container);
@@ -141,6 +142,49 @@ export function renderCore(
     container,
     root,
     ref,
+    unmount: () => act(() => root.unmount()),
+    rerender: async (next) => {
+      current = { ...current, ...next };
+      await act(async () => {
+        render(current);
+      });
+      await flush();
+    },
+  };
+}
+
+// ---- 复合组件（ProductCard）渲染 ----
+
+export interface ProductCardHandle {
+  container: HTMLDivElement;
+  unmount: () => void;
+  /** 用新 props 重渲染整棵树（用于验证插件不因内联数组被重挂） */
+  rerender: (next: ProductCardRenderProps) => Promise<void>;
+}
+
+export interface ProductCardRenderProps {
+  productId?: string;
+  data?: ProductData;
+  plugins?: CardPlugin[];
+  children?: React.ReactNode;
+}
+
+/** 渲染真实的 `<ProductCard>`（含可选插件系统），复合组件单测都用它 */
+export function renderProductCard(props: ProductCardRenderProps = {}): ProductCardHandle {
+  const container = document.createElement("div");
+  document.body.appendChild(container);
+  const root = createRoot(container);
+  let current: ProductCardRenderProps = { productId: "p-1", ...props };
+
+  const render = (p: ProductCardRenderProps) =>
+    root.render(React.createElement(ProductCard, { ...p, productId: p.productId ?? "p-1" } as never));
+
+  act(() => {
+    render(current);
+  });
+
+  return {
+    container,
     unmount: () => act(() => root.unmount()),
     rerender: async (next) => {
       current = { ...current, ...next };

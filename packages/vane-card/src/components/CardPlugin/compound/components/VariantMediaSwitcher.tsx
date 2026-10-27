@@ -1,5 +1,7 @@
 import React from "react";
 import { useProductCard } from "../ProductCard";
+import { matchVariant, variantListOf } from "../../types/product";
+import type { ProductData, ProductVariant } from "../../types/product";
 
 export type VariantImage = {
   id?: string; // 可选：与 SKU 或属性值关联
@@ -18,7 +20,10 @@ export type VariantMediaSwitcherProps = {
   images?: string[]; // 直接传入图片列表
   variantImages?: VariantImage[]; // 传入带标注的图片列表
   enableManualSwitch?: boolean; // 是否允许点击缩略图手动切换
-  getImageForSelected?: (selectedSKU: any, data: any) => string | undefined; // 根据选中规格返回主图
+  getImageForSelected?: (
+    selectedSKU: ProductVariant | undefined,
+    data: ProductData | undefined
+  ) => string | undefined; // 根据选中规格返回主图
   onMediaChange?: (url: string) => void;
 };
 
@@ -47,32 +52,25 @@ export const VariantMediaSwitcher: React.FC<VariantMediaSwitcherProps> = ({
   const mainUrl = React.useMemo(() => {
     if (manualUrl) return manualUrl;
 
-    let url: string | undefined;
     // 1) 根据选中规格计算
-    const attrs = state.attributes || {};
-    const variants: any[] | undefined = (data?.variants && Array.isArray(data.variants)) ? data.variants : undefined;
-    const selected = variants && Object.keys(attrs).length
-      ? variants.find((v) => {
-          const opts = (v.options || v.attributes) || {};
-          return Object.keys(attrs).every((k) => String(opts[k]) === String((attrs as any)[k]));
-        })
-      : undefined;
+    const selected = matchVariant(variantListOf(data), state.attributes);
 
-    if (!url && getImageForSelected) {
+    let url: string | undefined;
+    if (getImageForSelected) {
       url = getImageForSelected(selected, data);
     }
     // 2) 选中变体自身的 image/media 字段
     if (!url) {
-      url = (selected as any)?.image || (selected as any)?.media || undefined;
+      url = selected?.image ?? selected?.media;
     }
     // 3) 若传入了 variantImages 且 id 匹配 sku，则采用
-    if (!url && (selected as any)?.sku && Array.isArray(variantImages)) {
-      const match = variantImages.find(v => v.id && v.id === (selected as any)?.sku);
+    if (!url && selected?.sku && Array.isArray(variantImages)) {
+      const match = variantImages.find((v) => v.id && v.id === selected.sku);
       if (match) url = match.url;
     }
     // 4) 回退到 props.images 或商品主图
-    return url || (images?.[0] ?? (data?.image as string | undefined) ?? "");
-  }, [manualUrl, getImageForSelected, state.attributes, images, variantImages, data?.image]);
+    return url || (images?.[0] ?? data?.image ?? "");
+  }, [manualUrl, getImageForSelected, state.attributes, images, variantImages, data]);
 
   // 通知外部主图变化
   React.useEffect(() => {
@@ -95,7 +93,7 @@ export const VariantMediaSwitcher: React.FC<VariantMediaSwitcherProps> = ({
   const list: VariantImage[] = React.useMemo(() => {
     if (variantImages && variantImages.length) return variantImages;
     if (images && images.length) return images.map(u => ({ url: u }));
-    const fallback = (data?.image as string | undefined) ?? "";
+    const fallback = data?.image ?? "";
     return fallback ? [{ url: fallback }] : [];
   }, [variantImages, images, data?.image]);
 

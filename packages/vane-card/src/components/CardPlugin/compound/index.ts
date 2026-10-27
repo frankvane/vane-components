@@ -3,6 +3,9 @@ import { Badge } from "./components/Badge";
 import { BadgeGroup } from "./components/BadgeGroup";
 import { Brand } from "./components/Brand";
 import { ColorSwatches } from "./components/ColorSwatches";
+import { CouponBar } from "./components/CouponBar";
+import { A11yToolbar } from "./components/A11yToolbar";
+import { DeliveryTimeline } from "./components/DeliveryTimeline";
 import { Description } from "./components/Description";
 import { Discount } from "./components/Discount";
 import { Divider } from "./components/Divider";
@@ -13,34 +16,36 @@ import { OldPrice } from "./components/OldPrice";
 import { OptionPicker } from "./components/OptionPicker";
 import { OrderSummaryPanel } from "./components/OrderSummaryPanel";
 import { Price } from "./components/Price";
-import { SavingsBadge } from "./components/SavingsBadge";
-import { CouponBar } from "./components/CouponBar";
-import { StockBadge } from "./components/StockBadge";
 import { PricePerUnit } from "./components/PricePerUnit";
-import { ProductCard as ProductCardMain } from "./ProductCard";
-import { QuantityStepper } from "./components/QuantityStepper.tsx";
+import { QuantityStepper } from "./components/QuantityStepper";
 import { Rating } from "./components/Rating";
-import type React from "react";
-import { SKUCode } from "./components/SKUCode";
+import { ReturnPolicy } from "./components/ReturnPolicy";
+import { SavingsBadge } from "./components/SavingsBadge";
 import { Section } from "./components/Section";
 import { SelectedInfo } from "./components/SelectedInfo";
 import { Shipping } from "./components/Shipping";
+import { ShippingEstimator } from "./components/ShippingEstimator";
 import { SizeSelector } from "./components/SizeSelector";
+import { SKUCode } from "./components/SKUCode";
 import { SpecsTable } from "./components/SpecsTable";
+import { StockBadge } from "./components/StockBadge";
 import { Subtitle } from "./components/Subtitle";
 import { Tags } from "./components/Tags";
 import { Title } from "./components/Title";
+import { UpsellBundle } from "./components/UpsellBundle";
+import { VariantMediaSwitcher } from "./components/VariantMediaSwitcher";
 import { VariantSelector } from "./components/VariantSelector";
 import { Warranty } from "./components/Warranty";
-import { VariantMediaSwitcher } from "./components/VariantMediaSwitcher";
-import { ShippingEstimator } from "./components/ShippingEstimator";
-import { DeliveryTimeline } from "./components/DeliveryTimeline";
-import { ReturnPolicy } from "./components/ReturnPolicy";
-import { UpsellBundle } from "./components/UpsellBundle";
-import { A11yToolbar } from "./components/A11yToolbar";
+import { ProductCard as ProductCardMain } from "./ProductCard";
 
-// 为复合组件定义带静态子组件的类型，解决 TS 下的 "FC<ProductCardProps> 上不存在属性 Image" 问题
-export type ProductCardCompound = React.FC<import("./ProductCard").ProductCardProps> & {
+/**
+ * `<ProductCard>` 及其 38 个子组件。
+ *
+ * 子组件是"零件"，写法是 `<ProductCard.Image />` 这样的点号访问 —— 下面用
+ * `Object.assign` 一次挂上，而不是 38 行 `(ProductCard as any).X = X`：
+ * 后者让每个赋值都绕过类型检查，漏挂一个子组件编译器也不会提示。
+ */
+export type ProductCardCompound = typeof ProductCardMain & {
   Image: typeof Image;
   Badge: typeof Badge;
   Title: typeof Title;
@@ -81,46 +86,46 @@ export type ProductCardCompound = React.FC<import("./ProductCard").ProductCardPr
   A11yToolbar: typeof A11yToolbar;
 };
 
-// 构建并导出带静态子组件的复合组件实例
-export const ProductCard: ProductCardCompound = ProductCardMain as unknown as ProductCardCompound;
-(ProductCard as any).Image = Image;
-(ProductCard as any).Badge = Badge;
-(ProductCard as any).Title = Title;
-(ProductCard as any).Price = Price;
-(ProductCard as any).Description = Description;
-(ProductCard as any).Actions = Actions;
-(ProductCard as any).Section = Section;
-(ProductCard as any).Rating = Rating;
-(ProductCard as any).Inventory = Inventory;
-(ProductCard as any).Subtitle = Subtitle;
-(ProductCard as any).OldPrice = OldPrice;
-(ProductCard as any).Discount = Discount;
-(ProductCard as any).Tags = Tags;
-(ProductCard as any).Brand = Brand;
-(ProductCard as any).Shipping = Shipping;
-(ProductCard as any).Warranty = Warranty;
-(ProductCard as any).Divider = Divider;
-(ProductCard as any).FeatureList = FeatureList;
-(ProductCard as any).SpecsTable = SpecsTable;
-(ProductCard as any).SKUCode = SKUCode;
-(ProductCard as any).BadgeGroup = BadgeGroup;
-(ProductCard as any).PricePerUnit = PricePerUnit;
-(ProductCard as any).QuantityStepper = QuantityStepper;
-(ProductCard as any).OptionPicker = OptionPicker;
-(ProductCard as any).ColorSwatches = ColorSwatches;
-(ProductCard as any).SizeSelector = SizeSelector;
-(ProductCard as any).VariantSelector = VariantSelector;
-(ProductCard as any).SelectedInfo = SelectedInfo;
-(ProductCard as any).OrderSummaryPanel = OrderSummaryPanel;
-(ProductCard as any).SavingsBadge = SavingsBadge;
-(ProductCard as any).CouponBar = CouponBar;
-(ProductCard as any).StockBadge = StockBadge;
-(ProductCard as any).VariantMediaSwitcher = VariantMediaSwitcher;
-(ProductCard as any).ShippingEstimator = ShippingEstimator;
-(ProductCard as any).DeliveryTimeline = DeliveryTimeline;
-(ProductCard as any).ReturnPolicy = ReturnPolicy;
-(ProductCard as any).UpsellBundle = UpsellBundle;
-(ProductCard as any).A11yToolbar = A11yToolbar;
+export const ProductCard: ProductCardCompound = Object.assign(ProductCardMain, {
+  Image,
+  Badge,
+  Title,
+  Price,
+  Description,
+  Actions,
+  Section,
+  Rating,
+  Inventory,
+  Subtitle,
+  OldPrice,
+  Discount,
+  Tags,
+  Brand,
+  Shipping,
+  Warranty,
+  Divider,
+  FeatureList,
+  SpecsTable,
+  SKUCode,
+  BadgeGroup,
+  PricePerUnit,
+  QuantityStepper,
+  OptionPicker,
+  ColorSwatches,
+  SizeSelector,
+  VariantSelector,
+  SelectedInfo,
+  OrderSummaryPanel,
+  SavingsBadge,
+  CouponBar,
+  StockBadge,
+  VariantMediaSwitcher,
+  ShippingEstimator,
+  DeliveryTimeline,
+  ReturnPolicy,
+  UpsellBundle,
+  A11yToolbar,
+});
 
 // 类型导出
 export type { ProductCardProps, ProductCardContextValue, ProductCardState } from "./ProductCard";
@@ -146,7 +151,7 @@ export type { SpecsTableProps } from "./components/SpecsTable";
 export type { SKUCodeProps } from "./components/SKUCode";
 export type { BadgeGroupProps } from "./components/BadgeGroup";
 export type { PricePerUnitProps } from "./components/PricePerUnit";
-export type { QuantityStepperProps } from "./components/QuantityStepper.tsx";
+export type { QuantityStepperProps } from "./components/QuantityStepper";
 export type { OptionPickerProps } from "./components/OptionPicker";
 export type { ColorSwatchesProps } from "./components/ColorSwatches";
 export type { SizeSelectorProps } from "./components/SizeSelector";
@@ -157,7 +162,12 @@ export type { SavingsBadgeProps } from "./components/SavingsBadge";
 export type { CouponBarProps, CouponInfo } from "./components/CouponBar";
 export type { StockBadgeProps } from "./components/StockBadge";
 export type { VariantMediaSwitcherProps, VariantImage } from "./components/VariantMediaSwitcher";
-export type { ShippingEstimatorProps, RegionOption, MethodOption, ShippingEstimateResult } from "./components/ShippingEstimator";
+export type {
+  ShippingEstimatorProps,
+  RegionOption,
+  MethodOption,
+  ShippingEstimateResult,
+} from "./components/ShippingEstimator";
 export type { DeliveryTimelineProps, TimelineStep, ComputedStep } from "./components/DeliveryTimeline";
 export type { ReturnPolicyProps } from "./components/ReturnPolicy";
 export type { UpsellBundleProps, Bundle, BundleItem } from "./components/UpsellBundle";

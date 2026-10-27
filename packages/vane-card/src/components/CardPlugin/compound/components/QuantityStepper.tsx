@@ -1,11 +1,13 @@
 import React from "react";
 import { useProductCard } from "../ProductCard";
+import { matchVariant, variantListOf } from "../../types/product";
 
 export type QuantityStepperProps = {
   min?: number;
   max?: number;
   step?: number;
-  available?: number; // 可用库存（若不传则从 data/variants 推断）
+  /** 可用库存（若不传则从选中变体或 data.inventory 推断） */
+  available?: number;
   className?: string;
   style?: React.CSSProperties;
   onChange?: (qty: number) => void;
@@ -22,22 +24,16 @@ export const QuantityStepper: React.FC<QuantityStepperProps> = ({
 }) => {
   const { state, setState, data } = useProductCard();
 
-  // 根据已选属性推断当前变体库存；若无变体则使用总体库存
-  const getSelectedVariantStock = (): number | undefined => {
-    const attrs = state.attributes || {};
-    const variants: any[] | undefined = (data?.variants && Array.isArray(data.variants)) ? data.variants : undefined;
-    if (!variants || !Object.keys(attrs).length) return undefined;
-    const match = variants.find((v) => {
-      const opts = (v.options || v.attributes) || {};
-      return Object.keys(attrs).every((k) => String(opts[k]) === String((attrs as any)[k]));
-    });
-    return typeof match?.stock === "number" ? match.stock : undefined;
-  };
-
+  // 与 InventoryPlugin 同一口径：选中变体库存 > data.inventory > 未知
+  const selectedStock = matchVariant(variantListOf(data), state.attributes)?.stock;
   const inferredAvailable =
     typeof available === "number"
       ? available
-      : getSelectedVariantStock() ?? (typeof data?.inventory === "number" ? data.inventory : undefined);
+      : typeof selectedStock === "number"
+        ? selectedStock
+        : typeof data?.inventory === "number"
+          ? data.inventory
+          : undefined;
 
   const effectiveMax = typeof inferredAvailable === "number" ? Math.min(max, Math.max(0, inferredAvailable)) : max;
   const qty = typeof state.quantity === "number" ? state.quantity : Math.max(min, 1);
