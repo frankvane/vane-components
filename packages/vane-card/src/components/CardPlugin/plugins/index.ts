@@ -1,5 +1,5 @@
 /**
- * CardPlugin 插件系统入口（C2 · 接 @vane/plugin-core）
+ * CardPlugin 插件系统入口（C2 · 接 vane-plugin-core）
  */
 
 // 类型导出

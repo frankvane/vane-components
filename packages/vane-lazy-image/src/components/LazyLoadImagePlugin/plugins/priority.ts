@@ -2,12 +2,12 @@
  * 领域 priority → 内核 priority 适配。
  *
  * 领域语义（lazy-image 历史约定）：数字越小越优先，默认 100。
- * 内核语义（@vane/plugin-core）：数字越大越优先，默认 0。
+ * 内核语义（vane-plugin-core）：数字越大越优先，默认 0。
  * 本模块是两者唯一的转换点，插件源码只写领域语义。
  */
 
 import type { LazyImagePlugin } from "./types";
-import type { Plugin } from "@vane/plugin-core";
+import type { Plugin } from "vane-plugin-core";
 
 /** 领域 priority 基准值：kernelPriority = BASE - domainPriority */
 export const DOMAIN_PRIORITY_BASE = 1000;

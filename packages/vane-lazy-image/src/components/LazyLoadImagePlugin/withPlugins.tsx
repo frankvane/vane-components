@@ -1,7 +1,7 @@
 /**
  * vane-lazy-image 插件装配层。
  *
- * 复用 @vane/plugin-core 的 usePluginRuntime / composeSlots / PluginErrorBoundary，
+ * 复用 vane-plugin-core 的 usePluginRuntime / composeSlots / PluginErrorBoundary，
  * 在此补齐图片领域适配（对比旧版内置插件系统的差异，见 tasks/01 差距表）：
  *
  *   1. priority 语义适配：领域「越小越优先（默认 100）」→ 内核「越大越优先」；
@@ -25,7 +25,7 @@ import {
   composeSlots,
   PluginErrorBoundary,
   usePluginRuntime,
-} from "@vane/plugin-core";
+} from "vane-plugin-core";
 import { toKernelPlugins } from "./plugins/priority";
 import {
   addGlobalContextListener,
@@ -145,7 +145,7 @@ export function withPlugins(
       void execute("onMount");
     }, [execute]);
 
-    // onUnmount 由 @vane/plugin-core 统一负责：其 useLayoutEffect cleanup 会先
+    // onUnmount 由 vane-plugin-core 统一负责：其 useLayoutEffect cleanup 会先
     // 执行 onUnmount 链再 manager.clear()（插件引用已捕获，clear 不中断链），
     // 且 contextRef 已含领域字段。这里只订阅 progress 事件。
     useEffect(() => {

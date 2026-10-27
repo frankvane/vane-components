@@ -16,7 +16,7 @@
 ├─────────────────────────────────────────────┤
 │ 装配层：withPlugins / usePluginRuntime        │
 ├─────────────────────────────────────────────┤
-│ 内核层：@vane/plugin-core                     │
+│ 内核层：vane-plugin-core                     │
 │   Bus · Manager · Sandbox · DepResolver      │
 ├─────────────────────────────────────────────┤
 │ 核心层：XxxCore  刻意保持薄                    │
@@ -82,7 +82,7 @@ interface Plugin<TProps = any> {
 
 | 指标 | 预算 |
 | --- | --- |
-| `@vane/plugin-core` 入口导入图 gzip | ≤ 5 KB |
+| `vane-plugin-core` 入口导入图 gzip | ≤ 5 KB |
 | 组件包默认入口 gzip | ≤ 12 KB（`package.json` 的 `vane.sizeBudgetKb`） |
 | 单插件 gzip | ≤ 2 KB |
 | 每实例 Observer / 监听器 | 全局共享，不允许每实例新建 |

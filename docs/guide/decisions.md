@@ -2,7 +2,7 @@
 
 每个决定都记录"为什么"，避免后人（包括自己）重复纠结。
 
-## ADR-1 · 抽 `@vane/plugin-core` 共用内核，而不是各包自带插件系统
+## ADR-1 · 抽 `vane-plugin-core` 共用内核，而不是各包自带插件系统
 
 **背景**：`vane-card` / `vane-waterfall` / `vane-file-preview` / `vane-lazy-image` 各自实现了一份 `PluginBus` + `PluginManager` + `withPlugins`，且已经漂移（card 没有沙箱与依赖解析，lazy-image 有）。
 
@@ -214,7 +214,7 @@
    依赖边界问题。只把**外层容器与工具栏**抽成 `--vfp-*` CSS 变量 + 可选 `style.css`，
    插件内部几何值继续内联（与 ADR-13 对 vane-card 的处理同一口径）。
 
-5. **D5 · 内核内联打包 `@vane/plugin-core`，不设 peer。** 与 vane-card 一致：内核进 chunk，
+5. **D5 · 内核内联打包 `vane-plugin-core`，不设 peer。** 与 vane-card 一致：内核进 chunk，
    消费者不需要额外装包。路由做成包内纯函数 `resolvePreview(plugins, file)` ——
    给定插件列表与文件，返回唯一赢家，**可单测**。
 

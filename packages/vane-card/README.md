@@ -17,7 +17,7 @@
 - **总线 6 个键**：`sku.*` / `quantity` / `coupon.applied`。SKU 是唯一「源」，其余全是消费者 —— 加一个插件不需要改已有插件
 - **钩子面 15 个**（内核 9 + 领域 6），每一个都有真实执行点；旧版声称有 24 个，其中 9 个从未被执行过
 - **样式可选**：不引 `style.css` 也能渲染（核心只内联 `position` / `box-sizing` / padding），引了则由 CSS 变量统一换肤，暗色靠 `data-vc-theme="dark"`
-- **零运行时依赖**：`react` / `react-dom` 只进 peer，`@vane/plugin-core` 构建时内联
+- **零运行时依赖**：`react` / `react-dom` 只进 peer，`vane-plugin-core` 构建时内联
 
 ## 安装
 
@@ -105,7 +105,7 @@ demo/               演示站：38 页逐项示例 + 9 版式 + 16 场景（不�
 
 ## 从 1.x 迁移
 
-2.0.0 是破坏性大版本：插件系统内核换成 `@vane/plugin-core`（与 `vane-lazy-image` / `vane-waterfall` 同一套），根入口不再桶导出。
+2.0.0 是破坏性大版本：插件系统内核换成 `vane-plugin-core`（与 `vane-lazy-image` / `vane-waterfall` 同一套），根入口不再桶导出。
 
 | 变化 | 影响 | 怎么改 |
 | --- | --- | --- |

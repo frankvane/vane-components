@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "pnpm --filter \"./packages/*\" --parallel dev",
     "build": "turbo run build",
-    "build:libs": "pnpm -r --filter \"./packages/*\" --filter \"!@vane/plugin-core\" build",
+    "build:libs": "pnpm -r --filter \"./packages/*\" --filter \"!vane-plugin-core\" build",
     "test": "turbo run test",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",

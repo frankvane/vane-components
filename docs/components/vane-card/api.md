@@ -169,7 +169,7 @@ renderDomainSlot(plugins, context, "renderPriceArea"): ReactNode[]
 
 ## 总线协议
 
-`PluginBus` 是内核实现，形状在这里**重新声明**而不是从 `@vane/plugin-core` re-export —— 内核未发布到 npm，公开 d.ts 里出现 `import type { PluginBus } from "@vane/plugin-core"` 会让消费方直接 `Cannot find module`。
+`PluginBus` 是内核实现，形状在这里**重新声明**而不是从 `vane-plugin-core` re-export —— 内核未发布到 npm，公开 d.ts 里出现 `import type { PluginBus } from "vane-plugin-core"` 会让消费方直接 `Cannot find module`。
 
 | 方法 | 说明 |
 | --- | --- |

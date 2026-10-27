@@ -15,7 +15,7 @@ hero:
 
 features:
   - title: 共用内核
-    details: 所有组件共享 @vane/plugin-core 的插件系统，事件总线、沙箱、依赖解析只有一份实现。
+    details: 所有组件共享 vane-plugin-core 的插件系统，事件总线、沙箱、依赖解析只有一份实现。
   - title: 模板化开发
     details: pnpm new vane-xxx 一键生成组件骨架，30 分钟内进入业务开发。
   - title: 文档即数据

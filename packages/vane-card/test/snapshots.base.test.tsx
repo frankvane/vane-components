@@ -11,7 +11,7 @@
 import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { describe, it, expect, vi } from "vitest";
-import { createPluginManager, createPluginBus } from "@vane/plugin-core";
+import { createPluginManager, createPluginBus } from "vane-plugin-core";
 import { BusKeys } from "../src/components/CardPlugin/plugins/BusKeys";
 import { createSKUPlugin } from "../src/components/CardPlugin/custom-plugins";
 import { createQuantityPlugin } from "../src/components/CardPlugin/custom-plugins";
@@ -102,7 +102,7 @@ describe("C2 行为基线（R2 修复 + 总线协议）", () => {
 
     const snapshot = {
       source:
-        "packages/vane-card/src（C2 迁移后：@vane/plugin-core 内核，旧自研系统已删除）",
+        "packages/vane-card/src（C2 迁移后：vane-plugin-core 内核，旧自研系统已删除）",
       generatedBy: "test/snapshots.base.test.tsx",
       slotOrder: {
         segments: [

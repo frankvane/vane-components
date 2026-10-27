@@ -5,7 +5,7 @@
 import { createAlignmentPlugin as create } from "./create";
 import type { AlignmentConfig } from "./create";
 import doc from "./doc.json";
-import type { PluginDoc } from "@vane/plugin-core";
+import type { PluginDoc } from "vane-plugin-core";
 
 /**
  * 工厂 + `.meta`：`typeof create` 保留原工厂的泛型签名，

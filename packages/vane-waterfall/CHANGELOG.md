@@ -2,11 +2,11 @@
 
 ## 2.0.0
 
-vane-waterfall 2.0.0：插件系统内核更换为 `@vane/plugin-core`，钩子面从 48 收到 20。
+vane-waterfall 2.0.0：插件系统内核更换为 `vane-plugin-core`，钩子面从 48 收到 20。
 
 ### 破坏性变更
 
-- **插件系统换成内核**：自建 `PluginBus` / `PluginManager` 与旧 `withPlugins` 全部删除，改用 `@vane/plugin-core` 的 `usePluginRuntime` / `composeSlots` / `PluginErrorBoundary`。
+- **插件系统换成内核**：自建 `PluginBus` / `PluginManager` 与旧 `withPlugins` 全部删除，改用 `vane-plugin-core` 的 `usePluginRuntime` / `composeSlots` / `PluginErrorBoundary`。
 - **领域钩子面 48 → 20**：只保留有真实执行点的钩子；被删的 31 个在 1.x 从来没有执行者。
 - **`renderItemWrapper` 签名统一为 `(context, node, index)`**。
 - **虚拟化下沉 Core**：`VirtualWaterfallPlugin` 删除，改为 `virtualize` prop（只裁渲染不裁测量）。`RecyclePlugin` 保留但与 `virtualize` 互斥。

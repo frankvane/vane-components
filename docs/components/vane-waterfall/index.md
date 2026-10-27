@@ -12,7 +12,7 @@
 - **量到就重排**：项挂载量到真高与位置不一致时，下一帧立刻修正，不等布局防抖 —— 这是「快速滚动时卡片重叠」的真正解法（抬高估值只是把误差换成滚动条虚长）
 - **钩子有生命周期**：`onMount` 返回的函数会在卸载时执行，监听不会泄漏
 - **priority 越大越先执行**：与旧版语义同向，不做 `1000 - x` 反转
-- **零运行时依赖**（`@vane/plugin-core` / react / react-dom 均为 peer），不引 CSS 文件
+- **零运行时依赖**（`vane-plugin-core` / react / react-dom 均为 peer），不引 CSS 文件
 
 ## 安装
 
@@ -116,7 +116,7 @@ virtualize={{ estimateQuantile: 0.95 }}
 
 ## 从 1.x 迁移
 
-2.0.0 是破坏性大版本，插件系统内核已换成 `@vane/plugin-core`（与 `vane-lazy-image` 同一套）：
+2.0.0 是破坏性大版本，插件系统内核已换成 `vane-plugin-core`（与 `vane-lazy-image` 同一套）：
 
 | 变化 | 影响 | 怎么改 |
 | --- | --- | --- |

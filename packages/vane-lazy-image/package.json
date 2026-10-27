@@ -396,7 +396,7 @@
     "verify:scenarios": "node scripts/verify-scenarios.mjs"
   },
   "peerDependencies": {
-    "@vane/plugin-core": "workspace:*",
+    "vane-plugin-core": "workspace:*",
     "react": ">=16.8.0",
     "react-dom": ">=16.8.0"
   },
@@ -408,7 +408,7 @@
     "@types/react-window": "^1.8.8",
     "@vane/build-config": "workspace:*",
     "@vane/eslint-config": "workspace:*",
-    "@vane/plugin-core": "workspace:*",
+    "vane-plugin-core": "workspace:*",
     "@vane/tsconfig": "workspace:*",
     "@vane/vitest-config": "workspace:*",
     "@vitejs/plugin-react": "^4.3.1",

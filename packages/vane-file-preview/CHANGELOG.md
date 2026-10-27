@@ -2,7 +2,7 @@
 
 ## 2.0.0
 
-vane-file-preview 2.0.0：内核换成 `@vane/plugin-core`，依赖全部 optional peer，对外契约基本兼容。
+vane-file-preview 2.0.0：内核换成 `vane-plugin-core`，依赖全部 optional peer，对外契约基本兼容。
 
 ### 破坏性变更
 

@@ -1,4 +1,4 @@
-# 内核 API（@vane/plugin-core）
+# 内核 API（vane-plugin-core）
 
 所有 vane 组件的插件能力都来自这一个包。本文是它的速查表，完整定义见 `packages/plugin-core/src/types.ts`。
 

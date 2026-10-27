@@ -208,7 +208,7 @@
     "@uiw/react-json-view": "2.0.0-alpha.44",
     "@vane/build-config": "workspace:*",
     "@vane/eslint-config": "workspace:*",
-    "@vane/plugin-core": "workspace:*",
+    "vane-plugin-core": "workspace:*",
     "@vane/tsconfig": "workspace:*",
     "@vane/vitest-config": "workspace:*",
     "@vitejs/plugin-react": "^4.3.1",

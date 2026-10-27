@@ -1,5 +1,5 @@
 /**
- * @vane/plugin-core — vane 插件式组件共用内核
+ * vane-plugin-core — vane 插件式组件共用内核
  * 只依赖 react（peer），不依赖 react-dom，入口导入图 gzip < 5KB。
  */
 

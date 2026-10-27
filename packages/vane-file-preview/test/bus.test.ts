@@ -7,7 +7,7 @@
  * 那正是旧实现里被 try/catch 吞掉、事后很难查的一类问题）。
  */
 import { describe, it, expect, vi } from "vitest";
-import { createPluginBus } from "@vane/plugin-core";
+import { createPluginBus } from "vane-plugin-core";
 
 describe("PluginBus 事件", () => {
   it("emit 会送达所有订阅者", () => {

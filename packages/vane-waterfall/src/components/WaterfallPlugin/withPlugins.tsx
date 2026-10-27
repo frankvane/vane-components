@@ -1,7 +1,7 @@
 /**
  * vane-waterfall 插件装配层。
  *
- * 复用 @vane/plugin-core 的 `usePluginRuntime` / `composeSlots` / `PluginErrorBoundary`，
+ * 复用 vane-plugin-core 的 `usePluginRuntime` / `composeSlots` / `PluginErrorBoundary`，
  * 在此补齐瀑布流领域适配（与旧自建插件系统的差异见 tasks/07 · 4.1–4.7）：
  *
  *  1. 领域上下文：内核 context + items / layout / itemPositions / viewport / 状态位 /
@@ -21,7 +21,7 @@
  */
 
 import React, { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { composeSlots, PluginErrorBoundary, usePluginRuntime } from "@vane/plugin-core";
+import { composeSlots, PluginErrorBoundary, usePluginRuntime } from "vane-plugin-core";
 import type { LayoutHooks } from "./layout";
 import type {
   DragInfo,
@@ -341,7 +341,7 @@ export function withPlugins<T = any>(
         void execute("onMount");
       }, [execute]);
 
-      // onUnmount 由 @vane/plugin-core 统一执行（cleanup 里先跑钩子链再 clear）
+      // onUnmount 由 vane-plugin-core 统一执行（cleanup 里先跑钩子链再 clear）
 
       // props 变化
       const prevPropsRef = useRef(props);

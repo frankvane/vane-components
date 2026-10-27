@@ -3,7 +3,7 @@
  * 高级能力：依赖解析（内核）+ 版本比较工具 + 插件沙箱 + 依赖解析器。
  */
 
-export { resolveDependencyOrder, type DepNode } from "@vane/plugin-core";
+export { resolveDependencyOrder, type DepNode } from "vane-plugin-core";
 
 export {
   compareVersions,

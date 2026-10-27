@@ -15,7 +15,7 @@
 
 2. **迁移主体很小：2418 行。** core 836 行 + 27 个插件 1582 行（不含 30 行桶文件）。其余 5976 行是旧插件系统（1600，全部删除）、demo（4025，重写）与壳/入口（348，丢弃）。
 
-3. **插件系统 1600 行整体删除**，换 `@vane/plugin-core`。`plugins/types.ts` 声明了 **48 个钩子，只有 17 个真的会被调用**，其余 31 个是死钩子——迁移前必须做钩子收口，否则把噪音一起搬过去。
+3. **插件系统 1600 行整体删除**，换 `vane-plugin-core`。`plugins/types.ts` 声明了 **48 个钩子，只有 17 个真的会被调用**，其余 31 个是死钩子——迁移前必须做钩子收口，否则把噪音一起搬过去。
 
 4. **一个真 bug：`PinItemPlugin` 完全空转。** 它依赖 `calculateItemPosition` 定位置，`renderOverlay` 恒返回 `null`；而 Core 里 **0 处 `executeHook`**，这个钩子从来没有执行者。
 
@@ -34,7 +34,7 @@
 | 模块 | 文件 | 行数 | 处置 |
 | --- | --- | --- | --- |
 | `components/WaterfallPlugin/core/WaterfallCore.tsx` | 1 | 836 | **迁入**，props / ref 契约不变 |
-| `components/WaterfallPlugin/plugins/`（自建插件系统） | 5 | 1600 | **整体删除**，能力由 `@vane/plugin-core` 提供 |
+| `components/WaterfallPlugin/plugins/`（自建插件系统） | 5 | 1600 | **整体删除**，能力由 `vane-plugin-core` 提供 |
 | `components/WaterfallPlugin/custom-plugins/` | 28（27 插件 + 桶文件） | 1585 | **迁入** + 补 `doc.json` + 分组 |
 | `pages/`（demo，38 个 `.tsx` 含 `_layout/DemoPage`） | 38 | 4025 | **重写**（沿用 lazy-image 的「工坊 + 场景库」形态） |
 | 壳与入口（`App.tsx` / `App.css` / `main.tsx` / `index.ts` / `WaterfallPlugin/index.ts` / `vite-env.d.ts` / `assets`） | 7 | 348 | 丢弃，走新 demo 骨架与多入口 |
@@ -122,7 +122,7 @@
 | `vane-lazy-image` ^1.0.14 | dependencies | 仅 `LazyImageIntegrationDemo` | → devDependencies，并升到 **2.0.0**（现行版本） |
 | `react-router-dom` ^7.9.3 | dependencies | 仅 demo（仓库其他包用 `^6`） | → devDependencies，统一 `^6` |
 | `react-markdown` / `remark-gfm` / `react-syntax-highlighter` | dependencies | 仅 `ReadmeDemo` | → devDependencies（与 lazy-image 一致） |
-| `@vane/plugin-core` | 缺失 | 新架构必需 | → `peerDependencies` + dev |
+| `vane-plugin-core` | 缺失 | 新架构必需 | → `peerDependencies` + dev |
 
 ---
 
@@ -252,7 +252,7 @@ onMount: () => { pluginManager.executeHook("onMount", pluginContext).catch(() =>
 | 短路语义 | **任意 truthy 返回值都中断整链** | `false` 中断；其他值短路返回 | 旧版更危险（`onPropsChange` 返回对象会掐断后面的插件）；迁移后行为更可预期 |
 | 注册时机 | **渲染期**副作用（`if (...) pluginManager.registerAll()`） | `usePluginRuntime` 内 effect/ref | 升级；但要注意 Core 的 `onMount` 在 effect 中触发，插件 `onMount` 顺序需在单测里锁住 |
 | 包形态 | 单入口 + 全量桶导出 | 多入口（core / plugins / custom-plugins/* / presets/*） | 按需引入，`sync-exports` 自动生成 |
-| 类型来源 | 自带一套 `PluginManager` / `WaterfallPlugin` | 从 `@vane/plugin-core` 派生 | 与 lazy-image 一致 |
+| 类型来源 | 自带一套 `PluginManager` / `WaterfallPlugin` | 从 `vane-plugin-core` 派生 | 与 lazy-image 一致 |
 | 数据管道 | 插件改写 `props.items` | **同**（内核无此概念，纯领域约定） | 必须显式保留 + 文档写明 |
 
 ---
@@ -369,14 +369,14 @@ packages/vane-waterfall/
 │   ├── components/WaterfallPlugin/
 │   │   ├── WaterfallCore.tsx                   # 迁入，props / ref 契约不变（+虚拟化见 D2）
 │   │   ├── plugins/
-│   │   │   ├── types.ts                        # 20 个钩子（从 @vane/plugin-core 派生）
+│   │   │   ├── types.ts                        # 20 个钩子（从 vane-plugin-core 派生）
 │   │   │   └── withPlugins.tsx                 # usePluginRuntime + extendContext + 钩子桥接 + item 包装
 │   │   └── virtualize.ts                       # D2-A：命中范围计算（可选）
 │   ├── custom-plugins/<Xxx>/{doc.json,create.ts,index.ts}   # 27 个，分组注释
 │   └── presets/{photo-feed,product-feed,dashboard}/index.ts  # 3 个配方
 ├── demo/                                       # 工坊 + 场景库（D4-B）
 ├── test/                                       # ≥35 个单测
-└── package.json                                # peer: @vane/plugin-core + react/react-dom
+└── package.json                                # peer: vane-plugin-core + react/react-dom
 ```
 
 ---

@@ -3,7 +3,7 @@
 ## 版本策略
 
 - **所有包统一走 changesets**，不允许手动改 `version`；
-- 组件包之间通过 `peerDependencies` 关联 `@vane/plugin-core`，内核升级会带动所有包 minor/patch 提示；
+- 组件包之间通过 `peerDependencies` 关联 `vane-plugin-core`，内核升级会带动所有包 minor/patch 提示；
 - 破坏性变更必须 major，并在 changeset 里写清迁移步骤。
 
 ## 日常发版

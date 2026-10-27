@@ -2,7 +2,7 @@
 
 ## 0.1.0
 
-`@vane/plugin-core` 首个发布版本：vane 系列组件共用的插件运行时内核。
+`vane-plugin-core` 首个发布版本：vane 系列组件共用的插件运行时内核。
 
 - `usePluginRuntime`：插件生命周期与上下文管理。
 - `composeSlots`：插槽的组合与渲染位置裁决。

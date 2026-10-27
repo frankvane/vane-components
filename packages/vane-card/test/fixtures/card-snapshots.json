@@ -1,5 +1,5 @@
 {
-  "source": "packages/vane-card/src（C2 迁移后：@vane/plugin-core 内核，旧自研系统已删除）",
+  "source": "packages/vane-card/src（C2 迁移后：vane-plugin-core 内核，旧自研系统已删除）",
   "generatedBy": "test/snapshots.base.test.tsx",
   "slotOrder": {
     "segments": [

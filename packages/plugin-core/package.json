@@ -1,5 +1,5 @@
 {
-  "name": "@vane/plugin-core",
+  "name": "vane-plugin-core",
   "version": "0.1.0",
   "description": "vane 插件式组件共用内核：事件总线、插件管理器、沙箱、依赖解析、withPlugins HOC",
   "type": "module",

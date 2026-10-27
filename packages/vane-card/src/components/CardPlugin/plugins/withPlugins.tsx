@@ -1,5 +1,5 @@
 /**
- * withPlugins - HOC 组合器（C2 · 接 @vane/plugin-core）
+ * withPlugins - HOC 组合器（C2 · 接 vane-plugin-core）
  *
  * 旧版自建 PluginBus/PluginManager/SlotsContext（约 1154 行）全部删除，改用内核
  * usePluginRuntime + composeSlots + PluginErrorBoundary。领域适配在此补齐：
@@ -30,7 +30,7 @@ import {
   composeSlots,
   PluginErrorBoundary,
   usePluginRuntime,
-} from "@vane/plugin-core";
+} from "vane-plugin-core";
 import type { CardCoreProps, CardCoreRef } from "../core/CardCore";
 import type {
   CardPlugin,

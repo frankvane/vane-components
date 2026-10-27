@@ -66,7 +66,7 @@
 | 模块 | 文件 | 行数 | 处置 |
 | --- | --- | --- | --- |
 | `components/FilePreviewPlugin/core/` | 2 | 260 | **迁入**（Core 契约基本不变；`FilePreviewCore.tsx` 227 行里约 90 行是注释与内联样式） |
-| `components/FilePreviewPlugin/plugins/` | 5 | 689 | **整体删除**，能力由 `@vane/plugin-core` 提供 |
+| `components/FilePreviewPlugin/plugins/` | 5 | 689 | **整体删除**，能力由 `vane-plugin-core` 提供 |
 | `components/FilePreviewPlugin/custom-plugins/` | 26 | 7318 | **迁入** + 每个补 `doc.json` + 目录化（`XxxPlugin/index.tsx`） |
 | `pages/`（demo） | 16 | 2787 | **重写**（13 个示例页 + `Home` + `ReadmeDemo` + `_layout`） |
 | `src/types/` | 1 | 5 | 丢弃（`FileInfo` 已在 `plugins/types.ts` 定义） |
@@ -249,7 +249,7 @@ demo 侧一律 `makeCard` 化的模块顶层常量或 `useCard`。
 
 | 包 | dependencies | peer |
 | --- | --- | --- |
-| vane-lazy-image | `{}` | `@vane/plugin-core` / `react` / `react-dom` |
+| vane-lazy-image | `{}` | `vane-plugin-core` / `react` / `react-dom` |
 | vane-waterfall | `{}` | 同上 |
 | vane-card | `{}` | `react` / `react-dom`（内核内联打包） |
 | **vane-file-preview（现状）** | **26 个** | **无** |
@@ -313,10 +313,10 @@ demo 侧一律 `makeCard` 化的模块顶层常量或 `useCard`。
 
 ### D5 · 内核用法
 
-- **D5-A 内联打包 `@vane/plugin-core`（同 vane-card）**，不设 peer（推荐）
+- **D5-A 内联打包 `vane-plugin-core`（同 vane-card）**，不设 peer（推荐）
 - D5-B 设为 peer（同 lazy-image / waterfall）
 
-**推荐 D5-A**：内核 gzip < 5KB，打成 peer 只是让消费者多一步安装、多一个版本错配来源；vane-card 已验过这条路（`dist/chunks/*.js` 里无 `@vane/plugin-core` 外部引用）。
+**推荐 D5-A**：内核 gzip < 5KB，打成 peer 只是让消费者多一步安装、多一个版本错配来源；vane-card 已验过这条路（`dist/chunks/*.js` 里无 `vane-plugin-core` 外部引用）。
 **同时**：把 `resolvePreview()`（路由）做成包内纯函数，不往内核加东西——内核不该知道「文件」这个概念。
 
 ### D6 · demo 形态

@@ -1,11 +1,11 @@
-# @vane/plugin-core
+# vane-plugin-core
 
 vane 插件式组件的共用内核：事件总线、插件管理器、沙箱、依赖解析、`withPlugins` HOC。所有 `vane-*` 组件包的插件能力都建立在这一个包上，**不允许各包自己复制一份**。
 
 ## 安装
 
 ```bash
-npm install @vane/plugin-core
+npm install vane-plugin-core
 ```
 
 `react` 是 peer dependency（`>=16.8`），不随包分发。
@@ -17,7 +17,7 @@ import {
   withPlugins,
   createPluginBus,
   type Plugin,
-} from "@vane/plugin-core";
+} from "vane-plugin-core";
 
 const loggerPlugin: Plugin = {
   name: "logger",
@@ -55,8 +55,8 @@ const Enhanced = withPlugins(MyCore, [loggerPlugin]);
 
 | 入口 | Gzip |
 | --- | --- |
-| `@vane/plugin-core` | ~2.5 KB |
-| `@vane/plugin-core/bus` | ~0.6 KB |
+| `vane-plugin-core` | ~2.5 KB |
+| `vane-plugin-core/bus` | ~0.6 KB |
 
 ## License
 

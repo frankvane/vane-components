@@ -12,7 +12,7 @@
 | --- | --- | --- | --- |
 | **P0** | 决策拍板 + 基线固化 | 6 个决策结论 + 体积/类型基线 | 决策落纸，基线可复现 |
 | **P1** | 包骨架 + Core 迁入 + demo 指回源码 | 能 build 的空壳包 + demo 只读 src | `build` 出 dist，demo 不再依赖 dist 自引用 |
-| **P2** | 插件系统替换 + 路由纯函数 | 删 689 行，接 `@vane/plugin-core` | `resolvePreview()` 单测全绿，17 插件能被路由到 |
+| **P2** | 插件系统替换 + 路由纯函数 | 删 689 行，接 `vane-plugin-core` | `resolvePreview()` 单测全绿，17 插件能被路由到 |
 | **P3** | 17 个插件分批迁入 | 17 个目录化插件 + 17 份 `doc.json` | 17/17 通过 schema，`typecheck` 0 错 |
 | **P4** | 依赖边界与体积工程 | optional peer + 子路径 external + 降级面板 | 根入口 ≤12KB，`dist` 无重依赖特征串 |
 | **P5** | demo 重写（三视角） | 工坊 17 + 逐项 17 + 场景 6 | 40 页逐页几何 0 命中 |
@@ -50,7 +50,7 @@ demo            13 个示例页 + Home + ReadmeDemo + _layout
 - [x] **P0.2 拍板 D2（重依赖归属）**：**D2-A optional peer**（`peerDependenciesMeta`）；`dependencies: {}`
 - [x] **P0.3 拍板 D3（入口结构）**：根入口只出 core + 6 个轻量插件；`./custom-plugins/*` 逐插件；`custom-plugins/index.ts` 保留为逃生口但**不被根入口静态引用**
 - [x] **P0.4 拍板 D4（样式）**：**D4-A 内联沿用**，只抽「容器 + 工具栏」为 `--vfp-*` 变量 + 可选 `style.css`
-- [x] **P0.5 拍板 D5（内核）**：**D5-A 内联打包 `@vane/plugin-core`**（不设 peer）；路由做包内纯函数 `resolvePreview()`
+- [x] **P0.5 拍板 D5（内核）**：**D5-A 内联打包 `vane-plugin-core`**（不设 peer）；路由做包内纯函数 `resolvePreview()`
 - [x] **P0.6 拍板 D6（demo）**：**三视角**（工坊 17 + 逐项 17 + 场景 6），不做布局视角
 - [x] **P0.7 固化体积基线**：把上表 196.33KB / 634.47KB 记入本文「执行记录」，作为「不得劣化」的对照（新架构目标见 P4）
 
@@ -67,7 +67,7 @@ demo            13 个示例页 + Home + ReadmeDemo + _layout
 
 - [x] `packages/vane-file-preview/` 目录（照 `packages/vane-card` 的形态，不用模板骨架 —— 模板缺多入口与 `vane` 体积字段）
 - [x] `package.json`
-  - [x] `peerDependencies`: `react >=16.8`、`react-dom >=16.8`（**不设 `@vane/plugin-core`**）
+  - [x] `peerDependencies`: `react >=16.8`、`react-dom >=16.8`（**不设 `vane-plugin-core`**）
   - [x] `dependencies`: **空**（26 个全不迁；6 个死依赖彻底删；`react`/`react-dom`/`react-router-dom` 移入 devDeps 只服务 demo）
   - [x] `devDependencies`: `@vane/{build-config,eslint-config,tsconfig,vitest-config,plugin-core}`、react 18、vite 5、vitest 2、`react-router-dom`（仅 demo）
   - [x] `files: ["dist"]`、`sideEffects: false`、`publicDir: false`
@@ -146,7 +146,7 @@ demo            13 个示例页 + Home + ReadmeDemo + _layout
     - 删 4 个与内核重复的（能力保留、由内核驱动，领域层只重声明签名）：`onMount` / `onUnmount` / `renderOverlay` / `transformData`
   - [x] 保留领域钩子 **6 个**：`canHandle(file)` / `render(ctx)` / `renderToolbar(ctx)` / `onLoadStart` / `onLoadSuccess` / `onLoadError`
   - [x] 领域 `FilePreviewPluginContext` 是**独立接口**而不是 `extends 内核 PluginContext`
-    - **偏离（有硬理由）**：内核 emit 的公开 d.ts 里不能出现 `@vane/plugin-core` 的类型引用。
+    - **偏离（有硬理由）**：内核 emit 的公开 d.ts 里不能出现 `vane-plugin-core` 的类型引用。
       内核是构建时内联的实现细节、**没发布到 npm**，消费方装包后 TS 会直接报 Cannot find module。
       vane-card 的 `CardPluginContext` 也是同一个处理（见其 `PluginBus` 的注释）。
       结构与内核 context 兼容（`extendContext` 塞回去运行时不报错），类型上各自独立

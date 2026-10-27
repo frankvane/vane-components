@@ -9,7 +9,7 @@
 - 插件化架构，核心稳定、能力可无限扩展
 - Tree-shaking 友好：只打包你用到的插件
 - TypeScript 类型完备
-- 与 `@vane/plugin-core` 共用同一套插件规范
+- 与 `vane-plugin-core` 共用同一套插件规范
 
 ## 安装
 

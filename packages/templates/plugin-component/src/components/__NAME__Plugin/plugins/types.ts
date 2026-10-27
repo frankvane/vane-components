@@ -1,9 +1,9 @@
 import type React from "react";
-import type { PluginContext, PluginHooks } from "@vane/plugin-core";
+import type { PluginContext, PluginHooks } from "vane-plugin-core";
 
 /**
  * 领域类型：核心组件 props / ref + 领域钩子。
- * 这是每个组件包里唯一需要"自己写"的类型层，其余全部来自 @vane/plugin-core。
+ * 这是每个组件包里唯一需要"自己写"的类型层，其余全部来自 vane-plugin-core。
  */
 
 export interface __NAME__Item {

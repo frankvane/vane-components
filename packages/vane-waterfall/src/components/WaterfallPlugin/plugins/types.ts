@@ -1,7 +1,7 @@
 /**
  * vane-waterfall 领域类型层。
  *
- * 与 @vane/plugin-core 的关系（tasks/07 · 4.1–4.7）：
+ * 与 vane-plugin-core 的关系（tasks/07 · 4.1–4.7）：
  *  - `WaterfallPluginContext` = 内核 `PluginContext<WaterfallCoreProps, WaterfallData>` + 领域字段；
  *  - `WaterfallPluginHooks` 按 D3 收口到 **20 个**（旧版声明 48 个，其中 31 个从来没有执行者）；
  *  - `WaterfallPlugin` 从内核 `Plugin` 派生，钩子面收窄为领域钩子。
@@ -11,7 +11,7 @@
  */
 
 import type React from "react";
-import type { Plugin, PluginContext } from "@vane/plugin-core";
+import type { Plugin, PluginContext } from "vane-plugin-core";
 import type { WaterfallCoreProps } from "../WaterfallCore";
 
 // ============ 基础数据类型 ============
@@ -246,5 +246,5 @@ export type WaterfallPlugin<T = any> = Omit<Plugin<WaterfallCoreProps<T>>, "hook
 export type WaterfallPluginCreator<Config = any, T = any> = ((
   config?: Config
 ) => WaterfallPlugin<T>) & {
-  meta: import("@vane/plugin-core").PluginDoc;
+  meta: import("vane-plugin-core").PluginDoc;
 };

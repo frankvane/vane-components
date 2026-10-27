@@ -39,14 +39,14 @@
   "peerDependencies": {
     "react": ">=16.8.0",
     "react-dom": ">=16.8.0",
-    "@vane/plugin-core": "workspace:*"
+    "vane-plugin-core": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vane/build-config": "workspace:*",
-    "@vane/plugin-core": "workspace:*",
+    "vane-plugin-core": "workspace:*",
     "@vane/tsconfig": "workspace:*",
     "@vitejs/plugin-react": "^4.3.1",
     "react": "^18.3.1",

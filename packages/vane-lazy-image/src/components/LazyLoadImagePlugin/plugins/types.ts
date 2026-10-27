@@ -2,7 +2,7 @@
  * vane-lazy-image 领域插件类型。
  *
  * 规则：通用能力（Plugin / PluginContext / PluginBus / PluginManager / 生命周期钩子语义）
- * 一律从 @vane/plugin-core 派生，本文件只定义图片领域扩展：
+ * 一律从 vane-plugin-core 派生，本文件只定义图片领域扩展：
  *   - LazyImageContext：领域上下文（src / imageState / isIntersecting / imageRef …）
  *   - LazyImageHooks：领域钩子表（onBeforeLoad / onLoad / onLoadSuccess …）
  *   - LazyImagePlugin：领域插件（hooks 为 LazyImageHooks）
@@ -20,7 +20,7 @@ import type {
   PluginCreator,
   PluginDoc,
   PluginHooks,
-} from "@vane/plugin-core";
+} from "vane-plugin-core";
 import type { LazyLoadImageCoreProps, ImageState } from "../LazyLoadImageCore";
 
 // ---------- 领域数据类型 ----------

@@ -1,7 +1,7 @@
 /**
  * CardPlugin 插件系统类型定义（C2 迁移后）
  *
- * 复用 @vane/plugin-core 的 PluginContext / PluginHooks / PluginBus 作为内核，
+ * 复用 vane-plugin-core 的 PluginContext / PluginHooks / PluginBus 作为内核，
  * 这里只声明「卡片领域层」的差异：
  *  - CardPluginContext：内核 context + 卡片专属字段（cardId / data / size / getContainer / getSize / sharedData / bus）
  *  - CardPluginHooks：15 个钩子 = 内核 9 + 领域 6（见下方分组）
@@ -18,9 +18,9 @@ import type { CardCoreProps } from "../core/CardCore";
 /**
  * 插件总线接口。
  *
- * 这里自带声明而不从内核 re-export：内核 @vane/plugin-core 是「实现细节」，
+ * 这里自带声明而不从内核 re-export：内核 vane-plugin-core 是「实现细节」，
  * 构建时已内联进 dist，且未发布到 npm。若公开 d.ts 里出现
- * `import type { PluginBus } from "@vane/plugin-core"`，消费方装包后
+ * `import type { PluginBus } from "vane-plugin-core"`，消费方装包后
  * TS 会直接报 Cannot find module。
  *
  * 形状与内核 PluginBus 完全一致（结构类型，可互换赋值），
@@ -40,7 +40,7 @@ export interface PluginBus {
 }
 
 /**
- * 卡片状态信息（同时是 @vane/plugin-core 运行时 state 的形状）
+ * 卡片状态信息（同时是 vane-plugin-core 运行时 state 的形状）
  */
 export interface CardState {
   isHovered: boolean;
@@ -114,7 +114,7 @@ export interface CardPluginContext<T = any> {
 
 /**
  * 15 个钩子 = 内核 9 + 领域 6。
- * 内核 9（直接由 @vane/plugin-core 驱动，语义见其 PluginHooks 注释）：
+ * 内核 9（直接由 vane-plugin-core 驱动，语义见其 PluginHooks 注释）：
  *   onMount / onUnmount / onPropsChange / onError /
  *   transformProps / transformData / renderOverlay / renderHeader / renderFooter
  * 领域 6（卡片独有，由 withPlugins 桥接到 Core 回调 / 状态差分）：

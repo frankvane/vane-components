@@ -12,8 +12,8 @@ export type {
 } from "./components/__NAME__Plugin/plugins/types";
 
 // 插件系统（来自共用内核，附带领域化别名，避免跨包命名冲突）
-export { withPlugins } from "@vane/plugin-core";
-export type { Plugin, PluginHooks, PluginContext } from "@vane/plugin-core";
+export { withPlugins } from "vane-plugin-core";
+export type { Plugin, PluginHooks, PluginContext } from "vane-plugin-core";
 
 export { createExamplePlugin } from "./custom-plugins/ExamplePlugin";
 export type { ExamplePluginConfig } from "./custom-plugins/ExamplePlugin";

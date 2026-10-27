@@ -1,5 +1,5 @@
 /**
- * C2.6 · 插件系统运行期语义（接 @vane/plugin-core）
+ * C2.6 · 插件系统运行期语义（接 vane-plugin-core）
  *
  * 覆盖验收清单：
  *  - onMount 返回清理函数在卸载时执行一次（R2）
@@ -12,7 +12,7 @@
  */
 import React, { act } from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { createPluginManager, createPluginBus } from "@vane/plugin-core";
+import { createPluginManager, createPluginBus } from "vane-plugin-core";
 import type { CardPlugin } from "../src/components/CardPlugin/plugins/types";
 import { usePluginSlot } from "../src/components/CardPlugin/plugins/slots";
 import { renderCard, installObservers, flush } from "./helpers";
@@ -158,7 +158,7 @@ describe("插件运行期语义", () => {
   });
 });
 
-describe("内核级语义（@vane/plugin-core 直接驱动）", () => {
+describe("内核级语义（vane-plugin-core 直接驱动）", () => {
   it("钩子返回 false 中断链，后续插件不再执行", async () => {
     const order: string[] = [];
     const manager = createPluginManager();

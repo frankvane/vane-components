@@ -51,7 +51,7 @@
 | 模块 | 文件 | 行数 | 处置 |
 | --- | --- | --- | --- |
 | `components/CardPlugin/core/CardCore.tsx` | 1 | 258 | **迁入**，props / ref 契约不变（实际逻辑约 100 行，其余是注释） |
-| `components/CardPlugin/plugins/`（自建插件系统） | 9 | 1154 | **整体删除**，能力由 `@vane/plugin-core` 提供 |
+| `components/CardPlugin/plugins/`（自建插件系统） | 9 | 1154 | **整体删除**，能力由 `vane-plugin-core` 提供 |
 | `components/CardPlugin/custom-plugins/` | 23（22 插件 + 桶） | 2444 | **迁入** + 补 `doc.json` + 分组 |
 | `components/CardPlugin/compound/` | 40 | 2772 | **迁入**（本仓最大资产：38 个复合子组件 + `ProductCard` + 桶） |
 | `pages/`（demo） | 51 | 6126 | **重写**（三视角：工坊 + 场景 + 逐项，见 D5） |
@@ -140,7 +140,7 @@
 | `vane-waterfall` ^1.0.5 | dependencies | 仅瀑布流集成页 | → devDependencies，升 **2.0.0** |
 | `react-router-dom` ^7.9.3 | dependencies | 仅 demo（仓库其他包用 `^6`） | → devDependencies，统一 `^6` |
 | `react-markdown` / `remark-gfm` / `react-syntax-highlighter` | dependencies | 仅 `ReadmeDemo` | → devDependencies（与 lazy-image 一致） |
-| `@vane/plugin-core` | 缺失 | 新架构必需 | → `peerDependencies` + dev |
+| `vane-plugin-core` | 缺失 | 新架构必需 | → `peerDependencies` + dev |
 
 ### 2.6 发布产物问题（npm 1.0.8，解包 381KB）
 
@@ -271,7 +271,7 @@ onMount: () => { transformedProps.onMount?.(); pluginManager.executeHook("onMoun
 | 短路语义 | 任意 truthy 返回值都可能影响（`executeHook` 内部判断） | `false` 中断；其他值短路返回 | 更可预期 |
 | 注册 | 渲染期副作用 | layout effect + 增量 diff | 升级 |
 | 包形态 | 单入口 es + umd，`exports` 有死路径 | 多入口（core / plugins / custom-plugins/* / compound / presets） | 按需引入 |
-| 类型来源 | 自带 `PluginManager` / `CardPlugin` | 从 `@vane/plugin-core` 派生 | 与 lazy-image / waterfall 一致 |
+| 类型来源 | 自带 `PluginManager` / `CardPlugin` | 从 `vane-plugin-core` 派生 | 与 lazy-image / waterfall 一致 |
 | 样式 | 库内 0 CSS，230 处内联 | 需决策（D4） | 迁移才有机会主题化 |
 
 ---
@@ -374,7 +374,7 @@ packages/vane-card/
 │   ├── components/CardPlugin/
 │   │   ├── CardCore.tsx                        # 迁入，props / ref 契约不变
 │   │   ├── plugins/
-│   │   │   ├── types.ts                        # 15 个钩子（从 @vane/plugin-core 派生）
+│   │   │   ├── types.ts                        # 15 个钩子（从 vane-plugin-core 派生）
 │   │   │   ├── withPlugins.tsx                 # usePluginRuntime + extendContext + 钩子桥接
 │   │   │   └── slots.ts                        # renderDomainSlot("renderPriceArea")
 │   │   └── BusKeys.ts                          # 总线协议（7 键 + 类型）
@@ -384,7 +384,7 @@ packages/vane-card/
 │   └── presets/{product-card,sku-flow,checkout}/index.ts     # 3 个配方
 ├── demo/                                       # 工坊 + 场景 + 逐项（D5-B）
 ├── test/                                       # ≥30 单测
-└── package.json                                # peer: @vane/plugin-core + react/react-dom
+└── package.json                                # peer: vane-plugin-core + react/react-dom
 ```
 
 ---

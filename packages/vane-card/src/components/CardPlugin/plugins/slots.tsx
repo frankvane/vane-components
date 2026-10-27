@@ -10,7 +10,7 @@
  */
 
 import React, { createContext, useContext, useMemo } from "react";
-import { PluginErrorBoundary } from "@vane/plugin-core";
+import { PluginErrorBoundary } from "vane-plugin-core";
 import type { CardPlugin, CardPluginContext } from "./types";
 
 export type PluginSlotName = "priceArea";

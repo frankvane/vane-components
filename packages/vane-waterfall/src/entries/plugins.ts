@@ -6,7 +6,7 @@ export type {
   PluginContext,
   PluginCreator,
   PluginDoc,
-} from "@vane/plugin-core";
+} from "vane-plugin-core";
 export type {
   WaterfallPlugin,
   WaterfallPluginCreator,

@@ -1,7 +1,7 @@
 /**
  * @module vane-lazy-image/plugins
  * 插件系统入口：领域装配（withPlugins）+ 领域类型 + 一等公民插件。
- * 通用插件能力（bus/manager/sandbox/slots）由 @vane/plugin-core 提供并在此转发。
+ * 通用插件能力（bus/manager/sandbox/slots）由 vane-plugin-core 提供并在此转发。
  */
 
 export { withPlugins } from "./components/LazyLoadImagePlugin/withPlugins";
@@ -37,4 +37,4 @@ export {
   PluginErrorBoundary,
   composeSlots,
   renderPluginSlot,
-} from "@vane/plugin-core";
+} from "vane-plugin-core";

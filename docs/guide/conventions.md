@@ -42,7 +42,7 @@ packages/vane-xxx/
 | 依赖 | 放哪 |
 | --- | --- |
 | `react` / `react-dom` | **只放 `peerDependencies`** |
-| `@vane/plugin-core` | `peerDependencies`（保证全站单实例） |
+| `vane-plugin-core` | `peerDependencies`（保证全站单实例） |
 | 运行时第三方库（如 `localforage`） | `dependencies`，并加进 vite `external` |
 | 演示站用的库（react-markdown、react-router-dom 等） | **只放 `devDependencies`** |
 
@@ -52,7 +52,7 @@ packages/vane-xxx/
 
 | 对象 | 规则 | 示例 |
 | --- | --- | --- |
-| npm 包 | `vane-<kebab>` 或 `@vane/<kebab>` | `vane-table`、`@vane/plugin-core` |
+| npm 包 | `vane-<kebab>` 或 `@vane/<kebab>` | `vane-table`、`vane-plugin-core` |
 | 核心组件 | `XxxCore` | `TableCore` |
 | 插件目录 | `<Name>Plugin` | `FadeInPlugin` |
 | 插件工厂 | `create<Name>Plugin` | `createFadeInPlugin` |

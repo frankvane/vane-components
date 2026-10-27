@@ -12,7 +12,7 @@
 | --- | --- | --- | --- | --- |
 | **W0** | 决策拍板 + 基线固化 | D1–D4 结论、6 个行为快照单测 | — | S |
 | **W1** | 包骨架 + Core 迁入 | `packages/vane-waterfall/` 可构建、Core 语义等价 | W0 | M |
-| **W2** | 插件系统替换 | 自建系统（1600 行）删除，改 `@vane/plugin-core` | W1 | M |
+| **W2** | 插件系统替换 | 自建系统（1600 行）删除，改 `vane-plugin-core` | W1 | M |
 | **W3** | 27 插件分批迁入 | A 14 / B 11 / C 2 + 27 份 `doc.json` + 3 配方 | W2 | L |
 | **W4** | demo 重建 | 插件工坊 + 场景库（约 12 场景） | W3 | L |
 | **W5** | 文档 / README / 发布 | docs 四件套、changeset、`2.0.0` | W4 | S |
@@ -71,7 +71,7 @@
 
 - [ ] `packages/vane-waterfall/` 目录（复制 `packages/templates/plugin-component` 骨架，与 lazy-image 同构）
 - [ ] `package.json`：
-  - [ ] `peerDependencies`: `@vane/plugin-core: workspace:*`、`react >=16.8`、`react-dom >=16.8`
+  - [ ] `peerDependencies`: `vane-plugin-core: workspace:*`、`react >=16.8`、`react-dom >=16.8`
   - [ ] `dependencies`: 空（**删掉 `localforage`**，全库 0 引用）
   - [ ] `devDependencies`: `@vane/{build-config,eslint-config,tsconfig,vitest-config}`、react 18、vite 5、vitest 2、`vane-lazy-image@workspace:*`（仅 demo 用）
   - [ ] `vane.sizeBudgetKb: 25`、`vane.coreSizeBudgetKb: 12`
@@ -93,7 +93,7 @@
 - [ ] `src/components/WaterfallPlugin/plugins/types.ts` 重写：
   - [ ] `WaterfallPluginContext<T>` = `PluginContext<WaterfallCoreProps<T>, WaterfallData>` & 领域字段（items / layout / itemPositions / viewport / visibleRange / isLayouting / isLoading / hasMore / error / networkInfo / sharedData / relayout / scrollTo* / measureItem）
   - [ ] `WaterfallPluginHooks` 按 D3 **只留 20 个**（其余删除，不保留注释掉的死代码）
-  - [ ] `WaterfallPlugin<T>` / `PluginCreator` 从 `@vane/plugin-core` 派生（`Plugin<TProps> & { hooks: WaterfallPluginHooks<T> }`）
+  - [ ] `WaterfallPlugin<T>` / `PluginCreator` 从 `vane-plugin-core` 派生（`Plugin<TProps> & { hooks: WaterfallPluginHooks<T> }`）
 
 ### W1.4 单测（第一批）
 

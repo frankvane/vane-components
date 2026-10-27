@@ -28,7 +28,7 @@ src/custom-plugins/FadeInPlugin/
 ### create.ts
 
 ```ts
-import type { PluginCreator, PluginDoc } from "@vane/plugin-core";
+import type { PluginCreator, PluginDoc } from "vane-plugin-core";
 import doc from "./doc.json";
 
 export interface FadeInConfig {

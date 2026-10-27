@@ -1,5 +1,5 @@
 /**
- * withPlugins —— FilePreviewCore 的装配器（P2 · 接 @vane/plugin-core）
+ * withPlugins —— FilePreviewCore 的装配器（P2 · 接 vane-plugin-core）
  *
  * 迁移前这里自带 PluginBus + PluginManager（两个文件 689 行），还顺手做了几件不该它做的事。
  * 现在：
@@ -34,7 +34,7 @@ import {
   PluginErrorBoundary,
   usePluginRuntime,
   type Plugin as KernelPlugin,
-} from "@vane/plugin-core";
+} from "vane-plugin-core";
 
 import type {
   FilePreviewCoreProps,

@@ -113,11 +113,11 @@ export default function App() {
 
 ## 从归档实现迁移（1.x → 2.0.0）
 
-2.0.0 是一次整体重写，内核换成 `@vane/plugin-core`，对外契约基本兼容，但有四处必须注意：
+2.0.0 是一次整体重写，内核换成 `vane-plugin-core`，对外契约基本兼容，但有四处必须注意：
 
 | 变更点 | 1.x（归档实现） | 2.0.0 | 影响 |
 | --- | --- | --- | --- |
-| 内核 | 自建 `PluginBus` / `PluginManager` + `withPlugins`（约 1600 行） | `@vane/plugin-core` 的 `usePluginRuntime` / `composeSlots` / `PluginErrorBoundary` | 内部 API 全部移除，自定义插件需按新契约重写 |
+| 内核 | 自建 `PluginBus` / `PluginManager` + `withPlugins`（约 1600 行） | `vane-plugin-core` 的 `usePluginRuntime` / `composeSlots` / `PluginErrorBoundary` | 内部 API 全部移除，自定义插件需按新契约重写 |
 | 依赖 | `dependencies` 26 个，安装即拖入 15MB 解析器 | `dependencies: {}`，全部 optional peer | 装包更快；但**预览前要先装对应 peer**，否则看到安装提示面板 |
 | 体积 | 单文件 985.97KB / gzip 196.33KB | 根入口 12.9KB（gzip） | 大幅瘦身，按需引入几乎零代价 |
 | 钩子面 | 17 个钩子（10 个空转，从未被调用） | 11 个有真实执行点的钩子 | 旧插件里对着死钩子写的代码不再生效（那部分本来也没跑过） |

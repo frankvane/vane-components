@@ -33,7 +33,7 @@ withPlugins(LazyLoadImageCore, [
 
 也可以用配置对象：`withPlugins(LazyLoadImageCore, { plugins: [...], enableDebug: true })`。
 
-插件执行顺序由 `@vane/plugin-core` 的 `DependencyResolver` 决定：**依赖约束绝对优先，优先级只在就绪候选间生效**（平级保持注册顺序）。本包领域 `priority` 语义为「越小越优先，默认 100」，装配时自动转换为内核语义。
+插件执行顺序由 `vane-plugin-core` 的 `DependencyResolver` 决定：**依赖约束绝对优先，优先级只在就绪候选间生效**（平级保持注册顺序）。本包领域 `priority` 语义为「越小越优先，默认 100」，装配时自动转换为内核语义。
 
 ## 领域钩子
 

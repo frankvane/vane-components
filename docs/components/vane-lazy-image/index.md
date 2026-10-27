@@ -61,11 +61,11 @@ const LazyImage = withPlugins(LazyLoadImageCore, [
 
 ## 从 1.x 迁移
 
-2.0.0 更换了插件系统内核（`@vane/plugin-core`），主要差异：
+2.0.0 更换了插件系统内核（`vane-plugin-core`），主要差异：
 
 - **插件引入路径**：插件工厂**仍从根入口导出**（`import { createBadgePlugin } from "vane-lazy-image"` 可用，1.x 写法无需改动）；但推荐走 `vane-lazy-image/custom-plugins/<XxxPlugin>` 子路径——只取一个插件时静态图从 26.9 KB 降到 0.14 KB 量级；
 - 插件工厂签名不变（`createXxxPlugin(config)`），`priority` 语义仍为「越小越优先，默认 100」，与 1.x 一致；
-- 旧版直接可用的 `createPluginManager` / `createPluginBus` / `createPluginSandbox` 等底层 API 改为从 `vane-lazy-image/plugins` 转发（实现来自 `@vane/plugin-core`）；
+- 旧版直接可用的 `createPluginManager` / `createPluginBus` / `createPluginSandbox` 等底层 API 改为从 `vane-lazy-image/plugins` 转发（实现来自 `vane-plugin-core`）；
 - 移除：插件热更新（`hotReload` / `savePluginState`）、`hookFactory`、`renderDeps`、bus 通配符与批处理——1.x 中无内置插件使用这些能力，自定义插件如依赖需自行实现；
 - `render` 渲染钩子合并为 `renderOverlay`（1.x 仅 BadgePlugin 使用）。
 

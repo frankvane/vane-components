@@ -1,7 +1,7 @@
 /**
  * FilePreviewPlugin 领域类型（P2 迁移后）
  *
- * 复用 `@vane/plugin-core` 的内核作为执行层，这里只声明「文件预览领域」的差异。
+ * 复用 `vane-plugin-core` 的内核作为执行层，这里只声明「文件预览领域」的差异。
  *
  * ## 钩子面：17 → 11
  *
@@ -85,8 +85,8 @@ export type PreviewStatePatch = Partial<PreviewStateInfo>;
 /**
  * 插件总线。
  *
- * 自带声明而不从 `@vane/plugin-core` re-export：内核是**构建时内联**的实现细节，
- * 未发布到 npm。公开 d.ts 里若出现 `import type { PluginBus } from "@vane/plugin-core"`，
+ * 自带声明而不从 `vane-plugin-core` re-export：内核是**构建时内联**的实现细节，
+ * 未发布到 npm。公开 d.ts 里若出现 `import type { PluginBus } from "vane-plugin-core"`，
  * 消费方装包后 TS 直接报 Cannot find module。
  * 形状与内核完全一致（结构类型），运行时可互换赋值。
  */

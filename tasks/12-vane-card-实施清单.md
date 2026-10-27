@@ -12,7 +12,7 @@
 | --- | --- | --- | --- | --- |
 | **C0** | 决策拍板 + 基线固化 | D1–D5 结论、4 份行为快照 | — | S |
 | **C1** | 包骨架 + Core 迁入 + demo 指回源码 | `packages/vane-card/` 可构建、demo 跑本地源码 | C0 | M |
-| **C2** | 插件系统替换 | 自建系统（1154 行）删除，接 `@vane/plugin-core` | C1 | M |
+| **C2** | 插件系统替换 | 自建系统（1154 行）删除，接 `vane-plugin-core` | C1 | M |
 | **C3** | 22 插件分批迁入 | A 9 / B 10 / C 3 + 22 份 `doc.json` + 3 配方 | C2 | L |
 | **C4** | 复合组件迁入 + 样式抽取 | 38 个 `compound/` + `vc-` class + `style.css` | C2 | L |
 | **C5** | demo 重建（三视角） | 工坊 + 场景 + 逐项示例 | C3, C4 | L |
@@ -66,7 +66,7 @@
 
 - [ ] `packages/vane-card/` 目录（复制 `packages/templates/plugin-component` 骨架，与 lazy-image / waterfall 同构）
 - [ ] `package.json`：
-  - [ ] `peerDependencies`: `@vane/plugin-core: workspace:*`、`react >=16.8`、`react-dom >=16.8`
+  - [ ] `peerDependencies`: `vane-plugin-core: workspace:*`、`react >=16.8`、`react-dom >=16.8`
   - [ ] `dependencies`: 空（**删 `localforage` 0 引用、删自引用 `vane-card`**）
   - [ ] `devDependencies`: `@vane/{build-config,eslint-config,tsconfig,vitest-config}`、react 18、vite 5、vitest 2、`vane-lazy-image@workspace:*`、`vane-waterfall@workspace:*`（后两个仅 demo 用）
   - [ ] `vane.sizeBudgetKb: 36`、`vane.coreSizeBudgetKb: 5`
@@ -133,7 +133,7 @@
 **C2 过程中额外发现并修掉的真实缺陷**（不在原计划里，都是旧代码遗留）：
 1. `CountdownPlugin.renderOverlay` 内 `React.useMemo`、`ReviewPlugin.renderFooter` 内 `React.useState` —— hooks 写在「渲染期被调用的普通函数」里，启停插件会改变父组件 hook 数量。已抽成模块级组件，并加 `test/hooks-safety.test.tsx` 行为回归。
 2. `SavingsBadge` 用 `data?.oldPrice!`（对可选链做非空断言），字段缺失时文案出 `NaN`；改为先兜底再相乘。
-3. **打包陷阱**：`@vane/plugin-core` 未发布 npm（registry 404）却挂在 `peerDependencies`，且构建时已内联；消费方安装会 `Cannot find module`。已降为 `devDependencies`，并把 `PluginBus` 改为包内声明，公开 `d.ts` 不再 import 内核包名（waterfall 仍是旧写法，属同类隐患，留待其会话处理）。
+3. **打包陷阱**：`vane-plugin-core` 未发布 npm（registry 404）却挂在 `peerDependencies`，且构建时已内联；消费方安装会 `Cannot find module`。已降为 `devDependencies`，并把 `PluginBus` 改为包内声明，公开 `d.ts` 不再 import 内核包名（waterfall 仍是旧写法，属同类隐患，留待其会话处理）。
 4. 测试基础设施：内核 `executeHook` 是 async，同步断言会读到「钩子还没跑」的假象 —— `test/helpers.tsx` 增 `flush()`；快照测试改为默认**比对**、`UPDATE_SNAPSHOT=1` 才写盘，避免基线被静默覆盖。
 
 ---

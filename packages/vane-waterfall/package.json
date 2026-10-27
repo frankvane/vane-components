@@ -185,7 +185,7 @@
     "audit:controls": "node scripts/audit-controls.mjs"
   },
   "peerDependencies": {
-    "@vane/plugin-core": "workspace:*",
+    "vane-plugin-core": "workspace:*",
     "react": ">=16.8.0",
     "react-dom": ">=16.8.0"
   },
@@ -196,7 +196,7 @@
     "@types/react-syntax-highlighter": "^15.5.13",
     "@vane/build-config": "workspace:*",
     "@vane/eslint-config": "workspace:*",
-    "@vane/plugin-core": "workspace:*",
+    "vane-plugin-core": "workspace:*",
     "@vane/tsconfig": "workspace:*",
     "@vane/vitest-config": "workspace:*",
     "@vitejs/plugin-react": "^4.3.1",
