@@ -68,3 +68,40 @@ function escapeXml(text: string): string {
 export function svgPortrait(label: string, note?: string): string {
   return svgImage({ label, width: 600, height: 800, note });
 }
+
+/**
+ * 无字装饰图 —— 专给「当背景用」的场景（背景图版式、Banner 侧图）。
+ *
+ * 带标签的 `svgImage` 不能当背景：它把文字画在正中间，压在上面的标题
+ * 会和它叠成一团。这里只留渐变 + 几何构图，看起来像一张照片的构图，
+ * 上面压白字也干净。
+ */
+export function svgPlate({
+  width = 900,
+  height = 600,
+  hue = 96,
+}: { width?: number; height?: number; hue?: number } = {}): string {
+  const h = hue;
+  const h2 = (h + 30) % 360;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+<defs>
+<linearGradient id="bg" x1="0" y1="0" x2="0.9" y2="1">
+<stop offset="0" stop-color="hsl(${h} 30% 30%)"/>
+<stop offset="0.55" stop-color="hsl(${h2} 34% 18%)"/>
+<stop offset="1" stop-color="hsl(${h} 26% 10%)"/>
+</linearGradient>
+<radialGradient id="glow" cx="0.72" cy="0.26" r="0.6">
+<stop offset="0" stop-color="hsl(${h} 60% 70%)" stop-opacity=".34"/>
+<stop offset="1" stop-color="hsl(${h} 60% 70%)" stop-opacity="0"/>
+</radialGradient>
+</defs>
+<rect width="${width}" height="${height}" fill="url(#bg)"/>
+<rect width="${width}" height="${height}" fill="url(#glow)"/>
+<g fill="none" stroke="hsl(${h} 42% 72%)" stroke-opacity=".22">
+<circle cx="${Math.round(width * 0.74)}" cy="${Math.round(height * 0.3)}" r="${Math.round(width * 0.2)}"/>
+<circle cx="${Math.round(width * 0.74)}" cy="${Math.round(height * 0.3)}" r="${Math.round(width * 0.12)}" stroke-dasharray="5 12"/>
+<path d="M0 ${Math.round(height * 0.82)} Q ${Math.round(width * 0.3)} ${Math.round(height * 0.64)} ${Math.round(width * 0.62)} ${Math.round(height * 0.8)} T ${width} ${Math.round(height * 0.72)}"/>
+</g>
+</svg>`;
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+}

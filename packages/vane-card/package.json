@@ -173,7 +173,8 @@
     "audit:cards": "node scripts/audit-cards.mjs",
     "serve:demo": "node scripts/serve-demo.cjs",
     "demo": "pnpm build:demo && node scripts/serve-demo.cjs",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "verify:layouts": "node scripts/verify-layouts.mjs"
   },
   "peerDependencies": {
     "react": ">=16.8.0",

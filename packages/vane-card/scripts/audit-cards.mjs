@@ -42,7 +42,7 @@ const slugs = fs
     return [...src.matchAll(/slug:\s*"([\w-]+)"/g)].map((m) => m[1]);
   });
 
-const ROUTES = ["/", "/plugins", "/scenarios", ...slugs.map((s) => `/demos/${s}`)];
+const ROUTES = ["/", "/plugins", "/scenarios", "/layouts", ...slugs.map((s) => `/demos/${s}`)];
 
 /** 在页面里跑的体检函数（自包含，不引用外部模块） */
 const AUDIT_JS = `(() => {
@@ -57,11 +57,11 @@ const AUDIT_JS = `(() => {
     }
     return false;
   };
-  const blocks = document.querySelectorAll("[data-scenario], [data-demo]");
+  const blocks = document.querySelectorAll("[data-scenario], [data-demo], [data-plate]");
   if (blocks.length === 0) return [{ kind: "no-card", scope: "page", detail: "页面上没有任何场景/示例块" }];
 
   blocks.forEach((block) => {
-    const scope = block.dataset.scenario || block.dataset.demo || "unknown";
+    const scope = block.dataset.scenario || block.dataset.demo || block.dataset.plate || "unknown";
     const cards = block.querySelectorAll("[data-card-id]");
     if (cards.length === 0) {
       issues.push({ kind: "no-card", scope, detail: "块里没有 [data-card-id]" });

@@ -12,6 +12,7 @@ import { CodeBlock } from "../components/CodeBlock";
 import { TEE } from "../data/seed";
 import { PLUGINS } from "../data/plugins";
 import { SCENARIOS } from "../scenarios/catalog";
+import { LAYOUTS } from "../layouts/catalog";
 import { DEMOS, DEMO_PLUGINS, DEMO_GROUPS } from "../demos/registry";
 
 const HeroCard = withPlugins(CardCore, {
@@ -196,8 +197,16 @@ export function HomePage() {
             </span>
             <i aria-hidden>→</i>
           </Link>
-          <Link className="index-row" to={`/demos/${DEMOS[0].meta.slug}`}>
+          <Link className="index-row" to="/layouts">
             <em>04</em>
+            <span>
+              <strong>布局专区</strong>
+              <span>{LAYOUTS.length} 种版式（垂直 / 横向 / 右图 / 下图 / Banner / 网格 / 极简 / 背景图 / 双列），源码可整段抄</span>
+            </span>
+            <i aria-hidden>→</i>
+          </Link>
+          <Link className="index-row" to={`/demos/${DEMOS[0].meta.slug}`}>
+            <em>05</em>
             <span>
               <strong>逐项示例</strong>
               <span>

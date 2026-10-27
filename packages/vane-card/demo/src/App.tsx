@@ -11,11 +11,15 @@ const PluginsPage = lazy(() =>
 const ScenariosPage = lazy(() =>
   import("./pages/ScenariosPage").then((m) => ({ default: m.ScenariosPage }))
 );
+const LayoutsPage = lazy(() =>
+  import("./pages/LayoutsPage").then((m) => ({ default: m.LayoutsPage }))
+);
 
 const NAV = [
   { to: "/", no: "01", label: "总览", hint: "overview" },
   { to: "/plugins", no: "02", label: "插件工坊", hint: "22 plugins" },
   { to: "/scenarios", no: "03", label: "场景示例", hint: "10 plates" },
+  { to: "/layouts", no: "04", label: "布局专区", hint: "9 layouts" },
 ];
 
 /**
@@ -50,6 +54,7 @@ class PageBoundary extends React.Component<
 function labelOf(pathname: string): string {
   if (pathname.startsWith("/plugins")) return "workshop · 插件工坊";
   if (pathname.startsWith("/scenarios")) return "plates · 场景示例";
+  if (pathname.startsWith("/layouts")) return "layouts · 布局专区";
   if (pathname.startsWith("/demos")) {
     const slug = pathname.replace(/^\/demos\/?/, "");
     const hit = findDemo(slug);
@@ -202,7 +207,7 @@ function Shell() {
           <DemoNav pathname={pathname} />
         </nav>
         <div className="side-foot">
-          <p>22 PLUGINS · 10 PLATES · 38 COMPOUNDS</p>
+          <p>22 PLUGINS · 9 LAYOUTS · 10 PLATES</p>
           <p className="muted">15 HOOKS · D2-A / D4-B</p>
         </div>
       </aside>
@@ -251,6 +256,7 @@ function Shell() {
               <Route path="/" element={<HomePage />} />
               <Route path="/plugins" element={<PluginsPage />} />
               <Route path="/scenarios" element={<ScenariosPage />} />
+              <Route path="/layouts" element={<LayoutsPage />} />
               <Route path="/demos" element={<Navigate to={`/demos/${DEMOS[0].meta.slug}`} replace />} />
               <Route path="/demos/:slug" element={<DemoRoute />} />
               <Route path="*" element={<Navigate to="/" replace />} />

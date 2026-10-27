@@ -44,8 +44,9 @@ function visibleText(el: Element): boolean {
 /** 逐个块体检；root 传 document 或某个容器都行 */
 export function auditCards(root: ParentNode): AuditIssue[] {
   const issues: AuditIssue[] = [];
+  // 三类块都要认：场景（data-scenario）、逐项示例（data-demo）、版式（data-plate）
   const blocks = Array.from(
-    root.querySelectorAll<HTMLElement>("[data-scenario], [data-demo]")
+    root.querySelectorAll<HTMLElement>("[data-scenario], [data-demo], [data-plate]")
   );
   if (blocks.length === 0) {
     issues.push({ scope: "page", kind: "no-card", detail: "页面上没有任何场景/示例块" });
