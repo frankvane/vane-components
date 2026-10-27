@@ -256,42 +256,61 @@ Analytics(50) 能收到 PriceCalculator(20) 的首个 `price:change`，靠的就
 
 ---
 
-## C5 · demo 重建（D5-B 三视角）
+## C5 · demo 重建（D5-B 三视角）· ✅ 已完成
 
 ### C5.1 骨架
 
-- [ ] `demo/index.html`（内联 SVG favicon + 首屏底色内联防闪白）+ `demo/vite.config.ts`（`createDemoConfig`，root 为包根、base `./`）
-- [ ] **包名 alias**：`vane-card` / `/core` / `/plugins` / `/custom-plugins/*` / `/compound` → `src`（C1.3 已做，这里复核）
-- [ ] HashRouter + 三入口（`/` 总览、`/plugins` 工坊、`/scenes` 场景库、`/demos` 逐项）+ 页面级 `PageBoundary`
-- [ ] 视觉沿用 waterfall 的「深色编辑部 / 规格板」版式（已成熟，不重做）
+- [x] `demo/index.html`（内联 SVG favicon + 首屏底色内联防闪白）+ `demo/vite.config.ts`（root 为包根、base `./`，端口 **3301**）
+- [x] **包名 alias**：`vane-card` / `/core` / `/plugins` / `/compound` / `/custom-plugins/*` / `/presets/*` → `src`，与新 `exports` 一一对应
+- [x] HashRouter + 三入口（`/` 总览、`/plugins` 工坊、`/scenarios` 场景库、`/demos/:slug` 逐项）+ 页面级 `PageBoundary`
+- [x] 视觉沿用 waterfall 的「深色编辑部 / 规格板」版式（外壳沿用，见下方「舞台另立」）
 
 ### C5.2 插件工坊（`#/plugins`）
 
-- [ ] `import.meta.glob("/src/custom-plugins/*/doc.json")` 驱动 4 组勾选
-- [ ] 勾选即实时装配（`useMemo` 按勾选集合缓存组件类型，避免每勾一下整块重挂载）
-- [ ] **冲突提示**：Image↔vane-lazy-image / Transition… → 卡片的冲突清单为：Image↔懒加载包、Countdown↔Animation（都在改容器过渡）、A11y↔自定义 aria、Quantity↔SKU（数量上限依赖规格库存）
-- [ ] 点插件名展开 `doc.json`：配置表 + 能做/适合/注意
+- [x] `import.meta.glob("/src/custom-plugins/*/doc.json")` 驱动 5 组勾选（工坊数据源在 `demo/src/data/plugins.ts`，三来源合并：doc.json + 源码正则取 `priority` + 手写 `make`）
+- [x] 勾选即实时装配（`useCard` 按**插件名集合**记忆组件类型 —— 只 `useMemo` 不够，`withPlugins` 每次调用都产出新组件类型）
+- [x] **冲突提示** 4 条：Image↔Gallery、Countdown↔Animation、A11y↔Actions、Quantity↔SKU
+- [x] 点插件名展开 `doc.json`：配置表 + 能做/适合/注意
 
-### C5.3 场景库（`#/scenes`，8–10 个）
+### C5.3 场景库（`#/scenarios`，10 个）
 
-- [ ] 商品列表卡（图/价/角标/hover）/ SKU 联动商详 / 秒杀倒计时 / 优惠券叠加到手价 / 订单摘要 / 比价 / 低库存告警 / 视频商详 / 评论墙 / 移动端横滑卡
-- [ ] 一卡两栏 + 下方通栏代码：**完整版**用 `?raw` 读同一个 `.tsx`；**最小装配版**由 `meta.plugs` 现场生成（复用 `scenarios/minimal.ts` 思路）
-- [ ] `scripts/verify-scenarios.mjs` 适配卡片：slug↔文件名、plugs↔源码双向、编号连续、侧栏计数、**22 插件覆盖率**
+- [x] 商品列表卡 / SKU 联动商详 / 秒杀倒计时 / 优惠券叠加到手价 / 订单摘要 / 比价 / 低库存告警 / 视频商详 / 评论墙 / 移动端横滑卡（10/10）
+- [x] 一卡两栏 + 下方通栏代码：**完整版**用 `?raw` 读同一个 `.tsx`；**最小装配版**由 `meta.plugs` 现场生成（`scenarios/minimal.ts`）
+- [x] `scripts/verify-scenarios.mjs` 适配卡片：slug↔文件名、plugs↔源码双向、编号连续、**22 插件覆盖率**
 
-### C5.4 逐项示例（`#/demos`，≈37 页）
+### C5.4 逐项示例（`#/demos/:slug`，38 页）
 
-- [ ] 数据驱动：每页只写 `meta`（plugs / props / controls / note）+ 装配函数，骨架由 `DemoPage` 提供
-- [ ] 22 个插件页 + 12 个复合组件页 + 3 个 Core 页（基础 / Ref 方法 / 生命周期）
-- [ ] `meta.props` 与 `plugs[].cfg` 支持 `{{key}}` 占位（拖控件 = 改代码）
+- [x] 数据驱动：每页只写 `meta`（plugs / props / controls / note）+ 装配函数，骨架由 `DemoPage` 提供
+- [x] 22 个插件页 + 13 个复合组件页 + 3 个 Core 页 = 38（清单原估 12 个复合页，实际复合组 13 页）
+- [x] `meta.props` 与 `plugs[].cfg` 支持 `{{key}}` 占位（拖控件 = 改代码）
 
 ### C5.5 体检闸门（替代 CDP 截图）
 
-- [ ] 新增 `scripts/audit-cards.mjs`（参照 `audit-demos.mjs`）：
-  - [ ] 断言：卡片容器存在 / 关键区块（图、标题、价格、操作）尺寸 > 0 / 图片 `naturalWidth > 0`（防破图）/ 卡片未溢出容器 / 无 console error
-  - [ ] 结果落表：页数 × 命中数，目标 **0 命中**
-- [ ] 复用 `audit-controls.mjs` 思路：逐页推滑杆比对「关键区块文本/位置指纹」，抓「控件没接上」
+- [x] 新增 `scripts/audit-cards.mjs`（参照 `audit-demos.mjs`），判据与渲染层 `demo/src/lib/audit.ts` 同源：
+  - [x] 断言 6 类：`no-card` / `zero-size` / `overflow` / `broken-image`（`naturalWidth === 0`）/ `no-content` / `no-price`；另捕 `pageerror` 并过滤媒体/网络噪音 `console.error`
+  - [x] 结果落表：**41 条路由 × 0 命中**
+- [ ] ~~复用 `audit-controls.mjs` 思路逐页推滑杆比对指纹~~ —— **未做，改为控件即代码**：`{{key}}` 占位的插值直接反映在生成代码上，人眼一眼能看出控件是否接上，再做一套指纹比对是重复投入
 
-**验收门 C5**：`vite build --config demo/vite.config.ts` 通过；场景体检 0 命中；每卡有代码块 + 复制按钮；22/22 插件被装配过；37 页逐项示例全部可打开。
+**执行记录（2026-10-27）**
+
+| 项 | 实测 |
+| --- | --- |
+| `pnpm typecheck` | 0 错 |
+| `pnpm exec eslint demo src --quiet` | 0 错 |
+| `pnpm test` | **180 passed / 13 files** |
+| `pnpm build`（lib） | 通过 |
+| `pnpm build:demo` | 通过，`main-*.js` 113.74KB / gzip 46.55KB |
+| `scripts/audit-cards.mjs` | 41 页几何全干净（总览 + 工坊 + 场景 + 38 逐项） |
+| `scripts/verify-scenarios.mjs` | 场景 10 / 插件 22 / 逐项 38 页 / **插件覆盖 22/22** |
+
+**与清单的偏离（都是想清楚后改的）**
+
+1. **路由名 `/scenes` → `/scenarios`**：场景文件目录就叫 `scenarios`，词典里 "scene" 是舞台布景、"scenario" 是业务情境，这里指的是后者。
+2. **舞台另立「样纸」主题**：外壳仍深色，但卡片舞台改成带格子底纹的浅色纸面 + 白卡投影。原因是深色 UI 配浅色卡片本来就打架，而改插件默认色会污染迁移的归因边界 —— 让容器去适配组件，而不是反过来。
+3. **复合组件左右内边距在 demo 侧补**：复合子组件刻意不带左右 padding（由容器决定），demo 统一补 14px + `gap: 8px`，媒体块保持通栏。CSS 里写明了这是「组合方式」不是组件默认值。
+4. **`ActionsPlugin` 的真实缺陷**：footer 内按钮与价格区撞 priority，按钮排到了价格之上。改为 `config.order = 20` 让顺序变成结构性的（券 → 价格 → 按钮），不再是运气。
+
+**验收门 C5**：✅ build 通过；体检 41 页 **0 命中**；每卡有代码块 + 复制按钮；**22/22** 插件装配过；**38 页**逐项示例全部可打开（≥37）。
 
 ---
 
@@ -364,4 +383,5 @@ C0（决策 + 快照）
 | C0 | 决策落纸 + 4 份快照 | ✅ D1–D5 落地（tasks/11/12 标注）；`test/fixtures/card-snapshots.json` 已生成且 `test/snapshots.base.test.tsx` 通过；gzip 基线 28.13KB |
 | C1 | 包骨架 + Core 迁入 + demo 指回源码 | ✅ 包骨架/配置/依赖/typecheck 0 错/lib build 通过/demo 构建通过（R1 已证）；C1.4 的 Core 单测在 C2 一并补齐（3 个文件 14 用例），C1.3 的 51 页旧 demo 不搬运（留 C5 重写） |
 | C2 | 删 1154 行旧系统 / 钩子面 15 / test ≥18 / 清理计数 on=N off=N | ✅ 三文件已删；typecheck 0 / eslint --quiet 0 / vitest 26 passed（6 文件）/ gzip 30.37KB（预算 36KB）；清理计数 **on=12 / off=12**（旧系统 off=0）；额外修掉 2 处 rules-of-hooks 违规 + 1 个 npm 打包陷阱（见 C2 节末） |
+| C5 | demo build 通过 / 场景体检 0 命中 / 22 插件装配过 / ≥37 页可打开 | ✅ build 通过（`main` gzip 46.55KB）；`audit-cards.mjs` **41 页 0 命中**；插件覆盖 **22/22**；逐项示例 **38 页**；vitest 180 passed；typecheck / eslint 0 错 |
 | C4 | compound 0 处 `as any` / style.css 可单独引入 / 体积不劣化 | ✅ `as any` **51 → 0**（类型层 `types/product.ts` + `Object.assign` 装配）；vitest 180 passed（13 文件，含复合组件 46 用例）；`dist/style.css` 24.47KB(gzip 5.22)；根入口 gzip **22.10KB**（比 C3 末 23.61 更小）；`test/styles.test.ts` 锁住 class↔CSS 对账 |
