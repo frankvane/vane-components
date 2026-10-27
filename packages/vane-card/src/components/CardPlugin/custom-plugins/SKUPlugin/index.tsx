@@ -89,7 +89,17 @@ export const createSKUPlugin: PluginCreator<any, SKUPluginConfig> = (config) => 
       }, {});
       context.bus?.setData?.(BusKeys.skuSelection, initSel);
       const matched = matchVariant(variants, initSel);
-      if (matched) context.bus?.setData?.(BusKeys.skuVariant, matched);
+      if (matched) {
+        context.bus?.setData?.(BusKeys.skuVariant, matched);
+        // 首屏也要把变体价/图写进派生键：否则初始价格只能回落到 data.price，
+        // 要等用户切一次规格才变成变体价（首屏价格错，且切换时突然跳变）。
+        if (typeof matched.price === "number") {
+          context.bus?.setData?.(BusKeys.skuPrice, matched.price);
+        }
+        if (matched.image) {
+          context.bus?.setData?.(BusKeys.skuImage, matched.image);
+        }
+      }
       // 发布 sku:change 事件，包含当前选择、匹配变体与库存
       context.bus?.emit?.("sku:change", {
         attrs: initSel,
@@ -106,9 +116,13 @@ export const createSKUPlugin: PluginCreator<any, SKUPluginConfig> = (config) => 
         const matched = matchVariant(variants, next);
         if (matched) {
           context.bus?.setData?.(BusKeys.skuVariant, matched);
-          // 可选：同步价格或图片到 data 的派生层
-          if (matched.price) context.bus?.setData?.(BusKeys.skuPrice, matched.price);
-          if (matched.image) context.bus?.setData?.(BusKeys.skuImage, matched.image);
+          // 同步价格/图片到派生键（0 元也是合法价格，用 typeof 判定而不是真值判定）
+          if (typeof matched.price === "number") {
+            context.bus?.setData?.(BusKeys.skuPrice, matched.price);
+          }
+          if (matched.image) {
+            context.bus?.setData?.(BusKeys.skuImage, matched.image);
+          }
         }
         // 发布 sku:change 事件
         context.bus?.emit?.("sku:change", {

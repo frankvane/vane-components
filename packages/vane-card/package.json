@@ -10,6 +10,18 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./presets/checkout": {
+      "types": "./dist/presets/checkout/index.d.ts",
+      "import": "./dist/presets/checkout/index.js"
+    },
+    "./presets/product-card": {
+      "types": "./dist/presets/product-card/index.d.ts",
+      "import": "./dist/presets/product-card/index.js"
+    },
+    "./presets/sku-flow": {
+      "types": "./dist/presets/sku-flow/index.d.ts",
+      "import": "./dist/presets/sku-flow/index.js"
     }
   },
   "files": [

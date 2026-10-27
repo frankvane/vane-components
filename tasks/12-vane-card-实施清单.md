@@ -180,12 +180,23 @@ Analytics(50) 能收到 PriceCalculator(20) 的首个 `price:change`，靠的就
 
 ### C3.4 桶文件、配方、总线协议
 
-- [ ] `custom-plugins/index.ts`（22 个导出，按 media / buy / display / interaction / infra 分组注释）
-- [ ] `presets/product-card`（Image + Badge + Hover + Actions + State）
-- [ ] `presets/sku-flow`（SKU + Quantity + PriceCalculator + Inventory）
-- [ ] `presets/checkout`（CouponRecommend + OrderSummary + ComparePrice + Analytics）
-- [ ] **总线协议文档化**（R6）：`BusKeys` 7 键的「源 / 派生 / 消费方」表格写进 `docs/api.md`
-- [ ] **协议单测**：SKU 选规格 → `sku.price` / `sku.image` 变化 → PriceCalculator 输出变化（断言键名拼错会失败）
+- [x] `custom-plugins/index.ts`（22 个导出，按 media / buy / display / interaction / infra 分组注释）—— C3.1 完成
+- [x] `presets/product-card`（Image + Badge + Hover + Actions + State，支持 `omit` 单独关）
+- [x] `presets/sku-flow`（SKU + Quantity + PriceCalculator + Inventory，attributes/variants 必填）
+- [x] `presets/checkout`（CouponRecommend + OrderSummary + ComparePrice + Analytics）
+- [ ] **总线协议文档化**（R6）：写进 `docs/api.md` —— **推迟到 C6**，vane-card 的 docs 目录还没建，此刻写会与 C6 的文档结构打架
+- [x] **协议单测**：`test/bus-protocol.test.tsx` 5 用例 —— 键值表冻结 + SKU 选规格→价格变（299→319）+ 数量+1→合计 598 + 汇总与价格区口径一致
+
+**C3.4 途中修掉的真 bug（首屏价格错）**：`SKUPlugin.onMount` 只写 `sku.selection` / `sku.variant`，
+不写 `sku.price` / `sku.image`（只有切规格的分支才写）。于是首屏价格只能回落到 `data.price`，
+用户切一次规格才变成变体价——首屏显示错价、且切换时价格突然跳变。现已补齐，并用协议单测锁住。
+
+**发现的打包缺口（留给 C6）**：`discoverEntries` 只扫 `src/custom-plugins/`，而本包的插件实际在
+`src/components/CardPlugin/custom-plugins/`，于是 22 个插件**没有子路径入口**（`vane-card/custom-plugins/SKUPlugin` 不可用），
+只能从根入口整体引入。与 ADR-6「插件按子路径按需引入」不符。两条路：
+① 把 `custom-plugins` 提到 `src/` 顶层（与 waterfall 对齐，需改约 45 处 import）；
+② 给 `discover-entries.mjs` 加一层路径映射（公开子路径不变）。C6 定夺。
+
 
 ### C3.5 单测（第三批）
 
