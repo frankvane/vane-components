@@ -46,15 +46,18 @@ demo            13 个示例页 + Home + ReadmeDemo + _layout
 
 ## P0 · 决策拍板与基线固化
 
-- [ ] **P0.1 拍板 D1（17 个插件处置）**：**D1-A 全留 17 个**，不合并 Docx×2（合并会同时引入 `docx-preview` + `mammoth`，体积负优化）；把 `docxMode` / `previewMode` 的路由从 demo 移进库；`OfficePreviewPlugin` 保留但明确「只能公网 URL」
-- [ ] **P0.2 拍板 D2（重依赖归属）**：**D2-A optional peer**（`peerDependenciesMeta`）；`dependencies: {}`
-- [ ] **P0.3 拍板 D3（入口结构）**：根入口只出 core + 6 个轻量插件；`./custom-plugins/*` 逐插件；`custom-plugins/index.ts` 保留为逃生口但**不被根入口静态引用**
-- [ ] **P0.4 拍板 D4（样式）**：**D4-A 内联沿用**，只抽「容器 + 工具栏」为 `--vfp-*` 变量 + 可选 `style.css`
-- [ ] **P0.5 拍板 D5（内核）**：**D5-A 内联打包 `@vane/plugin-core`**（不设 peer）；路由做包内纯函数 `resolvePreview()`
-- [ ] **P0.6 拍板 D6（demo）**：**三视角**（工坊 17 + 逐项 17 + 场景 6），不做布局视角
-- [ ] **P0.7 固化体积基线**：把上表 196.33KB / 634.47KB 记入本文「执行记录」，作为「不得劣化」的对照（新架构目标见 P4）
+- [x] **P0.1 拍板 D1（17 个插件处置）**：**D1-A 全留 17 个**，不合并 Docx×2（合并会同时引入 `docx-preview` + `mammoth`，体积负优化）；把 `docxMode` / `previewMode` 的路由从 demo 移进库；`OfficePreviewPlugin` 保留但明确「只能公网 URL」
+- [x] **P0.2 拍板 D2（重依赖归属）**：**D2-A optional peer**（`peerDependenciesMeta`）；`dependencies: {}`
+- [x] **P0.3 拍板 D3（入口结构）**：根入口只出 core + 6 个轻量插件；`./custom-plugins/*` 逐插件；`custom-plugins/index.ts` 保留为逃生口但**不被根入口静态引用**
+- [x] **P0.4 拍板 D4（样式）**：**D4-A 内联沿用**，只抽「容器 + 工具栏」为 `--vfp-*` 变量 + 可选 `style.css`
+- [x] **P0.5 拍板 D5（内核）**：**D5-A 内联打包 `@vane/plugin-core`**（不设 peer）；路由做包内纯函数 `resolvePreview()`
+- [x] **P0.6 拍板 D6（demo）**：**三视角**（工坊 17 + 逐项 17 + 场景 6），不做布局视角
+- [x] **P0.7 固化体积基线**：把上表 196.33KB / 634.47KB 记入本文「执行记录」，作为「不得劣化」的对照（新架构目标见 P4）
 
 **验收门 P0**：D1–D6 结论落纸并被 `docs/guide/decisions.md` 引用；基线四条命令的结果可复现。
+
+> ✅ **已过门（2026-10-27）**：六个决策落成 **ADR-16**（`docs/guide/decisions.md`），含理由、代价与三条「防复发」判断。
+> 基线四条命令的结果已固化在上表，P4 验收以「不得劣于基线」为下限、以三口径上限为目标。
 
 ---
 
@@ -62,37 +65,75 @@ demo            13 个示例页 + Home + ReadmeDemo + _layout
 
 ### P1.1 骨架与依赖
 
-- [ ] `packages/vane-file-preview/` 目录（复制 `packages/templates/plugin-component` 骨架）
-- [ ] `package.json`
-  - [ ] `peerDependencies`: `react >=16.8`、`react-dom >=16.8`（**不设 `@vane/plugin-core`**）
-  - [ ] `dependencies`: **空**（删 26 个；6 个死依赖彻底删；`react`/`react-dom`/`react-router-dom` 移到 peer 或 demo devDeps）
-  - [ ] `devDependencies`: `@vane/{build-config,eslint-config,tsconfig,vitest-config,plugin-core}`、react 18、vite 5、vitest 2、`react-router-dom`（仅 demo）
-  - [ ] `files: ["dist"]`、`sideEffects: false`、`publicDir: false`
-  - [ ] `vane.sizeBudgetKb: 12`、`vane.coreSizeBudgetKb: 8`、`vane.fullSizeBudgetKb: 90`
-- [ ] `tsconfig.json` / `tsconfig.lib.json` / `vite.config.ts`（`createLibConfig`）/ `vitest.config.ts` / `eslint.config.js`
-- [ ] **关掉 `publicDir`**，并在 P6 用 `npm pack` 复核不含样本文件
+- [x] `packages/vane-file-preview/` 目录（照 `packages/vane-card` 的形态，不用模板骨架 —— 模板缺多入口与 `vane` 体积字段）
+- [x] `package.json`
+  - [x] `peerDependencies`: `react >=16.8`、`react-dom >=16.8`（**不设 `@vane/plugin-core`**）
+  - [x] `dependencies`: **空**（26 个全不迁；6 个死依赖彻底删；`react`/`react-dom`/`react-router-dom` 移入 devDeps 只服务 demo）
+  - [x] `devDependencies`: `@vane/{build-config,eslint-config,tsconfig,vitest-config,plugin-core}`、react 18、vite 5、vitest 2、`react-router-dom`（仅 demo）
+  - [x] `files: ["dist"]`、`sideEffects: false`、`publicDir: false`
+  - [x] `vane.sizeBudgetKb: 12`、`vane.coreSizeBudgetKb: 8`、`vane.fullSizeBudgetKb: 90`
+- [x] `tsconfig.json` / `vite.config.ts`（`createLibConfig`）/ `vitest.config.ts` / `eslint.config.js`
+  - 不建 `tsconfig.lib.json`：d.ts 由 `vite-plugin-dts` 按 `tsconfig.json` 产出，与 vane-card 一致。多一个配置就多一处漂移
+- [x] **关掉 `publicDir`**，并在 P6 用 `npm pack` 复核不含样本文件
 
 ### P1.2 Core 迁入（`FilePreviewCore`）
 
-- [ ] `src/components/FilePreviewCore/FilePreviewCore.tsx`（原 227 行）迁入，改动仅限：
-  - [ ] import 路径改本地；`containerRefExternal` / `contentRefExternal` 双通道保留（`withPlugins` 靠它拿容器）
-  - [ ] `(props.containerRefExternal as any).current = el` 的类型逃逸去掉（改 `MutableRefObject`）
-  - [ ] `useMemo` 的 `containerStyles` / `contentStyles` 保留（它们只是对象，不涉逻辑）
-- [ ] **状态机收敛为唯一一份**（分析 4.3）：
-  - [ ] `startLoad` 的守卫改**函数式**（`setState(prev => …)`），不再依赖 `state` 闭包
-  - [ ] **删掉 `useEffect(() => startLoad(), [startLoad])`**（它是 `reset()` 失效与 `onBeforeLoad` 死循环的来源）；改为 `useEffect(..., [file.url])` 显式触发
-  - [ ] 新增 `reportState(patch)`：插件上报 `loading / loaded / error / progress`，Core 是唯一真源
-- [ ] `test/core-state.test.ts`：`reload` / `reset`（**断言 reset 之后停在 idle，不会自己跑回 loaded**）/ `onBeforeLoad:false`（**断言只跑一次，不循环**）/ error 分支
-- [ ] `test/core-render.test.ts`：容器/内容两层 class + style 合并优先级 + `children` 位置
+- [x] `src/components/FilePreviewPlugin/core/FilePreviewCore.tsx`（原 227 行）迁入
+  - **路径比计划多一层**：计划写的是 `src/components/FilePreviewCore/`。实际收进 `components/FilePreviewPlugin/core/`，
+    因为 `discoverEntries` 只把 `NON_ENTRY_DIRS`（含 `components`）里的目录当内部目录 ——
+    放在 `src/components/FilePreviewCore/` 会被当成 `./FilePreviewCore` 发布出去，
+    而 `src/plugins/` 更糟：它会被识别成 `./plugins`，**与 P3 要建的 `src/plugins.ts`（6 个轻量插件）撞名**。
+    第一次构建就撞出来了（`dist/plugins/index.js` 凭空出现），已按 vane-card 的 `components/CardPlugin/plugins/` 形态收拢
+  - [x] import 路径改本地；`containerRefExternal` / `contentRefExternal` 双通道保留（`withPlugins` 靠它拿容器）
+  - [x] `(props.containerRefExternal as any).current = el` 的类型逃逸去掉 —— 改为 `ExternalPreviewRef` 联合类型 +
+    `syncExternalRef()` 里**一处**显式断言。断言集中在一个函数里，将来类型真的错位时能在这里看到，而不是散在 4 个赋值点
+  - [x] `useMemo` 的 `containerStyles` / `contentStyles` 保留
+- [x] **状态机收敛为唯一一份**（分析 4.3）：
+  - [x] `startLoad` 的守卫不再依赖 `state` 闭包 —— 实际用 `stateRef` 而不是 `setState(prev => …)`：
+    函数式 setState 只能在 updater **内部**看到 prev，而 `runLoad` 需要在「进函数之前」就判断
+    「已经 loading/loaded 就别重来」并据此决定要不要发请求。守卫要读值、要提前 return，只能读 ref
+  - [x] **删掉 `useEffect(() => startLoad(), [startLoad])`**；改为 `useEffect(..., [file.url])` 显式触发。
+    依赖 `file.url` 而不是 `runLoad`：后者现在身份稳定，但将来任何人给它加一个依赖，effect 就会跟着重跑，
+    两个 bug 立刻复活
+  - [x] 新增 `reportState(patch)` + `onStateChange` 镜像回调：插件上报、Core 落库、上层镜像，**不再各存一份**
+  - [ ] ~~上报 `progress`~~ —— 延到 P2 定形状：`PreviewStateInfo` 当前没有 progress 字段，
+    而 P2.2 要删掉恒为 undefined 的 `progress`。现在加等于加完就删
+- [x] `test/core-state.test.tsx`（9 条）：`reload` / `reset`（**断言 reset 之后停在 idle**）/ `onBeforeLoad:false`
+  （**断言只跑一次**）/ error 分支 / 非 Error 抛出物 / `file.url` 变化才重载 / `reportState` 覆盖 / `onStateChange` 序列
+- [x] `test/core-render.test.tsx`（5 条）：容器与内容两层 class + 嵌套关系 + style 合并优先级 + 默认底色 + 两种遮罩
 
 ### P1.3 demo 指回源码（**本阶段最重要的一步**）
 
-- [ ] `demo/vite.config.ts`：`createDemoConfig` + 包名 alias（`vane-file-preview` → `src/index.ts`，`/core`、`/plugins`、`/custom-plugins/*` 同步）
-- [ ] `tsconfig.json` 的 `paths` 同步（只服务 demo）
-- [ ] **验证方式**：删掉 `dist/`，`pnpm build:demo` 仍必须成功（当前是「必须有 dist 才能构建」，见分析第三节）
-- [ ] 把 13 个旧示例页原样搬进 `demo/src/legacy/`（**只作冒烟素材**，P5 重写），跑一次冒烟脚本记录问题
+- [x] `demo/vite.config.ts`：`createDemoConfig` + 包名 alias（`vane-file-preview` → `src/index.ts`，
+  `/core`、`/plugins`、`/custom-plugins` 与 `/*` 同步，一次性写全，P3 起直接可用）
+- [x] `tsconfig.json` 的 `paths` 同步（先只写 `index` / `core`；不存在的入口写进 paths 只会变成假承诺）
+- [x] **验证方式**：删掉 `dist/`，`pnpm build:demo` 成功（37 modules / 152.51kB / gzip 50.09kB）
+- [ ] **13 个旧示例页搬进 `demo/src/legacy/` —— 未做，延后到 P3**
+  - 原因：这 13 页全部 `import` 官方插件，而 custom-plugins 要到 P3 才迁入。
+    此刻搬进来会得到 13 个**必然失败**的页面，且 `tsconfig` 的 `include: ["test", "demo/src"]` 会让
+    `typecheck` 直接报几十个「找不到模块」—— 那不是冒烟素材，是往 P1 里塞一堆假红。
+  - 替代：P1 只留一个**手工插件**的最小 demo（`demo/src/pages/BasicDemo.tsx`，30 行，只认 `text/*`）。
+    它同时验证了三件要紧的事：包名 alias 有效、`withPlugins` 走通、装配写在模块顶层。
+  - P3 迁完插件后**立刻**补 legacy 目录，作为 P5 重写前的行为对照。
 
 **验收门 P1**：`build` 产出 dist 且 `exports["."]` 有效；`typecheck` 0 错；`core-state` + `core-render` 单测通过；**删掉 dist 后 demo 仍能构建**；`dist` 内无样本文件。
+
+> ✅ **已过门（2026-10-27）**
+>
+> | 项 | 实测 |
+> | --- | --- |
+> | `pnpm build` | `dist/index.js` 0.12kB · `dist/core.js` 0.15kB · `chunks/withPlugins` 11.10kB（gzip 3.33） |
+> | `exports` | `{".": …, "./core": …}`（`pnpm sync:exports` 生成） |
+> | `tsc --noEmit` | 0 错 |
+> | `eslint src demo test --quiet` | 0 错 |
+> | `pnpm test` | **14 passed / 2 files** |
+> | 删 `dist` 后 `build:demo` | 成功（37 modules，无 dist 依赖） |
+> | `check-packages` | 入口 3.4KB/12 · core 3.4KB/8 · 全量 3.3KB/90，三条线全绿 |
+> | `dist` 内样本文件 | 无（`publicDir: false`，`files: ["dist"]`） |
+>
+> **反向验证（清单第 5 条要求）**：用临时文件复刻旧实现跑同一批断言，确认它们是红的 ——
+> `reset()` 后状态是 `loaded`（不是 idle）；`onBeforeLoad` 被调用 **31 次**（撞到我设的 30 次上限才停）。
+> 新实现分别为 `idle` 与 **1 次**。验证完临时文件已删除，不进版本库。
 
 ---
 
@@ -245,6 +286,17 @@ demo            13 个示例页 + Home + ReadmeDemo + _layout
    槽位合成会让 17 个插件同时渲染。保留 `resolvePreview()` 纯函数，可单测。
 5. **`reset()` 与 `onBeforeLoad:false` 的两个推演级 bug 要先用单测复现再改。** 目前是代码推演（effect 依赖 `startLoad` 身份），
    P1.2 的第一步就是写测试把现象钉住——**没有红灯的修复不算修复**。
+   ✅ P1 已做：临时复刻旧实现跑同一批断言，`onBeforeLoad` 被调 **31 次**、`reset()` 停在 `loaded`；
+   新实现 1 次 / `idle`。**这两个 bug 从「推演」升级成「实测」**，代价是十几行临时文件。
+6. **目录不能随便放：`src/plugins/` 会变成 `./plugins` 入口，与 `src/plugins.ts` 撞名。**
+   `discoverEntries` 的规则是「源码路径 == 发布子路径」，且 `components/` 是内部目录。
+   第一次 `pnpm build` 就凭空多出 `dist/plugins/index.js` —— 因为 `src/plugins/index.ts` 被当成了公开入口。
+   等 P3 建好 `src/plugins.ts`（6 个轻量插件）就会正面撞车，而 exports 里只会剩一个，另一个静默失效。
+   已把 Core 与插件系统收进 `components/FilePreviewPlugin/{core,plugins}/`，与 vane-card 的 `components/CardPlugin/` 同构。
+   **这类碰撞不会报错，只会让某个入口「突然导不进来」**，所以趁只有一个入口时先定好结构。
+7. **`reset()` 的守卫用 `stateRef` 而不是清单里写的 `setState(prev => …)`。**
+   函数式 setState 只在 updater 内部能看到 prev，而守卫要在**进 `runLoad` 之前**就决定
+   「要不要发这次请求」。需要读值 + 提前 return，只能读 ref。清单那措辞是「不读闭包」的意图，ref 是它的实现。
 
 ---
 
@@ -252,8 +304,8 @@ demo            13 个示例页 + Home + ReadmeDemo + _layout
 
 | 阶段 | 完成时间 | 提交 |
 | --- | --- | --- |
-| P0 | — | — |
-| P1 | — | — |
+| P0 | 2026-10-27 | ADR-16（六个决策落纸） |
+| P1 | 2026-10-27 | 包骨架 + Core 状态机收敛 + demo 指回源码（14 单测） |
 | P2 | — | — |
 | P3 | — | — |
 | P4 | — | — |

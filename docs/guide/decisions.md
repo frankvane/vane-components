@@ -185,3 +185,56 @@
 **代价**：拖动控件会让卡片重挂一次，卡内状态（选中的规格、步进器数量）复位。这是有意的：`withPlugins` 的语义就是「装配定型一次」，改配置等于换一张卡，代码块里显示的也正是这张新卡的装配。
 
 **验证**：新增两道闸门。`scripts/verify-controls.mjs` 静态对账「控件 ↔ `cfg.key` ↔ `{{key}}`」三方；`scripts/audit-controls.mjs` 用真浏览器把 19 个页面 31 个控件逐个拨到另一端，判据是「卡片 DOM 被换掉或内容变了」，悬停才生效 / 只改 console 的控件显式放过。另加两条单测锁住字段契约（`oldPrice` 画出划线价与折扣；`tags` 字符串归一 + config 优先）。
+
+## ADR-16 · vane-file-preview 迁移：17 个插件全留、optional peer、单赢家路由
+
+**背景**：`vane-file-preview` 是四个包里唯一带运行时依赖的（`dependencies` 26 个，前三个包全是 `{}`），
+也是唯一有真实「文件类型分流」问题的。迁移前实测基线：`tsc -b` **15 错**，
+`vite build --mode lib` 产出 **985.97 kB / gzip 196.33 kB**，demo 构建必须依赖 `dist/` 自引用（删掉就构不出来）。
+分析见 `tasks/13-vane-file-preview-迁移分析.md`，清单见 `tasks/14`。
+
+**决定**：
+
+1. **D1 · 17 个插件全留，不合并两个 DOCX 实现。** `DocxPreviewPlugin`（`docx-preview`）与
+   `MammothDocxPlugin`（`mammoth`）语义不同：前者保留原版式，后者出干净 HTML 便于二次排版。
+   合并会让一个文件同时 `import` 两个重库，消费者再也没法只装一个 —— **体积优先于插件数量整齐**。
+   `docxMode` / `previewMode` 的路由从 demo 移进库内（各自 `canHandle` 里读），demo 不再掌握业务规则。
+
+2. **D2 · 重依赖走 optional peer，`dependencies: {}`。** 用户装 `vane-file-preview` 不该被迫拖进 15MB 的解析器。
+   16 个包声明为 `peerDependenciesMeta.*.optional`，只列**代码里真实 import** 的集合；
+   6 个死依赖（`pdfjs-dist` / `react-pdf` / `react-player` / `react-h5-audio-player` / `pptx-parser` / `highlight.js`）彻底删掉。
+   未安装时渲染 `MissingDependency` 提示面板（带包名与安装命令），**不许白屏**。
+
+3. **D3 · 根入口只出 Core + 6 个轻量插件。** `Image` / `Pdf` / `Video` / `Audio` / `Download` / `Office`
+   全是原生标签，零重依赖。其余 11 个走 `./custom-plugins/<Name>` 子路径。
+   `custom-plugins/index.ts` 保留为逃生口（一次引全），但**根入口不静态引用它** ——
+   否则桶文件会把 16 个重库全带进来，这正是一次 986KB 的成因。
+
+4. **D4 · 样式沿用内联，只抽容器与工具栏。** 旧实现 7318 行里有大量内联样式，全量重构会淹没真正的
+   依赖边界问题。只把**外层容器与工具栏**抽成 `--vfp-*` CSS 变量 + 可选 `style.css`，
+   插件内部几何值继续内联（与 ADR-13 对 vane-card 的处理同一口径）。
+
+5. **D5 · 内核内联打包 `@vane/plugin-core`，不设 peer。** 与 vane-card 一致：内核进 chunk，
+   消费者不需要额外装包。路由做成包内纯函数 `resolvePreview(plugins, file)` ——
+   给定插件列表与文件，返回唯一赢家，**可单测**。
+
+6. **D6 · demo 三视角（工坊 17 + 逐项 17 + 场景 6）**，不做「布局视角」。
+   file-preview 的版式差异来自**被预览的文件**而不是卡片排布，布局维度在这里不成立。
+
+**关键判断（写在这里防止复发）**：
+
+- **这是「单赢家路由」，不是 vane-card 的「多插件合成」。** 一个文件只能有一个插件渲染正文，
+  把 17 个插件塞进槽位合成会让它们同时渲染。所以不套用 vane-card 的槽位模型。
+- **`external` 对子路径静默失效** 是 986KB 的直接原因：字符串 `"mammoth"` 匹配不到
+  `"mammoth/mammoth.browser"`，`"react-syntax-highlighter"` 匹配不到它的主题子路径。
+  P4.2 把 `internal/build-config` 的 `external` 放宽为 `(string | RegExp)[]`，
+  并加一条断言「`dist/**/*.js` 内不得出现 `mammoth` / prism 主题特征串」。
+  这条不报错、只是白胖，**只能靠断言守，不能靠构建绿灯守**。
+- **`manualChunks` 与 `external` 互斥**：旧配置里 9 个 chunk 全写的是外部模块名，等于没写。
+  改为多入口后自然分片，不需要手写 chunk。
+
+**代价**：消费者要按文件类型自己装 peer（文档里给一张「文件类型 → 需要装什么」的表）；
+根入口只管 6 个轻量插件，剩下 11 个要写子路径 import。
+
+**验证**：体积三口径（根入口 ≤12KB / `./core` ≤8KB / 全量并集 ≤90KB）+ `dist` 特征串断言 +
+`resolvePreview` 对 17 种文件的赢家断言 + `MissingDependency` 的 mock reject 单测。

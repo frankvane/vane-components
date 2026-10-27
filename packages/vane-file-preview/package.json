@@ -1,0 +1,89 @@
+{
+  "name": "vane-file-preview",
+  "version": "1.0.5",
+  "description": "React 文件预览组件：17 个按文件类型路由的预览插件（图片 / PDF / Office / 音视频 / 代码 / Markdown / 数据 / 压缩包 / EPUB），重依赖全部 optional peer",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./core": {
+      "types": "./dist/core.d.ts",
+      "import": "./dist/core.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "react",
+    "plugin",
+    "file-preview",
+    "document-preview",
+    "pdf",
+    "office",
+    "markdown",
+    "typescript"
+  ],
+  "author": "Frank Vane",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/frankvane/vane-components.git",
+    "directory": "packages/vane-file-preview"
+  },
+  "bugs": {
+    "url": "https://github.com/frankvane/vane-components/issues"
+  },
+  "homepage": "https://github.com/frankvane/vane-components/tree/main/packages/vane-file-preview#readme",
+  "scripts": {
+    "dev": "vite --config demo/vite.config.ts",
+    "build": "vite build --mode lib",
+    "build:demo": "vite build --config demo/vite.config.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run --pool=threads",
+    "lint": "eslint .",
+    "sync:exports": "node ../../scripts/sync-exports.mjs",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "react": ">=16.8.0",
+    "react-dom": ">=16.8.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.18",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vane/build-config": "workspace:*",
+    "@vane/eslint-config": "workspace:*",
+    "@vane/plugin-core": "workspace:*",
+    "@vane/tsconfig": "workspace:*",
+    "@vane/vitest-config": "workspace:*",
+    "@vitejs/plugin-react": "^4.3.1",
+    "happy-dom": "^15.11.7",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.26.2",
+    "typescript": "^5.5.3",
+    "vite": "^5.4.1",
+    "vite-plugin-dts": "^4.5.4",
+    "vitest": "^2.1.9"
+  },
+  "vane": {
+    "sizeBudgetKb": 12,
+    "coreSizeBudgetKb": 8,
+    "fullSizeBudgetKb": 90,
+    "sizeBudgetNote": "根入口 ≤12KB（Core + 装配 + 类型 + 6 个轻量插件）；./core ≤8KB（只要 Core 与类型）；全量并集 ≤90KB（17 个插件全用的最坏情况，重依赖全部 external 不计入）。迁移前基线是单文件 196.33KB —— 那时 mammoth 整库与 41 套 prism 主题都被内联了。"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
