@@ -232,10 +232,10 @@
     "xlsx": "^0.18.5"
   },
   "vane": {
-    "sizeBudgetKb": 14,
+    "sizeBudgetKb": 16,
     "coreSizeBudgetKb": 8,
     "fullSizeBudgetKb": 90,
-    "sizeBudgetNote": "根入口 ≤14KB（Core + 装配 + 类型 + 6 个零依赖插件，实测 12.5KB：装配 6.4 + Image/Video/Audio/Download/Pdf 约 1~2 各 + Office 2.5，共享工具栏组件 1.5）；./core ≤8KB（只要 Core 与类型，实测 6.4KB）；全量并集 ≤90KB（dist 下所有 .js 一起去重压缩，17 个插件全用的最坏情况；B/C 批的重依赖一律 external，不计入）。迁移前基线是单文件 196.33KB —— 那时 mammoth 整库与 41 套 prism 主题都被内联了。P1 拍的 12KB 是在 6 个插件迁入前定的，P3-A 实测后按真实构成上调到 14。"
+    "sizeBudgetNote": "量法有两套，别混用。① 闸门口径（scripts/check-packages.mjs）：入口 + 它静态引用的 chunks 逐个 gzip 后相加，实测 13.7KB —— 这个数会把 index 与 withPlugins 两个共享 chunk 在根入口和 core 里各算一遍，所以偏大；② 消费方口径（esbuild dist/index.js --bundle --minify --packages=external 后 gzip）：10.5KB，这才是 import { FilePreviewCore } 真正加进用户 bundle 的字节数。预算按 ① 定在 16（余量约 2.3KB，够再放一个轻量插件），优化目标看 ②。core 6.6/8（消费方 5.3）、全量并集 69.0/90（消费方 17 个子路径各自打包合计 61.3）。迁移前基线是单文件 196.33KB —— 那时 mammoth 整库与 41 套 prism 主题都被内联了。"
   },
   "engines": {
     "node": ">=18"

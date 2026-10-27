@@ -263,27 +263,30 @@ demo            13 个示例页 + Home + ReadmeDemo + _layout
 
 ## P4 · 依赖边界与体积工程（本包独有，前三包没有这一关）
 
-- [ ] **P4.1 单插件子路径入口**：17 个 `custom-plugins/<Name>/index.tsx`，每人的重依赖只在该文件里 import
+- [x] **P4.1 单插件子路径入口**：17 个 `custom-plugins/<Name>/index.tsx`，每人的重依赖只在该文件里 import（P3 完成，`sync:exports` 已生成 17 条子路径）
 - [x] **P4.2 external 支持子路径**（基础设施改动，`internal/build-config`）—— **P3-B 提前完成**：
   B 批一迁入就会把 jszip / xlsx / mammoth / docx-preview 全内联（实测反证：退化成包名字符串后
   出现 `chunks/mammoth.browser-*.js = 492.4KB`），体积闸门根本过不去。
   - [x] `LibOptions.external` 放宽为 `(string | RegExp)[]`，透传给 `rollupOptions.external`
   - [x] 本包传 `/^mammoth(\/|$)/`、`/^react-syntax-highlighter(\/|$)/`、`/^@uiw\/react-json-view(\/|$)/`、`/^react-reader$/`、`/^docx-preview$/`、`/^xlsx$/`、`/^jszip$/`、`/^papaparse$/`、`/^react-markdown$/`、`/^rehype-/`、`/^remark-/`、`/^react-xml-viewer$/`（C 批要用的也提前写好了，迁入时不用再改构建配置）
   - [x] **闸门断言**：`test/dist-external.test.ts` 三条 —— ① 9 个 `import("pkg")` 必须原样留在对应入口；② 不得出现 `JSZip` / `SheetJS` / `--w-rjv-` / `docx-wrapper` 这四个「整库内联才有」的标识；③ **单文件 ≤60KB、全量 ≤220KB**（签名漏掉的库由体积兜底）。**注**：清单原来写「不得出现 mammoth / prism 特征串」，实测发现 `import("mammoth/mammoth.browser")` 与 `docxMode === "docx-preview"` 会假阳性，改用内部标识 + 体积双判据
-- [ ] **P4.3 optional peer 声明**（**16 个，一个字都不多不少**——这是代码里真实 import 的完整集合，已用脚本核对）
-  - [ ] 文本 / 结构：`docx-preview`、`mammoth`、`xlsx`、`jszip`、`papaparse`、`react-xml-viewer`
-  - [ ] Markdown 链：`react-markdown`、`remark-breaks`、`remark-gfm`、`remark-math`、`rehype-highlight`、`rehype-katex`、`rehype-raw`
-  - [ ] 富组件：`@uiw/react-json-view`、`react-syntax-highlighter`、`react-reader`
+- [x] **P4.3 optional peer 声明**（**14 个**——这是代码里真实 import 的完整集合，由 `test/peer-manifest.test.ts` 反向扫源码守住）
+  - [x] 文本 / 结构（6）：`docx-preview`、`mammoth`、`xlsx`、`jszip`、`papaparse`、`react-xml-viewer`
+  - [x] Markdown 链（5）：`react-markdown`、`remark-breaks`、`remark-gfm`、`rehype-highlight`、`rehype-raw`
+  - [x] 富组件（3）：`@uiw/react-json-view`、`react-syntax-highlighter`、`react-reader`
+  - [x] **清单原写 16 个含 `remark-math` / `rehype-katex`**：C 批把 KaTeX 链路整段删了（KaTeX 要额外引 CSS + 一整包数学字体，只为公式；而 17 类文件里只有 Markdown 可能带公式，按需由宿主自己通过 `remarkPlugins` 扩），两个包已不 import，故不声明（见偏离 29）
   - [x] **已声明 6 个**（P3-B）：`jszip` / `xlsx` / `docx-preview` / `mammoth` / `@uiw/react-json-view` / `react-xml-viewer`，全部 `peerDependenciesMeta.*.optional: true`；余下 10 个等 C 批迁入
   - [x] 全部 `peerDependenciesMeta.*.optional: true`
-  - [ ] `pdfjs-dist` / `react-pdf` / `react-player` / `react-h5-audio-player` / `pptx-parser` / `highlight.js` **一个都不声明**（代码 0 引用）
+  - [x] `pdfjs-dist` / `react-pdf` / `react-player` / `react-h5-audio-player` / `pptx-parser` / `highlight.js` **一个都不声明**（代码 0 引用；`peer-manifest.test.ts` 的「幽灵声明」用例反向守着这条）
 - [x] **P4.4 友好降级面板**（P3-B 完成，落在 `components/FilePreviewPlugin/shared/` 而不是 `custom-plugins/shared/` —— 与 A 批的共享模块同目录）
   - [x] `shared/panels.tsx`：`MissingDependency`（包名 + `npm i <pkg>` + 可选 hint + 折叠的错误原文）、`LoadingPanel`、`ErrorPanel`，三者都带 `data-vfp-panel` / `data-vfp-missing` 断言锚点
   - [x] `shared/useDynamicModule.ts`：模块级 loader → `{ status, mod, error }`，插件只在 `status === "ready"` 时才发 fetch
   - [x] 7 个插件全部改动态 import；`test/missing-dependency.test.tsx` 用 `vi.mock("jszip", () => { throw … })` 让 import 真的 reject，断言出现 `[data-vfp-missing="jszip"]` 而不是崩溃
-- [ ] **P4.5 体积三口径**：根入口 ≤12KB / `./core` ≤8KB / 全量并集 ≤90KB，写进 `vane` 字段
+- [x] **P4.5 体积三口径**：根入口 ≤**16KB** / `./core` ≤8KB / 全量并集 ≤90KB，写进 `vane` 字段
+  - 实测（闸门口径，`check-packages.mjs`）：**13.7 / 6.6 / 69.0**；消费方口径（esbuild 单入口 bundle + gzip、peer external）：**10.5 / 5.3 / 61.3**
+  - 预算从 12 → 14（P3-A，插件从 6 个到 17 个）→ **16**（P3-D，错误面板统一到 `ErrorPanel`）。两套口径的差值写进了 `sizeBudgetNote`，避免下次拿两个数对比得出「超预算」的结论
 
-**验收门 P4**：`node scripts/check-packages.mjs` 三条线全绿；根入口 gzip ≤12KB；`dist` 无重依赖特征串；`dependencies` 为 `{}`；未安装 optional peer 时**渲染提示而不是白屏**。
+**验收门 P4**：`check-packages.mjs` 三条线全绿（13.7/16 · 6.6/8 · 69.0/90，且 README 已同步）；`dist` 无重依赖特征串；`dependencies` 为 `{}`；`peer-manifest.test.ts` 6 条把「漏声明 / 幽灵声明 / 非 optional」三种错法都堵住（反向验证：删 `papaparse` + 加 `remark-math` → 3 条立刻红）；未安装 optional peer 时**渲染提示而不是白屏**。
 
 ---
 
@@ -459,6 +462,18 @@ demo            13 个示例页 + Home + ReadmeDemo + _layout
    断言也改成完整的条目串（多出任何一条都会红）。
    展示上再做一层：深路径只留 `…/文件名`、最多 5 条 —— 否则路径前缀把面板撑成十几行，
    文件名（唯一有信息量的部分）反而被截掉。
+29. **optional peer 是 14 个，不是清单里写的 16 个。**
+   清单按迁移前的代码统计，含 `remark-math` / `rehype-katex`；C 批把 KaTeX 链路删掉后
+   这两个包已不再 import（子路径归一后扫源码可确认）。留着的后果是消费方包管理器提示
+   「缺少 peer 依赖」，装上来却永远用不到。现在由 `test/peer-manifest.test.ts` 双向守住：
+   漏声明（import 了但没写 peer）、幽灵声明（写了但没 import）、该 optional 却没标，
+   三种错法各一条用例，且反向验证过。
+30. **体积预算第三次上调：14 → 16KB（闸门口径）。**
+   这次不是加插件，而是 P3-D 让 Core 的失败态复用 `ErrorPanel`（原本是内联的一行文字）。
+   关键是把**两套口径**的差值写进 `vane.sizeBudgetNote`：闸门口径（入口 + 静态引用 chunk
+   逐个 gzip 相加）会把 `index` / `withPlugins` 共享 chunk 在根入口与 `core` 里各算一遍，
+   所以 13.7KB；消费方口径（esbuild 单入口 bundle + gzip、peer external）只有 10.5KB，
+   后者才是用户真实付出的字节。以前混用两个数得出过「看起来超预算」的错误结论。
 ---
 
 ## 执行记录（随实施追加）
@@ -472,6 +487,7 @@ demo            13 个示例页 + Home + ReadmeDemo + _layout
 | P3-B | 2026-10-27 | 7 个重依赖插件动态化 + external 正则 + 缺失依赖面板 + demo 文档页（126 单测） |
 | P3-C | 2026-10-27 | Code（41→2 主题）/ Markdown（raw 默认关）/ Csv（拆 4 文件）/ Epub（ArrayBuffer + 两级校验）+ 桶文件 + 17 行文档 + demo 第三页（240 单测） |
 | P3-D | 2026-10-27 | 失败态返工：Core 英文 `Load Failed` → 中文化 ErrorPanel + 下载出路；视频按容器分组措辞；EPUB 头部诊断三档 + EOCD 列条目（242 单测） |
+| P4 | 2026-10-27 | 依赖边界收口：`peer-manifest.test.ts`（6 条，双向校验 14 个 optional peer）+ README 生成 + 体积三口径写实（13.7/16 · 6.6/8 · 69.0/90，消费方 10.5/5.3/61.3，248 单测） |
 | P4 | — | — |
 | P5 | — | — |
 | P6 | — | — |
