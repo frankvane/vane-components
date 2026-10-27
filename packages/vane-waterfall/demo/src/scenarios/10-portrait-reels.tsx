@@ -51,7 +51,7 @@ const Waterfall = withPlugins<SeedCard>(WaterfallCore, [
 function Reel({ item }: { item: SeedCard }) {
   return (
     <div className="wf-card is-reel" style={{ height: item.height }}>
-      <Thumb height="100%" hue={item.hue} radius={8} deep />
+      <Thumb height="100%" hue={item.hue} src={item.image} radius={8} deep />
       <div className="wf-reel-cap">
         <p className="wf-reel-title">{item.title}</p>
         <p className="wf-reel-meta">

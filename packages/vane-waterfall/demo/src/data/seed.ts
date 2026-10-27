@@ -1,9 +1,12 @@
 /**
  * 演示数据生成器
  *
- * 为什么不用真实图片：示例页要能离线、秒开、离线跑体检脚本，外链图床既有 CSP/CORS
- * 风险，也会让「卡片高度不等高」这件事随网络状况抖动。这里统一用确定性的
- * 伪随机 + 渐变色块模拟缩略图，高度由数据本身给定，正好压测瀑布流的可变高。
+ * 缩略图用 picsum.photos 的真实照片（`seed` 路径参数是确定性的，同一张卡每次都是同
+ * 一张图，截图比对才有意义），底下仍垫一层由 `hue` 算出的渐变——图床不可达、离线、
+ * 或触发 CSP 时 `onError` 把 <img> 藏掉，回落到渐变块，版式不会塌。
+ *
+ * 卡片高度自始至终来自 `height` 字段，与图片何时加载、加载成功与否无关，所以瀑布流的
+ * 可变高与体检脚本的几何断言都不受网络影响。
  */
 
 /** 线性同余，保证同一 seed 每次生成同一批数据（截图比对才有意义） */
@@ -39,8 +42,16 @@ export interface SeedCard {
    * 用别的名字那个插件就成了空转（旧版遗留的坑，这里对齐）。
    */
   height: number;
-  /** 色相，决定缩略图配色 */
+  /** 色相，决定缩略图的渐变底色（也是图片加载前的占位色） */
   hue: number;
+  /**
+   * 缩略图地址。
+   *
+   * picsum 的 `/seed/<任意串>/<w>/<h>` 是确定性的：同一个串永远返回同一张图，
+   * 所以卡片内容在刷新、截图、体检之间保持一致。尺寸按 4:5 出（卡片列宽 130–360，
+   * 容器靠 `object-fit: cover` 裁切），单张 20–30KB，避免 13 个场景同时挂载时打爆流量。
+   */
+  image: string;
   tag: string;
   price: number;
   /** 收藏 / 点赞数 */
@@ -67,13 +78,15 @@ export function makeCards(options: MakeOptions = {}): SeedCard[] {
     const r1 = rand();
     const r2 = rand();
     const r3 = rand();
+    const id = `c${seed}-${i}`;
     return {
-      id: `c${seed}-${i}`,
+      id,
       title: TOPICS[i % TOPICS.length] + (i >= TOPICS.length ? ` · ${Math.floor(i / TOPICS.length) + 1}` : ""),
       author: AUTHORS[Math.floor(r1 * AUTHORS.length)] ?? AUTHORS[0],
       // 量化到 8px，避免亚像素导致的布局抖动，也更接近真实图片的整数高
       height: Math.round((minH + r2 * (maxH - minH)) / 8) * 8,
       hue: Math.floor(r3 * 360),
+      image: `https://picsum.photos/seed/${id}/400/500`,
       tag: TAGS[Math.floor(r1 * TAGS.length) % TAGS.length] ?? TAGS[0],
       price: commerce ? Math.round((29 + r2 * 870) / 10) * 10 : 0,
       likes: Math.floor(20 + r3 * 9800),

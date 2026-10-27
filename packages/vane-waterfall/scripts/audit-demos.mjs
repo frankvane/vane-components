@@ -27,6 +27,8 @@ const ROOT = path.resolve(HERE, "..");
 const BASE = process.env.AUDIT_BASE ?? "http://127.0.0.1:3300";
 // 首屏要等布局 + TransitionPlugin 的过渡结束；场景页会同时挂 13 个瀑布流，需要更久
 const WAIT = Number(process.env.AUDIT_WAIT ?? 1200);
+/** 视口宽度：默认桌面 1440，可用 AUDIT_W 覆盖（窄屏断点下再核一遍） */
+const VIEW_W = Number(process.env.AUDIT_W ?? 1440);
 const PW = process.env.PLAYWRIGHT_PATH ?? "playwright";
 
 const { chromium } = await import(PW);
@@ -100,10 +102,10 @@ const AUDIT_JS = `(() => {
 })()`;
 
 const browser = await chromium.launch();
-const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+const page = await browser.newPage({ viewport: { width: VIEW_W, height: 900 } });
 const errors = [];
 
-console.log(`体检 ${ROUTES.length} 个页面（${BASE}）\n`);
+console.log(`体检 ${ROUTES.length} 个页面（${BASE} · 视口 ${VIEW_W}px）\n`);
 
 for (const route of ROUTES) {
   const before = [];

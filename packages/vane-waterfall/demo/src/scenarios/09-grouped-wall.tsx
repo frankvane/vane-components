@@ -55,7 +55,7 @@ const Waterfall = withPlugins<SeedCard>(WaterfallCore, [
 function Wallpaper({ item }: { item: SeedCard }) {
   return (
     <div className="wf-card is-wall">
-      <Thumb height={item.height} hue={item.hue} badge={item.tag} radius={6} />
+      <Thumb height={item.height} hue={item.hue} src={item.image} badge={item.tag} radius={6} />
     </div>
   );
 }

@@ -381,7 +381,14 @@ time {
 .main {
   position: relative;
   min-width: 0;
-  padding: 0 clamp(18px, 3vw, 44px) var(--s8);
+  /**
+   * 内容栏：宽屏下不再无限拉伸。
+   * 上限 1440，多出来的宽度等分成左右留白 —— 于是整页在侧栏右侧居中。
+   * 此前只有 `.demo` 有个 1240 的上限且是左对齐的，1920 屏上右边空出近 400px。
+   */
+  --page-max: 1440px;
+  --gutter-x: clamp(18px, 3vw, 44px);
+  padding: 0 max(var(--gutter-x), calc((100% - var(--page-max)) / 2)) var(--s8);
 }
 
 .topbar {
@@ -2093,6 +2100,33 @@ time {
   mix-blend-mode: overlay;
 }
 
+/* 真实照片：铺满容器、按容器比例裁切。底下那层渐变只在图片没到 / 挂了时露出来 */
+.thumb-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* 图床的色温差异很大，压一档彩度让 13 个场景像同一批印刷品 */
+  filter: saturate(0.86) contrast(1.02);
+  /* 图片淡入，避免一次性刷出 30 张硬边照片的突兀感 */
+  animation: thumb-in 260ms ease both;
+}
+
+/* 有真图就别再叠网纹了：斜纹压在照片上读起来像脏污 */
+.thumb.has-img::after {
+  opacity: 0;
+}
+
+@keyframes thumb-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .thumb-badge {
   position: absolute;
   right: 6px;
@@ -2476,8 +2510,8 @@ time {
 
 /* ---------------- 11. 逐项示例页 ---------------- */
 
+/* 宽度上限统一由 `.main` 的 --page-max 管，这里不再单独设 max-width（两套上限会打架） */
 .demo {
-  max-width: 1240px;
   padding-bottom: var(--s6);
 }
 
@@ -3337,7 +3371,14 @@ time {
   }
 }
 
-@media (max-width: 1080px) {
+/**
+ * 侧栏折叠单独一个断点（960）。
+ *
+ * 1080 宽的窗口里「侧栏 238 + 内容 842」是撑得住的；此前它和各种「两栏塌成单列」
+ * 的规则共用 1080 断点，于是一到 1080 内容就吃掉整个视口、跳到最左边。同一个站的
+ * 兄弟包 vane-lazy-image 的 demo 在 1080 下侧栏仍常驻 —— 两边现在对齐了。
+ */
+@media (max-width: 960px) {
   .shell {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -3375,6 +3416,9 @@ time {
   .guides {
     left: 0;
   }
+}
+
+@media (max-width: 1080px) {
   .hero {
     grid-template-columns: minmax(0, 1fr);
     gap: var(--s5);
