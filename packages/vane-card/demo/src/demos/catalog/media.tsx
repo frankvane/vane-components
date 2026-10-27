@@ -75,7 +75,7 @@ const videoPage: DemoEntry = {
     plugs: [
       {
         fn: "createVideoPlugin",
-        cfg: 'src: videoUrl, muted: true,\n        playOnHover: {{hoverPlay}}',
+        cfg: 'src: videoUrl, muted: {{muted}},\n        playOnHover: {{hoverPlay}}',
         why: "提供头部视频区，并在悬停时播放 / 移出暂停",
       },
     ],
@@ -117,7 +117,7 @@ const galleryPage: DemoEntry = {
     plugs: [
       {
         fn: "createGalleryPlugin",
-        cfg: "images: data.images,\n        showThumbnails: true,\n        interval: {{interval}}",
+        cfg: "images: data.images,\n        autoplay: {{autoplay}},\n        showThumbnails: {{thumbs}},\n        interval: {{interval}}",
         why: "轮播 + 缩略图 + 自动播，替代「一张主图 + 一串小图」的手写实现",
       },
     ],

@@ -18,7 +18,7 @@ import {
   createSKUPlugin,
 } from "vane-card/custom-plugins";
 import type { SKUAttribute, SKUVariant } from "vane-card/custom-plugins/SKUPlugin";
-import { Content, makeCard, useCard } from "../stage";
+import { Content, useCard } from "../stage";
 import { skuVariantsOf, TEE } from "../../data/seed";
 import type { DemoLog, DemoEntry } from "../types";
 
@@ -103,7 +103,9 @@ const quantityPage: DemoEntry = {
     plugs: [
       {
         fn: "createQuantityPlugin",
-        cfg: "min: {{min}}, max: {{max}}, useVariantStock: true",
+        // 这里刻意不写 max：写死 max 会绕过库存推断（getMax 见到数字就忽略库存），
+        // 「上限跟着规格走」正是这个插件存在的理由。要卡死上限再显式传 max。
+        cfg: "min: {{min}}, useVariantStock: true,\n        // max 交给库存推断：写死就会绕开库存",
         why: "提供步进器，并在规格切换 / 库存下降时把数量钳回合法区间",
       },
     ],
@@ -189,7 +191,8 @@ const comparePage: DemoEntry = {
       "      <Content title={product.title} subtitle=\"竞品 288 比本店 299 便宜：会高亮，这是刻意的\" />",
   },
   Stage: () => {
-    const Card = makeCard([
+    // 用 useCard 而不是页内 makeCard：makeCard 每次渲染都造新组件类型，日志一更新就整卡重挂
+    const Card = useCard([
       createComparePricePlugin({
         competitors: [
           { name: "线下专柜", price: 399 },
@@ -277,7 +280,8 @@ const couponRecommendPage: DemoEntry = {
     children: "      <Content title={product.title} subtitle=\"券包里 FREESHIP 永远可用、VIP50 门槛 399 未达\" />",
   },
   Stage: () => {
-    const Card = makeCard([
+    // 同上：装配类型要稳定，不要每次渲染重建
+    const Card = useCard([
       createCouponRecommendPlugin({
         coupons: [
           { code: "NEW30", discount: 30, minAmount: 199 },

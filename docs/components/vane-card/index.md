@@ -146,14 +146,26 @@ pnpm --filter vane-card dev               # 开发（端口 3301）
 pnpm --filter vane-card demo              # 构建 + 静态托管 demo-dist
 pnpm --filter vane-card verify:scenarios  # 场景目录 / 源码 / 插件名一致性闸门
 pnpm --filter vane-card verify:layouts    # 版式编号 / id / 宽度闸门
-PLAYWRIGHT_PATH=<playwright> node scripts/audit-cards.mjs   # 42 个页面逐页几何体检
+pnpm --filter vane-card verify:controls   # 控件契约：拖了要读、读了要有控件、代码占位要对得上
+PLAYWRIGHT_PATH=<playwright> node scripts/audit-cards.mjs      # 42 个页面逐页几何体检
+PLAYWRIGHT_PATH=<playwright> node scripts/audit-controls.mjs   # 逐个拨 31 个控件，看舞台认不认
 ```
 
-两道闸门各管一段：
+四道闸门各管一段：
 
 | 闸门 | 抓什么 | 抓不到什么 |
 | --- | --- | --- |
 | `verify:scenarios` | 场景编号 / `meta.id` 与文件名 / `plugs` 与源码里真实调用双向对不上；22 插件覆盖率 | 运行时行为 |
+| `verify:controls` | 控件声明了但 Stage 没读、Stage 读了但没声明控件、代码里的 `{{key}}` 没有对应控件 | 读了之后有没有真的作用到卡片上 |
 | `audit:cards` | 真浏览器里的几何坏味道：卡片没渲染 / 零尺寸 / 溢出容器 / 破图 / 无内容 / 缺价格 | 「插件装了但没生效」—— 结构合法不等于行为正确 |
+| `audit:controls` | 逐个把控件拨到另一端，看卡片有没有重建 / 内容有没有变 | 悬停才生效、只改 console 的行为（这些按设计不可见） |
 
 体检判据同时存在两份（`demo/src/lib/audit.ts` 与 `scripts/audit-cards.mjs`），刻意的：前者能在浏览器里手点复现，后者能进 CI。横滑场景（移动端横滑卡）跳过溢出判定 —— 那本来就该溢出。
+
+::: warning 拖控件会「重挂」一次卡片
+`withPlugins(CardCore, { plugins })` 返回的是一个**闭包住那批插件实例**的组件类型。示例页的插件配置都是控件现算的，所以「控件变了」在语义上就等于「换一个组件类型」（`stage.tsx` 里用控件世代号做 memo 的 key）。
+
+这条曾经写错成「只按插件名缓存」：名字没变 → 命中缓存 → 拿回第一次那个类型，里面的插件实例还是初始配置。表现是**控件在动、代码块在变、舞台上纹丝不动**（BadgePlugin 的「文案 / 语义 / 位置」就是这么被抓到的，另有 10 个页面同病）。
+
+重挂的代价是卡片内部状态复位（选中规格、步进器数量），这在「拖控件 = 改代码」的语境下是正确的：改完配置的卡，本来就该是一张新卡。
+:::

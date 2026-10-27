@@ -166,3 +166,22 @@
 **代价**：消费者的 import 变长；文档必须明确「哪个东西在哪个子路径」，否则会照抄旧写法报 `Module not found`。README 与 `docs/components/vane-card/` 都按子路径写。
 
 **验证**：`pnpm check` 设三条线 —— 根入口 ≤12KB、`core` ≤5KB、全量并集 ≤36KB（dist 下所有 `.js` 一起去重压缩）。后两条是这次新加的口径：只量 `index.js` 会掩盖「全用上」的真实成本。
+
+## ADR-15 · 示例页的装配随控件重建；插件读的字段以公开类型为准
+
+**背景**：BadgePlugin 示例页上拖动「文案 / 语义 / 位置」，代码块在变、舞台纹丝不动。查下去是三件事叠在一起：
+
+1. `withPlugins(CardCore, { plugins })` 返回的组件类型**闭包住那批插件实例**，而 demo 的 `useCard` 只按「插件名」做 memo key —— 名字没变就命中缓存，拿回第一次那个类型，配置永远停在初值。全量盘点后 **13 个页面、21 个由插件配置驱动的控件**都是这个病，不止 Badge。
+2. `PriceCalculatorPlugin` 只读 `data.originalPrice`，而公开类型 `ProductData` 里叫 `oldPrice` —— 原价恒为 0，`showDiscount` / `showSavings` 两个开关**从设计上就不可能生效**。
+3. `UserTagPlugin` 拿 `UserTag[]` 的类型去读 `data.tags`（`string[]`），渲染出一排空标签；而且 data 优先于 config，示例页里自己配的标签永远不出现。
+
+**决定**：
+
+1. 示例页的 memo key = **插件名集合 + 控件世代号**（`DemoPage` 用 `JSON.stringify(cfg)` 提供，`stage.tsx` 的 `useCard` 消费）。控件变了就换一个组件类型，装配跟着重建；
+2. 用 cfg（扁平 `Record<string, number|boolean|string>`）而不是插件对象本身当世代号：插件配置里有 `new Date(...)`、内联回调这类每次渲染都新的东西，拿它做 key 会**每帧重挂**；
+3. 插件读数据字段时**以公开类型 `ProductData` 为准**，历史字段做兼容兜底（`oldPrice ?? originalPrice`）；同一份数据两种形态（`string[]` 与对象数组）要归一化，不许让调用方猜；
+4. config 与 data 同时存在时，**显式 config 优先**（与 `BadgePlugin` 一致）。「用户维度数据」不该悄悄顶掉调用方写死的配置。
+
+**代价**：拖动控件会让卡片重挂一次，卡内状态（选中的规格、步进器数量）复位。这是有意的：`withPlugins` 的语义就是「装配定型一次」，改配置等于换一张卡，代码块里显示的也正是这张新卡的装配。
+
+**验证**：新增两道闸门。`scripts/verify-controls.mjs` 静态对账「控件 ↔ `cfg.key` ↔ `{{key}}`」三方；`scripts/audit-controls.mjs` 用真浏览器把 19 个页面 31 个控件逐个拨到另一端，判据是「卡片 DOM 被换掉或内容变了」，悬停才生效 / 只改 console 的控件显式放过。另加两条单测锁住字段契约（`oldPrice` 画出划线价与折扣；`tags` 字符串归一 + config 优先）。

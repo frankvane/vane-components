@@ -26,7 +26,8 @@ export function ControlBar({
         .map((c) => {
           const value = cfg[c.key];
           return (
-            <label className="ctl" key={c.key} title={c.hint}>
+            // data-ctl：给体检脚本一个稳定的抓手（`scripts/audit-controls.mjs` 按 key 逐个拨）
+            <label className="ctl" key={c.key} title={c.hint} data-ctl={c.key} data-kind={c.kind}>
               <span className="ctl-label">
                 {c.label}
                 <b className="ctl-val">

@@ -126,6 +126,7 @@ const lifecyclePage: DemoEntry = {
     why: "埋点曝光、懒加载、入场动画都挂在这几个点上。它们必须是「真的触发一次」，而不是每次渲染都触发。",
     plugs: [],
     props: [
+      "debug={ {{debug}} }",
       "onMount={() => log(\"mount\")}",
       "onUnmount={() => log(\"unmount\")}",
       "onVisibilityChange={(v) => log(`visible: ${v}`)}",

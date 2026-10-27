@@ -297,20 +297,38 @@ Analytics(50) 能收到 PriceCalculator(20) 的首个 `price:change`，靠的就
 - [x] 新增 `scripts/audit-cards.mjs`（参照 `audit-demos.mjs`），判据与渲染层 `demo/src/lib/audit.ts` 同源：
   - [x] 断言 6 类：`no-card` / `zero-size` / `overflow` / `broken-image`（`naturalWidth === 0`）/ `no-content` / `no-price`；另捕 `pageerror` 并过滤媒体/网络噪音 `console.error`
   - [x] 结果落表：**42 条路由 × 0 命中**
-- [ ] ~~复用 `audit-controls.mjs` 思路逐页推滑杆比对指纹~~ —— **未做，改为控件即代码**：`{{key}}` 占位的插值直接反映在生成代码上，人眼一眼能看出控件是否接上，再做一套指纹比对是重复投入
+- [x] **补上 `verify-controls.mjs`（静态）+ `audit-controls.mjs`（运行时）** —— 见 C5.6
+- [x] ~~原计划「不做控件体检，控件即代码，人眼一眼能看出接没接上」~~ —— **这个判断错了**，代价见 C5.6：代码块会跟着 `{{key}}` 变，舞台却可能纹丝不动，恰恰是「人眼最容易看漏」的一种。占位符只证明了「代码会变」，证明不了「卡片会变」
+
+### C5.6 控件契约（从 BadgePlugin 一页反查出来的三件事）
+
+**症状**：`#/demos/badge` 拖「文案 / 语义 / 位置」，代码块在变，舞台不动。全量盘点后不是个例 —— **13 个页面、21 个由插件配置驱动的控件**都无效。
+
+1. **`useCard` 只按插件名做 memo key**：`withPlugins` 返回的组件类型闭包住插件实例，名字没变就复用旧类型，配置永远停在初值。修：memo key 加「控件世代号」（`DemoPage` 用 `JSON.stringify(cfg)` 提供，走 context 传给 `stage.tsx` 的 `useCard`）。
+2. **`PriceCalculatorPlugin` 读 `data.originalPrice`，公开类型里叫 `oldPrice`**：原价恒为 0 → `showDiscount` / `showSavings` 从设计上就不可能生效。修：`oldPrice ?? originalPrice` 兼容兜底，`doc.json` 同步。
+3. **`UserTagPlugin` 用 `UserTag[]` 的类型读 `data.tags`（`string[]`）**：渲染一排空标签；且 data 优先于 config，示例页自己配的标签永不出现。修：字符串归一 + 显式 config 优先（与 BadgePlugin 一致）。
+
+- [x] `scripts/verify-controls.mjs`：控件 ↔ `cfg.key` ↔ `{{key}}` 三方对账（38 页 / 31 控件全通过）
+- [x] `scripts/audit-controls.mjs`：真浏览器逐个拨控件（19 页 / 31 控件），判据「卡片 DOM 被换掉或内容变了」；滑杆试两端（阈值这类只在一个区间有视觉差）；`debug` 这种只改 console 的显式放过
+- [x] 顺手修掉 `quantity` 页代码里的 `max: {{max}}`（没有 `max` 控件 → 代码块原样打印占位符）
+- [x] `media` 组的 `muted` / `autoplay` / `thumbs` 补进装配代码（原来只进 Stage 不进代码）
+- [x] `compare` / `coupon-recommend` 两页把页内 `makeCard` 换成 `useCard`（原来每次渲染都造新类型 → 日志一更新整卡重挂）
+- [x] 单测锁字段契约：`oldPrice` 画出划线价 + 折扣 + 节省、旧字段兼容、开关各自生效；`tags` 字符串归一 + config 优先（187 passed）
 
 **执行记录（2026-10-27）**
 
 | 项 | 实测 |
 | --- | --- |
 | `pnpm typecheck` | 0 错 |
-| `pnpm exec eslint demo src --quiet` | 0 错 |
-| `pnpm test` | **182 passed / 13 files** |
+| `pnpm exec eslint demo src scripts --quiet` | 0 错 |
+| `pnpm test` | **187 passed / 13 files** |
 | `pnpm build`（lib） | 通过 |
-| `pnpm build:demo` | 通过，`main-*.js` 113.74KB / gzip 46.55KB |
+| `pnpm build:demo` | 通过，`main-*.js` 120.06KB / gzip 49.60KB |
 | `scripts/audit-cards.mjs` | 42 页几何全干净（总览 + 工坊 + 场景 16 + 布局 9 + 38 逐项去重后共 42 条路由） |
 | `scripts/verify-scenarios.mjs` | 场景 16 / 插件 22 / 逐项 38 页 / **插件覆盖 22/22** |
 | `scripts/verify-layouts.mjs` | 9 版式 / 编号连续 / 宽度 ≤610 |
+| `scripts/verify-controls.mjs` | 38 页 / 31 控件：控件 ↔ `cfg.key` ↔ `{{key}}` 三方对齐 |
+| `scripts/audit-controls.mjs` | 19 页 / 31 控件逐个拨：全部对舞台生效（重建装配或内容变化） |
 
 **与清单的偏离（都是想清楚后改的）**
 
@@ -322,6 +340,7 @@ Analytics(50) 能收到 PriceCalculator(20) 的首个 `price:change`，靠的就
 6. **「只装功能插件」的页补空媒体位**（`87560cd`）：22 页的卡顶是空的，看着像图挂了，但那批页刻意不装媒体插件（「最小装配」要能直接抄）。折中做法是画一条虚线斜纹位并注明「媒体位 · 本页未装媒体插件」——不塞占位图（更像挂），也不给这些页加 `ImagePlugin`（破坏最小装配）。实现挂在 `[data-card-id]::before`，38 个 Stage 一个没改。
 7. **布局专区单独立页**（`bbb1924`）：读原实现后确认 9 种版式的插件几乎是同一批，差别全在 `children` 结构，所以不做成插件示例，而是「一版式一文件 + `?raw` 同源」。
 8. **体检块锚点 `data-layout` → `data-plate`**：`CardCore` 会把 `layout` prop 透传成 DOM 的 `data-layout="vertical"`，选择器直接撞车，`/scenarios` 一度误报 6 条 `no-card`。三处（页面标记 / `demo/src/lib/audit.ts` / `scripts/audit-cards.mjs`）同步改。
+9. **控件体检从「不做」改成「做」**：原计划写着「控件即代码，人眼一眼能看出接没接上」。BadgePlugin 证明这句是错的：代码块确实会随 `{{key}}` 变，但舞台可以不跟着变，而且两者看起来**都「正常」**——恰恰是人眼最看漏的形态。现在静态（`verify-controls`）+ 运行时（`audit-controls`）各一道，见 C5.6。
 
 **踩过的四个布局坑（写进注释了）**
 
@@ -434,6 +453,6 @@ C0（决策 + 快照）
 | C0 | 决策落纸 + 4 份快照 | ✅ D1–D5 落地（tasks/11/12 标注）；`test/fixtures/card-snapshots.json` 已生成且 `test/snapshots.base.test.tsx` 通过；gzip 基线 28.13KB |
 | C1 | 包骨架 + Core 迁入 + demo 指回源码 | ✅ 包骨架/配置/依赖/typecheck 0 错/lib build 通过/demo 构建通过（R1 已证）；C1.4 的 Core 单测在 C2 一并补齐（3 个文件 14 用例），C1.3 的 51 页旧 demo 不搬运（留 C5 重写） |
 | C2 | 删 1154 行旧系统 / 钩子面 15 / test ≥18 / 清理计数 on=N off=N | ✅ 三文件已删；typecheck 0 / eslint --quiet 0 / vitest 26 passed（6 文件）/ gzip 30.37KB（预算 36KB）；清理计数 **on=12 / off=12**（旧系统 off=0）；额外修掉 2 处 rules-of-hooks 违规 + 1 个 npm 打包陷阱（见 C2 节末） |
-| C5 | demo build 通过 / 场景体检 0 命中 / 22 插件装配过 / ≥37 页可打开 | ✅ build 通过（`main` gzip 46.55KB）；`audit-cards.mjs` **42 页 0 命中**；插件覆盖 **22/22**；逐项示例 **38 页**；场景 **16 个**（10 通用 + 6 行业）；布局专区 **9 版式**；vitest 182 passed；typecheck / eslint 0 错 |
+| C5 | demo build 通过 / 场景体检 0 命中 / 22 插件装配过 / ≥37 页可打开 | ✅ build 通过（`main` gzip 49.60KB）；`audit-cards.mjs` **42 页 0 命中**；插件覆盖 **22/22**；逐项示例 **38 页**；场景 **16 个**（10 通用 + 6 行业）；布局专区 **9 版式**；`audit-controls.mjs` **19 页 31 控件全部生效**；vitest 187 passed；typecheck / eslint 0 错 |
 | C6 | check-packages + docs:build 全绿 / pack 干净 / changeset 就位 | ✅ 三条体积线全绿（根入口 6.8 / core 1.7 / 全量 31.5，预算 12/5/36）；docs 四件套 + README 同步 + ADR-11~14 + changeset 就位；`npm pack` 260 文件 / 74.9KB，只含 dist + README + package.json；vitepress build 通过；顺手修掉 sideEffects 把样式摇掉的问题 |
 | C4 | compound 0 处 `as any` / style.css 可单独引入 / 体积不劣化 | ✅ `as any` **51 → 0**（类型层 `types/product.ts` + `Object.assign` 装配）；vitest 180 passed（13 文件，含复合组件 46 用例）；`dist/style.css` 24.47KB(gzip 5.22)；根入口 gzip **22.10KB**（比 C3 末 23.61 更小）；`test/styles.test.ts` 锁住 class↔CSS 对账 |

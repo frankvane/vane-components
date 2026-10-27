@@ -57,6 +57,26 @@ describe("A 级插件在真实插件链下渲染", () => {
     expect(text).not.toContain("C");
   });
 
+  it("UserTagPlugin：字符串标签也认，配置优先于 data.tags", async () => {
+    // data.tags 的类型是 string[]（见 ProductData），直接丢给插件曾经渲染成一排空标签：
+    // t.label 是 undefined。这里锁住两件事：字符串归一到 label、配置不被数据顶掉。
+    const { container } = card([createUserTagPlugin({ tags: [{ label: "88VIP" }], maxTags: 3 })], {
+      tags: ["纯棉", "夏季"],
+    });
+    await flush();
+    const text = container.textContent ?? "";
+    expect(text).toContain("88VIP");
+    expect(text).not.toContain("纯棉");
+  });
+
+  it("UserTagPlugin：没配 tags 时用 data.tags 兜底（字符串也能读）", async () => {
+    const { container } = card([createUserTagPlugin()], { tags: ["纯棉", "夏季"] });
+    await flush();
+    const text = container.textContent ?? "";
+    expect(text).toContain("纯棉");
+    expect(text).toContain("夏季");
+  });
+
   it("HoverPlugin：transformProps 注入 pointer 光标与过渡", async () => {
     const { container } = card([createHoverPlugin()]);
     await flush();

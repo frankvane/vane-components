@@ -30,6 +30,19 @@ function formatCurrency(value: number, currency?: string, locale?: string) {
   }
 }
 
+/**
+ * 原价字段：公开类型 `ProductData` 里叫 `oldPrice`，插件早期只认 `originalPrice`。
+ *
+ * 结果就是「按文档给数据的人永远看不到划线价与折扣」（示例页的数据都是 oldPrice，
+ * 于是 `showDiscount` / `showSavings` 两个开关拖了半天什么都不变 —— 看起来像控件坏了，
+ * 其实是原价恒为 0、`hasOriginal` 恒 false）。
+ * 以公开类型为准：先读 oldPrice，再兼容 originalPrice。
+ */
+function readOriginalPrice(data: unknown): number {
+  const d = (data ?? {}) as { oldPrice?: number; originalPrice?: number };
+  return Number(d.oldPrice ?? d.originalPrice ?? 0);
+}
+
 export const createPriceCalculatorPlugin: PluginCreator<any, PriceCalculatorPluginConfig> = (
   config = {}
 ) => {
@@ -88,7 +101,7 @@ export const createPriceCalculatorPlugin: PluginCreator<any, PriceCalculatorPlug
         const price = Number(
           (skuPrice as any) ?? (context.data as any)?.price ?? 0
         );
-        const originalPrice = Number((context.data as any)?.originalPrice || 0);
+        const originalPrice = readOriginalPrice(context.data);
         const hasOriginal = cfg.showOriginalPrice && originalPrice > price && originalPrice > 0;
         const savings = hasOriginal ? originalPrice - price : 0;
         const discount = hasOriginal ? Math.round((1 - price / originalPrice) * 100) : 0;
@@ -136,7 +149,7 @@ export const createPriceCalculatorPlugin: PluginCreator<any, PriceCalculatorPlug
         const price = Number(
           (skuPrice as any) ?? (context.data as any)?.price ?? 0
         );
-        const originalPrice = Number((context.data as any)?.originalPrice || 0);
+        const originalPrice = readOriginalPrice(context.data);
         const hasOriginal = cfg.showOriginalPrice && originalPrice > price && originalPrice > 0;
         const discount = hasOriginal ? Math.round((1 - price / originalPrice) * 100) : 0;
         const savings = hasOriginal ? originalPrice - price : 0;

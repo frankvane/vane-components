@@ -117,3 +117,38 @@ describe("SKU → 价格 端到端联动", () => {
     expect(text).not.toContain("100");
   });
 });
+
+describe("原价字段契约（公开类型叫 oldPrice）", () => {
+  const withOld = (extra: Record<string, unknown> = {}) =>
+    renderCard([createPriceCalculatorPlugin({ showTotalPrice: false, ...extra })], {
+      data: { price: 299, oldPrice: 399 },
+    });
+
+  it("data.oldPrice 能画出划线价、折扣与节省", async () => {
+    // 插件早期只读 data.originalPrice，而 ProductData 里叫 oldPrice ——
+    // 于是 showDiscount / showSavings 两个开关拖了半天什么都不变（原价恒为 0）。
+    const { container } = await withOld();
+    await flush();
+    const text = container.textContent ?? "";
+    expect(text).toContain("399"); // 划线原价
+    expect(text).toContain("25%"); // (1 - 299/399) ≈ 25%
+    expect(text).toContain("100"); // 省 100
+  });
+
+  it("旧字段 originalPrice 仍然兼容", async () => {
+    const { container } = renderCard([createPriceCalculatorPlugin({})], {
+      data: { price: 299, originalPrice: 399 },
+    });
+    await flush();
+    expect(container.textContent).toContain("399");
+  });
+
+  it("两个开关真的各自生效", async () => {
+    const off = await withOld({ showDiscount: false, showSavings: false, showSavingsBadgeInPriceArea: false });
+    await flush();
+    const t = off.container.textContent ?? "";
+    expect(t).toContain("299");
+    expect(t).not.toContain("25%");
+    expect(t).not.toContain("已省");
+  });
+});

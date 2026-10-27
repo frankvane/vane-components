@@ -8,7 +8,7 @@
       "name": "showOriginalPrice",
       "type": "boolean",
       "default": "false",
-      "description": "显示划线原价（需 data.originalPrice > 当前价）"
+      "description": "显示划线原价（需 data.oldPrice > 当前价；兼容旧字段 originalPrice）"
     },
     {
       "name": "showDiscount",

@@ -14,6 +14,7 @@ import React, { useCallback, useMemo, useState } from "react";
 import { CodeBlock } from "../components/CodeBlock";
 import { buildDataCode, buildDemoCode } from "./codegen";
 import { ControlBar, EventLog, type LogLine } from "./panels";
+import { CfgGenProvider } from "./stage";
 import {
   GROUP_META,
   initialCfg,
@@ -120,7 +121,11 @@ export function DemoPage({ entry, order }: { entry: DemoEntry; order: number }) 
             style={{ "--card-w": `${meta.stageWidth ?? 360}px` } as React.CSSProperties}
           >
             <div className={`demo-card${showMediaSeat ? " is-no-media" : ""}`} data-card-stage>
-              <Stage cfg={cfg} log={log} setCfg={onChange} />
+              {/* 控件世代号：Stage 内的 useCard 靠它判断「该重建组件类型了」。
+                  不提供的话，插件配置改了但类型还是第一次那个，舞台不会跟着变。 */}
+              <CfgGenProvider cfg={cfg}>
+                <Stage cfg={cfg} log={log} setCfg={onChange} />
+              </CfgGenProvider>
             </div>
           </div>
         </figure>

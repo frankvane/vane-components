@@ -12,7 +12,7 @@ import {
   createReviewPlugin,
   createUserTagPlugin,
 } from "vane-card/custom-plugins";
-import { Content, makeCard, useCard } from "../stage";
+import { Content, useCard } from "../stage";
 import { TEE, MUG } from "../../data/seed";
 import type { DemoEntry } from "../types";
 
