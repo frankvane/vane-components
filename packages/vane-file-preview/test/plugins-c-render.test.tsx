@@ -128,7 +128,27 @@ describe("Markdown · 安全默认", () => {
     });
 
     await waitFor(() => h.container.querySelector("[data-vfp-md] img") !== null);
+    const img = h.container.querySelector("[data-vfp-md] img")!;
+    expect(img).not.toBeNull();
+    // 元素进来了，但事件处理器必须被剥掉：留着它 React 会抛
+    // 「Expected `onError` listener to be a function, instead got a value of `string` type」，
+    // 整棵预览树崩掉（真浏览器里复现过，见 stripDangerousAttrs）
+    expect(img.getAttribute("onerror")).toBeNull();
+    expect((img as HTMLImageElement).onerror).toBeNull();
+  });
+
+  it("allowHtml 档遇到 on* 属性不崩，正文照常渲染", async () => {
+    stubFetch({
+      "blob:md": `<img src="x" onerror="alert(1)" onclick="alert(2)">\n\n# 还好\n`,
+    });
+    const h = renderPreview([createMarkdownPreviewPlugin({ allowHtml: true })], {
+      file: file({ name: "b.md", type: "text/markdown", extension: "md", url: "blob:md" }),
+    });
+
+    await waitFor(() => h.container.querySelector("[data-vfp-md] h1") !== null);
+    expect(h.container.querySelector("[data-vfp-md] h1")?.textContent).toContain("还好");
     expect(h.container.querySelector("[data-vfp-md] img")).not.toBeNull();
+    expect(h.container.querySelector("[data-vfp-md] img")?.getAttribute("onclick")).toBeNull();
   });
 
   it("相对路径按文件位置解析（不是按页面地址）", () => {

@@ -198,11 +198,13 @@ export function withPlugins(
       onLoadStart: props.onLoadStart,
       onLoadSuccess: props.onLoadSuccess,
       onLoadError: props.onLoadError,
+      onStateChange: props.onStateChange,
     });
     userCallbacks.current = {
       onLoadStart: props.onLoadStart,
       onLoadSuccess: props.onLoadSuccess,
       onLoadError: props.onLoadError,
+      onStateChange: props.onStateChange,
     };
 
     const enhancedProps: FilePreviewCoreProps = {
@@ -233,7 +235,11 @@ export function withPlugins(
         void execute("onLoadError", error);
       },
 
-      // Core 是唯一真源，这里只做单向镜像
+      // Core 是唯一真源，这里只做单向镜像。
+      // 但**用户的 onStateChange 必须转发出去** —— 这里曾经只 setState 就完了，
+      // `...props` 展开的 onStateChange 被这个键覆盖掉，于是外面永远收不到状态变化：
+      // 宿主拿它做 loading 指示器 / 埋点 / 状态读数时，界面会一直停在 idle，
+      // 而内容其实早就渲染完了。这类「看起来没坏」的静默丢失最难查。
       onStateChange: (info) => {
         setState((prev) =>
           prev.state === info.state &&
@@ -242,6 +248,7 @@ export function withPlugins(
             ? prev
             : info
         );
+        userCallbacks.current.onStateChange?.(info);
       },
 
       children: (

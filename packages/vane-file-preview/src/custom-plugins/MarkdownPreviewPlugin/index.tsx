@@ -26,6 +26,12 @@
  * 4. **相对路径的图片 / 链接按文件位置解析。** 迁移前 `![](images/a.png)` 会被
  *    浏览器按**当前页面**的地址解析，指向宿主的 `/images/a.png` —— 一张都显示不出来。
  *    现在按 `file.url` 的目录解析（见 resolveMarkdownUrl）。
+ *
+ * 5. **`allowHtml` 档还会剥掉 `on*` 属性与 `javascript:` 链接。** 不加这一道，
+ *    文件里一个 `<img onerror="…">` 就足以让 React 抛
+ *    「Expected `onError` listener to be a function」把整棵预览树打崩 ——
+ *    用户从网页复制一段 Markdown 过来就会带上这种东西，崩了比不渲染更糟。
+ *    见下方 `stripDangerousAttrs`。
  */
 
 import React, { useEffect, useMemo, useState } from "react";
@@ -126,6 +132,50 @@ const loadMarkdownWithRaw = async (): Promise<MarkdownDependencies> => {
     rehypeRaw: raw.default,
   };
 };
+
+// ============ 危险属性剥离 ============
+
+interface HastNode {
+  type: string;
+  tagName?: string;
+  properties?: Record<string, unknown>;
+  children?: HastNode[];
+}
+
+/**
+ * 去掉 `on*` 事件属性与 `javascript:` 链接。
+ *
+ * 为什么必须有这一道：`allowHtml: true` 时 rehype-raw 会把文件里的 HTML
+ * 原样解析成 hast，`<img onerror="…">` 到这里就变成 `properties.onError = "…"`。
+ * react-markdown 再把它当 prop 传给 React，于是 React 直接抛
+ * 「Expected `onError` listener to be a function, instead got a value of `string` type」——
+ * 整个预览树崩掉。用户上传的 .md 里带 `onerror` 太常见了（从网页复制粘贴就会有），
+ * 一个属性把预览打崩，比不渲染 HTML 更糟。
+ *
+ * 注意剥掉的不只是「安全风险」：React 本来就不会把字符串变成事件处理器，
+ * 所以这里真正解决的是**崩溃**。真想执行 HTML 里的脚本，得自己先清洗再
+ * `dangerouslySetInnerHTML`，那不是预览组件的职责。
+ */
+function stripDangerousAttrs() {
+  return (tree: HastNode): void => {
+    const walk = (node: HastNode): void => {
+      const props = node.properties;
+      if (props) {
+        for (const key of Object.keys(props)) {
+          if (/^on/i.test(key)) delete props[key];
+        }
+        for (const key of ["href", "src", "srcSet", "action", "formAction"]) {
+          const value = props[key];
+          if (typeof value === "string" && /^\s*javascript:/i.test(value)) {
+            props[key] = "#";
+          }
+        }
+      }
+      node.children?.forEach(walk);
+    };
+    walk(tree);
+  };
+}
 
 // ============ 相对路径 ============
 
@@ -290,7 +340,11 @@ function MarkdownBody({
         ]);
       }
       // 只有 allowHtml 的 loader 才会带回 rehypeRaw
-      if (deps.mod.rehypeRaw) list.push(deps.mod.rehypeRaw);
+      if (deps.mod.rehypeRaw) {
+        list.push(deps.mod.rehypeRaw);
+        // 必须在 raw 之后：先解析出属性，才谈得上剥离
+        list.push(stripDangerousAttrs);
+      }
     }
     for (const p of config.rehypePlugins) list.push(p);
     return list;

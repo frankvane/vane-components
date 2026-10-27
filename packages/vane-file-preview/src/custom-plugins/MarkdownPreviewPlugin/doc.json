@@ -64,6 +64,7 @@
   "notes": [
     "react-markdown / remark-gfm / remark-breaks / rehype-highlight 都是 optional peer。",
     "allowHtml: true 时会把文件里的原始 HTML 直接插进 DOM。文件预览的输入通常不可信（用户上传 / 别人发来的），开启前请自行做 HTML 清洗。",
+    "allowHtml: true 时仍会剥掉 on* 事件属性与 javascript: 链接 —— 不剥的话文件里一个 <img onerror=\"…\"> 就会让 React 抛「onError 必须是函数」把预览树打崩（用户从网页复制的 Markdown 经常带这个）。",
     "不内置 KaTeX：katex 的样式表 200KB+，而公式在文件预览里是低频需求。用 remarkPlugins / rehypePlugins 自己接。",
     "主题跟随系统只在渲染时读一次 prefers-color-scheme，不监听变化（避免每个实例挂一个 matchMedia 监听器）。"
   ]

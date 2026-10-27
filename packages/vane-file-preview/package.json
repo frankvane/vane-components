@@ -132,7 +132,10 @@
     "test": "vitest run --pool=threads",
     "lint": "eslint .",
     "sync:exports": "node ../../scripts/sync-exports.mjs",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "serve:demo": "node scripts/serve-demo.cjs",
+    "audit:pages": "node scripts/audit-pages.mjs",
+    "preview:demo": "npm run build:demo && node scripts/serve-demo.cjs"
   },
   "peerDependencies": {
     "@uiw/react-json-view": ">=2.0.0-alpha.39",

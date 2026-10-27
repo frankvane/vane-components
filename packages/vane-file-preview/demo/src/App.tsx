@@ -1,83 +1,107 @@
-import { useState, type CSSProperties } from "react";
-import { BasicDemo } from "./pages/BasicDemo";
-import { CodeDemo } from "./pages/CodeDemo";
-import { DocumentsDemo } from "./pages/DocumentsDemo";
+import React, { Suspense, lazy, useEffect, useState } from "react";
+import { HashRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { Sidebar } from "./components/Sidebar";
+import { PLUGIN_COUNT } from "./data/plugin-catalog";
+import { SAMPLE_COUNT } from "./data/samples";
 
-const shell: CSSProperties = {
-  maxWidth: 880,
-  margin: "0 auto",
-  padding: "48px 24px 96px",
-  fontFamily:
-    'system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif',
-  color: "#1f2329",
+const HomePage = lazy(() => import("./pages/HomePage").then((m) => ({ default: m.HomePage })));
+const DemosPage = lazy(() => import("./pages/DemosPage").then((m) => ({ default: m.DemosPage })));
+const DemoDetailPage = lazy(() =>
+  import("./pages/DemoDetailPage").then((m) => ({ default: m.DemoDetailPage }))
+);
+const WorkshopPage = lazy(() =>
+  import("./pages/WorkshopPage").then((m) => ({ default: m.WorkshopPage }))
+);
+const ScenariosPage = lazy(() =>
+  import("./pages/ScenariosPage").then((m) => ({ default: m.ScenariosPage }))
+);
+
+const Loading: React.FC = () => <div className="loading">loading modules…</div>;
+
+/** 顶栏只承担「我在哪」+「系统在跑」两件事 */
+function currentLabel(pathname: string): string {
+  if (pathname === "/") return "index / 索引";
+  if (pathname.startsWith("/demos/")) return "demo / 逐项示例";
+  if (pathname === "/demos") return "demos / 示例目录";
+  if (pathname.startsWith("/workshop")) return "workshop / 插件工坊";
+  if (pathname.startsWith("/scenarios")) return "scenario / 场景示例";
+  return "index / 索引";
+}
+
+const TopBar: React.FC<{ onMenu: () => void }> = ({ onMenu }) => {
+  const { pathname } = useLocation();
+  return (
+    <header className="topbar">
+      <button type="button" className="icon-btn" onClick={onMenu} aria-label="打开导航菜单">
+        <span aria-hidden="true" />
+      </button>
+      <span className="topbar-title">{currentLabel(pathname)}</span>
+      <span className="topbar-spacer" />
+      <div className="topbar-actions">
+        <span className="topbar-stat" title="已注册插件总数">
+          <b>{PLUGIN_COUNT}</b> plugins
+        </span>
+        <span className="topbar-stat" title="样本库里的真文件">
+          <b>{SAMPLE_COUNT}</b> samples
+        </span>
+        <span className="topbar-stat" title="演示运行时">
+          <i className="pulse" aria-hidden="true" />
+          live
+        </span>
+      </div>
+    </header>
+  );
 };
 
-type Tab = "media" | "documents" | "code";
+const Shell: React.FC = () => {
+  const [navOpen, setNavOpen] = useState(false);
+  const { pathname } = useLocation();
 
-const TABS: Array<{ id: Tab; label: string; hint: string }> = [
-  {
-    id: "media",
-    label: "A 批 · 轻量 6 个",
-    hint: "Image / Pdf / Video / Audio / Office / Download，全部零重依赖",
-  },
-  {
-    id: "documents",
-    label: "B 批 · 文档与数据 7 个",
-    hint: "Json / Xml / Xlsx / Pptx / Zip / Docx×2，重依赖走 dynamic import",
-  },
-  {
-    id: "code",
-    label: "C 批 · 代码与文档 4 个",
-    hint: "Code（41 主题→2）/ Markdown（rehype-raw 默认关）/ Csv（拆 4 文件）/ Epub",
-  },
-];
+  // 路由切换后收起抽屉，避免移动端停在遮罩上
+  useEffect(() => setNavOpen(false), [pathname]);
 
-export function App() {
-  const [tab, setTab] = useState<Tab>("media");
-  const active = TABS.find((t) => t.id === tab)!;
+  useEffect(() => {
+    if (!navOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setNavOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [navOpen]);
 
   return (
-    <main style={shell}>
-      <h1 style={{ fontSize: 24, margin: "0 0 6px", letterSpacing: "-0.01em" }}>
-        vane-file-preview
-      </h1>
-      <p style={{ margin: "0 0 20px", fontSize: 13, color: "#8a8a8a" }}>
-        P3 已迁入全部 17 个插件，页面按子路径引入。样本是{" "}
-        <code>demo/public/samples/</code> 里的真文件 —— data URL 骗得过图片，
-        骗不过 PDF 查看器、视频解码器与 xlsx 解析器。
-      </p>
-
-      <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
-        {TABS.map((t) => (
-          <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
-            style={{
-              padding: "7px 14px",
-              borderRadius: 8,
-              border: `1px solid ${tab === t.id ? "#1f2329" : "#d8d8d8"}`,
-              background: tab === t.id ? "#1f2329" : "#fff",
-              color: tab === t.id ? "#fff" : "#1f2329",
-              fontSize: 13,
-              cursor: "pointer",
-              fontFamily: "inherit",
-            }}
-          >
-            {t.label}
-          </button>
-        ))}
+    <div className="app">
+      <a className="skip-link" href="#main">
+        跳到主内容
+      </a>
+      <Sidebar open={navOpen} onClose={() => setNavOpen(false)} />
+      <div className="app-body">
+        <TopBar onMenu={() => setNavOpen(true)} />
+        <main className="main" id="main">
+          <Suspense fallback={<Loading />}>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/demos" element={<DemosPage />} />
+              <Route path="/demos/:id" element={<DemoDetailPage />} />
+              <Route path="/workshop" element={<WorkshopPage />} />
+              <Route path="/scenarios" element={<ScenariosPage />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Suspense>
+        </main>
       </div>
-      <p style={{ margin: "0 0 20px", fontSize: 12, color: "#8a8a8a" }}>
-        {active.hint}
-      </p>
-
-      {tab === "media" ? (
-        <BasicDemo />
-      ) : tab === "documents" ? (
-        <DocumentsDemo />
-      ) : (
-        <CodeDemo />
-      )}
-    </main>
+      <div
+        className="nav-scrim"
+        data-open={navOpen}
+        aria-hidden="true"
+        onClick={() => setNavOpen(false)}
+      />
+    </div>
   );
-}
+};
+
+export const App: React.FC = () => (
+  <HashRouter>
+    <Shell />
+  </HashRouter>
+);

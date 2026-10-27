@@ -292,23 +292,39 @@ demo            13 个示例页 + Home + ReadmeDemo + _layout
 
 ## P5 · demo 重写（三视角）
 
-- [ ] **P5.1 骨架**：`demo/vite.config.ts`（`createDemoConfig`）、`App.tsx`（4 项导航）、`pages/{HomePage,WorkshopPage,DemosPage,ScenariosPage}.tsx`
+- [x] **P5.1 骨架**：`demo/vite.config.ts`（`createDemoConfig`）、`App.tsx`（4 项导航）、`pages/{HomePage,WorkshopPage,DemosPage,ScenariosPage}.tsx`
+  - 实为 5 条路由：`/` · `/demos`（目录）· `/demos/:id`（17 页，同一组件按 id 取）· `/workshop` · `/scenarios`
+  - 视觉照 `packages/vane-lazy-image/demo` 抄：琥珀橙 `#ff7a29` + 暖墨黑 `#0b0a09` + Chakra Petch/JetBrains Mono 自托管
+  - **唯一的关键偏离**：新增一套 `--paper*` 灯箱令牌。文件预览的内容天生是白底（PDF 页、docx 纸面、Markdown 正文），
+    暗场里直接放白底内容会糊成一片；外框仍是仪器暗色，形成「暗房里的灯箱」。理由写在 `App.css` 文件头
 - [x] **P5.2 样本资产**：`archive-plugins/vane-file-preview/public` 的 36 个根级真实文件（15MB）全部搬进 `demo/public/samples/`（**绝不进 dist**：`demo-dist/` 在 .gitignore 里，库产物无 samples）
   - 当前 39 个 = 归档 36 + 自建 3（`gbk-data.csv` GB18030 / `xss-demo.md` XSS 样本 / `fake-book.epub` zip 改名的假书）
   - 归档里的 `sample-epub/` 是**解压后的目录书**，本插件只吃单文件，故不搬（已记录）
   - 逐个真机点开确认：GIF / WebP / 两个 PDF / WebM / MP3 / WAV / package.json / 竖线 CSV / 混排 CSV 全部正常，控制台无错误
-- [ ] **P5.3 工坊（17 张卡）**：每卡 = 一个插件 + 一个默认文件 + 配置项说明 + 一句「拿手的活」
-- [ ] **P5.4 逐项示例（17 页）**
-  - [ ] 一文件一页：`demo/src/demos/<NN>-<slug>.tsx`，双 glob（eager 组件 + `?raw` 同源，同 vane-card）
-  - [ ] 每页 = 左预览（可切 2~3 个样本文件）+ 右事件/状态 + 下通栏源码
-  - [ ] **装配写成模块顶层常量**（`const Preview = makePreview([...])`），禁止在函数体内调 `withPlugins`（当前 11 个页面就是这么写的）
-- [ ] **P5.5 场景（6 个）**
-  - [ ] 上传即预览（拖拽 + 类型分流）/ 邮件附件列表 / 文档审批（左右对比）/ 素材库（图 + 视频混合）/ 数据导入（CSV 映射列）/ 代码评审（diff 视角）
-- [ ] **P5.6 体检闸门**
-  - [ ] `scripts/audit-pages.mjs`：真浏览器逐页断言「预览器容器存在 + 非零尺寸 + 无 pageerror + 无 overflow」，块锚点 `[data-demo]` / `[data-scenario]` / `[data-plugin]`
-  - [ ] `demo/src/lib/audit.ts` 同源判据（浏览器里可手点复现）
+- [x] **P5.3 工坊（17 张卡）**：每卡 = 一个插件 + 一个默认文件 + 配置项说明 + 一句「拿手的活」
+  - 17 张卡都是**真的预览器**（不是截图），可切样本；`LazyMount`（IntersectionObserver + rootMargin 240px）延迟装载：
+    epub/docx/pptx/xlsx 各要解一个 zip，17 个同时挂会把主线程堵住
+  - 工坊卡复用 `.stage-mount` 而不是自造 `.ws-mount`，让 17 张卡和 17 个逐项页走同一套体检判据
+- [x] **P5.4 逐项示例（17 页）**
+  - [x] 一文件一页：`demo/src/demos/<NN>-<slug>.tsx`，双 glob（eager 组件 + `?raw` 同源，同 vane-card）
+  - [x] 每页 = 左预览（可切 2~3 个样本文件 + 2~3 个装配档位）+ 右事件/状态 + 下通栏源码（官方用法 / 本页源码 两个 tab）
+  - [x] **装配写成模块顶层常量**（`const Preview = withPlugins(...)`），禁止在函数体内调 `withPlugins`
+  - 全站 36 套装配**集中在一个文件**（`demo/src/lib/previews.tsx`）的模块顶层；页面只能 `previewOf(key).Comp` 取引用
+- [x] **P5.5 场景（6 个）**
+  - [x] 上传即预览（拖拽 + 类型分流）/ 邮件附件列表 / 文档审批（左右对比）/ 素材库（图 + 视频混合）/ 数据导入（CSV 映射列）/ 代码评审（diff 视角）
+  - 每个场景带「最小装配」自动生成（`minimalCode()` 只留 import + withPlugins + `<Preview file>`），证明几十行就能落地
+- [x] **P5.6 体检闸门**
+  - [x] `scripts/audit-pages.mjs`：真浏览器逐页断言「预览器容器存在 + 非零尺寸 + 无 pageerror + 无 overflow」，块锚点 `[data-demo]` / `[data-scenario]` / `[data-plugin]`
+  - [x] `demo/src/lib/audit.ts` 同源判据（浏览器里可手点复现）
+  - [x] 静态覆盖闸门：catalog 的 17 个 id 与 17 个逐项页**一一对应**，缺/多都在开浏览器之前抛错
+  - [x] **内容级判据 `no-plugin`**：挂载点里是 Core 的「没有插件能预览这个文件」即判红（几何全绿也可能内容为空，见偏离 40）
+  - [x] 已知噪声分流（打印但不判失败），见偏离 33
+  - [x] 两条链路都验：vite dev（3302）与 `build:demo` + `serve:demo`（3303）
+  - 单轮耗时从 ~7 分钟降到 ~110 秒：原因见偏离 42（等了永远不存在的 `main .page`）
 
 **验收门 P5**：40 页（17 逐项 + 17 工坊 + 6 场景）逐页几何 **0 命中**；每页有可复制源码；17 插件在 demo 中**至少装配一次**（脚本化覆盖闸门）。
+→ 实测（最终代码）：dev（3302）21 页 / **40 块 / 0 命中 / 退出码 0**；构建产物（3303）同样 21 页 / 40 块 / 0 命中。
+   `tsc` 0 错、`eslint` 0 error / 76 warning、`vitest` **18 文件 258 条全过**、`build:demo` 通过。
 
 ---
 
@@ -477,6 +493,71 @@ demo            13 个示例页 + Home + ReadmeDemo + _layout
    逐个 gzip 相加）会把 `index` / `withPlugins` 共享 chunk 在根入口与 `core` 里各算一遍，
    所以 13.7KB；消费方口径（esbuild 单入口 bundle + gzip、peer external）只有 10.5KB，
    后者才是用户真实付出的字节。以前混用两个数得出过「看起来超预算」的错误结论。
+31. **`data-plugin` 的语义是「这块是一个真的预览舞台」，不能拿来标索引卡。**
+   首轮体检报 57 块（期望 40），因为 `/demos` 目录里 17 张链接卡也带了 `data-plugin`
+   → 被判成「块里没有 `.stage-mount`」。改成 `data-idx`。教训：**锚点属性一旦同时承担
+   「语义标签」和「脚本判据」两个职责，多打一处就是一条假红**（或更糟：假绿）。
+32. **「没有块」在脚本里不算错，在页面手检里算错 —— 这个分歧必须写下来。**
+   `/` 和 `/demos` 本来就没有舞台；`lib/audit.ts` 却是人在预览页上手点的，0 块一定是装配漏了。
+   两边各按自己的场景判，注释写清差异，免得后来者「统一」成一种而让其中一边失效。
+33. **epub.js 的 `META-INF/container.xml` / `OEBPS/OEBPS/content.opf` 404 是同一件事。**
+   `Book.archived === false` 时 `load()` 不走 `archive.request()` 而回落成裸 XHR（路径相对文档基址）。
+   触发源是 React StrictMode 双挂载：第一本书被 `destroy()` 后仍有在途的容器解析。
+   实测三条（别凭猜）：书**渲染正常**、工坊 idle 8 秒内 `[data-vfp-epub]` 重建 **0** 次、
+   同一本书两次跑出**两条不同**的失败路径 → 是回落，不是固定逻辑。
+   处理方式是**已知噪声分流**（打印出来 + 写清原因），不是静默忽略。
+34. **`withPlugins` 把用户的 `onStateChange` 吞了（库级 bug）。**
+   它只做内部镜像（`setState` 触发重渲），没往下透传 → 消费方拿不到状态，
+   demo 的状态读数永远停在 `IDLE`。修完补 `test/with-plugins-callbacks.test.tsx`（4 条，
+   含「没有插件能预览」这条失败路径），否则下次重构还会掉。
+35. **Markdown `allowHtml: true` 下，一个 `<img onerror>` 能把整棵 React 树打崩。**
+   `rehype-raw` 只负责把 HTML 变成节点，不管属性。加了 rehype 插件剥离 `on*` 处理器与
+   `javascript:` 协议；`doc.json` 里「开启前请自行清洗」改成「已剥离事件处理器与 js: 协议，
+   但仍然建议服务端再洗一遍」——写「你别用」不如写「我做到了哪一步」。
+36. **右栏参数表的 `nowrap` 把整页顶宽 62px。**
+   `.demo-side` 的 grid 列少了 `minmax(0, 1fr)`，子元素 `white-space: nowrap` 就把列撑到 393px。
+   体检的 `page-overflow` 判据（body 比视口宽）当场抓到 —— 这是**块自己没溢出、整页溢出**的
+   典型形态，只在挂载点上量尺寸是查不出来的。
+37. **「装配代码」必须从真装配对象反推，不能另写一份文案。**
+   写一份就等于有了两份事实；改插件参数忘了改文案，页面就会拿一段跑不起来的代码骗人。
+   反推时**只输出与默认档的差异**（否则 8 个默认参数把真正的信息埋掉），
+   切档位时 `{allowHtml: true}` 会实时出现在代码里。
+38. **`useFile` 被 eslint 当成 Hook**（`rules-of-hooks` 两条 error）：普通函数用了 `use` 前缀。
+   改名 `adoptFile`。命名空间这种东西，工具是认前缀的，不认意图。
+39. **demo 产物单 chunk 1.5MB（gzip 525KB），这是演示台的代价，不是库的。**
+   36 套装配全在 `lib/previews.tsx` 模块顶层（这是硬约束），17 个插件工厂因此都被静态引入。
+   库产物的体积闸门另算（16KB / 8KB / 90KB 三档），`npm pack` 也不含 demo。
+   如果哪天要把 demo 部署成公开站点，再考虑按路由拆装配 —— 现在不值得为它牺牲「装配在顶层」这条。
+40. **`docxMode` 让「几何全绿、内容为空」成了可能 —— 这是 P5 最值钱的一条。**
+   docx 的两个渲染器由 `file.docxMode` **互斥**决定：`DocxPreview` 只在
+   `=== "docx-preview"` 时命中，Mammoth 在不等于时命中。demo 的样本是同一个
+   `sample.docx`，没有这个字段 → `/demos/docx`、工坊 docx 卡、邮件附件场景
+   **全都静默变成 Core 的「没有插件能预览这个文件」**。
+   而几何体检一条都没红：块在、尺寸 327×165、无溢出、无 pageerror。**三个绿，内容是空的。**
+   修法分两层：
+   - 数据层：`PluginMeta.filePatch`，由 `DemoDetailPage` / `WorkshopPage` 合并进 file；
+     场景里就地补 `docxMode`。**不能靠页面自觉**，一处忘了就是一次假绿。
+   - 判据层：新增 `no-plugin` 判据（只认 Core 那句，不认 DownloadPlugin 的兜底文案）。
+     **反向验证过**：删掉 `filePatch` 后 `/demos/docx` 立刻红、mammoth 页仍绿。
+41. **`shortMime` 截前缀会把三种 OOXML 截成同一个字符串。**
+   `application/vnd.openxmlformats-officedocument.` 这 44 个字符三者完全相同，
+   差别在尾巴（`wordprocessingml.document` / `spreadsheetml.sheet` /
+   `presentationml.presentation`）。截前 18 字 → 三行长得一模一样，等于没显示。
+   改成保留尾两段：`application/…wordprocessingml.document`。
+42. **体检跑 7 分钟，大半在等一个永远不存在的选择器。**
+   `/demos/:id` 的根节点是 `<section class="demo">`，不是 `.page`；脚本里
+   `waitForSelector("main .page")` 在那 17 个页面上必然超时，然后被 `.catch(() => {})` 吞掉
+   —— 17 × 20 秒空转。改成等 `main .page, [data-demo], [data-plugin], [data-scenario]`
+   且 `state: "attached"`，单轮 7 分钟 → 110 秒。
+   **教训：`.catch(() => {})` 会把「逻辑错误」伪装成「只是慢」。**
+43. **本机沙箱下 `--pool=threads` 偶发 worker EPERM（写 Temp 被拦），表现为「文件数变少但全绿」。**
+   同一份代码三次跑出 211 / 223 / 258 条 —— 只有 258（18 文件）是真的全跑完。
+   复跑用 `--pool=forks --no-file-parallelism` 稳定 18/258。判据是**文件数与用例数**，
+   不是「绿不绿」：绿但少跑了几条，比红更危险。
+44. **`.demos-index` 不能改成「单网格 + 通栏标题」。**
+   它是 1px 隔线拼出来的表格感网格；通栏标题要求网格跨行，于是只有一张卡的分组会在
+   同一行里留下两个**带边框的空格**，看起来像数据缺失（试过，比原来的右侧留白更糟，已回退）。
+   工坊是无边框的 gap 网格，用单网格 + 通栏标题就没这个问题（那部分保留）。
 ---
 
 ## 执行记录（随实施追加）
@@ -491,6 +572,5 @@ demo            13 个示例页 + Home + ReadmeDemo + _layout
 | P3-C | 2026-10-27 | Code（41→2 主题）/ Markdown（raw 默认关）/ Csv（拆 4 文件）/ Epub（ArrayBuffer + 两级校验）+ 桶文件 + 17 行文档 + demo 第三页（240 单测） |
 | P3-D | 2026-10-27 | 失败态返工：Core 英文 `Load Failed` → 中文化 ErrorPanel + 下载出路；视频按容器分组措辞；EPUB 头部诊断三档 + EOCD 列条目（242 单测） |
 | P4 | 2026-10-27 | 依赖边界收口：`peer-manifest.test.ts`（6 条，双向校验 14 个 optional peer）+ README 生成 + 体积三口径写实（13.7/16 · 6.6/8 · 69.0/90，消费方 10.5/5.3/61.3，248 单测） |
-| P4 | — | — |
-| P5 | — | — |
+| P5 | 2026-10-27 | demo 三视角重写：工坊 17 卡（LazyMount）+ 逐项 17 页（档位/日志/参数表/双份源码）+ 场景 6 个 + `audit-pages.mjs`（21 页 / 40 块 / 0 命中，dev 与构建产物两条链路）。顺带修了 `withPlugins` 吞 `onStateChange`、Markdown `allowHtml` 下 `<img onerror>` 打崩树、`docxMode` 假绿（新增 `no-plugin` 判据）。258 单测 |
 | P6 | — | — |
