@@ -1,6 +1,6 @@
 # 11 · vane-card 迁移分析（资产盘点 / 架构差距 / 逐插件分级）
 
-> 状态：**分析完成 · 待拍板**（本文不改任何代码）
+> 状态：**决策已锁定（D1–D5 见第六章标注）· 迁移进行中（C1 起）**（本文不改任何代码）
 > 基线：`archive-plugins/vane-card`（`package.json` 1.0.8，npm 已发布 1.0.8，解包 381KB），本机实测于 2026-10-27
 > 参照范式：`packages/vane-lazy-image`（P1 样板包）+ `packages/vane-waterfall`（P2 已完成的同类迁移）+ `tasks/07` / `tasks/08`
 > 实施步骤见 `tasks/12-vane-card-实施清单.md`

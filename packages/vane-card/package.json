@@ -1,0 +1,87 @@
+{
+  "name": "vane-card",
+  "version": "2.0.0",
+  "description": "React 卡片组件：插件化、可组合电商卡，22 个领域插件 + 38 个复合组件",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "react",
+    "plugin",
+    "card",
+    "product-card",
+    "ecommerce",
+    "typescript"
+  ],
+  "author": "Frank Vane",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/frankvane/vane-components.git",
+    "directory": "packages/vane-card"
+  },
+  "bugs": {
+    "url": "https://github.com/frankvane/vane-components/issues"
+  },
+  "homepage": "https://github.com/frankvane/vane-components/tree/main/packages/vane-card#readme",
+  "scripts": {
+    "dev": "vite --config demo/vite.config.ts",
+    "build": "vite build --mode lib",
+    "build:demo": "vite build --config demo/vite.config.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run --pool=threads",
+    "lint": "eslint .",
+    "sync:exports": "node ../../scripts/sync-exports.mjs",
+    "docs:plugins": "node ../../scripts/generate-plugin-docs.mjs",
+    "verify:scenarios": "node scripts/verify-scenarios.mjs",
+    "audit:demos": "node scripts/audit-demos.mjs",
+    "audit:controls": "node scripts/audit-controls.mjs",
+    "serve:demo": "node scripts/serve-demo.cjs",
+    "demo": "pnpm build:demo && node scripts/serve-demo.cjs",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "@vane/plugin-core": "workspace:*",
+    "react": ">=16.8.0",
+    "react-dom": ">=16.8.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.18",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vane/build-config": "workspace:*",
+    "@vane/eslint-config": "workspace:*",
+    "@vane/plugin-core": "workspace:*",
+    "@vane/tsconfig": "workspace:*",
+    "@vane/vitest-config": "workspace:*",
+    "@vitejs/plugin-react": "^4.3.1",
+    "happy-dom": "^15.11.7",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "typescript": "^5.5.3",
+    "vite": "^5.4.1",
+    "vite-plugin-dts": "^4.5.4",
+    "vitest": "^2.1.9"
+  },
+  "vane": {
+    "sizeBudgetKb": 36,
+    "coreSizeBudgetKb": 5
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

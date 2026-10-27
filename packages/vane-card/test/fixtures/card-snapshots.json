@@ -1,0 +1,100 @@
+{
+  "source": "packages/vane-card/src（从 archive-plugins/vane-card 复制，旧自研插件系统，迁移前）",
+  "generatedBy": "test/snapshots.base.test.tsx",
+  "slotOrder": {
+    "segments": [
+      "headerPosition==='before' 的插件（按 config.order 升序）",
+      "children（卡片主体）",
+      "overlay（所有 renderOverlay 插件，不排序）",
+      "headerPosition!=='before' 的插件（按 config.order 升序，默认）",
+      "footer（所有 renderFooter 插件，不排序）"
+    ],
+    "sortRule": "仅 config.order 升序影响渲染位置；priority 只影响 executeHook 执行顺序，不参与渲染",
+    "note": "与内核 composeSlots 的 before-header→children→overlay→after-header→footer 一致"
+  },
+  "priceArea": {
+    "hook": "renderPriceArea",
+    "slotImpl": "SlotsContext（单槽 priceArea）",
+    "participants": [
+      "PriceCalculatorPlugin",
+      "ComparePricePlugin",
+      "CouponRecommendPlugin"
+    ],
+    "sortRule": "config.order 升序",
+    "risk": "R5：priceArea 是「插件 ↔ 复合组件」接缝，迁移时两边必须同时改，否则价格区静默变空"
+  },
+  "busProtocol": {
+    "sku.selection": {
+      "writers": [
+        "SKUPlugin"
+      ],
+      "readers": []
+    },
+    "sku.variant": {
+      "writers": [
+        "SKUPlugin"
+      ],
+      "readers": [
+        "QuantityPlugin"
+      ]
+    },
+    "sku.price": {
+      "writers": [
+        "SKUPlugin"
+      ],
+      "readers": [
+        "ComparePricePlugin",
+        "CouponRecommendPlugin",
+        "OrderSummaryPlugin",
+        "PriceCalculatorPlugin"
+      ]
+    },
+    "sku.image": {
+      "writers": [
+        "SKUPlugin"
+      ],
+      "readers": []
+    },
+    "quantity": {
+      "writers": [
+        "QuantityPlugin"
+      ],
+      "readers": [
+        "CouponRecommendPlugin",
+        "OrderSummaryPlugin",
+        "PriceCalculatorPlugin",
+        "QuantityPlugin"
+      ]
+    },
+    "coupon.applied": {
+      "writers": [
+        "CouponPlugin",
+        "CouponRecommendPlugin"
+      ],
+      "readers": [
+        "CouponPlugin",
+        "CouponRecommendPlugin",
+        "OrderSummaryPlugin",
+        "PriceCalculatorPlugin"
+      ]
+    }
+  },
+  "cleanupDefect": {
+    "consumers": [
+      "QuantityPlugin",
+      "PriceCalculatorPlugin",
+      "ComparePricePlugin",
+      "CouponRecommendPlugin",
+      "OrderSummaryPlugin"
+    ],
+    "registeredOn": 12,
+    "cleanupsReturned": 5,
+    "offAtUnmountUnderOldSystem": 0,
+    "offIfManuallyCleaned": 12,
+    "defect": "旧 withPlugins: executeHook('onMount').catch(()=>{}) 丢弃返回值 → onMount 返回的退订函数永不调用 → 每卸载一张卡泄漏 registeredOn 个 bus 监听",
+    "mountErrors": []
+  },
+  "gzipBaseline": {
+    "dist/index.js": "28.13KB gzip（C0.7 基线，迁移后不得劣化）"
+  }
+}

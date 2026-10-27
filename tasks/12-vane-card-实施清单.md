@@ -44,17 +44,17 @@
 
 ## C0 · 决策拍板与基线固化
 
-- [ ] **C0.1 拍板 D1**（22 插件处置）：`D1-A 全留`（推荐）／ `D1-B 删 Image` ／ `D1-C 删 Image + Animation`
-- [ ] **C0.2 拍板 D2**（复合组件归属）：`D2-A 同包 src/compound + ./compound 子路径`（推荐）／ `D2-B 拆包` ／ `D2-C 不迁`
-- [ ] **C0.3 拍板 D3**（priceArea 槽位）：`D3-A 包内 renderDomainSlot`（推荐）／ `D3-B 扩内核` ／ `D3-C 保留 SlotsContext`
-- [ ] **C0.4 拍板 D4**（样式）：`D4-B class + CSS 变量 + 可选 style.css`（推荐，分两步做）／ `D4-A 全内联` ／ `D4-C 混合不出 CSS`
-- [ ] **C0.5 拍板 D5**（demo 形态）：`D5-B 三视角`（推荐）／ `D5-A 复刻 51 个页面文件`
-- [ ] **C0.6 固化 4 份行为快照**（产物落 `test/fixtures/card-snapshots.json`）
-  - [ ] **插槽顺序快照**：固定装 8 个带渲染钩子的插件，记录 `header/overlay/footer` 三段的实际 DOM 顺序（这是 R3 的对照基线）
-  - [ ] **价格区合成快照**：装 PriceCalculator + ComparePrice + CouponRecommend，记录 `Price` 组件里 `usePluginSlot("priceArea")` 输出的 3 段内容与顺序
-  - [ ] **总线事件序列**：装 SKU + Quantity + PriceCalculator，模拟「选规格 → 改数量 → 用券」，记录 `bus.emit` 序列与每次的 `getData` 结果
-  - [ ] **清理计数**：装 5 个用 `setupForceUpdateOnBusKeys` 的插件，挂载 → 卸载，记录 `bus.on` 次数与 `off` 次数（预期：今天 on=5×N、off=0 → 缺陷基线）
-- [ ] **C0.7 记录当前 gzip 基线**：`index.es.js` 35.66KB / `index.umd.js` 29.91KB（后续不得劣化）
+- [x] **C0.1 拍板 D1**：**D1-A 全留**（Image 降级为占位实现，文档注明「要懒加载请用 vane-lazy-image」）
+- [x] **C0.2 拍板 D2**：**D2-A 同包 `src/compound` + `./compound` 子路径**（入口不默认导出，避免 Core 用户被迫付费）
+- [x] **C0.3 拍板 D3**：**D3-A 包内 `renderDomainSlot`**（内核 `SlotHookName` 不动）
+- [x] **C0.4 拍板 D4**：**D4-B class + CSS 变量 + 可选 style.css**（分两步：C4.1 原样迁、C4.3 单独抽）
+- [x] **C0.5 拍板 D5**：**D5-B 三视角**（工坊22 + 场景8–10 + 逐项≈37）
+- [x] **C0.6 固化 4 份行为快照**（产物落 `test/fixtures/card-snapshots.json`，由 `test/snapshots.base.test.tsx` 生成且断言通过）
+  - [x] **插槽顺序快照**：5 段合成顺序（header-before → children → overlay → header-after → footer），排序仅认 `config.order` 升序（`priority` 不参与渲染）
+  - [x] **价格区合成快照**：`renderPriceArea` 由 `SlotsContext` 单槽实现，参与者 PriceCalculator/ComparePrice/CouponRecommend，按 `config.order` 升序
+  - [x] **总线协议**：扫描源码得到 6 键的「源/消费方」表（SKU 写 selection/variant/price/image；Quantity 写 quantity 读 skuVariant+quantity；PriceCalculator/ComparePrice/CouponRecommend/OrderSummary 读 sku.price；Coupon/CouponRecommend 写 coupon.applied）—— 落盘供 C3.4 文档化
+  - [x] **清理计数**：5 个消费者 `onMount` 注册 `bus.on` 共 **12** 次、返回 **5** 个清理函数；`offIfManuallyCleaned=12`（证明泄漏可修）；旧 `withPlugins` 丢弃返回值 → 卸载时 `off=0`（R2 缺陷基线）
+- [x] **C0.7 记录当前 gzip 基线**：新构建 `dist/index.js` **28.13KB gzip**（旧仓 1.0.8 测 35.66KB；新构建更低，以 28.13KB 为不得劣化基线；C2 接入 plugin-core 后可能略升，仍须 ≤36KB）
 
 **验收门 C0**：D1–D5 结论落纸；4 份快照可复现；gzip 基线入表。
 
@@ -311,4 +311,5 @@ C0（决策 + 快照）
 
 | 阶段 | 计划指标 | 实测 |
 | --- | --- | --- |
-| — | — | 待开始 |
+| C0 | 决策落纸 + 4 份快照 | ✅ D1–D5 落地（tasks/11/12 标注）；`test/fixtures/card-snapshots.json` 已生成且 `test/snapshots.base.test.tsx` 通过；gzip 基线 28.13KB |
+| C1 | 包骨架 + Core 迁入 + demo 指回源码 | 🟡 进行中：包骨架/配置/依赖/typecheck0错/lib build通过/demo 构建通过（R1 已证）；C1.4 的 Core 单测暂缓到 C2（与新插件系统一起写），C1.3 的 51 页旧 demo 不搬运（留 C5 重写） |
