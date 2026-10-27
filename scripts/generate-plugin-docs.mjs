@@ -25,6 +25,39 @@ function configCell(config) {
     .join("<br/>");
 }
 
+/**
+ * 从源码里取 priority。
+ *
+ * 它是「行为」不是「文档」，正文放在 doc.json 里会与实现分叉（改代码忘改文档）。
+ * 这里直接读源码字面量：所有插件的 config 都是 `{ priority: N, ... }` 的形式。
+ */
+async function readPriority(dir) {
+  for (const name of ["index.ts", "index.tsx"]) {
+    const file = path.join(dir, name);
+    if (!existsSync(file)) continue;
+    const code = await readFile(file, "utf-8");
+    const m = code.match(/\bpriority:\s*(\d+)/);
+    if (m) return Number(m[1]);
+  }
+  return null;
+}
+
+/**
+ * 找插件目录的 doc.json。
+ *
+ * 两个位置都要看：多数包的插件在 `src/custom-plugins/<Name>/`，vane-card 的实现
+ * 仍在旧位置 `src/components/CardPlugin/custom-plugins/<Name>/`，只在
+ * `src/custom-plugins/<Name>/` 放了转发薄壳（没有 doc.json）。
+ */
+function resolvePluginDir(pkgDir, name) {
+  const candidates = [
+    path.join(pkgDir, "src", "custom-plugins", name),
+    path.join(pkgDir, "src", "components", "CardPlugin", "custom-plugins", name),
+  ];
+  return candidates.find((dir) => existsSync(path.join(dir, "doc.json"))) ?? null;
+}
+
+
 async function readDocJson(file) {
   try {
     return JSON.parse(await readFile(file, "utf-8"));
@@ -44,30 +77,33 @@ for (const dir of dirs) {
   const customDir = path.join(packagesDir, dir, "src", "custom-plugins");
   if (!existsSync(customDir)) continue;
 
-  const pkg = JSON.parse(await readFile(path.join(packagesDir, dir, "package.json"), "utf-8"));
+  const pkgDir = path.join(packagesDir, dir);
+  const pkg = JSON.parse(await readFile(path.join(pkgDir, "package.json"), "utf-8"));
   const pluginDirs = (await readdir(customDir, { withFileTypes: true }))
     .filter((d) => d.isDirectory())
     .sort();
 
   const rows = [];
   for (const pd of pluginDirs) {
-    const docFile = path.join(customDir, pd.name, "doc.json");
-    if (!existsSync(docFile)) continue;
-    const doc = await readDocJson(docFile);
+    const pluginDir = resolvePluginDir(pkgDir, pd.name);
+    if (!pluginDir) continue;
+    const doc = await readDocJson(path.join(pluginDir, "doc.json"));
     if (!doc) continue;
-    rows.push(
-      `| [${doc.name}](./${pd.name}) | ${doc.description} | ${configCell(doc.config)} | ${doc.since ?? "-"} | ${(doc.tags ?? []).join(", ")} |`
-    );
+    const priority = await readPriority(pluginDir);
+    rows.push({
+      cells: [
+        `[${doc.name}](./${pd.name})`,
+        doc.description,
+        configCell(doc.config),
+        doc.since ?? "-",
+        (doc.tags ?? []).join(", "),
+      ],
+      priority,
+    });
   }
 
   if (rows.length === 0) continue;
   total += rows.length;
-
-  const table = [
-    "| 插件 | 说明 | 配置 | 引入版本 | 标签 |",
-    "| --- | --- | --- | --- | --- |",
-    ...rows,
-  ].join("\n");
 
   const docFile = path.join(root, "docs", "components", pkg.name, "plugins.md");
   if (!existsSync(docFile)) {
@@ -82,7 +118,26 @@ for (const dir of dirs) {
     console.warn(`  ${pkg.name}: plugins.md 缺少 AUTO-GENERATED 标记，跳过`);
     continue;
   }
-  const next = `${content.slice(0, start)}${BEGIN}\n${table}\n${END}${content.slice(end + END.length)}`;
+
+  // 是否输出 priority 列由标记行决定：
+  //   默认          插件 | 说明 | 配置 | 引入版本 | 标签
+  //   BEGIN priority 插件 | priority | 说明 | 配置 | 引入版本 | 标签
+  // 这样各包文档的列可以不同，而不必为某一包改生成器（vane-card 的排序语义
+  // 是 priority/order 双轴，必须把 priority 摆在最显眼处）。
+  const markerLine = content.slice(start, content.indexOf("\n", start));
+  const withPriority = /\bpriority\b/.test(markerLine);
+  const table = [
+    withPriority
+      ? "| 插件 | priority | 说明 | 配置 | 引入版本 | 标签 |"
+      : "| 插件 | 说明 | 配置 | 引入版本 | 标签 |",
+    withPriority ? "| --- | --- | --- | --- | --- | --- |" : "| --- | --- | --- | --- | --- |",
+    ...rows.map((r) =>
+      withPriority
+        ? `| ${r.cells[0]} | ${r.priority ?? "-"} | ${r.cells.slice(1).join(" | ")} |`
+        : `| ${r.cells.join(" | ")} |`
+    ),
+  ].join("\n");
+  const next = `${content.slice(0, start)}${markerLine}\n${table}\n${END}${content.slice(end + END.length)}`;
   await writeFile(docFile, next, "utf-8");
   console.log(`${pkg.name}: ${rows.length} 个插件已写入 plugins.md`);
 }

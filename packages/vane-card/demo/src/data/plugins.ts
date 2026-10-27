@@ -250,14 +250,14 @@ export const CONFLICTS: Array<{ a: string; b: string; why: string }> = [
     why: "两者都渲染主媒体区，Gallery 会盖掉 Image（图还在，但你看不到 Image 的兜底逻辑）",
   },
   {
-    a: "CountdownPlugin",
-    b: "AnimationPlugin",
-    why: "都在改容器的过渡/动画，Countdown 每秒重渲染会把入场动画打断（视觉上闪）",
+    a: "BadgePlugin",
+    b: "CountdownPlugin",
+    why: "两者都画在 overlay 的 top-right、偏移都是 8px、zIndex 都是 10 —— 完全重叠。改 position 才能共存",
   },
   {
-    a: "A11yPlugin",
-    b: "ActionsPlugin",
-    why: "A11y 会给可聚焦元素补 aria-label，按钮自己已有 aria-label 时以插件为准，容易覆盖掉业务文案",
+    a: "AnimationPlugin",
+    b: "HoverPlugin",
+    why: "都在写容器的 transform：入场动画命令式写内联样式，悬停靠 transformProps 注入，后写者覆盖先写者",
   },
   {
     a: "QuantityPlugin",
