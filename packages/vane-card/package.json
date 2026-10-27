@@ -136,7 +136,9 @@
   "files": [
     "dist"
   ],
-  "sideEffects": false,
+  "sideEffects": [
+    "**/*.css"
+  ],
   "publishConfig": {
     "access": "public"
   },
@@ -197,8 +199,10 @@
     "vitest": "^2.1.9"
   },
   "vane": {
-    "sizeBudgetKb": 36,
-    "coreSizeBudgetKb": 5
+    "sizeBudgetKb": 12,
+    "coreSizeBudgetKb": 5,
+    "fullSizeBudgetKb": 36,
+    "sizeBudgetNote": "三个口径分别守三件事：根入口 ≤12KB（只含 Core + 装配 + 类型，实测 6.3KB）；core 子路径 ≤5KB（只要内核，实测 1.6KB）；全量并集 ≤36KB（dist 下所有 .js 一起去重压缩，即 22 插件 + 38 复合组件 + 3 配方全用上的最坏情况，实测 31.3KB）。"
   },
   "engines": {
     "node": ">=18"
