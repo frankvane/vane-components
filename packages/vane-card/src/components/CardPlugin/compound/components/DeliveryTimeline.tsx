@@ -112,59 +112,35 @@ export const DeliveryTimeline: React.FC<DeliveryTimelineProps> = ({
     onTimelineChange?.(plan);
   }, [plan, onTimelineChange]);
 
-  const containerStyles: React.CSSProperties = {
-    display: "grid",
-    gap: 12,
-    border: "1px solid #eee",
-    borderRadius: 8,
-    padding: 12,
-    background: "#fafafa",
-    ...style,
-  };
-
-  const barStyles: React.CSSProperties = {
-    height: 8,
-    background: "#e6e6e6",
-    borderRadius: 6,
-    overflow: "hidden",
-    display: "flex",
-  };
-
   const dateFmt = (d: Date) => d.toLocaleDateString(dateLocale, { month: "short", day: "numeric" });
 
   return (
-    <div className={`delivery-timeline ${className}`} style={containerStyles}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <strong>预计 {Math.round(etaDays)} 天送达</strong>
+    <div className={`vc-timeline ${className}`.trim()} style={style}>
+      <div className="vc-timeline__head">
+        <strong className="vc-timeline__eta">预计 {Math.round(etaDays)} 天送达</strong>
         {showDates && (
-          <span style={{ color: "#666" }}>
+          <span className="vc-timeline__range">
             {dateFmt(plan[0]?.startDate ?? start)} ~ {dateFmt(plan[plan.length - 1]?.endDate ?? start)}
           </span>
         )}
       </div>
 
-      <div style={barStyles}>
-        {plan.map((s, idx) => (
-          <div
-            key={s.key}
-            style={{
-              flex: s.days || 1,
-              background: ["#96c", "#5ac", "#fa6", "#6c9"][idx % 4],
-            }}
-            title={`${s.name}（${s.days}天）`}
-          />
+      <div className="vc-timeline__bar">
+        {plan.map((s) => (
+          // 每段宽度由天数决定，属动态值
+          <div key={s.key} className="vc-timeline__seg" style={{ flex: s.days || 1 }} title={`${s.name}（${s.days}天）`} />
         ))}
       </div>
 
-      <div style={{ display: "grid", gap: 8 }}>
+      <div className="vc-timeline__steps">
         {plan.map((s) => (
-          <div key={s.key} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 8px", background: "#fff", borderRadius: 6, border: "1px solid #eee" }}>
+          <div key={s.key} className="vc-timeline__step">
             <div>
               <strong>{s.name}</strong>
-              <span style={{ color: "#999", marginLeft: 8 }}>约 {s.days} 天</span>
+              <span className="vc-timeline__days">约 {s.days} 天</span>
             </div>
             {showDates && (
-              <div style={{ color: "#666" }}>
+              <div className="vc-timeline__dates">
                 {dateFmt(s.startDate)} ~ {dateFmt(s.endDate)}
               </div>
             )}

@@ -38,89 +38,53 @@ export const UpsellBundle: React.FC<UpsellBundleProps> = ({
   currency = "¥",
   onAddBundle,
 }) => {
-  const containerStyles: React.CSSProperties = {
-    display: "grid",
-    gap: 12,
-    ...style,
-  };
-
-  const cardStyles: React.CSSProperties = {
-    display: "grid",
-    gap: 8,
-    border: "1px solid #eee",
-    borderRadius: 8,
-    padding: 12,
-    background: "#fafafa",
-  };
-
-  const listStyles: React.CSSProperties = {
-    display: "grid",
-    gap: 8,
-    gridTemplateColumns: layout === "horizontal" ? "repeat(auto-fill, minmax(220px, 1fr))" : "1fr",
-  };
-
-  const imageBox: React.CSSProperties = {
-    width: 40,
-    height: 40,
-    borderRadius: 6,
-    overflow: "hidden",
-    border: "1px solid #eee",
-    background: "#fff",
-  };
-
   return (
-    <div className={`upsell-bundle ${className}`} style={containerStyles}>
-      <div style={listStyles}>
+    <div className={`vc-upsell ${className}`.trim()} style={style}>
+      <div className={`vc-upsell__list ${layout === "vertical" ? "vc-upsell__list--vertical" : ""}`.trim()}>
         {bundles.map((b) => {
           const original = b.items.reduce((sum, it) => sum + it.price, 0);
-          const final = typeof b.bundlePrice === "number" ? b.bundlePrice : Math.round(original * (1 - (b.savingsPercent ?? 0) / 100));
+          const final =
+            typeof b.bundlePrice === "number"
+              ? b.bundlePrice
+              : Math.round(original * (1 - (b.savingsPercent ?? 0) / 100));
           const savings = Math.max(0, original - final);
 
           return (
-            <div key={b.id} style={cardStyles}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div key={b.id} className="vc-upsell__card">
+              <div className="vc-upsell__head">
                 <strong>{b.title}</strong>
                 {showSavings && savings > 0 && (
-                  <span style={{ color: "#d0021b" }}>立省 {formatPrice(savings, currency)}</span>
+                  <span className="vc-upsell__savings">立省 {formatPrice(savings, currency)}</span>
                 )}
               </div>
 
-              <div style={{ display: "grid", gap: 8 }}>
+              <div className="vc-upsell__items">
                 {b.items.map((it) => (
-                  <div key={it.id} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <div style={imageBox}>
+                  <div key={it.id} className="vc-upsell__item">
+                    <div className="vc-upsell__thumb">
                       {it.image ? (
-                        <img src={it.image} alt={it.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                        <img src={it.image} alt={it.title} className="vc-media__fill" />
                       ) : (
-                        <div style={{ width: "100%", height: "100%", display: "grid", placeItems: "center", color: "#999", fontSize: 12 }}>无图</div>
+                        <div className="vc-upsell__thumb-empty">无图</div>
                       )}
                     </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 14 }}>{it.title}</div>
-                      <div style={{ color: "#666", fontSize: 12 }}>{formatPrice(it.price, currency)}</div>
+                    <div className="vc-upsell__info">
+                      <div className="vc-upsell__name">{it.title}</div>
+                      <div className="vc-upsell__price">{formatPrice(it.price, currency)}</div>
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
+              <div className="vc-upsell__foot">
                 <div>
-                  <div style={{ color: "#666", fontSize: 12 }}>原价合计：{formatPrice(original, currency)}</div>
+                  <div className="vc-upsell__origin">原价合计：{formatPrice(original, currency)}</div>
                   <div>
-                    搭配购：<strong style={{ color: "#333" }}>{formatPrice(final, currency)}</strong>
+                    搭配购：
+                    <strong className="vc-upsell__final">{formatPrice(final, currency)}</strong>
                   </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => onAddBundle?.(b)}
-                  style={{
-                    padding: "6px 10px",
-                    borderRadius: 6,
-                    border: "1px solid #ddd",
-                    background: "#fff",
-                    cursor: "pointer",
-                  }}
-                >
+                <button type="button" className="vc-btn" onClick={() => onAddBundle?.(b)}>
                   加入搭配购
                 </button>
               </div>

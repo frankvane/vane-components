@@ -6,6 +6,12 @@ export type A11yToolbarProps = {
   applyTo?: "document" | "scoped"; // 目前实现 document 级别
 };
 
+/**
+ * 无障碍偏好对应的全局规则。
+ *
+ * 刻意保留运行时注入（而不是只写进 style.css）：这五个开关是功能，
+ * 不是外观 —— 消费方没引样式表时它们也必须生效。
+ */
 function ensureA11yStyles() {
   const id = "a11y-toolbar-global-styles";
   if (document.getElementById(id)) return;
@@ -49,27 +55,21 @@ export const A11yToolbar: React.FC<A11yToolbarProps> = ({
   const btn = (label: string, active: boolean, onClick: () => void) => (
     <button
       type="button"
+      className={`vc-btn ${active ? "is-active" : ""}`.trim()}
       onClick={onClick}
       aria-pressed={active}
-      style={{
-        padding: "6px 10px",
-        borderRadius: 6,
-        border: active ? "2px solid #4663d9" : "1px solid #ddd",
-        background: active ? "#eef2ff" : "#fff",
-        cursor: "pointer",
-      }}
     >
       {label}
     </button>
   );
 
   return (
-    <div className={`a11y-toolbar ${className}`} style={{ display: "flex", gap: 8, flexWrap: "wrap", ...style }}>
-      {btn("大字号", largeFont, () => setLargeFont(v => !v))}
-      {btn("高对比度", highContrast, () => setHighContrast(v => !v))}
-      {btn("链接加下划线", underlineLinks, () => setUnderlineLinks(v => !v))}
-      {btn("可见焦点", focusVisible, () => setFocusVisible(v => !v))}
-      {btn("减少动画", reduceMotion, () => setReduceMotion(v => !v))}
+    <div className={`vc-a11y-toolbar ${className}`.trim()} style={style}>
+      {btn("大字号", largeFont, () => setLargeFont((v) => !v))}
+      {btn("高对比度", highContrast, () => setHighContrast((v) => !v))}
+      {btn("链接加下划线", underlineLinks, () => setUnderlineLinks((v) => !v))}
+      {btn("可见焦点", focusVisible, () => setFocusVisible((v) => !v))}
+      {btn("减少动画", reduceMotion, () => setReduceMotion((v) => !v))}
     </div>
   );
 };

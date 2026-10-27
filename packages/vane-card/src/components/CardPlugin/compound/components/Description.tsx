@@ -11,13 +11,14 @@ export type DescriptionProps = {
 export const Description: React.FC<DescriptionProps> = ({ children, style, className, lines }) => {
   const { data } = useProductCard();
   const final = children ?? data?.description;
-  const clampStyles: React.CSSProperties = lines
-    ? {
-        display: "-webkit-box",
-        WebkitBoxOrient: "vertical",
-        WebkitLineClamp: lines,
-        overflow: "hidden",
-      }
-    : {};
-  return <p style={{ ...clampStyles, ...style }} className={className}>{final}</p>;
+  // 行数是动态值，只能内联；截断本身（display/box-orient/overflow）在 .vc-clamp
+  const clampStyle: React.CSSProperties = lines ? { WebkitLineClamp: lines } : {};
+  return (
+    <p
+      className={`vc-description ${lines ? "vc-clamp" : ""} ${className ?? ""}`.trim()}
+      style={{ ...clampStyle, ...style }}
+    >
+      {final}
+    </p>
+  );
 };

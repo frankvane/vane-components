@@ -92,20 +92,14 @@ export const OrderSummaryPanel: React.FC<OrderSummaryPanelProps> = ({
   const summaryRow = (
     label: string,
     value: number | string,
-    highlight = false,
-    color?: string
+    opts: { total?: boolean; tone?: "discount" | "free" } = {}
   ) => (
     <div
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        padding: "8px 0",
-        borderBottom: highlight ? "2px solid #e0e0e0" : "1px solid #f0f0f0",
-        fontWeight: highlight ? 600 : 400,
-        fontSize: highlight ? 16 : 14,
-        color: color || (highlight ? "#333" : "#666"),
-      }}
+      className={`vc-summary__row ${opts.total ? "vc-summary__row--total" : ""} ${
+        opts.tone ? `vc-summary__row--${opts.tone}` : ""
+      }`
+        .replace(/\s+/g, " ")
+        .trim()}
     >
       <span>{label}</span>
       <span>{typeof value === "number" ? formatPrice(value) : value}</span>
@@ -115,65 +109,29 @@ export const OrderSummaryPanel: React.FC<OrderSummaryPanelProps> = ({
   const priceAreaNodes = usePluginSlot("priceArea");
 
   return (
-    <div
-      className={className}
-      style={{
-        border: "1px solid #e0e0e0",
-        borderRadius: 8,
-        padding: 16,
-        background: "#fafafa",
-        ...style,
-      }}
-    >
-      <div
-        style={{
-          fontSize: 16,
-          fontWeight: 600,
-          color: "#333",
-          marginBottom: 12,
-          paddingBottom: 8,
-          borderBottom: "2px solid #e0e0e0",
-        }}
-      >
-        订单明细
-      </div>
+    <div className={`vc-summary ${className ?? ""}`.trim()} style={style}>
+      <div className="vc-summary__title">订单明细</div>
 
       {summaryRow("商品小计", summary.subtotal)}
-      
-      {showDiscount && summary.discount > 0 && 
-        summaryRow("优惠金额", -summary.discount, false, "#d0021b")
-      }
-      
-      {showTax && summary.tax > 0 && 
-        summaryRow(`税费 (${(taxRate * 100).toFixed(1)}%)`, summary.tax)
-      }
-      
-      {showShipping && (
-        summary.shipping > 0 
+
+      {showDiscount && summary.discount > 0 && summaryRow("优惠金额", -summary.discount, { tone: "discount" })}
+
+      {showTax && summary.tax > 0 && summaryRow(`税费 (${(taxRate * 100).toFixed(1)}%)`, summary.tax)}
+
+      {showShipping &&
+        (summary.shipping > 0
           ? summaryRow("配送费", summary.shipping)
-          : summaryRow("配送费", "免费", false, "#0a7f2e")
-      )}
+          : summaryRow("配送费", "免费", { tone: "free" }))}
 
-      {summaryRow("总计", summary.total, true, "#333")}
+      {summaryRow("总计", summary.total, { total: true })}
 
-      <div
-        style={{
-          marginTop: 12,
-          padding: 8,
-          background: "#f0f8ff",
-          borderRadius: 6,
-          fontSize: 12,
-          color: "#666",
-          display: "flex",
-          justifyContent: "space-between",
-        }}
-      >
+      <div className="vc-summary__meta">
         <span>数量: {summary.quantity}</span>
         <span>单价: {formatPrice(summary.unitPrice)}</span>
       </div>
 
       {priceAreaNodes.length > 0 && (
-        <div className="vc-price__area" data-slot="price-area" style={{ display: "grid", gap: 8, marginTop: 12 }}>
+        <div className="vc-price__area vc-price__area--stack" data-slot="price-area">
           {priceAreaNodes.map((node, i) => (
             <React.Fragment key={i}>{node}</React.Fragment>
           ))}
@@ -181,17 +139,7 @@ export const OrderSummaryPanel: React.FC<OrderSummaryPanelProps> = ({
       )}
 
       {showShipping && summary.subtotal < freeShippingThreshold && (
-        <div
-          style={{
-            marginTop: 8,
-            padding: 8,
-            background: "#fff3cd",
-            borderRadius: 6,
-            fontSize: 12,
-            color: "#856404",
-            textAlign: "center",
-          }}
-        >
+        <div className="vc-summary__freight">
           再购买 {formatPrice(freeShippingThreshold - summary.subtotal)} 即可免邮
         </div>
       )}

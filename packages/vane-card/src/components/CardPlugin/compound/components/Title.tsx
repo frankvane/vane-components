@@ -10,5 +10,9 @@ export type TitleProps = {
 export const Title: React.FC<TitleProps> = ({ children, style, className }) => {
   const { data } = useProductCard();
   const final = children ?? data?.title;
-  return <h3 style={style} className={className}>{final}</h3>;
+  return (
+    <h3 className={`vc-title ${className ?? ""}`.trim()} style={style}>
+      {final}
+    </h3>
+  );
 };

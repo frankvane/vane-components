@@ -29,9 +29,13 @@ export const Actions: React.FC<ActionsProps> = ({ className, style }) => {
   };
 
   return (
-    <div className={className} style={{ display: "flex", gap: 8, ...style }}>
-      <button onClick={addToCart}>加入购物车 ({qty})</button>
-      <button onClick={toggleWishlist}>{inWishlist ? "取消心愿" : "加入心愿"}</button>
+    <div className={`vc-actions ${className ?? ""}`.trim()} style={style}>
+      <button type="button" className="vc-btn" onClick={addToCart}>
+        加入购物车 ({qty})
+      </button>
+      <button type="button" className="vc-btn" onClick={toggleWishlist}>
+        {inWishlist ? "取消心愿" : "加入心愿"}
+      </button>
     </div>
   );
 };

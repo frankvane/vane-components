@@ -12,5 +12,9 @@ export const Subtitle: React.FC<SubtitleProps> = ({ text, children, style, class
   const { data } = useProductCard();
   const final = children ?? text ?? data?.subtitle;
   if (!final) return null;
-  return <div style={{ color: "#666", fontSize: 13, ...style }} className={className}>{final}</div>;
+  return (
+    <div className={`vc-subtitle ${className ?? ""}`.trim()} style={style}>
+      {final}
+    </div>
+  );
 };

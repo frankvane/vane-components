@@ -241,8 +241,10 @@ const CardCore = forwardRef<CardCoreRef, CardCoreProps>(function CardCore<
     <div
       ref={containerRef as React.RefObject<HTMLDivElement>}
       data-card-id={cardId}
-      className={`card-core ${layoutClass} ${containerClassName || ""}`}
+      className={`vc-card card-core ${layoutClass} ${containerClassName || ""}`}
       style={{
+        // position/box-sizing 是功能性的（overlay 插件靠它定位、padding 靠它算盒模型），
+        // 因此即使不引 style.css 也保留内联；.vc-card 里有同样的声明，是为了让宿主能覆盖
         position: "relative",
         boxSizing: "border-box",
         paddingTop: paddingValues.top,

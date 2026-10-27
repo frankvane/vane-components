@@ -22,18 +22,13 @@ export const SizeSelector: React.FC<SizeSelectorProps> = ({ sizes, attributeName
   };
 
   return (
-    <div className={className} style={{ display: "flex", gap: 8, flexWrap: "wrap", ...style }}>
+    <div className={`vc-options ${className ?? ""}`.trim()} style={style}>
       {list.map((opt) => (
         <button
           key={opt}
+          type="button"
+          className={`vc-option ${selected === opt ? "is-selected" : ""}`.trim()}
           onClick={() => onSelect(opt)}
-          style={{
-            padding: "4px 10px",
-            borderRadius: 6,
-            border: selected === opt ? "2px solid #007aff" : "1px solid #ddd",
-            background: selected === opt ? "#e6f0ff" : "#fff",
-            cursor: "pointer",
-          }}
         >
           {opt}
         </button>

@@ -13,11 +13,11 @@ export const FeatureList: React.FC<FeatureListProps> = ({ items, icon = "✔", s
   const list: string[] = items ?? data?.features ?? [];
   if (!list.length) return null;
   return (
-    <ul className={className} style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 6, ...style }}>
+    <ul className={`vc-features ${className ?? ""}`.trim()} style={style}>
       {list.map((t, i) => (
-        <li key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <li key={i} className="vc-features__item">
           <span aria-hidden>{icon}</span>
-          <span style={{ fontSize: 13, color: "#444" }}>{t}</span>
+          <span className="vc-features__text">{t}</span>
         </li>
       ))}
     </ul>

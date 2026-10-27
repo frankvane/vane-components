@@ -24,20 +24,16 @@ export const ColorSwatches: React.FC<ColorSwatchesProps> = ({ colors, attributeN
   };
 
   return (
-    <div className={className} style={{ display: "flex", gap: 8, flexWrap: "wrap", ...style }}>
+    <div className={`vc-swatches ${className ?? ""}`.trim()} style={style}>
       {list.map(({ name, hex }) => (
         <button
           key={name}
+          type="button"
+          className={`vc-swatch ${selected === name ? "is-selected" : ""}`.trim()}
           onClick={() => onSelect(name)}
           title={name}
-          style={{
-            width: 24,
-            height: 24,
-            borderRadius: "50%",
-            border: selected === name ? "2px solid #007aff" : "1px solid #ddd",
-            background: hex,
-            cursor: "pointer",
-          }}
+          // 色值来自数据，属于动态值，留在内联
+          style={{ background: hex }}
           aria-label={`选择颜色 ${name}`}
         />
       ))}

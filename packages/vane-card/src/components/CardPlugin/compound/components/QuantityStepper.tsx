@@ -45,36 +45,36 @@ export const QuantityStepper: React.FC<QuantityStepperProps> = ({
   };
 
   return (
-    <div className={className} style={{ display: "inline-flex", alignItems: "center", gap: 8, ...style }}>
+    <div className={`vc-stepper ${className ?? ""}`.trim()} style={style}>
       <button
+        type="button"
+        className="vc-stepper__btn"
         onClick={() => update(qty - step)}
         disabled={qty <= min || effectiveMax <= 0}
-        style={{ padding: "4px 10px", border: "1px solid #ddd", borderRadius: 6, cursor: "pointer" }}
         aria-label="减少数量"
       >
         −
       </button>
       <input
+        className="vc-stepper__input"
         type="number"
         value={qty}
         min={min}
         max={effectiveMax}
         step={step}
         onChange={(e) => update(Number(e.target.value))}
-        style={{ width: 56, textAlign: "center", padding: "4px 6px", border: "1px solid #ddd", borderRadius: 6 }}
         aria-label="购买数量"
       />
       <button
+        type="button"
+        className="vc-stepper__btn"
         onClick={() => update(qty + step)}
         disabled={qty >= effectiveMax || effectiveMax <= 0}
-        style={{ padding: "4px 10px", border: "1px solid #ddd", borderRadius: 6, cursor: "pointer" }}
         aria-label="增加数量"
       >
         +
       </button>
-      {effectiveMax <= 0 && (
-        <span style={{ marginLeft: 8, color: "#999", fontSize: 13 }}>库存不足</span>
-      )}
+      {effectiveMax <= 0 && <span className="vc-stepper__hint">库存不足</span>}
     </div>
   );
 };

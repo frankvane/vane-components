@@ -103,42 +103,15 @@ export const ShippingEstimator: React.FC<ShippingEstimatorProps> = ({
     onEstimateChange?.(estimate);
   }, [estimate, onEstimateChange]);
 
-  const containerStyles: React.CSSProperties = {
-    display: "grid",
-    gap: 12,
-    border: "1px solid #eee",
-    borderRadius: 8,
-    padding: 12,
-    background: "#fafafa",
-    ...style,
-  };
-
-  const selectStyles: React.CSSProperties = {
-    padding: "6px 8px",
-    borderRadius: 6,
-    border: "1px solid #ddd",
-    background: "#fff",
-  };
-
-  const summaryStyles: React.CSSProperties = {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: "8px 10px",
-    borderRadius: 6,
-    background: "#fff",
-    border: "1px solid #eee",
-  };
-
   return (
-    <div className={`shipping-estimator ${className}`} style={containerStyles}>
-      <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 1fr" }}>
-        <label style={{ display: "grid", gap: 6 }}>
-          <span style={{ color: "#666" }}>配送区域</span>
+    <div className={`vc-shipping-estimator ${className}`.trim()} style={style}>
+      <div className="vc-shipping-estimator__grid">
+        <label className="vc-shipping-estimator__field">
+          <span className="vc-shipping-estimator__label">配送区域</span>
           <select
+            className="vc-shipping-estimator__select"
             value={regionCode}
             onChange={(e) => setRegionCode(e.target.value)}
-            style={selectStyles}
           >
             {regions.map((r) => (
               <option key={r.code} value={r.code}>
@@ -147,12 +120,12 @@ export const ShippingEstimator: React.FC<ShippingEstimatorProps> = ({
             ))}
           </select>
         </label>
-        <label style={{ display: "grid", gap: 6 }}>
-          <span style={{ color: "#666" }}>配送方式</span>
+        <label className="vc-shipping-estimator__field">
+          <span className="vc-shipping-estimator__label">配送方式</span>
           <select
+            className="vc-shipping-estimator__select"
             value={methodCode}
             onChange={(e) => setMethodCode(e.target.value)}
-            style={selectStyles}
           >
             {methods.map((m) => (
               <option key={m.code} value={m.code}>
@@ -163,10 +136,10 @@ export const ShippingEstimator: React.FC<ShippingEstimatorProps> = ({
         </label>
       </div>
 
-      <div style={summaryStyles}>
+      <div className="vc-shipping-estimator__summary">
         <div>
           <strong>预计运费：</strong>
-          <span style={{ color: "#d0021b" }}>¥{estimate.fee.toFixed(2)}</span>
+          <span className="vc-shipping-estimator__fee">¥{estimate.fee.toFixed(2)}</span>
         </div>
         <div>
           <strong>预计送达：</strong>
@@ -175,8 +148,10 @@ export const ShippingEstimator: React.FC<ShippingEstimatorProps> = ({
       </div>
 
       {showBreakdown && (
-        <div style={{ fontSize: 12, color: "#666" }}>
-          <div>区域：{estimate.region.name}（基础 ¥{estimate.region.baseFee}）</div>
+        <div className="vc-shipping-estimator__breakdown">
+          <div>
+            区域：{estimate.region.name}（基础 ¥{estimate.region.baseFee}）
+          </div>
           <div>
             方式：{estimate.method.name}
             {estimate.method.multiplier ? `（系数 x${estimate.method.multiplier}）` : ""}

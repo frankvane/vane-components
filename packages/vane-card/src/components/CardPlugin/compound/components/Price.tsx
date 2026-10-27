@@ -20,11 +20,11 @@ export const Price: React.FC<PriceProps> = ({ value, currency = "¥", style, cla
   if (price == null) return null;
 
   return (
-    <div style={style} className={className}>
+    <div className={`vc-price ${className ?? ""}`.trim()} style={style}>
       {currency}
       {price}
       {priceAreaNodes.length > 0 && (
-        <div className="vc-price__area" data-slot="price-area" style={{ display: "inline-flex", gap: 8, marginLeft: 8 }}>
+        <div className="vc-price__area" data-slot="price-area">
           {priceAreaNodes.map((node, i) => (
             <React.Fragment key={i}>{node}</React.Fragment>
           ))}

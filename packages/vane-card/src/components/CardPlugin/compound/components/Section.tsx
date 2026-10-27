@@ -9,8 +9,8 @@ export type SectionProps = {
 
 export const Section: React.FC<SectionProps> = ({ title, children, className, style }) => {
   return (
-    <div className={className} style={style}>
-      {title ? <div style={{ fontWeight: 600, marginBottom: 8 }}>{title}</div> : null}
+    <div className={`vc-section ${className ?? ""}`.trim()} style={style}>
+      {title ? <div className="vc-section__title">{title}</div> : null}
       <div>{children}</div>
     </div>
   );

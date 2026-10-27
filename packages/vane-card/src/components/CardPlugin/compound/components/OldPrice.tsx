@@ -12,5 +12,10 @@ export const OldPrice: React.FC<OldPriceProps> = ({ value, currency = "¥", styl
   const { data } = useProductCard();
   const v = value ?? data?.oldPrice;
   if (v == null) return null;
-  return <div style={{ color: "#999", textDecoration: "line-through", ...style }} className={className}>{currency}{v}</div>;
+  return (
+    <div className={`vc-old-price ${className ?? ""}`.trim()} style={style}>
+      {currency}
+      {v}
+    </div>
+  );
 };

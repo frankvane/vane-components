@@ -1,0 +1,88 @@
+/**
+ * vane-card 设计令牌（D4-B）
+ *
+ * 所有 `--vc-*` 变量挂在 `:root`：插件渲染在 CardCore 内部，与复合组件共享同一套
+ * 令牌；单独用 `withPlugins(CardCore)` 时也能拿到。变量只影响本库自己的 class，
+ * 不会改到宿主页面。
+ *
+ * 换肤优先级（低 → 高）：
+ *   1. :root 默认值
+ *   2. [data-vc-theme="dark"] 容器（暗色）
+ *   3. 组件上行内 `style={{ "--vc-accent": "red" }}`（推荐给动态值用，而不是覆盖 color）
+ *
+ * 重要：不引 style.css 时组件依然能渲染（内联样式退化），只是没有这套视觉；
+ * 但 CSS 变量在手写内联样式里也能直接用，例如 `style={{ color: "var(--vc-danger)" }}`。
+ */
+
+:root {
+  /* ---- 前景 / 背景 ---- */
+  --vc-fg: #1f2329;
+  --vc-fg-dim: #666;
+  --vc-fg-muted: #999;
+  --vc-bg: #fff;
+  --vc-bg-subtle: #fafafa;
+  --vc-bg-muted: #f2f2f2;
+
+  /* ---- 描边 / 圆角 / 间隙 ---- */
+  --vc-border: #e0e0e0;
+  --vc-border-light: #eee;
+  --vc-radius: 8px;
+  --vc-radius-sm: 6px;
+  --vc-radius-xs: 4px;
+  --vc-gap: 8px;
+  --vc-gap-sm: 6px;
+  --vc-gap-lg: 12px;
+
+  /* ---- 字号 ---- */
+  --vc-fs-xs: 12px;
+  --vc-fs-sm: 13px;
+  --vc-fs-md: 14px;
+  --vc-fs-lg: 16px;
+
+  /* ---- 语义色 ---- */
+  --vc-accent: #007aff;
+  --vc-accent-bg: #e6f0ff;
+  --vc-danger: #d0021b;
+  --vc-danger-bg: #ffecec;
+  --vc-success: #0a7f2e;
+  --vc-success-bg: #e8f7e8;
+  --vc-warning: #ff9800;
+  --vc-warning-fg: #856404;
+  --vc-warning-bg: #fff3cd;
+  --vc-price: var(--vc-danger);
+  --vc-highlight: #ffe08a;
+  --vc-highlight-fg: #a15c00;
+  --vc-star: #f5a623;
+  --vc-star-off: #ddd;
+
+  /* ---- 组件局部（可被容器覆盖） ---- */
+  --vc-shadow: 0 2px 8px rgb(0 0 0 / 10%);
+}
+
+/* 暗色：给容器加 data-vc-theme="dark" 即可，不需要整站的 prefers-color-scheme */
+[data-vc-theme="dark"] {
+  --vc-fg: #e6e6e6;
+  --vc-fg-dim: #b3b3b3;
+  --vc-fg-muted: #8a8a8a;
+  --vc-bg: #1c1f23;
+  --vc-bg-subtle: #24282d;
+  --vc-bg-muted: #2d3238;
+
+  --vc-border: #3a4048;
+  --vc-border-light: #313740;
+
+  --vc-accent: #4a9eff;
+  --vc-accent-bg: #1e3a5c;
+  --vc-danger: #ff6b6b;
+  --vc-danger-bg: #3d1f22;
+  --vc-success: #4ec97a;
+  --vc-success-bg: #1e3327;
+  --vc-warning: #ffb74d;
+  --vc-warning-fg: #ffcc80;
+  --vc-warning-bg: #3d2f16;
+  --vc-highlight: #5c4a16;
+  --vc-highlight-fg: #ffd966;
+  --vc-star-off: #4a4f56;
+
+  --vc-shadow: 0 2px 8px rgb(0 0 0 / 50%);
+}

@@ -11,5 +11,12 @@ export type ImageProps = {
 export const Image: React.FC<ImageProps> = ({ src, alt, style, className }) => {
   const { data } = useProductCard();
   const finalSrc = src ?? data?.image;
-  return <img src={finalSrc} alt={alt ?? data?.title ?? ""} style={style} className={className} />;
+  return (
+    <img
+      src={finalSrc}
+      alt={alt ?? data?.title ?? ""}
+      style={style}
+      className={`vc-image ${className ?? ""}`.trim()}
+    />
+  );
 };

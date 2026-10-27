@@ -45,42 +45,29 @@ export const ReturnPolicy: React.FC<ReturnPolicyProps> = ({
     danger: "#d64545",
   };
 
-  const containerStyles: React.CSSProperties = {
-    display: "grid",
-    gap: compact ? 8 : 12,
-    border: "1px solid #eee",
-    borderRadius: 8,
-    padding: compact ? 10 : 12,
-    background: themeColors[theme],
+  // theme 是用户可传的，颜色因此是动态值 → CSS 变量下发；形状/间距回 class
+  const rootStyle = {
+    "--vc-return-bg": themeColors[theme],
+    "--vc-return-accent": accentColors[theme],
     ...style,
-  };
-
-  const badgeStyles: React.CSSProperties = {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 6,
-    borderRadius: 999,
-    padding: "4px 8px",
-    background: "#fff",
-    border: "1px solid #eee",
-    color: accentColors[theme],
-    fontSize: 12,
-    fontWeight: 600,
-  };
+  } as React.CSSProperties;
 
   const pill = (text: string) => (
-    <span style={badgeStyles}>
-      <span style={{ width: 6, height: 6, borderRadius: 999, background: accentColors[theme] }} />
+    <span className="vc-return__pill">
+      <span className="vc-return__dot" />
       {text}
     </span>
   );
 
   return (
-    <div className={`return-policy ${className}`} style={containerStyles}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ display: "grid", gap: 6 }}>
+    <div
+      className={`vc-return ${compact ? "vc-return--compact" : ""} ${className}`.replace(/\s+/g, " ").trim()}
+      style={rootStyle}
+    >
+      <div className="vc-return__head">
+        <div className="vc-return__title">
           <strong>退换政策</strong>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <div className="vc-return__badges">
             {pill(`${windowDays}天窗口期`)}
             {allowReturn && pill("支持退货")}
             {allowExchange && pill("支持换货")}
@@ -91,17 +78,10 @@ export const ReturnPolicy: React.FC<ReturnPolicyProps> = ({
         {(policyLink || onViewPolicy) && (
           <button
             type="button"
+            className="vc-return__link"
             onClick={() => {
               if (onViewPolicy) onViewPolicy();
               if (policyLink) window.open(policyLink, "_blank");
-            }}
-            style={{
-              padding: "6px 10px",
-              borderRadius: 6,
-              border: "1px solid #ddd",
-              background: "#fff",
-              color: accentColors[theme],
-              cursor: "pointer",
             }}
           >
             查看详情
@@ -110,21 +90,17 @@ export const ReturnPolicy: React.FC<ReturnPolicyProps> = ({
       </div>
 
       {!!conditions.length && (
-        <div style={{ display: "grid", gap: 6 }}>
-          <div style={{ color: "#666" }}>简要条款</div>
-          <ul style={{ margin: 0, paddingLeft: 18 }}>
+        <div className="vc-return__body">
+          <div className="vc-return__label">简要条款</div>
+          <ul className="vc-return__list">
             {conditions.map((c, i) => (
-              <li key={i} style={{ color: "#333", fontSize: compact ? 12 : 14 }}>
-                {c}
-              </li>
+              <li key={i}>{c}</li>
             ))}
           </ul>
         </div>
       )}
 
-      {contact && (
-        <div style={{ color: "#666" }}>售后支持：{contact}</div>
-      )}
+      {contact && <div className="vc-return__contact">售后支持：{contact}</div>}
     </div>
   );
 };

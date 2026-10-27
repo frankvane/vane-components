@@ -6,10 +6,5 @@ export type DividerProps = {
 };
 
 export const Divider: React.FC<DividerProps> = ({ style, className }) => {
-  return (
-    <div
-      className={className}
-      style={{ height: 1, background: "#eee", margin: "8px 0", ...style }}
-    />
-  );
+  return <div className={`vc-divider ${className ?? ""}`.trim()} style={style} />;
 };

@@ -20,13 +20,15 @@ export const SpecsTable: React.FC<SpecsTableProps> = ({ specs, className, style 
   const rows = normalize(specs ?? data?.specs);
   if (!rows.length) return null;
   return (
-    <div className={className} style={style}>
-      <table style={{ width: "100%", borderCollapse: "collapse" }}>
+    <div className={`vc-specs ${className ?? ""}`.trim()} style={style}>
+      <table className="vc-specs__table">
         <tbody>
           {rows.map((r, i) => (
             <tr key={i}>
-              <td style={{ width: "30%", padding: "6px 8px", color: "#666" }}>{r.key}</td>
-              <td style={{ padding: "6px 8px", color: "#333" }}>{r.value}</td>
+              <th className="vc-specs__key" scope="row">
+                {r.key}
+              </th>
+              <td className="vc-specs__value">{r.value}</td>
             </tr>
           ))}
         </tbody>

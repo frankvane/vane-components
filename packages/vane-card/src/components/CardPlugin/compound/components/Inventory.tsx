@@ -24,9 +24,11 @@ export const Inventory: React.FC<InventoryProps> = ({ available, threshold = 5, 
 
   const isLow = qty > 0 && qty <= threshold;
   const text = qty <= 0 ? "已售罄" : isLow ? `仅剩 ${qty} 件` : `库存充足（${qty}）`;
-  const color = qty <= 0 ? "#999" : isLow ? "#d0021b" : "#0a7f2e";
+  const tone = qty <= 0 ? "out" : isLow ? "low" : "in";
 
   return (
-    <div className={className} style={{ color, fontSize: 13, ...style }}>{text}</div>
+    <div className={`vc-inventory vc-inventory--${tone} ${className ?? ""}`.trim()} style={style}>
+      {text}
+    </div>
   );
 };

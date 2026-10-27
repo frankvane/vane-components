@@ -43,30 +43,20 @@ export const SelectedInfo: React.FC<SelectedInfoProps> = ({ className, style, sh
   };
 
   const tag = (label: string, value?: React.ReactNode) => (
-    <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-      <span style={{ color: "#666", fontSize: 12 }}>{label}</span>
-      <span style={{ fontWeight: 500 }}>{value}</span>
+    <div className="vc-selected__row">
+      <span className="vc-selected__label">{label}</span>
+      <span className="vc-selected__value">{value}</span>
     </div>
   );
 
   return (
-    <div
-      className={className}
-      style={{
-        border: "1px solid #eee",
-        borderRadius: 8,
-        padding: 12,
-        background: "#fafafa",
-        display: "grid",
-        gap: 8,
-        ...style,
-      }}
-    >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div style={{ fontSize: 13, color: "#333", fontWeight: 600 }}>选中信息</div>
+    <div className={`vc-selected ${className ?? ""}`.trim()} style={style}>
+      <div className="vc-selected__head">
+        <div className="vc-selected__title">选中信息</div>
         <button
+          type="button"
+          className={`vc-btn ${copied ? "is-active" : ""}`.trim()}
           onClick={onCopy}
-          style={{ padding: "4px 10px", border: "1px solid #ddd", borderRadius: 6, cursor: "pointer", background: copied ? "#e6f0ff" : "#fff" }}
         >
           {copied ? "已复制" : "复制JSON"}
         </button>
@@ -80,21 +70,19 @@ export const SelectedInfo: React.FC<SelectedInfoProps> = ({ className, style, sh
       {tag("总价", `${info.totalPrice}`)}
 
       {!!Object.keys(info.attributes || {}).length && (
-        <div style={{ display: "grid", gap: 4 }}>
-          <div style={{ color: "#666", fontSize: 12 }}>属性</div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+        <div className="vc-selected__row vc-selected__row--stack">
+          <div className="vc-selected__label">属性</div>
+          <div className="vc-selected__tags">
             {Object.entries(info.attributes || {}).map(([k, v]) => (
-              <span key={k} style={{ padding: "2px 8px", border: "1px solid #ddd", borderRadius: 999, fontSize: 12 }}>{k}: {String(v)}</span>
+              <span key={k} className="vc-selected__tag">
+                {k}: {String(v)}
+              </span>
             ))}
           </div>
         </div>
       )}
 
-      {showJSON && (
-        <pre style={{ margin: 0, padding: 8, background: "#fff", border: "1px solid #eee", borderRadius: 6, fontSize: 12, overflow: "auto" }}>
-          {JSON.stringify(info, null, 2)}
-        </pre>
-      )}
+      {showJSON && <pre className="vc-selected__json">{JSON.stringify(info, null, 2)}</pre>}
     </div>
   );
 };

@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>vane-card · 不引 style.css 的对照</title>
+    <style>
+      /* 刻意只写页面外壳，不引 vane-card 的任何 CSS：
+         这一页要展示的就是「不引样式表时的退化形态」 */
+      body {
+        margin: 0;
+        padding: 24px;
+        font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+        color: #1f2329;
+        background: #fff;
+      }
+      header {
+        margin-bottom: 16px;
+        font-size: 13px;
+        color: #666;
+      }
+      a {
+        color: #007aff;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      本页<strong>没有</strong>引入 <code>vane-card/style.css</code>：结构与文案都在，只是没有视觉。
+      <a href="/demo/index.html">→ 看引入样式后的样子</a>
+    </header>
+    <div id="root"></div>
+    <script type="module" src="/demo/src/main-no-style.tsx"></script>
+  </body>
+</html>

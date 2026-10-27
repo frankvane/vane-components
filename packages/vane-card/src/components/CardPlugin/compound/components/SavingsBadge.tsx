@@ -53,45 +53,6 @@ export const SavingsBadge: React.FC<SavingsBadgeProps> = ({
     return null;
   }
 
-  const getBorderRadius = () => {
-    switch (badgeStyle) {
-      case "pill":
-        return 999;
-      case "rounded":
-        return 6;
-      case "square":
-        return 0;
-      default:
-        return 6;
-    }
-  };
-
-  const getFontSize = () => {
-    switch (size) {
-      case "small":
-        return 11;
-      case "medium":
-        return 12;
-      case "large":
-        return 14;
-      default:
-        return 12;
-    }
-  };
-
-  const getPadding = () => {
-    switch (size) {
-      case "small":
-        return "2px 6px";
-      case "medium":
-        return "4px 8px";
-      case "large":
-        return "6px 12px";
-      default:
-        return "4px 8px";
-    }
-  };
-
   const formatAmount = (amount: number) => `${currency}${amount.toFixed(2)}`;
 
   const getText = () => {
@@ -119,21 +80,8 @@ export const SavingsBadge: React.FC<SavingsBadgeProps> = ({
 
   return (
     <span
-      className={className}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: getPadding(),
-        fontSize: getFontSize(),
-        fontWeight: 600,
-        color,
-        backgroundColor,
-        borderRadius: getBorderRadius(),
-        whiteSpace: "nowrap",
-        lineHeight: 1,
-        ...style,
-      }}
+      className={`vc-savings vc-savings--${size} vc-savings--${badgeStyle} ${className ?? ""}`.trim()}
+      style={{ color, backgroundColor, ...style }}
       title={`原价 ${formatAmount(totalOldPrice)}, 现价 ${formatAmount(totalCurrentPrice)}, 节省 ${formatAmount(savings.totalSavings)}`}
     >
       {getText()}

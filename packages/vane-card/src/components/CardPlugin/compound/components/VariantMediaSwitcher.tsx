@@ -79,126 +79,73 @@ export const VariantMediaSwitcher: React.FC<VariantMediaSwitcherProps> = ({
 
   const isVideo = (u: string) => /\.mp4(\?|$)/i.test(u);
 
-  const sizeStyles = (() => {
-    switch (thumbnailSize) {
-      case "small":
-        return { w: 44, h: 44 };
-      case "large":
-        return { w: 72, h: 72 };
-      default:
-        return { w: 56, h: 56 };
-    }
-  })();
+  const sizePx = thumbnailSize === "small" ? 44 : thumbnailSize === "large" ? 72 : 56;
 
   const list: VariantImage[] = React.useMemo(() => {
     if (variantImages && variantImages.length) return variantImages;
-    if (images && images.length) return images.map(u => ({ url: u }));
+    if (images && images.length) return images.map((u) => ({ url: u }));
     const fallback = data?.image ?? "";
     return fallback ? [{ url: fallback }] : [];
   }, [variantImages, images, data?.image]);
 
-  const containerStyles: React.CSSProperties = {
-    display: "grid",
-    gap: 12,
-    gridTemplateColumns: layout === "horizontal" ? "1fr" : `auto 1fr`,
-    alignItems: "start",
-    ...style,
-  };
+  const thumbBorderClass = showBorder ? "vc-media__thumb--bordered" : "";
+  const mainBorderClass = showBorder ? "vc-media__main--bordered" : "";
 
-  const mainStyles: React.CSSProperties = {
-    width: "100%",
-    aspectRatio,
-    borderRadius: 8,
-    overflow: "hidden",
-    border: showBorder ? "1px solid #eee" : "none",
-    background: "#fafafa",
-  };
-
-  const thumbWrapStyles: React.CSSProperties = {
-    display: "flex",
-    flexDirection: layout === "horizontal" ? "row" : "column",
-    gap: 8,
-  };
-
-  const thumbStyles: React.CSSProperties = {
-    width: sizeStyles.w,
-    height: sizeStyles.h,
-    borderRadius: 6,
-    overflow: "hidden",
-    border: showBorder ? "1px solid #eee" : "none",
-    cursor: enableManualSwitch ? "pointer" : "default",
-    position: "relative",
-    background: "#fff",
-  };
+  const renderThumb = (item: VariantImage, idx: number) => (
+    <button
+      key={idx}
+      type="button"
+      className={`vc-media__thumb ${thumbBorderClass} ${
+        enableManualSwitch ? "is-clickable" : ""
+      }`
+        .replace(/\s+/g, " ")
+        .trim()}
+      // 宽高来自 thumbnailSize，属动态值
+      style={{ width: sizePx, height: sizePx }}
+      onClick={() => enableManualSwitch && setManualUrl(item.url)}
+      title={item.label ?? "切换主图"}
+      disabled={item.available === false}
+    >
+      {isVideo(item.url) ? (
+        <div className="vc-media__video-tag">▶ 视频</div>
+      ) : (
+        <img
+          src={item.url}
+          alt={item.label ?? `缩略图-${idx + 1}`}
+          className="vc-media__fill"
+        />
+      )}
+      {item.available === false && <span className="vc-media__unavailable">不可用</span>}
+    </button>
+  );
 
   return (
-    <div className={`variant-media-switcher ${className}`} style={containerStyles}>
+    <div
+      className={`vc-media vc-media--${layout} ${className}`.trim()}
+      style={{ ...(aspectRatio ? ({ "--vc-media-ratio": aspectRatio } as React.CSSProperties) : {}), ...style }}
+    >
       {/* 缩略图列表（竖排时在左侧，横排时在上方） */}
       {layout === "vertical" && (
-        <div className="vms-thumbs" style={thumbWrapStyles}>
-          {list.map((item, idx) => (
-            <button
-              key={idx}
-              type="button"
-              style={thumbStyles}
-              onClick={() => enableManualSwitch && setManualUrl(item.url)}
-              title={item.label ?? "切换主图"}
-              disabled={item.available === false}
-            >
-              {isVideo(item.url) ? (
-                <div style={{ width: "100%", height: "100%", display: "grid", placeItems: "center", background: "#000", color: "#fff", fontSize: 10 }}>
-                  ▶ 视频
-                </div>
-              ) : (
-                <img src={item.url} alt={item.label ?? `缩略图-${idx + 1}`} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-              )}
-              {item.available === false && (
-                <span style={{ position: "absolute", inset: 0, background: "#fff8", display: "grid", placeItems: "center", color: "#d0021b", fontSize: 10 }}>不可用</span>
-              )}
-            </button>
-          ))}
+        <div className="vc-media__thumbs vc-media__thumbs--vertical">
+          {list.map(renderThumb)}
         </div>
       )}
 
       {/* 主媒体区域 */}
-      <div className="vms-main" style={mainStyles}>
+      <div className={`vc-media__main ${mainBorderClass}`.trim()}>
         {mainUrl ? (
           isVideo(mainUrl) ? (
-            <video src={mainUrl} style={{ width: "100%", height: "100%", objectFit: "cover" }} controls />
+            <video src={mainUrl} className="vc-media__fill" controls />
           ) : (
-            <img src={mainUrl} alt={data?.title ?? "主图"} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            <img src={mainUrl} alt={data?.title ?? "主图"} className="vc-media__fill" />
           )
         ) : (
-          <div style={{ width: "100%", height: "100%", display: "grid", placeItems: "center", color: "#999" }}>暂无主图</div>
+          <div className="vc-media__empty">暂无主图</div>
         )}
       </div>
 
       {/* 缩略图列表（横排时在底部） */}
-      {layout === "horizontal" && (
-        <div className="vms-thumbs" style={thumbWrapStyles}>
-          {list.map((item, idx) => (
-            <button
-              key={idx}
-              type="button"
-              style={thumbStyles}
-              onClick={() => enableManualSwitch && setManualUrl(item.url)}
-              title={item.label ?? "切换主图"}
-              disabled={item.available === false}
-            >
-              {isVideo(item.url) ? (
-                <div style={{ width: "100%", height: "100%", display: "grid", placeItems: "center", background: "#000", color: "#fff", fontSize: 10 }}>
-                  ▶ 视频
-                </div>
-              ) : (
-                <img src={item.url} alt={item.label ?? `缩略图-${idx + 1}`} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-              )}
-              {item.available === false && (
-                <span style={{ position: "absolute", inset: 0, background: "#fff8", display: "grid", placeItems: "center", color: "#d0021b", fontSize: 10 }}>不可用</span>
-              )}
-            </button>
-          ))}
-        </div>
-      )}
+      {layout === "horizontal" && <div className="vc-media__thumbs">{list.map(renderThumb)}</div>}
     </div>
   );
 };

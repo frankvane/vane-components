@@ -97,41 +97,17 @@ export const CouponBar: React.FC<CouponBarProps> = ({
     return themes[theme];
   };
 
-  // 获取尺寸样式
-  const getSizeStyles = () => {
-    const sizes = {
-      small: { fontSize: "12px", padding: "6px 8px", gap: "6px" },
-      medium: { fontSize: "13px", padding: "8px 12px", gap: "8px" },
-      large: { fontSize: "14px", padding: "10px 16px", gap: "10px" },
-    };
-    return sizes[size];
-  };
-
   const themeColors = getThemeColors();
-  const sizeStyles = getSizeStyles();
 
-  const containerStyles: React.CSSProperties = {
-    display: "flex",
-    flexDirection: layout === "vertical" ? "column" : "row",
-    gap: sizeStyles.gap,
+  // 主题色是"用户可传"的动态值 → 以 CSS 变量下发；形状与间距回 class（见 components.css）
+  const containerStyle = {
+    "--vc-coupon-bg": themeColors.bg,
+    "--vc-coupon-border": themeColors.border,
+    "--vc-coupon-text": themeColors.text,
+    "--vc-coupon-accent": themeColors.accent,
+    "--vc-coupon-applied-bg": `${themeColors.accent}15`,
     ...style,
-  };
-
-  const couponStyles: React.CSSProperties = {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: themeColors.bg,
-    border: `1px solid ${themeColors.border}`,
-    borderRadius: "6px",
-    padding: sizeStyles.padding,
-    fontSize: sizeStyles.fontSize,
-    color: themeColors.text,
-    cursor: "pointer",
-    transition: "all 0.2s ease",
-    minWidth: layout === "horizontal" ? "120px" : "auto",
-    position: "relative",
-  };
+  } as React.CSSProperties;
 
   const handleCouponClick = (coupon: CouponInfo) => {
     if (expandedCoupon === coupon.id) {
@@ -148,96 +124,75 @@ export const CouponBar: React.FC<CouponBarProps> = ({
   };
 
   return (
-    <div className={`coupon-bar coupon-bar--${layout} coupon-bar--${size} ${className}`} style={containerStyles}>
+    <div
+      className={`vc-coupon-bar vc-coupon-bar--${layout} vc-coupon-bar--${size} ${className}`.trim()}
+      style={containerStyle}
+    >
       {visibleCoupons.map((coupon) => {
         const isExpanded = expandedCoupon === coupon.id;
-        const isUnavailable = coupon.minAmount && totalAmount < coupon.minAmount;
-        
+        const isUnavailable = Boolean(coupon.minAmount && totalAmount < coupon.minAmount);
+
         return (
-          <div key={coupon.id} style={{ position: "relative" }}>
+          <div key={coupon.id} className="vc-coupon__wrap">
             <div
-              style={{
-                ...couponStyles,
-                opacity: isUnavailable ? 0.6 : 1,
-                borderColor: coupon.isApplied ? themeColors.accent : themeColors.border,
-                backgroundColor: coupon.isApplied ? `${themeColors.accent}15` : themeColors.bg,
-              }}
+              className={`vc-coupon ${isUnavailable ? "is-unavailable" : ""} ${
+                coupon.isApplied ? "is-applied" : ""
+              }`
+                .replace(/\s+/g, " ")
+                .trim()}
               onClick={() => handleCouponClick(coupon)}
               title={coupon.description || coupon.title}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: "6px", flex: 1 }}>
-                <span style={{ fontWeight: 600, color: themeColors.accent }}>
-                  {formatDiscount(coupon)}
-                </span>
-                <span style={{ fontSize: "0.9em" }}>{coupon.title}</span>
+              <div className="vc-coupon__main">
+                <span className="vc-coupon__discount">{formatDiscount(coupon)}</span>
+                <span className="vc-coupon__title">{coupon.title}</span>
                 {coupon.minAmount && (
-                  <span style={{ fontSize: "0.8em", color: "#999" }}>
-                    满{currency}{coupon.minAmount}
+                  <span className="vc-coupon__min">
+                    满{currency}
+                    {coupon.minAmount}
                   </span>
                 )}
               </div>
-              
-              <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+
+              <div className="vc-coupon__side">
                 {showExpiry && coupon.expiry && (
-                  <span style={{ fontSize: "0.8em", color: "#999" }}>
-                    至{formatExpiry(coupon.expiry)}
-                  </span>
+                  <span className="vc-coupon__expiry">至{formatExpiry(coupon.expiry)}</span>
                 )}
                 {!coupon.isApplied && !isUnavailable && (
                   <button
-                    style={{
-                      background: themeColors.accent,
-                      color: "#fff",
-                      border: "none",
-                      borderRadius: "4px",
-                      padding: "2px 6px",
-                      fontSize: "0.8em",
-                      cursor: "pointer",
-                    }}
+                    type="button"
+                    className="vc-coupon__apply"
                     onClick={(e) => handleApplyCoupon(e, coupon)}
                   >
                     领取
                   </button>
                 )}
-                {coupon.isApplied && (
-                  <span style={{ fontSize: "0.8em", color: themeColors.accent }}>
-                    已应用
-                  </span>
-                )}
+                {coupon.isApplied && <span className="vc-coupon__applied">已应用</span>}
               </div>
             </div>
 
             {/* 展开的详细信息 */}
             {isExpanded && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: "100%",
-                  left: 0,
-                  right: 0,
-                  backgroundColor: "#fff",
-                  border: `1px solid ${themeColors.border}`,
-                  borderRadius: "6px",
-                  padding: "8px 12px",
-                  fontSize: "12px",
-                  color: "#666",
-                  zIndex: 10,
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                  marginTop: "2px",
-                }}
-              >
+              <div className="vc-coupon__detail">
                 {coupon.description && (
-                  <div style={{ marginBottom: "4px" }}>{coupon.description}</div>
+                  <div className="vc-coupon__detail-line">{coupon.description}</div>
                 )}
                 {showCode && coupon.code && (
-                  <div style={{ marginBottom: "4px" }}>
-                    优惠码: <code style={{ background: "#f5f5f5", padding: "1px 4px" }}>{coupon.code}</code>
+                  <div className="vc-coupon__detail-line">
+                    优惠码: <code className="vc-coupon__code">{coupon.code}</code>
                   </div>
                 )}
                 {coupon.minAmount && (
-                  <div style={{ color: totalAmount >= coupon.minAmount ? "#28a745" : "#dc3545" }}>
-                    最低消费: {currency}{coupon.minAmount} 
-                    {totalAmount >= coupon.minAmount ? " ✓" : ` (还差${currency}${coupon.minAmount - totalAmount})`}
+                  <div
+                    className={`vc-coupon__reach ${
+                      totalAmount >= coupon.minAmount ? "is-ok" : ""
+                    }`.trim()}
+                  >
+                    最低消费: {currency}
+                    {coupon.minAmount}
+                    {totalAmount >= coupon.minAmount
+                      ? " ✓"
+                      : ` (还差${currency}${coupon.minAmount - totalAmount})`}
                   </div>
                 )}
               </div>
@@ -248,21 +203,10 @@ export const CouponBar: React.FC<CouponBarProps> = ({
 
       {/* 显示更多优惠券的提示 */}
       {availableCoupons.length > maxVisible && (
-        <div
-          style={{
-            ...couponStyles,
-            backgroundColor: "transparent",
-            border: `1px dashed ${themeColors.border}`,
-            justifyContent: "center",
-            color: "#999",
-            minWidth: "80px",
-          }}
-        >
-          +{availableCoupons.length - maxVisible}个
-        </div>
+        <div className="vc-coupon-more">+{availableCoupons.length - maxVisible}个</div>
       )}
       {priceAreaNodes.length > 0 && (
-        <div className="vc-price__area" data-slot="price-area" style={{ display: "flex", gap: 8, marginTop: 8 }}>
+        <div className="vc-price__area" data-slot="price-area">
           {priceAreaNodes.map((node, i) => (
             <React.Fragment key={i}>{node}</React.Fragment>
           ))}

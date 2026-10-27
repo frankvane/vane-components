@@ -11,5 +11,9 @@ export const Brand: React.FC<BrandProps> = ({ name, style, className }) => {
   const { data } = useProductCard();
   const final = name ?? data?.brand;
   if (!final) return null;
-  return <div style={{ color: "#333", fontSize: 13, ...style }} className={className}>品牌：{final}</div>;
+  return (
+    <div className={`vc-brand ${className ?? ""}`.trim()} style={style}>
+      品牌：{final}
+    </div>
+  );
 };

@@ -45,25 +45,20 @@ export const VariantSelector: React.FC<VariantSelectorProps> = ({ attributes, cl
   };
 
   return (
-    <div className={className} style={{ display: "grid", gap: 10, ...style }}>
+    <div className={`vc-variants ${className ?? ""}`.trim()} style={style}>
       {keys.map((name) => {
         const options = attrs[name] ?? [];
         const selected = state.attributes?.[name];
         return (
-          <div key={name}>
-            <div style={{ marginBottom: 6, color: "#666", fontSize: 12 }}>{name}</div>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <div key={name} className="vc-variants__group">
+            <div className="vc-variants__label">{name}</div>
+            <div className="vc-options">
               {options.map((opt) => (
                 <button
                   key={opt}
+                  type="button"
+                  className={`vc-option ${selected === opt ? "is-selected" : ""}`.trim()}
                   onClick={() => onSelect(name, opt)}
-                  style={{
-                    padding: "4px 10px",
-                    borderRadius: 6,
-                    border: selected === opt ? "2px solid #007aff" : "1px solid #ddd",
-                    background: selected === opt ? "#e6f0ff" : "#fff",
-                    cursor: "pointer",
-                  }}
                 >
                   {opt}
                 </button>

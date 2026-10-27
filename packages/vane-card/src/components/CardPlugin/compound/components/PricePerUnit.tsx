@@ -16,5 +16,9 @@ export const PricePerUnit: React.FC<PricePerUnitProps> = ({ unitLabel = "每100g
   const grams = totalGram ?? data?.weightGram;
   if (p == null || !grams || grams <= 0) return null;
   const unitPrice = (p / grams) * unitGram;
-  return <div className={className} style={{ color: "#666", fontSize: 12, ...style }}>{unitLabel}约 ¥{unitPrice.toFixed(2)}</div>;
+  return (
+    <div className={`vc-price-unit ${className ?? ""}`.trim()} style={style}>
+      {unitLabel}约 ¥{unitPrice.toFixed(2)}
+    </div>
+  );
 };

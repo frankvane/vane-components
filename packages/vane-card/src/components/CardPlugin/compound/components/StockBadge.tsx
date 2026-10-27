@@ -72,78 +72,20 @@ export const StockBadge: React.FC<StockBadgeProps> = ({
     }
   };
 
-  // 获取颜色样式
-  const getColorStyles = () => {
-    if (colorScheme !== "default") {
-      // 使用指定的颜色方案
-      const colorMap = {
-        success: { bg: "#0a7f2e", color: "#fff" },
-        warning: { bg: "#ff9800", color: "#fff" },
-        danger: { bg: "#d0021b", color: "#fff" },
-      };
-      return colorMap[colorScheme];
-    }
-
-    // 根据库存状态自动选择颜色
-    switch (stockStatus) {
-      case "out-of-stock":
-        return { bg: "#d0021b", color: "#fff" };
-      case "low-stock":
-        return { bg: "#ff9800", color: "#fff" };
-      case "in-stock":
-        return { bg: "#0a7f2e", color: "#fff" };
-      default:
-        return { bg: "#6c757d", color: "#fff" };
-    }
-  };
-
-  // 获取尺寸样式
-  const getSizeStyles = () => {
-    switch (size) {
-      case "small":
-        return { fontSize: "11px", padding: "2px 6px", minWidth: "auto" };
-      case "large":
-        return { fontSize: "14px", padding: "6px 12px", minWidth: "60px" };
-      default: // medium
-        return { fontSize: "12px", padding: "4px 8px", minWidth: "50px" };
-    }
-  };
-
-  // 获取边框样式
-  const getBorderRadius = () => {
-    switch (badgeStyle) {
-      case "square":
-        return "2px";
-      case "rounded":
-        return "6px";
-      default: // pill
-        return "12px";
-    }
-  };
-
-  const colorStyles = getColorStyles();
-  const sizeStyles = getSizeStyles();
-
-  const badgeStyles: React.CSSProperties = {
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colorStyles.bg,
-    color: colorStyles.color,
-    borderRadius: getBorderRadius(),
-    fontWeight: 500,
-    textAlign: "center",
-    whiteSpace: "nowrap",
-    userSelect: "none",
-    border: "none",
-    ...sizeStyles,
-    ...style,
-  };
+  // 底色：显式指定 colorScheme 时按它走，否则跟随库存状态
+  const tone =
+    colorScheme !== "default"
+      ? colorScheme
+      : stockStatus === "out-of-stock"
+        ? "out"
+        : stockStatus === "low-stock"
+          ? "low"
+          : "in";
 
   return (
     <span
-      className={`stock-badge stock-badge--${stockStatus} stock-badge--${size} ${className}`}
-      style={badgeStyles}
+      className={`vc-stock vc-stock--${size} vc-stock--${badgeStyle} vc-stock--${tone} ${className}`.trim()}
+      style={style}
       title={`当前库存: ${currentStock}件`}
     >
       {getDisplayText()}

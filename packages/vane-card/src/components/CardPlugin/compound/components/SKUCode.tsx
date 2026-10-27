@@ -15,5 +15,9 @@ export const SKUCode: React.FC<SKUCodeProps> = ({ code, prefix = "SKU", classNam
   const active = matchVariant(variantListOf(data), state.attributes);
   const final = code ?? active?.sku ?? data?.sku;
   if (!final) return null;
-  return <div className={className} style={{ color: "#777", fontSize: 12, ...style }}>{prefix}：{final}</div>;
+  return (
+    <div className={`vc-sku ${className ?? ""}`.trim()} style={style}>
+      {prefix}：{final}
+    </div>
+  );
 };

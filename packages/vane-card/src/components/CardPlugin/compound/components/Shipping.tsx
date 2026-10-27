@@ -11,5 +11,9 @@ export const Shipping: React.FC<ShippingProps> = ({ info, style, className }) =>
   const { data } = useProductCard();
   const final = info ?? data?.shippingInfo ?? data?.shipping;
   if (!final) return null;
-  return <div style={{ color: "#333", fontSize: 12, ...style }} className={className}>配送：{final}</div>;
+  return (
+    <div className={`vc-shipping ${className ?? ""}`.trim()} style={style}>
+      配送：{final}
+    </div>
+  );
 };

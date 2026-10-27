@@ -21,7 +21,7 @@ export const Discount: React.FC<DiscountProps> = ({ percent, fromPrice, toPrice,
   if (!p || p <= 0) return null;
 
   return (
-    <span className={className} style={{ display: "inline-block", padding: "2px 6px", background: "#ffe08a", borderRadius: 4, fontSize: 12, color: "#a15c00", ...style }}>
+    <span className={`vc-badge ${className ?? ""}`.trim()} style={style}>
       -{p}%
     </span>
   );

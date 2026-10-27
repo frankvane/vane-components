@@ -16,6 +16,17 @@ const demo = createDemoConfig({
  */
 export default {
   ...demo,
+  build: {
+    ...demo.build,
+    rollupOptions: {
+      ...demo.build?.rollupOptions,
+      // 两个页面：正常（引样式）与对照（不引样式），C4.3 的验收需要这一组对照
+      input: {
+        main: path.resolve(root, "demo/index.html"),
+        "no-style": path.resolve(root, "demo/no-style.html"),
+      },
+    },
+  },
   resolve: {
     ...demo.resolve,
     alias: [

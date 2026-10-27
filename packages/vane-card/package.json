@@ -22,7 +22,8 @@
     "./presets/sku-flow": {
       "types": "./dist/presets/sku-flow/index.d.ts",
       "import": "./dist/presets/sku-flow/index.js"
-    }
+    },
+    "./style.css": "./dist/style.css"
   },
   "files": [
     "dist"
