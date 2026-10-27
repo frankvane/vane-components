@@ -1,95 +1,271 @@
-import {
-  CardCore,
-  withPlugins,
-  createImagePlugin,
-  createHoverPlugin,
-  createSKUPlugin,
-  createQuantityPlugin,
-  createPriceCalculatorPlugin,
-} from "vane-card";
-import { ProductCard } from "vane-card/compound";
+import React, { Suspense, lazy, useCallback, useEffect, useState } from "react";
+import { HashRouter, Navigate, Route, Routes, useLocation, useParams, Link } from "react-router-dom";
+import { DEMOS, DEMO_GROUPS, demosOf, findDemo } from "./demos/registry";
+import { GROUP_META } from "./demos/types";
+import { DemoPage } from "./demos/DemoPage";
 
-// 消费者视角：从包名导入，与真实项目写法一致（demo 别名会把 vane-card 指回 src）
-const SkuCard = withPlugins(CardCore, {
-  plugins: [
-    createImagePlugin(),
-    createHoverPlugin(),
-    createSKUPlugin({
-      attributes: [
-        { name: "color", options: ["红", "蓝"] },
-        { name: "size", options: ["M", "L"] },
-      ],
-      variants: [
-        { sku: "TS-RED-M", attrs: { color: "红", size: "M" }, price: 319, stock: 3 },
-        { sku: "TS-BLUE-L", attrs: { color: "蓝", size: "L" }, price: 299, stock: 40 },
-      ],
-    }),
-    createQuantityPlugin(),
-    createPriceCalculatorPlugin(),
-  ],
-});
+const HomePage = lazy(() => import("./pages/HomePage").then((m) => ({ default: m.HomePage })));
+const PluginsPage = lazy(() =>
+  import("./pages/PluginsPage").then((m) => ({ default: m.PluginsPage }))
+);
+const ScenariosPage = lazy(() =>
+  import("./pages/ScenariosPage").then((m) => ({ default: m.ScenariosPage }))
+);
 
-const data = {
-  title: "经典圆领T恤",
-  subtitle: "新疆长绒棉 · 260g",
-  price: 299,
-  oldPrice: 399,
-  image: "https://via.placeholder.com/600x450",
-  inventory: 12,
-  tags: ["纯棉", "夏季"],
-  rating: 4.6,
-  ratingCount: 120,
-  features: ["不掉色", "不起球", "透气"],
-  colors: [{ name: "红", hex: "#d0021b" }, { name: "蓝", hex: "#007aff" }],
-  variants: [
-    { sku: "TS-RED-M", price: 319, stock: 3, options: { color: "红", size: "M" } },
-    { sku: "TS-BLUE-L", price: 299, stock: 40, options: { color: "蓝", size: "L" } },
-  ],
-};
+const NAV = [
+  { to: "/", no: "01", label: "总览", hint: "overview" },
+  { to: "/plugins", no: "02", label: "插件工坊", hint: "22 plugins" },
+  { to: "/scenarios", no: "03", label: "场景示例", hint: "10 plates" },
+];
+
+/**
+ * 页面级错误兜底。
+ * 没有它，任何一个 lazy 页面在渲染期抛错都会让整棵树被 React 卸掉 ——
+ * 现象是「整页空白、侧栏也消失」，排查时毫无线索。这里把错误摊在页面上。
+ */
+class PageBoundary extends React.Component<
+  { children: React.ReactNode },
+  { error: Error | null }
+> {
+  state = { error: null as Error | null };
+
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+
+  render() {
+    if (!this.state.error) return this.props.children;
+    return (
+      <div className="crash" role="alert">
+        <h3>这个页面炸了</h3>
+        <pre>{String(this.state.error?.stack || this.state.error)}</pre>
+        <button type="button" onClick={() => this.setState({ error: null })}>
+          重试
+        </button>
+      </div>
+    );
+  }
+}
+
+function labelOf(pathname: string): string {
+  if (pathname.startsWith("/plugins")) return "workshop · 插件工坊";
+  if (pathname.startsWith("/scenarios")) return "plates · 场景示例";
+  if (pathname.startsWith("/demos")) {
+    const slug = pathname.replace(/^\/demos\/?/, "");
+    const hit = findDemo(slug);
+    return hit ? `demo · ${hit.meta.title}` : "demo · 逐项示例";
+  }
+  return "index · 总览";
+}
+
+/** 侧栏的「逐项示例」分组：默认展开当前所在组 */
+function DemoNav({ pathname }: { pathname: string }) {
+  const activeGroup = DEMOS.find((d) => pathname === `/demos/${d.meta.slug}`)?.meta.group;
+  const [open, setOpen] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(DEMO_GROUPS.map((g) => [g, g === (activeGroup ?? "core")])) as Record<
+      string,
+      boolean
+    >
+  );
+
+  // 跨组跳转（含直接改地址栏）时把当前组展开，否则导航看起来「跳丢了」
+  useEffect(() => {
+    if (!activeGroup) return;
+    setOpen((prev) => (prev[activeGroup] ? prev : { ...prev, [activeGroup]: true }));
+  }, [activeGroup]);
+
+  return (
+    <div className="nav-section">
+      <div className="nav-section-head">
+        <span>逐项示例</span>
+        <code>{DEMOS.length} demos</code>
+      </div>
+      {DEMO_GROUPS.map((g) => {
+        const list = demosOf(g);
+        const expanded = open[g] ?? false;
+        return (
+          <div className="nav-group" key={g}>
+            <button
+              type="button"
+              className={`nav-group-head${activeGroup === g ? " is-current" : ""}`}
+              onClick={() => setOpen((prev) => ({ ...prev, [g]: !expanded }))}
+              aria-expanded={expanded}
+            >
+              <span className={`nav-caret${expanded ? " is-open" : ""}`} aria-hidden>
+                ▸
+              </span>
+              {GROUP_META[g].label}
+              <code>{list.length}</code>
+            </button>
+            {expanded ? (
+              <div className="nav-list">
+                {list.map((d) => (
+                  <Link
+                    key={d.meta.slug}
+                    to={`/demos/${d.meta.slug}`}
+                    className={`nav-sub${pathname === `/demos/${d.meta.slug}` ? " is-active" : ""}`}
+                  >
+                    {/* 首列必须始终有子元素：.nav-sub 是 18px + 1fr 的网格，
+                        少一个子元素时标题会掉进 18px 那一列，变成一字一行。 */}
+                    <em aria-hidden>
+                      {d.meta.plugin ? d.meta.plugin.replace(/Plugin$/, "").slice(0, 2) : "··"}
+                    </em>
+                    {d.meta.title}
+                  </Link>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/** /demos/:slug —— 找不到就回第一个示例，不要停在空白页 */
+function DemoRoute() {
+  const { slug } = useParams();
+  const entry = slug ? findDemo(slug) : undefined;
+  if (!entry) return <Navigate to={`/demos/${DEMOS[0].meta.slug}`} replace />;
+  const order = DEMOS.indexOf(entry) + 1;
+  // key 必须带 slug：路由切换时同一个组件类型会被复用，
+  // DemoPage 里 useState(() => initialCfg(meta)) 就只跑第一次 —— 现象是
+  // 第二页开始控件值仍是上一页的（显示 undefined）。
+  return <DemoPage key={entry.meta.slug} entry={entry} order={order} />;
+}
+
+function Shell() {
+  const { pathname } = useLocation();
+  const [navOpen, setNavOpen] = useState(false);
+  const [guides, setGuides] = useState(false);
+
+  // 路由变化自动收起抽屉，否则点完导航还要手动关一次
+  useEffect(() => setNavOpen(false), [pathname]);
+
+  const toggleGuides = useCallback(() => setGuides((v) => !v), []);
+
+  // Esc 关抽屉；g 切换参考线（输入框里按 g 不算）
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement | null;
+      const typing =
+        el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable);
+      if (e.key === "Escape") setNavOpen(false);
+      if (!typing && (e.key === "g" || e.key === "G") && !e.metaKey && !e.ctrlKey) {
+        setGuides((v) => !v);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  return (
+    <div className={`shell${navOpen ? " is-nav-open" : ""}${guides ? " is-guides" : ""}`}>
+      {/* HashRouter 下 href="#main" 会被当成路由，必须自己接管焦点 */}
+      <a
+        className="skip-link"
+        href="#main"
+        onClick={(e) => {
+          e.preventDefault();
+          const el = document.getElementById("main");
+          el?.setAttribute("tabindex", "-1");
+          el?.focus();
+          el?.scrollIntoView({ block: "start" });
+        }}
+      >
+        跳到内容
+      </a>
+
+      <aside className="side" aria-label="站点导航">
+        <Link to="/" className="brand">
+          <span className="brand-mark" aria-hidden>
+            C
+          </span>
+          <span>
+            <strong>vane-card</strong>
+            <em>卡片排版台 / plugin index</em>
+          </span>
+        </Link>
+        <nav>
+          {NAV.map((item) => (
+            <Link
+              key={item.to}
+              to={item.to}
+              className={`nav-item${pathname === item.to ? " is-active" : ""}`}
+              aria-current={pathname === item.to ? "page" : undefined}
+            >
+              <em aria-hidden>{item.no}</em>
+              <span>{item.label}</span>
+              <code>{item.hint}</code>
+            </Link>
+          ))}
+          <DemoNav pathname={pathname} />
+        </nav>
+        <div className="side-foot">
+          <p>22 PLUGINS · 10 PLATES · 38 COMPOUNDS</p>
+          <p className="muted">15 HOOKS · D2-A / D4-B</p>
+        </div>
+      </aside>
+
+      <button
+        type="button"
+        className="scrim"
+        aria-label="关闭导航"
+        tabIndex={navOpen ? 0 : -1}
+        onClick={() => setNavOpen(false)}
+      />
+
+      <div className="main" id="main">
+        <header className="topbar">
+          <button
+            type="button"
+            className="nav-toggle"
+            aria-label={navOpen ? "关闭导航" : "打开导航"}
+            aria-expanded={navOpen}
+            onClick={() => setNavOpen((v) => !v)}
+          >
+            <span aria-hidden />
+          </button>
+          <span className="crumb">{labelOf(pathname)}</span>
+          <div className="topbar-right">
+            <button
+              type="button"
+              className="topbar-btn"
+              aria-pressed={guides}
+              onClick={toggleGuides}
+              title="显示栏位参考线（快捷键 G）"
+            >
+              <i aria-hidden />
+              guides
+            </button>
+            <a className="topbar-link" href="/demo/no-style.html">
+              no-style ↗
+            </a>
+          </div>
+        </header>
+
+        <div className="guides" aria-hidden />
+        <Suspense fallback={<div className="loading">loading modules…</div>}>
+          <PageBoundary>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/plugins" element={<PluginsPage />} />
+              <Route path="/scenarios" element={<ScenariosPage />} />
+              <Route path="/demos" element={<Navigate to={`/demos/${DEMOS[0].meta.slug}`} replace />} />
+              <Route path="/demos/:slug" element={<DemoRoute />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </PageBoundary>
+        </Suspense>
+      </div>
+    </div>
+  );
+}
 
 export default function App() {
   return (
-    <div style={{ padding: 24, display: "grid", gap: 24 }}>
-      <section>
-        <h2 style={{ fontSize: 14, color: "#666", margin: "0 0 8px" }}>
-          复合组件（38 个子组件，样式来自 style.css）
-          <a href="/demo/no-style.html" style={{ marginLeft: 12, fontSize: 12 }}>
-            → 不引样式的对照页
-          </a>
-        </h2>
-        <div style={{ maxWidth: 380 }}>
-          <ProductCard productId="c1" data={data}>
-            <ProductCard.Image />
-            <ProductCard.Badge />
-            <ProductCard.Title />
-            <ProductCard.Subtitle />
-            <ProductCard.Price />
-            <ProductCard.OldPrice />
-            <ProductCard.Tags />
-            <ProductCard.Rating />
-            <ProductCard.FeatureList />
-            <ProductCard.ColorSwatches />
-            <ProductCard.VariantSelector />
-            <ProductCard.StockBadge />
-            <ProductCard.QuantityStepper />
-            <ProductCard.Actions />
-          </ProductCard>
-        </div>
-      </section>
-
-      <section>
-        <h2 style={{ fontSize: 14, color: "#666", margin: "0 0 8px" }}>
-          插件视角（withPlugins 包装 CardCore）
-        </h2>
-        <div style={{ maxWidth: 380 }}>
-          <SkuCard cardId="c2" data={data}>
-            <div style={{ padding: 12 }}>
-              <div>{data.title}</div>
-              <div>¥{data.price}</div>
-            </div>
-          </SkuCard>
-        </div>
-      </section>
-    </div>
+    <HashRouter>
+      <Shell />
+    </HashRouter>
   );
 }
