@@ -11,6 +11,110 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
+    "./compound": {
+      "types": "./dist/compound.d.ts",
+      "import": "./dist/compound.js"
+    },
+    "./core": {
+      "types": "./dist/core.d.ts",
+      "import": "./dist/core.js"
+    },
+    "./plugins": {
+      "types": "./dist/plugins.d.ts",
+      "import": "./dist/plugins.js"
+    },
+    "./custom-plugins/A11yPlugin": {
+      "types": "./dist/custom-plugins/A11yPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/A11yPlugin/index.js"
+    },
+    "./custom-plugins/ActionsPlugin": {
+      "types": "./dist/custom-plugins/ActionsPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ActionsPlugin/index.js"
+    },
+    "./custom-plugins/AnalyticsPlugin": {
+      "types": "./dist/custom-plugins/AnalyticsPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/AnalyticsPlugin/index.js"
+    },
+    "./custom-plugins/AnimationPlugin": {
+      "types": "./dist/custom-plugins/AnimationPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/AnimationPlugin/index.js"
+    },
+    "./custom-plugins/BadgePlugin": {
+      "types": "./dist/custom-plugins/BadgePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/BadgePlugin/index.js"
+    },
+    "./custom-plugins/ComparePricePlugin": {
+      "types": "./dist/custom-plugins/ComparePricePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ComparePricePlugin/index.js"
+    },
+    "./custom-plugins/CountdownPlugin": {
+      "types": "./dist/custom-plugins/CountdownPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/CountdownPlugin/index.js"
+    },
+    "./custom-plugins/CouponPlugin": {
+      "types": "./dist/custom-plugins/CouponPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/CouponPlugin/index.js"
+    },
+    "./custom-plugins/CouponRecommendPlugin": {
+      "types": "./dist/custom-plugins/CouponRecommendPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/CouponRecommendPlugin/index.js"
+    },
+    "./custom-plugins/GalleryPlugin": {
+      "types": "./dist/custom-plugins/GalleryPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/GalleryPlugin/index.js"
+    },
+    "./custom-plugins/HoverPlugin": {
+      "types": "./dist/custom-plugins/HoverPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/HoverPlugin/index.js"
+    },
+    "./custom-plugins/ImagePlugin": {
+      "types": "./dist/custom-plugins/ImagePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ImagePlugin/index.js"
+    },
+    "./custom-plugins/InventoryPlugin": {
+      "types": "./dist/custom-plugins/InventoryPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/InventoryPlugin/index.js"
+    },
+    "./custom-plugins/OrderSummaryPlugin": {
+      "types": "./dist/custom-plugins/OrderSummaryPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/OrderSummaryPlugin/index.js"
+    },
+    "./custom-plugins/PriceCalculatorPlugin": {
+      "types": "./dist/custom-plugins/PriceCalculatorPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/PriceCalculatorPlugin/index.js"
+    },
+    "./custom-plugins/QuantityPlugin": {
+      "types": "./dist/custom-plugins/QuantityPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/QuantityPlugin/index.js"
+    },
+    "./custom-plugins/ResponsivePlugin": {
+      "types": "./dist/custom-plugins/ResponsivePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ResponsivePlugin/index.js"
+    },
+    "./custom-plugins/ReviewPlugin": {
+      "types": "./dist/custom-plugins/ReviewPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ReviewPlugin/index.js"
+    },
+    "./custom-plugins/SKUPlugin": {
+      "types": "./dist/custom-plugins/SKUPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/SKUPlugin/index.js"
+    },
+    "./custom-plugins/StatePlugin": {
+      "types": "./dist/custom-plugins/StatePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/StatePlugin/index.js"
+    },
+    "./custom-plugins/UserTagPlugin": {
+      "types": "./dist/custom-plugins/UserTagPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/UserTagPlugin/index.js"
+    },
+    "./custom-plugins/VideoPlugin": {
+      "types": "./dist/custom-plugins/VideoPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/VideoPlugin/index.js"
+    },
+    "./custom-plugins": {
+      "types": "./dist/custom-plugins/index.d.ts",
+      "import": "./dist/custom-plugins/index.js"
+    },
     "./presets/checkout": {
       "types": "./dist/presets/checkout/index.d.ts",
       "import": "./dist/presets/checkout/index.js"
@@ -22,6 +126,10 @@
     "./presets/sku-flow": {
       "types": "./dist/presets/sku-flow/index.d.ts",
       "import": "./dist/presets/sku-flow/index.js"
+    },
+    "./custom-plugins/*": {
+      "types": "./dist/custom-plugins/*/index.d.ts",
+      "import": "./dist/custom-plugins/*/index.js"
     },
     "./style.css": "./dist/style.css"
   },
@@ -59,10 +167,8 @@
     "test": "vitest run --pool=threads",
     "lint": "eslint .",
     "sync:exports": "node ../../scripts/sync-exports.mjs",
-    "docs:plugins": "node ../../scripts/generate-plugin-docs.mjs",
     "verify:scenarios": "node scripts/verify-scenarios.mjs",
-    "audit:demos": "node scripts/audit-demos.mjs",
-    "audit:controls": "node scripts/audit-controls.mjs",
+    "audit:cards": "node scripts/audit-cards.mjs",
     "serve:demo": "node scripts/serve-demo.cjs",
     "demo": "pnpm build:demo && node scripts/serve-demo.cjs",
     "prepublishOnly": "npm run build"
@@ -84,6 +190,7 @@
     "happy-dom": "^15.11.7",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-router-dom": "^6.26.2",
     "typescript": "^5.5.3",
     "vite": "^5.4.1",
     "vite-plugin-dts": "^4.5.4",
