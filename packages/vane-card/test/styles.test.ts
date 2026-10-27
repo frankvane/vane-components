@@ -82,3 +82,29 @@ describe("样式表与组件对账", () => {
     expect(cssText).not.toContain("!important");
   });
 });
+
+describe("容器自带文字色", () => {
+  /**
+   * 卡片是「白底容器」：只要它给了 background，就必须同时给 color。
+   *
+   * 反例是真实发生过的：`.vc-card` 曾经只有 position + box-sizing，文字色靠
+   * 继承宿主。宿主是深色页面时，所有依赖继承的元素都变成浅字压在白底上 ——
+   * QuantityPlugin 的 -/+ 因为内联了 `background:#fff` 却没内联 color，
+   * 直接完全不可见。这类问题靠截图很容易漏（数量控件的禁用态本来就淡）。
+   */
+  const bodyOf = (selector: string) => {
+    const re = new RegExp(`${selector.replace(/\./g, "\\.")}\\s*\\{([\\s\\S]*?)\\}`);
+    const body = re.exec(cssText)?.[1] ?? "";
+    // 先剥注释：注释里为了说明问题会写 `background:#fff`，不剥就成了假绿
+    return body.replace(/\/\*[\s\S]*?\*\//g, "");
+  };
+
+  for (const selector of [".vc-card", ".vc-product-card"]) {
+    it(`${selector} 同时声明 color 与 background`, () => {
+      const body = bodyOf(selector);
+      expect(body, `${selector} 没有规则体`).not.toBe("");
+      expect(body, `${selector} 缺 color（会继承宿主，深色页面下白底浅字）`).toMatch(/(^|[\s;])color\s*:/);
+      expect(body, `${selector} 缺 background`).toMatch(/(^|[\s;])background\s*:/);
+    });
+  }
+});

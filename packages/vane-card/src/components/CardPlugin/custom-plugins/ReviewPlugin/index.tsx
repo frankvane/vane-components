@@ -101,6 +101,7 @@ const ReviewFooter: React.FC<ReviewFooterProps> = ({
               border: "1px solid #ddd",
               borderRadius: 4,
               background: "#fff",
+              color: "#333",
               cursor: "pointer",
             }}
           >

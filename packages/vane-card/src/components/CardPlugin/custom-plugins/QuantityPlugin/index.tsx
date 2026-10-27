@@ -80,7 +80,18 @@ const Stepper: React.FC<{
       <button
         onClick={dec}
         disabled={q <= minActive}
-        style={{ padding: "4px 10px", border: "1px solid #ddd", borderRadius: 6, background: "#fff", cursor: q <= min ? "not-allowed" : "pointer" }}
+        style={{
+          minWidth: 32,
+          lineHeight: 1,
+          padding: "4px 10px",
+          border: "1px solid #ddd",
+          borderRadius: 6,
+          background: "#fff",
+          // 按钮自己内联了白底，就必须自己给字色：只靠继承的话，宿主是深色
+          // 页面时 -/+ 会变成浅字压在白底上（demo 里就这么丢过一次）。
+          color: q <= minActive ? "#c8c8c8" : "#333",
+          cursor: q <= minActive ? "not-allowed" : "pointer",
+        }}
       >
         -
       </button>
@@ -109,7 +120,16 @@ const Stepper: React.FC<{
       <button
         onClick={inc}
         disabled={q >= max || max === 0}
-        style={{ padding: "4px 10px", border: "1px solid #ddd", borderRadius: 6, background: "#fff", cursor: q >= max ? "not-allowed" : "pointer" }}
+        style={{
+          minWidth: 32,
+          lineHeight: 1,
+          padding: "4px 10px",
+          border: "1px solid #ddd",
+          borderRadius: 6,
+          background: "#fff",
+          color: q >= max || max === 0 ? "#c8c8c8" : "#333",
+          cursor: q >= max || max === 0 ? "not-allowed" : "pointer",
+        }}
       >
         +
       </button>

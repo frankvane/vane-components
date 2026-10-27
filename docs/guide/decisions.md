@@ -144,10 +144,13 @@
 2. 暗色用 `data-vc-theme="dark"` 整套覆盖，**不接管**宿主整站的 `prefers-color-scheme`；
 3. **核心保留三处内联**：`position: relative`（overlay 插件靠它定位）、`box-sizing: border-box`（padding 计算）、以及用户显式传入的 `padding` / `containerStyle`。这三处是功能性的，样式文件缺失也必须成立；
 4. `sideEffects` 改成 `["**/*.css"]` 而不是 `false` —— 否则 webpack / Rspack 生产构建会把 `import "vane-card/style.css"` 整条摇掉。
+5. **容器必须自带 `color` 与 `background`，不许靠继承**。卡片是白底容器，一旦只给底色不给字色，宿主换成深色页面就会「浅字压白底」。同理，插件里凡是**内联了 `background` 的元素，也必须内联 `color`** —— 内联背景不会被宿主的文字色策略照顾到。
+
+第 5 条是踩出来的：`.vc-card` 原本只有 `position` + `box-sizing`，文字色继承宿主；`QuantityPlugin` 的 `-/+` 按钮内联了 `background:#fff` 却没内联 `color`，于是继承到 demo 深色外壳的浅色墨，两个按钮**完全看不见**（禁用态的 `-` 本来就是浅灰，肉眼更容易漏）。
 
 **代价**：宿主不能再靠内联样式覆盖视觉（要改就得改 CSS 变量），这是有意的：变量是契约，内联不是。
 
-**验证**：`test/styles.test.ts` 静态对账「源码 class ↔ CSS 定义」（拼错即红、孤儿类即红）；`demo/no-style.html` 证明不引 `style.css` 也能渲染。
+**验证**：`test/styles.test.ts` 静态对账「源码 class ↔ CSS 定义」（拼错即红、孤儿类即红），外加一条「容器自带文字色」——断言 `.vc-card` / `.vc-product-card` 的规则体里同时有 `color` 与 `background`（剥掉注释再断言，否则注释里写的 `background:#fff` 会假绿）；`demo/no-style.html` 证明不引 `style.css` 也能渲染。
 
 ## ADR-14 · 根入口不桶导出，插件与复合组件走子路径
 

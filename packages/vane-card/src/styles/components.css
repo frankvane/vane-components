@@ -20,6 +20,16 @@
 .vc-card {
   position: relative;
   box-sizing: border-box;
+
+  /*
+   * 卡片是「白底容器」，文字色必须自己给，不能靠继承宿主。
+   * 不设的话，宿主只要是个深色页面，卡片里所有依赖继承的文字和按钮就会
+   * 变成浅字压在白底上 —— QuantityPlugin 的 -/+ 曾经因此完全看不见
+   * （插件内联了 background:#fff，却没内联 color）。
+   * 与 .vc-product-card 保持一致，也是「CSS 变量即契约」的应有之义。
+   */
+  color: var(--vc-fg, #1f2329);
+  background: var(--vc-bg, #fff);
 }
 
 /* ==================== 通用按钮 ==================== */
