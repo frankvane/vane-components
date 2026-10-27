@@ -217,28 +217,42 @@ Analytics(50) 能收到 PriceCalculator(20) 的首个 `price:change`，靠的就
 
 ### C4.1 原样迁入（不动样式）
 
-- [ ] `src/compound/`：38 个组件 + `ProductCard.tsx` + `index.ts`（2772 行）
-- [ ] 修 `import ... from "./components/QuantityStepper.tsx"` 的显式扩展名（lib 构建会挂）
-- [ ] `compound/index.ts` 的 **38 处 `as any`**：逐个换成泛型组件签名（forwardRef + 泛型用 `as unknown as` 一次性收窄，不留 `any`）
-- [ ] `ProductCard` 的 `data?: any` → 泛型 `ProductCardProps<T>`
+- [x] `src/compound/`：38 个组件 + `ProductCard.tsx` + `index.ts`（2772 行）
+- [x] 修 `import ... from "./components/QuantityStepper.tsx"` 的显式扩展名（lib 构建会挂）
+- [x] `compound/index.ts` 的 **38 处 `as any`** → 一次 `Object.assign`（不是 38 行逐个赋值）
+- [x] `ProductCard` 的 `data?: any` → `ProductCardProps<T extends ProductData>`
+
+**实测差异（文档口径外的补充）**：
+- `as any` 实际是 **51 处**（38 在 `index.ts` 的静态子组件赋值，13 散布在 10 个组件里）
+- 变体匹配逻辑在 6 个组件里各抄了一遍（`Price` / `QuantityStepper` / `Inventory` / `StockBadge` /
+  `SKUCode` / `VariantMediaSwitcher`），全部带 `(attrs as any)[k]` → 统一收口到 `matchVariant`
+- `createContext` 无法泛型化，泛型只能在 props 侧生效（上下文统一 `ProductData`）；
+  `ProductData` 保索引签名，否则调用方只能 `data={x as any}`
+- **`matchVariant` 语义修正**：旧逻辑「每个已选属性都对上」→ 只选了颜色就会拿「红/M」的价格，
+  显示错价；改为「变体属性集与已选属性集一一对上」，未选全时回退商品级字段
+- **`ProductCard` 按插件名签名记忆 Core**：旧版按 `plugins` 数组引用记忆，内联字面量会让
+  每次父组件重渲染都卸载重挂整棵树（`onMount` 重跑、状态全丢）
 
 ### C4.2 与插件系统的接缝
 
-- [ ] `Price` / `CouponBar` / `OrderSummaryPanel` 的 `usePluginSlot("priceArea")` 改读 D3-A 的领域槽（签名不变）
-- [ ] 单测：装 3 个价格插件 → 渲染 `<ProductCard>` → 断言 3 段内容都在（R5）
+- [x] `Price` / `CouponBar` / `OrderSummaryPanel` 的 `usePluginSlot("priceArea")` 改读 D3-A 的领域槽（C2 已完成，签名不变）
+- [x] 单测：装 3 个价格插件 → 渲染 `<ProductCard>` → 断言 3 段内容都在且按 `config.order` 升序（R5）
 
-### C4.3 样式抽取（D4-B，独立提交）
+### C4.3 样式抽取（D4-B，独立提交 `b415bf3`）
 
 > 单独一步做，与 C4.1 分开提交，出问题能归因（R4）。
 
-- [ ] `src/styles/tokens.css`：CSS 变量（`--vc-fg` / `--vc-fg-dim` / `--vc-bg` / `--vc-accent` / `--vc-border` / `--vc-radius` / `--vc-gap` …）
-- [ ] `src/styles/components.css`：`vc-` 前缀 class（38 个组件 + CardCore 容器 + 各插槽区）
-- [ ] 230 处内联 `style` 逐条归位：**结构性**（padding/flex/字号/边框/圆角）→ class；**动态值**（颜色值、计算宽度、用户传入）→ 保留内联
-- [ ] 硬编码色值清点：`#f5f5f5` / `#fff` / `#000` / `rgba(0,0,0,.x)` → 变量，并核对暗色可读性
-- [ ] 构建产出 `dist/style.css`，`exports` 暴露 `./style.css`
-- [ ] 文档写明「不引 `style.css` 会怎样」（无样式但可用），并在 demo 里做一次「不引样式」的对照页
+- [x] `src/styles/tokens.css`：CSS 变量（`--vc-fg` / `--vc-fg-dim` / `--vc-bg` / `--vc-accent` / `--vc-border` / `--vc-radius` / `--vc-gap` …）
+- [x] `src/styles/components.css`：`vc-` 前缀 class（38 个组件 + CardCore 容器 + 各插槽区）
+- [x] 内联 `style` 逐条归位（实际 **127 处 → 剩 5 处**，清单里的 230 是三处来源的合计估数）
+- [x] 硬编码色值清点 → 变量；暗色由 `data-vc-theme="dark"` 整套覆盖（不改整站 `prefers-color-scheme`）
+- [x] 构建产出 `dist/style.css`（24.47KB / gzip 5.22KB），`exports` 暴露 `./style.css`
+- [x] `docs/styling.md` 写明「不引 `style.css` 会怎样」；demo 拆出 `no-style.html` 对照页
+- [x] **额外加的回归锁**：`test/styles.test.ts` 静态对账「源码 class ↔ CSS 定义」（拼错即红、孤儿类即红）
 
-**验收门 C4**：`compound` 全部迁入且 0 处 `as any`；`tsc` 0 错；`test` 增加复合组件冒烟（≥33）；产物体积不劣化（C0.7 基线）；`style.css` 可单独引入且不引也能渲染。
+**验收门 C4**：✅ `compound` 0 处 `as any`；`tsc` 0 错；复合组件冒烟 46 用例（≥33）；
+产物体积**反而更小**（根入口 gzip 23.61 → 22.10KB，内联样式搬走后代码变少）；
+`style.css` 可单独引入，不引也能渲染（`demo/no-style.html`）。
 
 ---
 
@@ -350,3 +364,4 @@ C0（决策 + 快照）
 | C0 | 决策落纸 + 4 份快照 | ✅ D1–D5 落地（tasks/11/12 标注）；`test/fixtures/card-snapshots.json` 已生成且 `test/snapshots.base.test.tsx` 通过；gzip 基线 28.13KB |
 | C1 | 包骨架 + Core 迁入 + demo 指回源码 | ✅ 包骨架/配置/依赖/typecheck 0 错/lib build 通过/demo 构建通过（R1 已证）；C1.4 的 Core 单测在 C2 一并补齐（3 个文件 14 用例），C1.3 的 51 页旧 demo 不搬运（留 C5 重写） |
 | C2 | 删 1154 行旧系统 / 钩子面 15 / test ≥18 / 清理计数 on=N off=N | ✅ 三文件已删；typecheck 0 / eslint --quiet 0 / vitest 26 passed（6 文件）/ gzip 30.37KB（预算 36KB）；清理计数 **on=12 / off=12**（旧系统 off=0）；额外修掉 2 处 rules-of-hooks 违规 + 1 个 npm 打包陷阱（见 C2 节末） |
+| C4 | compound 0 处 `as any` / style.css 可单独引入 / 体积不劣化 | ✅ `as any` **51 → 0**（类型层 `types/product.ts` + `Object.assign` 装配）；vitest 180 passed（13 文件，含复合组件 46 用例）；`dist/style.css` 24.47KB(gzip 5.22)；根入口 gzip **22.10KB**（比 C3 末 23.61 更小）；`test/styles.test.ts` 锁住 class↔CSS 对账 |
