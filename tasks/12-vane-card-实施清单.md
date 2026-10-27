@@ -314,21 +314,52 @@ Analytics(50) 能收到 PriceCalculator(20) 的首个 `price:change`，靠的就
 
 ---
 
-## C6 · 文档 / README / 体积 / 发布
+## C6 · 文档 / README / 体积 / 发布 · ✅ 已完成（发布待确认）
 
-- [ ] **C6.1** `docs/components/vane-card/` 四件套（替换「迁移中」占位）
-  - [ ] `index.md`：卖点 + 安装 + 30 秒示例 + 导入体积表 + 插件速览 + 1.x 迁移差异表 + 演示站入口
-  - [ ] `api.md`：`CardCoreProps` / `CardCoreRef` / 插件 context 全字段 / **15 个钩子分四类** / **总线协议 7 键表格**
-  - [ ] `plugins.md`：5 组 × 22 插件，逐个给 priority、配置表、坑位说明 + 「谁和谁不能一起装」
-  - [ ] `recipes.md`：3 个配方 + 组合经验（价格区只有一个决策者 / 总线改键必同步）
-- [ ] **C6.2** README：`node scripts/sync-readme.mjs` 生成，首屏为安装 + 30 秒上手
-- [ ] **C6.3** `docs/guide/decisions.md` 补 ADR（钩子面 24→15、priceArea 走包内领域槽、样式走 CSS 变量）
-- [ ] **C6.4** `.changeset/vane-card-200.md`（major）：破坏性变更 + 新增/修复
-- [ ] **C6.5** `npm pack --dry-run`：只含 `dist` + `README.md` + `package.json`；**不含 `404.jpg` / `vite.svg`**
-- [ ] **C6.6** 回归：`eslint` 0 error、`tsc --noEmit` 0 错、`vitest` 全绿、`check-packages` core ≤5KB / 完整 ≤36KB、`vitepress build` 通过
+- [x] **C6.1** `docs/components/vane-card/` 四件套（替换「迁移中」占位）
+  - [x] `index.md`：卖点 + 安装 + 30 秒示例 + 导入体积表 + 插件速览 + 1.x 迁移差异表 + 演示站入口
+  - [x] `api.md`：`CardCoreProps` / `CardCoreRef` / 插件 context 全字段 / **15 个钩子分四类** / 总线协议表（**实测 6 键**，清单里的「7 键」是估数）
+  - [x] `plugins.md`：5 组 × 22 插件 + priority / 渲染位置 / 碰的总线键 + 「谁和谁不能一起装」4 条
+  - [x] `recipes.md`：3 个配方 + 5 条组合经验（价格区只有一个决策者 / 总线改键必同步 / 装配定型一次 / order 与 priority 分工 / omit 更好读）
+- [x] **C6.2** README：`node scripts/sync-readme.mjs` 生成，首屏为安装 + 30 秒上手
+- [x] **C6.3** `docs/guide/decisions.md` 补 ADR-11~14（钩子面 24→15、priceArea 走包内领域槽、样式走 CSS 变量 + 三处功能性内联、根入口不桶导出 + 22 插件薄壳）
+- [x] **C6.4** `.changeset/vane-card-200.md`（major）：破坏性变更 + 新增/修复
+- [x] **C6.5** `npm pack --dry-run`：**260 文件 / 74.9KB**，只含 `dist` + `README.md` + `package.json`；无 `404.jpg` / `vite.svg` / demo 资产
+- [x] **C6.6** 回归：`eslint` 0 error、`tsc --noEmit` 0 错、`vitest` 180 passed、`check-packages` 三条线全绿、`vitepress build` 通过
 - [ ] **C6.7** 发布 `vane-card@2.0.0`（发布动作单独确认）
 
-**验收门 C6**：`check-packages` 全绿；`docs:build` 通过；README 由 docs 同步生成；pack 干净；changeset 就位。
+**验收门 C6**：✅ `check-packages` 全绿；`docs:build` 通过；README 由 docs 同步生成；pack 干净；changeset 就位。
+
+**执行记录（2026-10-27）**
+
+| 项 | 实测 |
+| --- | --- |
+| `docs/components/vane-card/` | 4 个文件：index 147 行 / api 228 行 / plugins 170 行 / recipes 121 行 |
+| `pnpm docs:plugins` | vane-card 22 行写入（表格从 `doc.json` + 源码 priority 生成） |
+| `pnpm docs:sync` | README 152 行，首屏徽章 + `npm install vane-card` |
+| `pnpm docs:build` | 通过（vitepress 1.6.4，8.16s） |
+| `pnpm pack --dry-run` | 260 文件 / 74.9KB tarball / unpacked 301.5KB |
+| `eslint .` | 0 错 |
+| `tsc --noEmit` | 0 错 |
+| `vitest` | 180 passed / 13 files |
+| `check-packages` | 入口 6.8KB/12、core 1.7KB/5、全量并集 31.5KB/36 |
+| `build:demo` | 通过，`main-*.js` 113.90KB / gzip 46.63KB |
+
+**体积口径说明（这次改了 `check-packages`）**
+
+原来 `sizeBudgetKb` 只量「入口 + 其静态引入的 chunk」，根入口瘦身后这条线只剩 6.8KB，与「完整 ≤36KB」的验收意图脱节。因此新增两条实测口径：
+
+- `coreSizeBudgetKb`（此前三个包都声明了却没人量）→ 量 `dist/core.js` 这一支；
+- `fullSizeBudgetKb`（新）→ 量 `dist/**/*.js` 全量并集。
+
+于是 vane-card 三条线分别是 **12 / 5 / 36**，实测 **6.8 / 1.7 / 31.5**。
+
+**顺手修掉的两个发布级问题**
+
+1. **`sideEffects: false` 会把样式摇掉**：本包有 `exports["./style.css"]`，声明成 `false` 后 webpack / Rspack 生产构建会把 `import "vane-card/style.css"` 整条删掉（开发环境看不出来）。改为 `["**/*.css"]`，并让 `check-packages` 认这种写法（纯 JS 包仍要求 `false`）。
+2. **`docs:plugins` 的路径假设**：生成器只扫 `src/custom-plugins/<Name>/doc.json`，而本包实现仍在 `src/components/CardPlugin/custom-plugins/`（薄壳没有 doc.json）。改为两个位置都找；顺带加了 `priority` 列，是否输出该列由 `<!-- AUTO-GENERATED:BEGIN priority -->` 标记行决定，不影响其它包的表格。
+
+**验收门 C6 未做的一件事**：`C6.7 发布` —— 发包动作单独确认，本轮不执行。
 
 ---
 
@@ -384,4 +415,5 @@ C0（决策 + 快照）
 | C1 | 包骨架 + Core 迁入 + demo 指回源码 | ✅ 包骨架/配置/依赖/typecheck 0 错/lib build 通过/demo 构建通过（R1 已证）；C1.4 的 Core 单测在 C2 一并补齐（3 个文件 14 用例），C1.3 的 51 页旧 demo 不搬运（留 C5 重写） |
 | C2 | 删 1154 行旧系统 / 钩子面 15 / test ≥18 / 清理计数 on=N off=N | ✅ 三文件已删；typecheck 0 / eslint --quiet 0 / vitest 26 passed（6 文件）/ gzip 30.37KB（预算 36KB）；清理计数 **on=12 / off=12**（旧系统 off=0）；额外修掉 2 处 rules-of-hooks 违规 + 1 个 npm 打包陷阱（见 C2 节末） |
 | C5 | demo build 通过 / 场景体检 0 命中 / 22 插件装配过 / ≥37 页可打开 | ✅ build 通过（`main` gzip 46.55KB）；`audit-cards.mjs` **41 页 0 命中**；插件覆盖 **22/22**；逐项示例 **38 页**；vitest 180 passed；typecheck / eslint 0 错 |
+| C6 | check-packages + docs:build 全绿 / pack 干净 / changeset 就位 | ✅ 三条体积线全绿（根入口 6.8 / core 1.7 / 全量 31.5，预算 12/5/36）；docs 四件套 + README 同步 + ADR-11~14 + changeset 就位；`npm pack` 260 文件 / 74.9KB，只含 dist + README + package.json；vitepress build 通过；顺手修掉 sideEffects 把样式摇掉的问题 |
 | C4 | compound 0 处 `as any` / style.css 可单独引入 / 体积不劣化 | ✅ `as any` **51 → 0**（类型层 `types/product.ts` + `Object.assign` 装配）；vitest 180 passed（13 文件，含复合组件 46 用例）；`dist/style.css` 24.47KB(gzip 5.22)；根入口 gzip **22.10KB**（比 C3 末 23.61 更小）；`test/styles.test.ts` 锁住 class↔CSS 对账 |
