@@ -1,13 +1,19 @@
 /**
- * P1 阶段的最小 demo：**只验一件事** —— demo 跑的是 `src/`，不是 `dist/`。
+ * P1/P2 阶段的最小 demo。
  *
- * 所以这里刻意不引任何官方插件（P3 才迁入），只用一个 30 行的本地插件。
- * 好处是它同时演示了「自己写插件」这条路径：
- *   canHandle 决定路由 → render 决定画什么 → Core 负责加载状态与容器。
+ * P1 验的是「demo 跑的是 `src/` 不是 `dist/`」；
+ * P2 之后它顺带演示了装配层的三件事：
+ *   ① 路由：`canHandle` / `supportedTypes` 决定谁渲染 —— 第三个样本故意用
+ *      一个没人认领的 MIME，用来展示 unsupported 面板
+ *   ② 单赢家：一个文件只由一个插件渲染正文，不是全部插件各画一块
+ *   ③ 状态真源：Core 负责 idle→loading→loaded，插件只能 reportState 上报
+ *
+ * 这里仍然不引任何官方插件（P3 才迁入），只用一个 30 行的本地插件。
  */
 import { useEffect, useState } from "react";
 import {
   FilePreviewCore,
+  resolvePreview,
   withPlugins,
   type FileInfo,
   type FilePreviewPlugin,
@@ -25,14 +31,17 @@ const FILES: FileInfo[] = [
     extension: "txt",
     url: textUrl(
       [
-        "vane-file-preview 迁移 · P1 验收点",
+        "vane-file-preview 迁移 · P2 验收点",
         "",
-        "1. 这个页面 import 的是 vane-file-preview 包名，",
-        "   vite alias 把它指回 src/index.ts —— 删掉 dist 也能构建。",
-        "2. 迁移前这里解析到 dist/index.es.js，",
-        "   所以「demo 跑通了」其实只证明「上次构建产物还在磁盘上」。",
-        "3. Core 的加载状态机是唯一真源：",
-        "   reset() 之后停住，onBeforeLoad 返回 false 只跑一次。",
+        "1. 路由是纯函数 resolvePreview(plugins, file)：",
+        "   canHandle 优先，其次 supportedTypes / supportedExtensions，",
+        "   按 priority 降序取唯一赢家。",
+        "2. 单赢家：一个文件只由一个插件渲染正文。",
+        "   不是 17 个插件各画一块。",
+        "3. Core 是状态的唯一真源：idle → loading → loaded。",
+        "   插件读到的 state 是只读镜像，想改只能 reportState。",
+        "",
+        "切到第三个文件（unknown.dat）看 unsupported 面板。",
       ].join("\n")
     ),
   },
@@ -48,8 +57,18 @@ const FILES: FileInfo[] = [
         "插件系统替换（P2）会同时动类型、装配、路由三处；",
         "Core 状态机收敛也会动同一批代码路径。",
         "两件事一起改，出问题时分不清是谁造成的。",
+        "",
+        "所以 P1 只动 Core，P2 只动装配与路由。",
       ].join("\n")
     ),
+  },
+  {
+    name: "unknown.dat",
+    size: 1024,
+    // 没有任何插件声明支持它 —— 用来展示 unsupported 面板
+    type: "application/x-something-weird",
+    extension: ".dat",
+    url: "data:application/x-something-weird,payload",
   },
 ];
 
@@ -115,6 +134,10 @@ export function BasicDemo() {
   const [index, setIndex] = useState(0);
   const file = FILES[index];
 
+  // 页脚要如实说明「谁在渲染」—— 直接用导出的纯函数问一次，
+  // 而不是猜装配器选了谁。unsupported 时这里会是 null。
+  const winner = resolvePreview(plugins, file);
+
   return (
     <section style={{ display: "grid", gap: 12 }}>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -151,7 +174,12 @@ export function BasicDemo() {
       </div>
 
       <p style={{ margin: 0, fontSize: 12, color: "#8a8a8a" }}>
-        当前文件：{file.name} · {file.type} · 渲染它的插件：TextPreviewPlugin
+        当前文件：{file.name} · {file.type} ·{" "}
+        {winner ? (
+          <>渲染它的插件：{winner.name}</>
+        ) : (
+          <>没有插件认领它 → 走 unsupported 面板</>
+        )}{" "}
         （本地定义，未使用任何官方插件）
       </p>
     </section>

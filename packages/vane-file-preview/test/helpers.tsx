@@ -13,7 +13,11 @@ import FilePreviewCore, {
   type FilePreviewCoreProps,
   type FilePreviewCoreRef,
 } from "../src/components/FilePreviewPlugin/core/FilePreviewCore";
-import type { FileInfo } from "../src/components/FilePreviewPlugin/plugins/types";
+import { withPlugins } from "../src/components/FilePreviewPlugin/plugins/withPlugins";
+import type {
+  FileInfo,
+  FilePreviewPlugin,
+} from "../src/components/FilePreviewPlugin/plugins/types";
 
 (globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -61,6 +65,45 @@ export function renderCore(
   let current: FilePreviewCoreProps = { file: TEXT_FILE, ...props };
   const render = (p: FilePreviewCoreProps) =>
     root.render(React.createElement(FilePreviewCore, { ref, ...p } as never));
+
+  act(() => {
+    render(current);
+  });
+
+  return {
+    container,
+    root,
+    ref,
+    unmount: () => act(() => root.unmount()),
+    rerender: async (next) => {
+      current = { ...current, ...next };
+      await act(async () => {
+        render(current);
+      });
+      await flush();
+    },
+  };
+}
+
+/**
+ * 渲染「Core + 装配器」的完整链路。
+ *
+ * `plugins` 传进来后立刻 `withPlugins` 定型 —— 测试里每个用例只渲染一次，
+ * 不需要像 demo 那样顾虑「每次渲染造新组件类型」。
+ */
+export function renderPreview(
+  plugins: FilePreviewPlugin[],
+  props: Partial<FilePreviewCoreProps> = {}
+): CoreHandle {
+  const Wrapped = withPlugins(FilePreviewCore, { plugins });
+  const ref = React.createRef<FilePreviewCoreRef>();
+  const container = document.createElement("div");
+  document.body.appendChild(container);
+  const root = createRoot(container);
+
+  let current: FilePreviewCoreProps = { file: TEXT_FILE, ...props };
+  const render = (p: FilePreviewCoreProps) =>
+    root.render(React.createElement(Wrapped, { ref, ...p }));
 
   act(() => {
     render(current);

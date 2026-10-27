@@ -17,8 +17,9 @@ export function App() {
         vane-file-preview
       </h1>
       <p style={{ margin: "0 0 28px", fontSize: 13, color: "#8a8a8a" }}>
-        P1 · 包骨架 + Core 迁入 + demo 指回源码。页面 import 的是包名，vite
-        把它 alias 到 <code>src/</code>，删掉 <code>dist/</code> 也能构建。
+        P2 · 装配器换成 <code>@vane/plugin-core</code>，路由抽成纯函数
+        <code>resolvePreview()</code>。页面 import 的是包名，vite 把它 alias 到{" "}
+        <code>src/</code>，删掉 <code>dist/</code> 也能构建。
       </p>
 
       <BasicDemo />

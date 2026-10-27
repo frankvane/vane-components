@@ -139,29 +139,76 @@ demo            13 个示例页 + Home + ReadmeDemo + _layout
 
 ## P2 · 插件系统替换（删 689 行，接内核）
 
-- [ ] **P2.1 删除** `plugins/{PluginManager.ts,PluginBus.ts}`（`types.ts` / `withPlugins.tsx` 重写后保留；`index.ts` 改导出）
-- [ ] **P2.2 重写 `plugins/types.ts`**
-  - [ ] 钩子面 **17 → 11**：删 `onBeforeLoad` / `onLoadProgress` / `onDownload` / `onZoom` / `onRotate` / `onFullscreen`；
-        删重复的 `onMount` / `onUnmount` / `renderOverlay` / `transformData`（内核已有）；
-        `getPriority` 删掉（改声明式 `priority`）
-  - [ ] 保留领域钩子 **6 个**：`canHandle(file)` / `render(context)` / `renderToolbar(context)` / `onLoadStart` / `onLoadSuccess` / `onLoadError`
-  - [ ] `PluginContext` 继承内核 `PluginContext<TProps,TData>`，`TProps = FilePreviewCoreProps`、`TData = FileInfo`
-  - [ ] **删 `progress` / `dimensions`**（永远 undefined，见分析 4.3），需要时用 `setState` 带 `progress`
-  - [ ] `FileInfo` 类型保持不动（`previewMode` / `docxMode` 保留并**在库内生效**）
-- [ ] **P2.3 重写 `plugins/withPlugins.tsx`**（照 vane-card 同名文件）
-  - [ ] 用内核 `withPlugins` + `composeSlots`：`renderHeader` ← `renderToolbar`、默认段 ← `render`
-  - [ ] 插件集合按「装配键」稳定（第二个参数允许 `{ plugins, key }`），避免 11 个 demo 页那种「每次渲染新数组」（13 个页面里 11 个未 memo）
-  - [ ] 去掉 `isPdfPlugin = activePlugin?.name === "PdfPreviewPlugin"` 的**硬编码插件名**（分析 4.4）：改由插件 `render` 自己决定滚动容器，或统一 `overflow: auto` + 插件内部 `overscroll-behavior`
-  - [ ] 去掉「每次渲染遍历全部插件调 `renderOverlay`」（0 个插件实现它）
-- [ ] **P2.4 路由纯函数 `plugins/resolve.ts`**
-  - [ ] `resolvePreview(plugins, file): FilePreviewPlugin | null` —— `canHandle` 优先，其次 `supportedTypes` / `supportedExtensions`，`priority` 降序
-  - [ ] 把 `docxMode` / `previewMode` 的判定写进**库内**（不再散落 demo）：`DocxPreviewPlugin` 与 `MammothDocxPlugin` 各在 `canHandle` 里读
-  - [ ] `test/resolve.test.ts`：17 个插件 + 17 种文件 → 断言赢家；同类型两个插件 → 按 `priority`；`docxMode` 切换 → 赢家切换
-- [ ] **P2.5 单测（第二批）**
-  - [ ] `test/bus.test.ts`：内核总线契约（`emit/on/off` + `sharedData` 跨插件可见）
-  - [ ] `test/lifecycle.test.ts`：重渲染**不重建**插件实例（断言 `register` 只调一次）；`file` 变化时钩子重新触发
+- [x] **P2.1 删除** `plugins/{PluginManager.ts,PluginBus.ts}` —— 两个文件 689 行，与内核完全重复
+- [x] **P2.2 重写 `plugins/types.ts`**
+  - [x] 钩子面 **17 → 11**
+    - 删 6 个纯空转：`onBeforeLoad` / `onLoadProgress` / `onDownload` / `onZoom` / `onRotate` / `onFullscreen`
+    - 删 4 个与内核重复的（能力保留、由内核驱动，领域层只重声明签名）：`onMount` / `onUnmount` / `renderOverlay` / `transformData`
+  - [x] 保留领域钩子 **6 个**：`canHandle(file)` / `render(ctx)` / `renderToolbar(ctx)` / `onLoadStart` / `onLoadSuccess` / `onLoadError`
+  - [x] 领域 `FilePreviewPluginContext` 是**独立接口**而不是 `extends 内核 PluginContext`
+    - **偏离（有硬理由）**：内核 emit 的公开 d.ts 里不能出现 `@vane/plugin-core` 的类型引用。
+      内核是构建时内联的实现细节、**没发布到 npm**，消费方装包后 TS 会直接报 Cannot find module。
+      vane-card 的 `CardPluginContext` 也是同一个处理（见其 `PluginBus` 的注释）。
+      结构与内核 context 兼容（`extendContext` 塞回去运行时不报错），类型上各自独立
+  - [x] **删 `progress` / `dimensions`**（迁移前恒定 undefined）；`PreviewStateInfo` 保留 `state/error/message`
+  - [x] `FileInfo` 类型保持不动（`previewMode` / `docxMode` 保留）
+  - [x] `getPriority` → 声明式 `priority`（15 个常量插件在 P3 改）；**保留 1 个逃生口 `priorityOf(file)`**
+    - **偏离（有硬理由）**：`OfficePreviewPlugin` 的优先级要看 `config.preferDocxOnline` **且只在 docx 上生效**
+      （提到 9），其余类型仍是 7。声明式 `priority` 表达不了「按文件算」，
+      把 9 写死会抢走 xlsx 的 `XlsxPreviewPlugin`。所以留一个函数钩子，只此一家
+    - `resolve.ts` 里**运行时仍兼容读 `getPriority`**，注释标明「P3 迁完删除」——否则 P3 逐个改插件期间路由会错
+- [x] **P2.3 重写 `plugins/withPlugins.tsx`**
+  - [x] 用内核 `usePluginRuntime`（注册 / 依赖解析 / 优先级排序 / 钩子执行 / 沙箱 / PluginErrorBoundary）
+  - [x] **不用 `composeSlots`** —— **偏离（设计判断）**：内核的 `composeSlots` 是「多插件合成」，
+        而文件预览是「单赢家」，一个文件只能有一个插件渲染正文。用槽位合成会让 17 个插件同时往同一容器里画。
+        渲染由装配器自己写，只问赢家
+  - [x] 去掉 `isPdfPlugin = activePlugin?.name === "PdfPreviewPlugin"` 的硬编码插件名 → 统一 `overflow: auto` + `overscrollBehavior: contain`
+  - [x] 去掉「每次渲染遍历全部插件调 `renderOverlay`」→ 只问赢家
+  - [x] Core 的 `onStateChange` → 只读镜像（单向投影，不是第二份真源）；插件写状态只能走 `reportState`
+  - [x] 路由失败不进加载流程：`onBeforeLoad` 直接返回 false（Core 停 idle），正文换成 `[data-vfp-unsupported]` 面板。
+        让 Core 先走一趟 loading→loaded 再报错，会在两者之间闪一次
+  - [ ] ~~插件集合按「装配键」稳定（`{ plugins, key }`）~~ —— 不需要：内核已按**插件名集合**比对
+    （`namesKey`），同名换数组不会重注册。P1 的 `useCard` 那个坑在这里天然不存在
+- [x] **P2.4 路由纯函数 `plugins/resolve.ts`**
+  - [x] `resolvePreview(plugins, file)` —— `canHandle` 优先且**互斥**（声明了就不再看类型，否则
+        `DocxPreviewPlugin` 的 `config.enabled` 会被类型匹配绕过）、其次 `supportedTypes` / `supportedExtensions`、
+        `priority` 降序、平手保持声明顺序
+  - [x] 另导出 `accepts` / `priorityOf` / `matchMimeType` / `matchExtension` / `unsupportedMessage`，全部可单测
+  - [ ] **把 `docxMode` / `previewMode` 判定写进库内 —— 随插件在 P3 落地**（插件还没迁入，无法改它们的 `canHandle`）
+  - [x] `test/resolve.test.ts`：**22 条**，覆盖通配 / 优先级 / canHandle 互斥 / 平手 / 兜底 / 空 MIME
+  - [ ] **17 个插件 × 17 种文件的矩阵 —— 延到 P3**（`test/resolve-matrix.test.ts`）。
+        用合成插件测算法是够的，但用它冒充「17 种文件全选对」是假绿 —— 声明一旦与真实插件漂移就失效
+- [x] **P2.5 单测（第二批）**
+  - [x] `test/bus.test.ts`（9 条）：内核总线 `emit/on/off/once` + 共享数据 + 订阅者抛错不拖垮其他订阅者
+  - [x] `test/lifecycle.test.tsx`（9 条）：重渲染**不重建**（onMount 只 1 次）/ `file.url` 变化重新触发 /
+        单赢家（输家 render 一次都不调）/ 工具栏在正文之前 / unsupported 面板 + Core 停 idle /
+        `reportState` 写回 Core / `sharedData` 跨插件可见 / 插件读到的 state 是实时镜像
 
 **验收门 P2**：自建插件系统 2 个文件已删（`types.ts` / `withPlugins.tsx` 已重写而非本地实现）；`typecheck` 0 错；`test` ≥ 12 通过；`resolvePreview()` 对 17 种文件全部选对。
+
+> ✅ **已过门（2026-10-27）**
+>
+> | 项 | 实测 |
+> | --- | --- |
+> | 删除的自建实现 | `PluginBus.ts` 72 行 + `PluginManager.ts` 177 行（共 249 行；清单里「689 行」是分析阶段的粗估，含被一起重写的 types/withPlugins） |
+> | `tsc --noEmit` | 0 错 |
+> | `eslint src demo test --quiet` | 0 错 |
+> | `pnpm test` | **54 passed / 5 files**（14 → 54，+40） |
+> | `pnpm build` | `index.js` 0.30kB · `core.js` 0.31kB · `chunks/withPlugins` **18.46kB**（gzip 6.36） |
+> | `check-packages` | 入口 6.4KB/12 · core **6.4KB/8** · 全量 6.4KB/90 |
+> | 无 dist 构建 demo | 成功（157.56kB） |
+> | 浏览器实测 | 三个样本切换正常、unsupported 面板正常、`pageerror` 无 |
+>
+> **两处必须记住的账**：
+> 1. **体积变大了**：入口 gzip 3.4KB → **6.4KB**。内核比自建的 Bus+Manager 重
+>    （多了依赖解析、沙箱、错误边界、设备检测），换来的是与 vane-card 共用一套内核、
+>    少 249 行自己的实现。`core` 预算 8KB，现在用掉 6.4KB —— **P4 要盯这条线**。
+> 2. **17×17 路由矩阵还没验**（插件未迁入）。P2 只证明了算法对，没证明「17 个真实插件各自认得对」。
+>    这条挂在 P3 的验收门上。
+>
+> **踩到的坑**：`matchExtension` 原来是 `extension.endsWith(pattern)`，而 `"pdf".endsWith(".pdf")` 是
+> **false** —— 扩展名不带点的调用方会静默地一个插件都匹配不上。改成两边都剥前导点再比。
+> 另：块注释里写 `"*/*"` 会把注释提前结束（`*/`），已在两处改成「星号通配」的描述性写法。
 
 ---
 
@@ -306,7 +353,7 @@ demo            13 个示例页 + Home + ReadmeDemo + _layout
 | --- | --- | --- |
 | P0 | 2026-10-27 | ADR-16（六个决策落纸） |
 | P1 | 2026-10-27 | 包骨架 + Core 状态机收敛 + demo 指回源码（14 单测） |
-| P2 | — | — |
+| P2 | 2026-10-27 | 装配器接内核 + 单赢家路由纯函数（54 单测） |
 | P3 | — | — |
 | P4 | — | — |
 | P5 | — | — |

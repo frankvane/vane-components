@@ -1,26 +1,37 @@
 /**
- * 插件系统出口。
+ * 插件系统出口（P2 · 接内核后）。
  *
- * ⚠️ P1 阶段仍是迁移前那套（PluginManager / PluginBus / 17 个钩子）。
- * P2 会把它换成 `@vane/plugin-core` + `resolvePreview()` 纯函数，钩子面收到 11 个。
- * 现在先原样导出，保证 P1 的 Core 单测能跑起来。
+ * 迁移前这里有 `createPluginBus` / `createPluginManager` —— 两个自建实现共 689 行，
+ * 与内核重复。已删除：注册、依赖解析、优先级排序、钩子执行、沙箱都走 @vane/plugin-core。
+ *
+ * 新增 `resolvePreview()`：单赢家路由的纯函数，可单测（这是本包最要紧的契约，
+ * 「17 种文件分别该由谁渲染」不该藏在渲染层里靠嗅 DOM 验证）。
  */
 
 export { withPlugins } from "./withPlugins";
-export type { WithPluginsConfig } from "./withPlugins";
-export { createPluginBus } from "./PluginBus";
-export { createPluginManager } from "./PluginManager";
+export type { WithPluginsConfig } from "./types";
+
+export {
+  resolvePreview,
+  accepts,
+  priorityOf,
+  matchMimeType,
+  matchExtension,
+  unsupportedMessage,
+} from "./resolve";
 
 export type {
   FileInfo,
-  PreviewDimensions,
-  PreviewProgress,
   PreviewState,
   PreviewStateInfo,
   PreviewStatePatch,
+  PreviewDimensions,
+  PreviewProgress,
   PluginBus,
-  PluginContext,
-  PluginHooks,
+  DeviceInfo,
+  PluginLogger,
+  FilePreviewPluginContext,
+  FilePreviewPluginHooks,
   FilePreviewPlugin,
-  PluginManager,
+  FilePreviewPluginCreator,
 } from "./types";

@@ -1,7 +1,7 @@
 /**
  * 子路径入口 `vane-file-preview/core` —— 只要内核，不付任何插件的钱。
  *
- * 适用：自己写插件（继承 `FilePreviewPlugin` 契约），或只把 Core 当成
+ * 适用：自己写插件（实现 `FilePreviewPlugin` 契约），或只把 Core 当成
  * 「带加载状态机与 ref 的容器」用。
  * 预算 ≤8KB（`vane.coreSizeBudgetKb` 单独量这一支）。
  *
@@ -21,7 +21,17 @@ export type {
 
 // ===== 装配器 =====
 export { withPlugins } from "./components/FilePreviewPlugin/plugins/withPlugins";
-export type { WithPluginsConfig } from "./components/FilePreviewPlugin/plugins/withPlugins";
+export type { WithPluginsConfig } from "./components/FilePreviewPlugin/plugins/types";
+
+// ===== 路由（纯函数，可单测）=====
+export {
+  resolvePreview,
+  accepts,
+  priorityOf,
+  matchMimeType,
+  matchExtension,
+  unsupportedMessage,
+} from "./components/FilePreviewPlugin/plugins/resolve";
 
 // ===== 契约类型（不依赖任何插件，属于契约而不是实现）=====
 export type {
@@ -32,7 +42,10 @@ export type {
   PreviewDimensions,
   PreviewProgress,
   PluginBus,
-  PluginContext,
-  PluginHooks,
+  DeviceInfo,
+  PluginLogger,
+  FilePreviewPluginContext,
+  FilePreviewPluginHooks,
   FilePreviewPlugin,
+  FilePreviewPluginCreator,
 } from "./components/FilePreviewPlugin/plugins/types";
