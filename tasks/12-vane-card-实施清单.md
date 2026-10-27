@@ -48,7 +48,7 @@
 - [x] **C0.2 拍板 D2**：**D2-A 同包 `src/compound` + `./compound` 子路径**（入口不默认导出，避免 Core 用户被迫付费）
 - [x] **C0.3 拍板 D3**：**D3-A 包内 `renderDomainSlot`**（内核 `SlotHookName` 不动）
 - [x] **C0.4 拍板 D4**：**D4-B class + CSS 变量 + 可选 style.css**（分两步：C4.1 原样迁、C4.3 单独抽）
-- [x] **C0.5 拍板 D5**：**D5-B 三视角**（工坊22 + 场景8–10 + 逐项≈37）
+- [x] **C0.5 拍板 D5**：**D5-B 三视角**（工坊22 + 场景8–10 + 逐项≈37）→ 实际落地为**四视角**：工坊 22 + 场景 16（10 通用 + 6 行业）+ 逐项 38 + 布局 9 版式
 - [x] **C0.6 固化 4 份行为快照**（产物落 `test/fixtures/card-snapshots.json`，由 `test/snapshots.base.test.tsx` 生成且断言通过）
   - [x] **插槽顺序快照**：5 段合成顺序（header-before → children → overlay → header-after → footer），排序仅认 `config.order` 升序（`priority` 不参与渲染）
   - [x] **价格区合成快照**：`renderPriceArea` 由 `SlotsContext` 单槽实现，参与者 PriceCalculator/ComparePrice/CouponRecommend，按 `config.order` 升序
@@ -272,11 +272,19 @@ Analytics(50) 能收到 PriceCalculator(20) 的首个 `price:change`，靠的就
 - [x] **冲突提示** 4 条：Image↔Gallery、Countdown↔Animation、A11y↔Actions、Quantity↔SKU
 - [x] 点插件名展开 `doc.json`：配置表 + 能做/适合/注意
 
-### C5.3 场景库（`#/scenarios`，10 个）
+### C5.3 场景库（`#/scenarios`，16 个 · 10 通用 + 6 行业）
 
 - [x] 商品列表卡 / SKU 联动商详 / 秒杀倒计时 / 优惠券叠加到手价 / 订单摘要 / 比价 / 低库存告警 / 视频商详 / 评论墙 / 移动端横滑卡（10/10）
+- [x] **第二维：行业**（`meta.industry`）—— 生鲜按重量 / 3C 比价 / 美妆色号 / 家居送装 / 票务场次 / 在线课程（6/6）。理由：同一件商品在不同行业里卡的形状不一样，只给「通用电商」看不出差异
 - [x] 一卡两栏 + 下方通栏代码：**完整版**用 `?raw` 读同一个 `.tsx`；**最小装配版**由 `meta.plugs` 现场生成（`scenarios/minimal.ts`）
 - [x] `scripts/verify-scenarios.mjs` 适配卡片：slug↔文件名、plugs↔源码双向、编号连续、**22 插件覆盖率**
+
+### C5.3b 布局专区（`#/layouts`，9 种版式）
+
+- [x] 垂直 / 横向 / 右图 / 下图 / Banner 横幅 / 网格紧凑 / 极简 / 背景图 / 双列对称（9/9）
+- [x] 一版式一文件（`demo/src/layouts/01-vertical.tsx` … `09-two-column.tsx`），每块 = 左运行 + 右结构要点 + 下通栏源码，源码用同一个 `?raw` 读正在跑的那份
+- [x] 定位不是插件示例：9 个版式的插件几乎是同一批，差别全在 `children` 结构，所以单独成页而不是塞进 `#/demos`
+- [x] `scripts/verify-layouts.mjs` 闸门：编号连续 / `meta.id` 与文件名一致 / 有 meta 与默认导出 / `width ≤ 610`（**正则只扫 `export const meta` 块**，否则 `svgPlate({ width: 1000 })` 会假警）
 
 ### C5.4 逐项示例（`#/demos/:slug`，38 页）
 
@@ -288,7 +296,7 @@ Analytics(50) 能收到 PriceCalculator(20) 的首个 `price:change`，靠的就
 
 - [x] 新增 `scripts/audit-cards.mjs`（参照 `audit-demos.mjs`），判据与渲染层 `demo/src/lib/audit.ts` 同源：
   - [x] 断言 6 类：`no-card` / `zero-size` / `overflow` / `broken-image`（`naturalWidth === 0`）/ `no-content` / `no-price`；另捕 `pageerror` 并过滤媒体/网络噪音 `console.error`
-  - [x] 结果落表：**41 条路由 × 0 命中**
+  - [x] 结果落表：**42 条路由 × 0 命中**
 - [ ] ~~复用 `audit-controls.mjs` 思路逐页推滑杆比对指纹~~ —— **未做，改为控件即代码**：`{{key}}` 占位的插值直接反映在生成代码上，人眼一眼能看出控件是否接上，再做一套指纹比对是重复投入
 
 **执行记录（2026-10-27）**
@@ -297,11 +305,12 @@ Analytics(50) 能收到 PriceCalculator(20) 的首个 `price:change`，靠的就
 | --- | --- |
 | `pnpm typecheck` | 0 错 |
 | `pnpm exec eslint demo src --quiet` | 0 错 |
-| `pnpm test` | **180 passed / 13 files** |
+| `pnpm test` | **182 passed / 13 files** |
 | `pnpm build`（lib） | 通过 |
 | `pnpm build:demo` | 通过，`main-*.js` 113.74KB / gzip 46.55KB |
-| `scripts/audit-cards.mjs` | 41 页几何全干净（总览 + 工坊 + 场景 + 38 逐项） |
-| `scripts/verify-scenarios.mjs` | 场景 10 / 插件 22 / 逐项 38 页 / **插件覆盖 22/22** |
+| `scripts/audit-cards.mjs` | 42 页几何全干净（总览 + 工坊 + 场景 16 + 布局 9 + 38 逐项去重后共 42 条路由） |
+| `scripts/verify-scenarios.mjs` | 场景 16 / 插件 22 / 逐项 38 页 / **插件覆盖 22/22** |
+| `scripts/verify-layouts.mjs` | 9 版式 / 编号连续 / 宽度 ≤610 |
 
 **与清单的偏离（都是想清楚后改的）**
 
@@ -309,8 +318,19 @@ Analytics(50) 能收到 PriceCalculator(20) 的首个 `price:change`，靠的就
 2. **舞台另立「样纸」主题**：外壳仍深色，但卡片舞台改成带格子底纹的浅色纸面 + 白卡投影。原因是深色 UI 配浅色卡片本来就打架，而改插件默认色会污染迁移的归因边界 —— 让容器去适配组件，而不是反过来。
 3. **复合组件左右内边距在 demo 侧补**：复合子组件刻意不带左右 padding（由容器决定），demo 统一补 14px + `gap: 8px`，媒体块保持通栏。CSS 里写明了这是「组合方式」不是组件默认值。
 4. **`ActionsPlugin` 的真实缺陷**：footer 内按钮与价格区撞 priority，按钮排到了价格之上。改为 `config.order = 20` 让顺序变成结构性的（券 → 价格 → 按钮），不再是运气。
+5. **卡片容器自带 `color` + `background`**（`6d3f4f7`）：`.vc-card` 原来只有 `position` / `box-sizing`，文字色全靠继承宿主。demo 外壳是深色，于是 `QuantityPlugin` 的 `-` / `+` 拿到浅色墨压在白底按钮上，实测 `rgb(233,236,223)`——**完全不可见，属发布级 bug**。修复是三处：容器补 `color` + `background`，两个内联了白底的插件（Quantity 的按钮、Review 的提交）补 `color`。`test/styles.test.ts` 加反向锁（删掉 color 即红），ADR-13 补第 5 条。
+6. **「只装功能插件」的页补空媒体位**（`87560cd`）：22 页的卡顶是空的，看着像图挂了，但那批页刻意不装媒体插件（「最小装配」要能直接抄）。折中做法是画一条虚线斜纹位并注明「媒体位 · 本页未装媒体插件」——不塞占位图（更像挂），也不给这些页加 `ImagePlugin`（破坏最小装配）。实现挂在 `[data-card-id]::before`，38 个 Stage 一个没改。
+7. **布局专区单独立页**（`bbb1924`）：读原实现后确认 9 种版式的插件几乎是同一批，差别全在 `children` 结构，所以不做成插件示例，而是「一版式一文件 + `?raw` 同源」。
+8. **体检块锚点 `data-layout` → `data-plate`**：`CardCore` 会把 `layout` prop 透传成 DOM 的 `data-layout="vertical"`，选择器直接撞车，`/scenarios` 一度误报 6 条 `no-card`。三处（页面标记 / `demo/src/lib/audit.ts` / `scripts/audit-cards.mjs`）同步改。
 
-**验收门 C5**：✅ build 通过；体检 41 页 **0 命中**；每卡有代码块 + 复制按钮；**22/22** 插件装配过；**38 页**逐项示例全部可打开（≥37）。
+**踩过的四个布局坑（写进注释了）**
+
+- `aspect-ratio` 配 `max-height` 会**反向算宽度**：`max-height: 168px` 一生效，16:9 就把宽度算成 ≈299px，右侧留白 15px。必须显式 `width: 100%`。
+- `background-image` 的 SVG data URI **必须加引号**：未编码的 `url(#g)` 括号会截断 CSS 的 `url()`，图完全不加载，只在背景版式那一页暴露。
+- 条卡图片用 `alignSelf: "stretch"` 而不是固定 `height`：文字行数一变就会在底部留白边。
+- `ImagePlugin` 实际渲染在 `children` **之后**：要「图在上」的版式（如网格紧凑）必须手写 `<img>`，光调插件顺序没用。
+
+**验收门 C5**：✅ build 通过；体检 42 页 **0 命中**；每卡有代码块 + 复制按钮；**22/22** 插件装配过；**38 页**逐项示例全部可打开（≥37）；场景 16 个（含 6 行业）+ 布局 9 版式。
 
 ---
 
@@ -414,6 +434,6 @@ C0（决策 + 快照）
 | C0 | 决策落纸 + 4 份快照 | ✅ D1–D5 落地（tasks/11/12 标注）；`test/fixtures/card-snapshots.json` 已生成且 `test/snapshots.base.test.tsx` 通过；gzip 基线 28.13KB |
 | C1 | 包骨架 + Core 迁入 + demo 指回源码 | ✅ 包骨架/配置/依赖/typecheck 0 错/lib build 通过/demo 构建通过（R1 已证）；C1.4 的 Core 单测在 C2 一并补齐（3 个文件 14 用例），C1.3 的 51 页旧 demo 不搬运（留 C5 重写） |
 | C2 | 删 1154 行旧系统 / 钩子面 15 / test ≥18 / 清理计数 on=N off=N | ✅ 三文件已删；typecheck 0 / eslint --quiet 0 / vitest 26 passed（6 文件）/ gzip 30.37KB（预算 36KB）；清理计数 **on=12 / off=12**（旧系统 off=0）；额外修掉 2 处 rules-of-hooks 违规 + 1 个 npm 打包陷阱（见 C2 节末） |
-| C5 | demo build 通过 / 场景体检 0 命中 / 22 插件装配过 / ≥37 页可打开 | ✅ build 通过（`main` gzip 46.55KB）；`audit-cards.mjs` **41 页 0 命中**；插件覆盖 **22/22**；逐项示例 **38 页**；vitest 180 passed；typecheck / eslint 0 错 |
+| C5 | demo build 通过 / 场景体检 0 命中 / 22 插件装配过 / ≥37 页可打开 | ✅ build 通过（`main` gzip 46.55KB）；`audit-cards.mjs` **42 页 0 命中**；插件覆盖 **22/22**；逐项示例 **38 页**；场景 **16 个**（10 通用 + 6 行业）；布局专区 **9 版式**；vitest 182 passed；typecheck / eslint 0 错 |
 | C6 | check-packages + docs:build 全绿 / pack 干净 / changeset 就位 | ✅ 三条体积线全绿（根入口 6.8 / core 1.7 / 全量 31.5，预算 12/5/36）；docs 四件套 + README 同步 + ADR-11~14 + changeset 就位；`npm pack` 260 文件 / 74.9KB，只含 dist + README + package.json；vitepress build 通过；顺手修掉 sideEffects 把样式摇掉的问题 |
 | C4 | compound 0 处 `as any` / style.css 可单独引入 / 体积不劣化 | ✅ `as any` **51 → 0**（类型层 `types/product.ts` + `Object.assign` 装配）；vitest 180 passed（13 文件，含复合组件 46 用例）；`dist/style.css` 24.47KB(gzip 5.22)；根入口 gzip **22.10KB**（比 C3 末 23.61 更小）；`test/styles.test.ts` 锁住 class↔CSS 对账 |
