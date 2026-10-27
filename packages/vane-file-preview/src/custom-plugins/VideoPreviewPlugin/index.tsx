@@ -60,18 +60,23 @@ function videoLabel(extension: string): string {
 }
 
 /**
- * 浏览器内核**普遍不支持**的容器（不是「可能不支持」）。
+ * **通常播不了**的容器，以及各自的原因。
  *
  * 这几个格式在 `supportedExtensions` 里是有意保留的 —— 用户拿到一个 .avi 时，
  * 与其让它一路落到兜底下变成「什么都看不出来」，不如明确告诉他「这个格式浏览器
  * 播不了，去下载」。但提示语必须说准：迁移前统一写「浏览器**可能**不支持该编码」，
- * 对 .avi 这种必然失败的格式，这个「可能」会让用户反复重试或去查自己的文件。
+ * 对必然失败的格式，这个「可能」会让用户反复重试或去查自己的文件。
+ *
+ * **别写成「必然不支持」**：容器不等于编码。真机验收时 `sample.flv` 在 Chromium
+ * 里 readyState=4、852×h 正常播放 —— 因为那个 FLV 里装的是 H.264/AAC，而浏览器
+ * 支持的解复用器恰好认它。同理 MKV / MOV 也是「多数不认、装了 H.264 时可能认」。
+ * 所以这里写的是**最常见的原因**，不是判决书；只有真的触发了 onError 才会用到它。
  */
 const UNSUPPORTED_IN_BROWSER: Record<string, string> = {
-  avi: "AVI 是老式容器，编码多为 DivX/Xvid，现代浏览器内核都不内置解码器",
+  avi: "AVI 是老式容器，编码多为 DivX/Xvid，主流浏览器都没有内置解码器",
   wmv: "WMV 是微软的私有格式，Chrome / Firefox / Safari 都不支持",
-  flv: "FLV 依赖已经停止支持的 Flash 技术栈",
-  mkv: "MKV 只是容器，浏览器能否播取决于里面的编码；Chrome 通常不支持",
+  flv: "FLV 只是容器：里面装 Sorenson / VP6 时一律播不了，装 H.264/AAC 才可能被个别内核认",
+  mkv: "MKV 只是容器，浏览器能否播取决于里面的编码；多数情况不支持",
   mov: "QuickTime 在 Safari 之外基本不可播（除非内部就是 H.264）",
 };
 

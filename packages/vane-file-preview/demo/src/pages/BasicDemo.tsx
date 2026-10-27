@@ -51,9 +51,29 @@ const FILES: Sample[] = [
   sample("sample.jpg", "image/jpeg", "jpg", 44155, "JPEG · 缩放 / 旋转 / 复位"),
   sample("sample.png", "image/png", "png", 134340, "PNG"),
   sample("sample.svg", "image/svg+xml", "svg", 1497, "SVG（同一套 transform）"),
+  sample("sample.gif", "image/gif", "gif", 104327, "GIF · 动图，缩放同样走 transform"),
+  sample("sample.webp", "image/webp", "webp", 3072, "WebP · 比同尺寸 PNG 小一个量级"),
   sample("star.pdf", "application/pdf", "pdf", 144370, "PDF · 浏览器原生查看器"),
+  sample("danmu.pdf", "application/pdf", "pdf", 246175, "PDF · 多页 / 含弹幕图层"),
+  sample(
+    "white-screen.pdf",
+    "application/pdf",
+    "pdf",
+    109114,
+    "PDF · 版式几乎全白（体检拦截用）"
+  ),
   sample("sample.mp4", "video/mp4", "mp4", 2498125, "MP4 · 原生 video"),
+  sample("sample.webm", "video/webm", "webm", 2165175, "WebM · 与 MP4 走同一个 <video>"),
+  sample(
+    "sample.flv",
+    "video/x-flv",
+    "flv",
+    1055398,
+    "FLV · 这份是 H.264，Chromium 实测能播（容器 ≠ 编码）"
+  ),
   sample("sample.ogg", "audio/ogg", "ogg", 104793, "OGG 音频"),
+  sample("sample.mp3", "audio/mpeg", "mp3", 4090342, "MP3 · 最常见的有声音频"),
+  sample("sample.wav", "audio/wav", "wav", 1048558, "WAV · 无损但体积大"),
   sample(
     "sample.avi",
     "video/x-msvideo",

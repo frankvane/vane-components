@@ -61,6 +61,8 @@ const FILES: Sample[] = [
   sample("code", "xss-demo.md", "text/markdown", "md", 420, "⚠ HTML 注入样本（验证 allowHtml 默认关）"),
   sample("table", "sample-data.csv", "text/csv", "csv", 963, "CSV · 逗号分隔"),
   sample("table", "sample-data-semicolon.csv", "text/csv", "csv", 567, "CSV · 分号分隔（自动识别）"),
+  sample("table", "sample-data-pipe.csv", "text/csv", "csv", 683, "CSV · 竖线分隔（第三组分隔符）"),
+  sample("table", "mixed-data.csv", "text/csv", "csv", 464, "CSV · 数字/日期/空值混排（排序用）"),
   sample("table", "sales-data.tsv", "text/tab-separated-values", "tsv", 984, "TSV · Tab 分隔"),
   sample("table", "gbk-data.csv", "text/csv", "csv", 0, "CSV · GBK 编码（检测并转码）"),
   sample("book", "sample.epub", "application/epub+zip", "epub", 188879, "EPUB · 翻页 + 目录"),

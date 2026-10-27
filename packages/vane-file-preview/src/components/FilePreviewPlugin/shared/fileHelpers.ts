@@ -20,13 +20,26 @@ export function normalizeExtension(extension: string | undefined): string {
 }
 
 /** 字节数 → 人类可读（1 位小数，工具栏粒度足够） */
+const BYTE_UNITS = ["B", "KB", "MB", "GB"] as const;
+
 export function formatBytes(bytes: number): string {
   if (!Number.isFinite(bytes) || bytes < 0) return "—";
   if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  if (bytes < 1024 * 1024 * 1024)
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
+
+  // 单位按**四舍五入之后**的值再进一级。
+  // 只按原始字节判断会出现 1048558 B → "1024.0 KB"（1023.998 保留一位小数进上去了），
+  // 读起来像出错，而这号大小在 1MB 附近的音频/截图里很常见。
+  let value = bytes;
+  let unit = 0;
+  while (value >= 1024 && unit < BYTE_UNITS.length - 1) {
+    value /= 1024;
+    unit += 1;
+  }
+  if (Number(value.toFixed(1)) >= 1024 && unit < BYTE_UNITS.length - 1) {
+    value /= 1024;
+    unit += 1;
+  }
+  return `${value.toFixed(1)} ${BYTE_UNITS[unit]}`;
 }
 
 /**

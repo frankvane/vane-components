@@ -55,6 +55,13 @@ const sample = (
 
 const FILES: Sample[] = [
   sample("sample.json", "application/json", "json", 1605, "JSON · 折叠 / 搜索 / 导出"),
+  sample(
+    "package.json",
+    "application/json",
+    "json",
+    870,
+    "package.json · 真实嵌套结构（scripts / deps 多层）"
+  ),
   sample("sample.xml", "text/xml", "xml", 1033, "XML · 可折叠 + 行号"),
   sample("sample.rss", "application/rss+xml", "rss", 911, "RSS · 同 XML 插件"),
   sample(
