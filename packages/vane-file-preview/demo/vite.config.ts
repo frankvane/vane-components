@@ -25,13 +25,25 @@ const demo = createDemoConfig({
  */
 export default {
   ...demo,
+  /**
+   * 样本文件在 `demo/public/`，不是包根的 `public/`。
+   *
+   * `createDemoConfig` 的 root 是**包根**（因为 entry 写的是 `demo/index.html`），
+   * 而 Vite 的 `publicDir` 默认相对 root → 会去读 `packages/vane-file-preview/public`，
+   * 那个目录不存在（库包不该有 public）。不显式指过来的话，`/samples/*.pdf`
+   * 全是 404 —— 而且 PDF 的 iframe 拿到 404 页也照样撑满，肉眼很不容易发现。
+   */
+  publicDir: path.resolve(root, "demo/public"),
   resolve: {
     ...demo.resolve,
     alias: [
       { find: /^@\//, replacement: path.resolve(root, "src") + "/" },
       {
         find: /^vane-file-preview\/custom-plugins\/(.+)$/,
-        replacement: path.resolve(root, "src/custom-plugins/$1/index.ts"),
+        // 插件入口是 .tsx（每个插件都渲染 React 节点）。
+        // 写死扩展名而不是靠目录 index 探测：`$1` 里若带斜杠（未来出现
+        // custom-plugins/X/sub）时，目录探测会绕过单文件入口，两种行为不一样。
+        replacement: path.resolve(root, "src/custom-plugins/$1/index.tsx"),
       },
       {
         find: "vane-file-preview/custom-plugins",

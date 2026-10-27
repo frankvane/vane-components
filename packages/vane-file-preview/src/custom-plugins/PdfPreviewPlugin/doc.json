@@ -1,0 +1,32 @@
+{
+  "name": "PdfPreviewPlugin",
+  "description": "PDF 预览：交给浏览器内置 PDF 查看器（<iframe> 或 <embed>），不引 pdfjs。零依赖。",
+  "since": "2.0.0",
+  "tags": ["document", "pdf", "文档"],
+  "config": [
+    {
+      "name": "useIframe",
+      "type": "boolean",
+      "default": "true",
+      "description": "true 用 <iframe>，false 用 <embed>；两者都依赖浏览器自带 PDF 支持"
+    },
+    {
+      "name": "enableToolbar",
+      "type": "boolean",
+      "default": "true",
+      "description": "false 时给 URL 追加 #toolbar=0&navpanes=0&scrollbar=0 尽量隐藏查看器 UI（Chromium 系有效）"
+    }
+  ],
+  "example": "import { createPdfPreviewPlugin } from \"vane-file-preview/custom-plugins/PdfPreviewPlugin\";\n\nconst plugins = [createPdfPreviewPlugin({ enableToolbar: false })];",
+  "features": [
+    "容器与 frame 都严格撑满且 overflow: hidden，滚动完全交给 PDF 查看器，不出双滚动条",
+    "URL 已有 #hash 时用 & 追加查看器参数，不会破坏原有锚点",
+    "只声明 application/pdf 与 .pdf，不会抢 Office 或其它文档"
+  ],
+  "useCases": ["合同/发票在线查看", "论文预读", "后台附件预览"],
+  "notes": [
+    "#toolbar=0 只对 Chromium 系（Chrome / Edge）有效，Firefox 部分支持，Safari 基本忽略 —— 想完全掌控 UI 只能上 pdf.js 自绘，那会把包撑到几百 KB。",
+    "移动端（尤其 iOS Safari）对 iframe PDF 的渲染行为差异很大，常见表现是只显示第一页或直接空白；真机必须实测。",
+    "跨域 PDF 无法用 <embed> + 自定义查看器方案截取页数/缩略图；要这些能力请装 pdfjs-dist 自行渲染。"
+  ]
+}

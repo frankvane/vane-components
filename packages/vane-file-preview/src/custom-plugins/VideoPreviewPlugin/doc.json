@@ -1,0 +1,51 @@
+{
+  "name": "VideoPreviewPlugin",
+  "description": "视频预览：原生 <video>，支持控件/自动播放/循环/静音/预加载策略。零依赖。",
+  "since": "2.0.0",
+  "tags": ["media", "video", "音视频"],
+  "config": [
+    {
+      "name": "controls",
+      "type": "boolean",
+      "default": "true",
+      "description": "显示浏览器原生播放控件"
+    },
+    {
+      "name": "autoplay",
+      "type": "boolean",
+      "default": "false",
+      "description": "自动播放；未同时开 muted 时会被浏览器策略拦下"
+    },
+    {
+      "name": "loop",
+      "type": "boolean",
+      "default": "false",
+      "description": "循环播放"
+    },
+    {
+      "name": "muted",
+      "type": "boolean",
+      "default": "false",
+      "description": "静音；自动播放通常要求它为 true"
+    },
+    {
+      "name": "preload",
+      "type": "\"none\" | \"metadata\" | \"auto\"",
+      "default": "\"metadata\"",
+      "description": "预加载策略；metadata 只取时长与首帧，省流量"
+    }
+  ],
+  "example": "import { createVideoPreviewPlugin } from \"vane-file-preview/custom-plugins/VideoPreviewPlugin\";\n\nconst plugins = [\n  createVideoPreviewPlugin({ controls: true, preload: \"metadata\" }),\n];",
+  "features": [
+    "supportedTypes 用 video/* 通配，并列出 9 个扩展名兜底",
+    "自动播放但未静音时，工具栏给出「浏览器策略会拦截」的提示，不静默失败",
+    "解码失败上报 error 状态，提示可能是编码不受支持（如 H.265 / mkv 的常见情况）",
+    "容器黑底 + object-fit: contain，竖屏视频不会被裁切"
+  ],
+  "useCases": ["课程视频预览", "商品短视频", "上传前的素材确认"],
+  "notes": [
+    "能播什么完全取决于浏览器：Chrome 不支持 H.265/HEVC，MKV 容器普遍不支持，AVI 基本不支持。插件不做转码。",
+    "autoplay 实际生效条件由浏览器决定（Chrome/Safari 要求 muted，且页面需有用户交互历史），插件只负责把属性传下去。",
+    "不提供自定义控制条（进度拖拽、倍速、画中画）。原生控件在各浏览器外观不一致，要统一外观需自建控制层。"
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "name": "DownloadPlugin",
+  "description": "兜底插件：认领所有文件（priority -1 排最后），给出「这种格式预览不了，但可以下载」的卡片。零依赖。",
+  "since": "2.0.0",
+  "tags": ["other", "fallback", "下载"],
+  "config": [
+    {
+      "name": "autoDownload",
+      "type": "boolean",
+      "default": "false",
+      "description": "打开文件后立即触发一次下载（按 URL 去重，换文件才重来）"
+    },
+    {
+      "name": "showFileInfo",
+      "type": "boolean",
+      "default": "true",
+      "description": "卡片里显示文件名 / MIME / 大小"
+    }
+  ],
+  "example": "import { createDownloadPlugin } from \"vane-file-preview/custom-plugins/DownloadPlugin\";\n\n// 放在插件列表最后：它认领一切，但 priority -1 让它永远排在别的插件后面\nconst plugins = [createImagePreviewPlugin(), createPdfPreviewPlugin(), createDownloadPlugin()];",
+  "features": [
+    "canHandle 恒 true + priority -1：任何没有插件接手的文件都会落到它这里",
+    "按扩展名给图标（压缩包 / 安装包 / 数据库等），未知格式回落 📄",
+    "autoDownload 只以 file.url 为界触发一次，重渲染不会重复弹下载"
+  ],
+  "useCases": ["后台附件通用兜底", "未知格式提示下载", "批量上传后的文件清单"],
+  "notes": [
+    "装了它之后 resolvePreview() 永远有赢家，**unsupported 面板不会再出现**。想看「没有插件认领」的提示就别装它。",
+    "download 属性只对同源 URL 生效；跨域 CDN 文件会被浏览器改成「新标签页打开」，需要服务端给 Content-Disposition: attachment。",
+    "autoDownload 会被浏览器的「多文件下载」拦截策略影响（连续下载多个文件时 Chrome 会询问）。"
+  ]
+}

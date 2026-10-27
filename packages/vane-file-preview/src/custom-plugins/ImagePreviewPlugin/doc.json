@@ -1,0 +1,45 @@
+{
+  "name": "ImagePreviewPlugin",
+  "description": "图片预览：原生 <img> 承载，工具栏提供缩放（±20%）、旋转（+90°）、复位与下载；双击图片也可复位。零依赖。",
+  "since": "2.0.0",
+  "tags": ["media", "image", "图片"],
+  "config": [
+    {
+      "name": "enableZoom",
+      "type": "boolean",
+      "default": "true",
+      "description": "显示缩放按钮；同时决定鼠标是否为 zoom-in 光标"
+    },
+    {
+      "name": "enableRotate",
+      "type": "boolean",
+      "default": "true",
+      "description": "显示旋转按钮（每次 +90°，到 360° 归零）"
+    },
+    {
+      "name": "maxZoom",
+      "type": "number",
+      "default": "5",
+      "description": "缩放上限，同时用于禁用「+」按钮"
+    },
+    {
+      "name": "minZoom",
+      "type": "number",
+      "default": "0.1",
+      "description": "缩放下限，同时用于禁用「−」按钮"
+    }
+  ],
+  "example": "import { FilePreviewCore, withPlugins } from \"vane-file-preview\";\nimport { createImagePreviewPlugin } from \"vane-file-preview/custom-plugins/ImagePreviewPlugin\";\n\nconst plugins = [createImagePreviewPlugin({ maxZoom: 8, minZoom: 0.25 })];\nconst Preview = withPlugins(FilePreviewCore, { plugins });\n\n<Preview\n  file={{ name: \"cover.png\", size: 204800, type: \"image/png\", extension: \"png\", url: \"/cover.png\" }}\n  containerStyle={{ height: 420 }}\n/>;",
+  "features": [
+    "supportedTypes 用 image/* 通配，另列 9 个常见扩展名兜底（浏览器给的 MIME 可能为空）",
+    "缩放/旋转状态存在 sharedData 里并由 forceUpdate 驱动，工具栏百分比与图片始终同步",
+    "缩放值按 minZoom/maxZoom 双向夹紧，累加后取 3 位小数避免浮点尾数",
+    "图片 decode 失败时上报 error 状态，由 Core 显示失败面板而不是留白"
+  ],
+  "useCases": ["头像/封面预览", "证件照查看", "商品图放大看细节"],
+  "notes": [
+    "用 transform: scale() 而非 width/height 缩放：不改布局，避免容器在被预览图片尺寸抖动时重排。",
+    "toolbar 与正文是两个渲染位置（renderToolbar / render），状态只能通过 sharedData 共享 —— 迁移前的实现里存了三份并在 bus 上互相同步，实际表现是工具栏百分比不跟着变。",
+    "不支持手势缩放（pinch）与拖拽平移；需要这些请换成专门的图片查看器组件。"
+  ]
+}

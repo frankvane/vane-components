@@ -17,9 +17,10 @@ export function App() {
         vane-file-preview
       </h1>
       <p style={{ margin: "0 0 28px", fontSize: 13, color: "#8a8a8a" }}>
-        P2 · 装配器换成 <code>@vane/plugin-core</code>，路由抽成纯函数
-        <code>resolvePreview()</code>。页面 import 的是包名，vite 把它 alias 到{" "}
-        <code>src/</code>，删掉 <code>dist/</code> 也能构建。
+        P3-A · 前 6 个插件已迁入（Image / Pdf / Video / Audio / Office /
+        Download），页面按子路径引入它们。样本是{" "}
+        <code>demo/public/samples/</code> 里的真文件 —— data URL 骗得过图片，
+        骗不过 PDF 查看器与视频解码器。
       </p>
 
       <BasicDemo />

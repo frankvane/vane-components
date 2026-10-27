@@ -27,6 +27,7 @@ export type { WithPluginsConfig } from "./components/FilePreviewPlugin/plugins/t
 export {
   resolvePreview,
   accepts,
+  matchStrength,
   priorityOf,
   matchMimeType,
   matchExtension,

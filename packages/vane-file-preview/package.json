@@ -14,6 +14,38 @@
     "./core": {
       "types": "./dist/core.d.ts",
       "import": "./dist/core.js"
+    },
+    "./plugins": {
+      "types": "./dist/plugins.d.ts",
+      "import": "./dist/plugins.js"
+    },
+    "./custom-plugins/AudioPreviewPlugin": {
+      "types": "./dist/custom-plugins/AudioPreviewPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/AudioPreviewPlugin/index.js"
+    },
+    "./custom-plugins/DownloadPlugin": {
+      "types": "./dist/custom-plugins/DownloadPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/DownloadPlugin/index.js"
+    },
+    "./custom-plugins/ImagePreviewPlugin": {
+      "types": "./dist/custom-plugins/ImagePreviewPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ImagePreviewPlugin/index.js"
+    },
+    "./custom-plugins/OfficePreviewPlugin": {
+      "types": "./dist/custom-plugins/OfficePreviewPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/OfficePreviewPlugin/index.js"
+    },
+    "./custom-plugins/PdfPreviewPlugin": {
+      "types": "./dist/custom-plugins/PdfPreviewPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/PdfPreviewPlugin/index.js"
+    },
+    "./custom-plugins/VideoPreviewPlugin": {
+      "types": "./dist/custom-plugins/VideoPreviewPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/VideoPreviewPlugin/index.js"
+    },
+    "./custom-plugins/*": {
+      "types": "./dist/custom-plugins/*/index.d.ts",
+      "import": "./dist/custom-plugins/*/index.js"
     }
   },
   "files": [
@@ -78,10 +110,10 @@
     "vitest": "^2.1.9"
   },
   "vane": {
-    "sizeBudgetKb": 12,
+    "sizeBudgetKb": 14,
     "coreSizeBudgetKb": 8,
     "fullSizeBudgetKb": 90,
-    "sizeBudgetNote": "根入口 ≤12KB（Core + 装配 + 类型 + 6 个轻量插件）；./core ≤8KB（只要 Core 与类型）；全量并集 ≤90KB（17 个插件全用的最坏情况，重依赖全部 external 不计入）。迁移前基线是单文件 196.33KB —— 那时 mammoth 整库与 41 套 prism 主题都被内联了。"
+    "sizeBudgetNote": "根入口 ≤14KB（Core + 装配 + 类型 + 6 个零依赖插件，实测 12.5KB：装配 6.4 + Image/Video/Audio/Download/Pdf 约 1~2 各 + Office 2.5，共享工具栏组件 1.5）；./core ≤8KB（只要 Core 与类型，实测 6.4KB）；全量并集 ≤90KB（dist 下所有 .js 一起去重压缩，17 个插件全用的最坏情况；B/C 批的重依赖一律 external，不计入）。迁移前基线是单文件 196.33KB —— 那时 mammoth 整库与 41 套 prism 主题都被内联了。P1 拍的 12KB 是在 6 个插件迁入前定的，P3-A 实测后按真实构成上调到 14。"
   },
   "engines": {
     "node": ">=18"

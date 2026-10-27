@@ -1,0 +1,44 @@
+{
+  "name": "AudioPreviewPlugin",
+  "description": "音频预览：原生 <audio> + 渐变卡片（图标 + 文件名 + 控件），适合没有封面的纯音频。零依赖。",
+  "since": "2.0.0",
+  "tags": ["media", "audio", "音视频"],
+  "config": [
+    {
+      "name": "controls",
+      "type": "boolean",
+      "default": "true",
+      "description": "显示浏览器原生播放控件"
+    },
+    {
+      "name": "autoplay",
+      "type": "boolean",
+      "default": "false",
+      "description": "自动播放；多数浏览器会拦下非静音自动播放"
+    },
+    {
+      "name": "loop",
+      "type": "boolean",
+      "default": "false",
+      "description": "循环播放"
+    },
+    {
+      "name": "preload",
+      "type": "\"none\" | \"metadata\" | \"auto\"",
+      "default": "\"metadata\"",
+      "description": "预加载策略"
+    }
+  ],
+  "example": "import { createAudioPreviewPlugin } from \"vane-file-preview/custom-plugins/AudioPreviewPlugin\";\n\nconst plugins = [createAudioPreviewPlugin({ autoplay: true, loop: true })];",
+  "features": [
+    "supportedTypes 用 audio/* 通配，并列出 8 个扩展名兜底",
+    "文件名过长时单行省略 + title 悬浮显示全名，不把卡片撑破",
+    "解码失败上报 error 状态（FLAC/WMA 在部分浏览器不支持）"
+  ],
+  "useCases": ["录音回放", "语音留言", "播客片段试听"],
+  "notes": [
+    "没有波形图与自定义进度条，只有原生控件。要波形需要解码整段音频（AudioContext + canvas），与「零依赖 + 首屏快」的定位冲突。",
+    "iOS Safari 上原生 audio 控件尺寸有限制（最小高度由系统决定），卡片在窄屏里会显得偏挤。",
+    "渐变背景是固定视觉（#667eea → #764ba2），不接受主题色配置；需要贴合品牌色请自行包装组件。"
+  ]
+}

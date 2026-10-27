@@ -12,6 +12,7 @@
 
 export * from "./core";
 
-// P3 会把 6 个零重依赖插件聚合到 ./plugins 并在此再导出：
-//   export * from "./plugins";
-// 它们全用原生标签（img / iframe / video / audio），装包不增加任何依赖。
+// 6 个零重依赖插件（原生标签实现，装包不加任何依赖）。
+// 它们各自也有子路径（`vane-file-preview/custom-plugins/ImagePreviewPlugin`），
+// 只用一个插件的消费方可以走子路径再省一点。
+export * from "./plugins";

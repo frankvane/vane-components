@@ -1,0 +1,40 @@
+{
+  "name": "OfficePreviewPlugin",
+  "description": "Office 文档（doc/docx/xls/xlsx/ppt/pptx）在线预览：走 Microsoft Office Online 或 Google Docs Viewer。要求文件 URL 公网可达。零依赖。",
+  "since": "2.0.0",
+  "tags": ["document", "office", "docx", "xlsx", "pptx", "文档"],
+  "config": [
+    {
+      "name": "viewer",
+      "type": "\"microsoft\" | \"google\" | \"auto\"",
+      "default": "\"auto\"",
+      "description": "auto 默认微软查看器，右下角可手动切到 Google"
+    },
+    {
+      "name": "showToolbar",
+      "type": "boolean",
+      "default": "true",
+      "description": "工具栏里显示下载按钮"
+    },
+    {
+      "name": "preferDocxOnline",
+      "type": "boolean",
+      "default": "false",
+      "description": "true 时 docx 优先级提到 9，压过本地解析插件（8）；xlsx/pptx 不受影响"
+    }
+  ],
+  "example": "import { createOfficePreviewPlugin } from \"vane-file-preview/custom-plugins/OfficePreviewPlugin\";\n\nconst plugins = [\n  // 文件已放在公网 CDN 时，在线预览省掉 mammoth / docx-preview 的体积\n  createOfficePreviewPlugin({ viewer: \"auto\", preferDocxOnline: true }),\n];",
+  "features": [
+    "URL 不是公网可达（blob: / data: / localhost / 内网段 / 无点主机名）时直接换成说明面板，不渲染必然超时的 iframe",
+    "auto 模式提供「换查看器」按钮，手动在微软与 Google 之间切换",
+    "preferDocxOnline 只提升 docx 的优先级，不会抢走 XlsxPreviewPlugin / PptxPreviewPlugin 的活",
+    "说明面板只显示主机名，不把整条 URL（可能带签名 token）打到界面上"
+  ],
+  "useCases": ["企业网盘里的 Office 附件", "公网 CDN 上的合同/报表", "不想为一个 docx 装 mammoth 的场景"],
+  "notes": [
+    "它的原理是「查看器的服务器去拉你的 URL」，所以本地开发（localhost）与内网地址一律不可用，这不是 bug。",
+    "iframe 的 onError 对跨域加载失败**不会触发**，无法自动探测「查看器挂了」并降级；迁移前那段自动切 Google 的逻辑实际是死代码，现在改成手动按钮。",
+    "微软查看器对单文件大小有上限（约 100MB 量级），超大文档会被它自己拒绝，插件这边拿不到原因。",
+    "文件必须允许匿名访问；带鉴权的 URL 需要临时签名或公开读权限。"
+  ]
+}

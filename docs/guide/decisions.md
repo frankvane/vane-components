@@ -221,6 +221,16 @@
 6. **D6 · demo 三视角（工坊 17 + 逐项 17 + 场景 6）**，不做「布局视角」。
    file-preview 的版式差异来自**被预览的文件**而不是卡片排布，布局维度在这里不成立。
 
+7. **D7 · 路由排序键是「priority → MIME 置信度 → 声明顺序」**（P3-A 实装时补的）。
+   `resolve.ts` 里 `matchStrength()` 把「认不认」拆成三级：`canHandle` / MIME 命中 = 2，
+   仅扩展名命中 = 1，不认 = 0。同 `priority` 时**置信度高的赢**。
+   起因是一次真浏览器验收：一段 Vorbis 音频（`audio/ogg`）被 `VideoPreviewPlugin`
+   靠 `supportedExtensions: [".ogg"]` 抢走，渲染成黑底视频框、工具栏还写着 "OGG Video"。
+   `.ogg` 是容器不是编码（Vorbis 音频 / Theora 视频同名），`.ts`（TypeScript / MPEG-TS）、
+   `.m4a`（音频 / MP4 家族）同理。浏览器给的 MIME 是权威类型，扩展名只是文件名的一部分，
+   冲突时 MIME 该赢。配套把 `.ogg` 从 Video 的扩展名列表里拿掉（视频 ogg 走 `video/ogg` 或 `.ogv`）。
+   注意 `priority` 仍排在置信度**之前** —— 它是插件的显式意图，不该被「碰巧 MIME 命中」推翻。
+
 **关键判断（写在这里防止复发）**：
 
 - **这是「单赢家路由」，不是 vane-card 的「多插件合成」。** 一个文件只能有一个插件渲染正文，
@@ -236,5 +246,7 @@
 **代价**：消费者要按文件类型自己装 peer（文档里给一张「文件类型 → 需要装什么」的表）；
 根入口只管 6 个轻量插件，剩下 11 个要写子路径 import。
 
-**验证**：体积三口径（根入口 ≤12KB / `./core` ≤8KB / 全量并集 ≤90KB）+ `dist` 特征串断言 +
+**验证**：体积三口径（根入口 ≤**14KB** / `./core` ≤8KB / 全量并集 ≤90KB）+ `dist` 特征串断言 +
 `resolvePreview` 对 17 种文件的赢家断言 + `MissingDependency` 的 mock reject 单测。
+入口预算是 P3-A 迁完 6 个插件后从 12KB 上调的（实测 12.5KB：装配 6.4 + 6 插件约 6 + 共享工具栏 1.5），
+P1 定的 12KB 是在插件还没迁入时拍的，不是真实上限。

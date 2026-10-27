@@ -46,29 +46,47 @@ export function matchExtension(extension: string, pattern: string): boolean {
 }
 
 /**
- * 这个插件认不认这个文件。
+ * 匹配置信度：这个插件认不认这个文件，以及「有多确定」。
  *
- * `canHandle` **优先且互斥**：插件一旦声明了它，就完全由它决定，
- * 不再看 `supportedTypes` / `supportedExtensions`。
- * 理由：`DocxPreviewPlugin` 用 `canHandle` 读 `config.enabled` 与 `file.docxMode`，
- * 如果同时再叠加类型匹配，那个开关就会被类型匹配绕过 —— 关了也能命中。
+ *   2 = 显式意图（声明了 `canHandle` 且返回 true）或 MIME 命中
+ *   1 = 只靠扩展名命中
+ *   0 = 不认
+ *
+ * 为什么要区分 1 和 2：**同一个扩展名可以属于多种媒体**。
+ * `.ogg` 既是 `audio/ogg`（Vorbis）也是 `video/ogg`（Theora）；
+ * `.ts` 既是 TypeScript 源码也是 MPEG-TS；`.m4a` 与 `.mp4` 同族。
+ * 只按「认不认」判，两个插件都认领、优先级又相同，就只能靠声明顺序决出赢家 ——
+ * P3-A 的真浏览器验收里就是这样：一段 Vorbis 音频被 `VideoPreviewPlugin`
+ * 靠 `.ogg` 扩展名抢走，渲染成一个黑底视频框（控件能播，但工具栏写着 "OGG Video"）。
+ *
+ * 浏览器给的 MIME 是**权威类型**，扩展名只是文件名的一部分，两者冲突时 MIME 该赢。
  */
-export function accepts(plugin: FilePreviewPlugin, file: FileInfo): boolean {
-  if (plugin.enabled === false) return false;
+export function matchStrength(plugin: FilePreviewPlugin, file: FileInfo): number {
+  if (plugin.enabled === false) return 0;
 
   const { canHandle } = plugin.hooks;
-  if (canHandle) return canHandle(file) === true;
+  // 声明了 canHandle 就完全由它决定（互斥），命中即最高置信度
+  if (canHandle) return canHandle(file) === true ? 2 : 0;
 
   const { supportedTypes, supportedExtensions } = plugin;
-  if (supportedTypes?.length) {
-    if (supportedTypes.some((t) => matchMimeType(file.type, t))) return true;
-  }
-  if (supportedExtensions?.length) {
-    if (supportedExtensions.some((e) => matchExtension(file.extension, e))) {
-      return true;
-    }
-  }
-  return false;
+  const mimeHit = supportedTypes?.some((t) => matchMimeType(file.type, t));
+  if (mimeHit) return 2;
+
+  const extHit = supportedExtensions?.some((e) =>
+    matchExtension(file.extension, e)
+  );
+  if (extHit) return 1;
+
+  return 0;
+}
+
+/**
+ * 这个插件认不认这个文件。
+ *
+ * 保留 boolean 形态给调用方用（插件作者读得懂），内部用 `matchStrength` 区分强弱。
+ */
+export function accepts(plugin: FilePreviewPlugin, file: FileInfo): boolean {
+  return matchStrength(plugin, file) > 0;
 }
 
 /**
@@ -94,21 +112,32 @@ export function priorityOf(plugin: FilePreviewPlugin, file: FileInfo): number {
 /**
  * 选出赢家。
  *
- * 平手时保持**声明顺序**（`Array.prototype.sort` 在 V8 是稳定排序）：
- * 调用方把「更想要的」写在前面，不用去猜隐式规则。
+ * 排序键（依次比较）：
+ *   1. `priority` 降序 —— 插件的显式意图，最高优先
+ *   2. 匹配置信度降序 —— priority 平手时，MIME 命中压过「只有扩展名像」
+ *   3. 声明顺序 —— 调用方把「更想要的」写在前面，不用猜隐式规则
+ *
  * 一个都不认时返回 `null`，由装配层落到 `unsupported` 状态。
  */
 export function resolvePreview(
   plugins: FilePreviewPlugin[],
   file: FileInfo
 ): FilePreviewPlugin | null {
-  const winners = plugins.filter((p) => accepts(p, file));
-  if (winners.length === 0) return null;
-  if (winners.length === 1) return winners[0];
+  const candidates = plugins
+    .map((plugin) => ({
+      plugin,
+      strength: matchStrength(plugin, file),
+      priority: priorityOf(plugin, file),
+    }))
+    .filter((c) => c.strength > 0);
 
-  return winners
-    .map((plugin) => ({ plugin, score: priorityOf(plugin, file) }))
-    .sort((a, b) => b.score - a.score)[0].plugin;
+  if (candidates.length === 0) return null;
+  if (candidates.length === 1) return candidates[0].plugin;
+
+  candidates.sort(
+    (a, b) => b.priority - a.priority || b.strength - a.strength
+  );
+  return candidates[0].plugin;
 }
 
 /**

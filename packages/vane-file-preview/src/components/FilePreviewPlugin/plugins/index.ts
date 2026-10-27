@@ -14,6 +14,7 @@ export type { WithPluginsConfig } from "./types";
 export {
   resolvePreview,
   accepts,
+  matchStrength,
   priorityOf,
   matchMimeType,
   matchExtension,

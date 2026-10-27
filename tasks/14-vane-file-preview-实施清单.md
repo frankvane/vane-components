@@ -219,13 +219,13 @@ demo            13 个示例页 + Home + ReadmeDemo + _layout
 
 ### P3.1 A 级 6 个（近零改动）
 
-- [ ] `ImagePreviewPlugin`（301）—— 自研缩放/旋转，改 import 即可
-- [ ] `PdfPreviewPlugin`（116）—— 删掉底部**未使用**的 `toolbarButtonStyle` 常量
-- [ ] `VideoPreviewPlugin`（151）
-- [ ] `AudioPreviewPlugin`（177）
-- [ ] `DownloadPlugin`（175）
-- [ ] `OfficePreviewPlugin`（253）—— 补运行期检测：`blob:` / `localhost` / 内网地址时改为「需要公网可访问的 URL」提示（分析 R5）
-- [ ] 每插件 `doc.json`：`config` 从源码类型 + 工厂默认值抽取，一句话描述人工校对（6/6 过 schema）
+- [x] `ImagePreviewPlugin`（301）—— 自研缩放/旋转；**顺带修**「工具栏百分比不跟手」（三份状态靠 bus 互追 → 改为 sharedData 单一真源 + `forceUpdate()`）
+- [x] `PdfPreviewPlugin`（116）—— 删掉底部**未使用**的 `toolbarButtonStyle` 常量；滚动收口（容器与 frame 都撑满 + `overflow:hidden`，不出双滚动条）
+- [x] `VideoPreviewPlugin`（151）—— 删 `.ogg` 扩展名（见 D7 与偏离 9）；autoplay 未静音时工具栏提示
+- [x] `AudioPreviewPlugin`（177）—— 删掉**未使用**的 `formatSize` 副本
+- [x] `DownloadPlugin`（175）—— **修 hooks 违规**（`render` 里直接 `React.useEffect` → 抽 `DownloadBody` 组件）
+- [x] `OfficePreviewPlugin`（253）—— 补运行期检测：`blob:` / `data:` / `localhost` / 内网段 / 无点主机名时**直接换说明面板**（不再是「照渲 iframe + 叠一条黄色提示」）
+- [x] 每插件 `doc.json`：`config` 字段集合 + 默认值与运行时**逐项对账**（测试闸门，6/6 过）
 
 ### P3.2 B 级 7 个（依赖边界）
 
@@ -345,6 +345,33 @@ demo            13 个示例页 + Home + ReadmeDemo + _layout
    函数式 setState 只在 updater 内部能看到 prev，而守卫要在**进 `runLoad` 之前**就决定
    「要不要发这次请求」。需要读值 + 提前 return，只能读 ref。清单那措辞是「不读闭包」的意图，ref 是它的实现。
 
+8. **`render` / `renderToolbar` 里不许有 hooks —— 迁移前是真的有。**
+   它们是普通函数（装配层直接 `winner.hooks.render(ctx)`），不是组件。迁移前 `DownloadPlugin`
+   在 `render` 里写 `React.useEffect` 做 autoDownload：那个 hook 会被注册到 `withPlugins` 身上，
+   而「有没有赢家 / 赢家是谁」会让调用次数变化 —— React 直接抛
+   “Rendered fewer hooks than expected”。已抽成 `DownloadBody` 组件，
+   并在 `plugins-a-render.test.tsx` 里专门测「赢家从 Download 换成 Image 再换回来」。
+   **同理适用于 `renderToolbar`**：Image 的工具栏按钮要读缩放状态，必须包成 `ImageToolbar` 组件，
+   不能在图省事在钩子函数里 `useState`。
+9. **`.ogg` 到底是音频还是视频：靠 MIME 判，别信扩展名。**
+   真浏览器验收时发现一段 Vorbis 音频（`audio/ogg`）被 `VideoPreviewPlugin` 抢走渲染成黑底视频框
+   —— 它声明了 `.ogg`（Theora 视频也是 `.ogg`）。两条修法：Video 不再声明 `.ogg`；
+   `resolve.ts` 新增 `matchStrength()`，同 priority 时 MIME 命中压过「只有扩展名像」（ADR-16 D7）。
+   反向验证：把排序退化回「只看 priority」，新增的 `ByMime vs ByExt` 用例立刻红。
+10. **demo 的 `publicDir` 不会自动指向 `demo/public/`。**
+   `createDemoConfig` 的 root 是**包根**，Vite 的 `publicDir` 默认相对 root → 去读
+   `packages/vane-file-preview/public`（库包没有这个目录）。不显式设 `publicDir` 的话
+   `/samples/*.pdf` 全是 404，而 PDF 的 iframe 拿到 404 页照样撑满 —— **肉眼看不出错**，
+   只有「图片不显示、视频空白」时才反应过来。已在 demo/vite.config.ts 显式指过去。
+11. **验收环境本身也会给假象**：headless Chromium 不带 PDF 查看器，
+   `star.pdf` 的 iframe 有尺寸有 src 但内容是灰底。这是**验收环境的限制，不是插件的问题**
+   （真 Chrome 正常）。所以 PDF 的浏览器验收只能验「iframe 存在且尺寸正常」，
+   内容渲染必须人工看一眼。
+12. **入口体积预算从 12KB 上调到 14KB。** P1 拍 12KB 时 6 个插件还没迁入；
+   P3-A 实测 12.5KB（装配 6.4 + 6 插件约 6 + 共享工具栏 1.5）。
+   改预算而不是砍插件：D3 的意图就是「装完 import 即可用 6 个原生插件」，
+   砍掉 Office（2.5KB，最重的那个）会让根入口变得不完整。
+
 ---
 
 ## 执行记录（随实施追加）
@@ -354,7 +381,7 @@ demo            13 个示例页 + Home + ReadmeDemo + _layout
 | P0 | 2026-10-27 | ADR-16（六个决策落纸） |
 | P1 | 2026-10-27 | 包骨架 + Core 状态机收敛 + demo 指回源码（14 单测） |
 | P2 | 2026-10-27 | 装配器接内核 + 单赢家路由纯函数（54 单测） |
-| P3 | — | — |
+| P3-A | 2026-10-27 | 6 个轻量插件 + 共享模块 + 6 份 doc.json（88 单测） |
 | P4 | — | — |
 | P5 | — | — |
 | P6 | — | — |

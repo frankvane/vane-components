@@ -1,157 +1,137 @@
 /**
- * P1/P2 阶段的最小 demo。
+ * P3-A 验收页：6 个轻量插件 + 真实样本文件。
  *
- * P1 验的是「demo 跑的是 `src/` 不是 `dist/`」；
- * P2 之后它顺带演示了装配层的三件事：
- *   ① 路由：`canHandle` / `supportedTypes` 决定谁渲染 —— 第三个样本故意用
- *      一个没人认领的 MIME，用来展示 unsupported 面板
- *   ② 单赢家：一个文件只由一个插件渲染正文，不是全部插件各画一块
- *   ③ 状态真源：Core 负责 idle→loading→loaded，插件只能 reportState 上报
+ * 单测能证明「声明对了、能渲染」，证明不了「浏览器里真的能看」——
+ * PDF 的 iframe 到底渲不渲染、视频能不能播、Office 那条「公网可达」判断
+ * 在 localhost 下是不是真的走了说明面板，只有真浏览器能回答。
  *
- * 这里仍然不引任何官方插件（P3 才迁入），只用一个 30 行的本地插件。
+ * 样本放在 `demo/public/samples/`（P5 会把 archive 里 37 个样本整体迁过来），
+ * 每个都是**真文件**而不是 data URL —— data URL 能骗过图片，骗不过
+ * PDF 查看器与 video 解码器。
+ *
+ * 「装兜底插件」这个开关是为了同时演示两条互斥的语义：
+ *   开 → DownloadPlugin 认领一切，unsupported 面板永不出现；
+ *   关 → 没有插件认领的格式落到 `[data-vfp-unsupported]` 提示。
  */
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   FilePreviewCore,
   resolvePreview,
   withPlugins,
   type FileInfo,
-  type FilePreviewPlugin,
 } from "vane-file-preview";
+import { createImagePreviewPlugin } from "vane-file-preview/custom-plugins/ImagePreviewPlugin";
+import { createPdfPreviewPlugin } from "vane-file-preview/custom-plugins/PdfPreviewPlugin";
+import { createVideoPreviewPlugin } from "vane-file-preview/custom-plugins/VideoPreviewPlugin";
+import { createAudioPreviewPlugin } from "vane-file-preview/custom-plugins/AudioPreviewPlugin";
+import { createOfficePreviewPlugin } from "vane-file-preview/custom-plugins/OfficePreviewPlugin";
+import { createDownloadPlugin } from "vane-file-preview/custom-plugins/DownloadPlugin";
 
-/** 用 data URL 当样本：P1 还没搬 demo/public 里那 37 个真实文件（P5.2 搬） */
-const textUrl = (text: string) =>
-  `data:text/plain;charset=utf-8,${encodeURIComponent(text)}`;
-
-const FILES: FileInfo[] = [
-  {
-    name: "notes.txt",
-    size: 186,
-    type: "text/plain",
-    extension: "txt",
-    url: textUrl(
-      [
-        "vane-file-preview 迁移 · P2 验收点",
-        "",
-        "1. 路由是纯函数 resolvePreview(plugins, file)：",
-        "   canHandle 优先，其次 supportedTypes / supportedExtensions，",
-        "   按 priority 降序取唯一赢家。",
-        "2. 单赢家：一个文件只由一个插件渲染正文。",
-        "   不是 17 个插件各画一块。",
-        "3. Core 是状态的唯一真源：idle → loading → loaded。",
-        "   插件读到的 state 是只读镜像，想改只能 reportState。",
-        "",
-        "切到第三个文件（unknown.dat）看 unsupported 面板。",
-      ].join("\n")
-    ),
-  },
-  {
-    name: "readme.md",
-    size: 128,
-    type: "text/markdown",
-    extension: "md",
-    url: textUrl(
-      [
-        "# 为什么先做 P1 再做插件",
-        "",
-        "插件系统替换（P2）会同时动类型、装配、路由三处；",
-        "Core 状态机收敛也会动同一批代码路径。",
-        "两件事一起改，出问题时分不清是谁造成的。",
-        "",
-        "所以 P1 只动 Core，P2 只动装配与路由。",
-      ].join("\n")
-    ),
-  },
-  {
-    name: "unknown.dat",
-    size: 1024,
-    // 没有任何插件声明支持它 —— 用来展示 unsupported 面板
-    type: "application/x-something-weird",
-    extension: ".dat",
-    url: "data:application/x-something-weird,payload",
-  },
-];
-
-/** 极简文本插件：只认 text/*，用 fetch 读 URL 后渲染 */
-function TextBody({ url }: { url: string }) {
-  const [text, setText] = useState("加载中…");
-
-  useEffect(() => {
-    let alive = true;
-    fetch(url)
-      .then((r) => r.text())
-      .then((t) => {
-        if (alive) setText(t);
-      })
-      .catch((e: unknown) => {
-        if (alive) setText(`读取失败：${String(e)}`);
-      });
-    return () => {
-      alive = false;
-    };
-  }, [url]);
-
-  return (
-    <pre
-      style={{
-        margin: 0,
-        padding: 16,
-        fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
-        fontSize: 13,
-        lineHeight: 1.7,
-        color: "#1f2329",
-        whiteSpace: "pre-wrap",
-        wordBreak: "break-word",
-        overflow: "auto",
-        height: "100%",
-        boxSizing: "border-box",
-      }}
-    >
-      {text}
-    </pre>
-  );
+interface Sample extends FileInfo {
+  /** 这一项是用来演示什么的 */
+  note: string;
 }
 
-const createTextPreviewPlugin = (): FilePreviewPlugin => ({
-  name: "TextPreviewPlugin",
-  hooks: {
-    canHandle: (file) => file.type.startsWith("text/"),
-    render: (context) => <TextBody url={context.file.url} />,
-  },
+const sample = (
+  name: string,
+  type: string,
+  extension: string,
+  size: number,
+  note: string
+): Sample => ({
+  name,
+  type,
+  extension,
+  size,
+  url: `/samples/${name}`,
+  note,
 });
 
+const FILES: Sample[] = [
+  sample("sample.jpg", "image/jpeg", "jpg", 44155, "JPEG · 缩放 / 旋转 / 复位"),
+  sample("sample.png", "image/png", "png", 134340, "PNG"),
+  sample("sample.svg", "image/svg+xml", "svg", 1497, "SVG（同一套 transform）"),
+  sample("star.pdf", "application/pdf", "pdf", 144370, "PDF · 浏览器原生查看器"),
+  sample("sample.mp4", "video/mp4", "mp4", 2498125, "MP4 · 原生 video"),
+  sample("sample.ogg", "audio/ogg", "ogg", 104793, "OGG 音频"),
+  sample(
+    "sample.avi",
+    "video/x-msvideo",
+    "avi",
+    742478,
+    "AVI · 浏览器普遍不支持 → 走 error 面板"
+  ),
+  sample(
+    "sample.docx",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "docx",
+    20817,
+    "DOCX · localhost 不可达 → 走说明面板"
+  ),
+  sample(
+    "sample.xlsx",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "xlsx",
+    13060,
+    "XLSX · 同上"
+  ),
+  sample("sample.zip", "application/zip", "zip", 97668, "ZIP · 落到兜底下载"),
+  sample(
+    "mystery.dat",
+    "application/x-unknown",
+    "dat",
+    0,
+    "未知格式 · 关掉兜底才看得到 unsupported"
+  ),
+];
+
 /**
- * 装配写成模块顶层常量。
+ * 装配写在模块顶层。
  *
- * 迁移前 13 个示例页里有 11 个把 `withPlugins(...)` 写在函数体内 ——
- * 每次渲染都造一个新的组件类型，React 会把整棵子树卸载重建。
- * 这里从第一行就定死这个写法（P5 的逐项示例同样要求）。
+ * 迁移前 13 个示例页里 11 个把 `withPlugins(...)` 写在函数体内 —— 每次渲染都造一个
+ * 新组件类型，React 把整棵子树卸载重建（预览会闪、状态全丢）。
  */
-const plugins = [createTextPreviewPlugin()];
-const Preview = withPlugins(FilePreviewCore, { plugins });
+const OFFICIAL = [
+  createImagePreviewPlugin(),
+  createPdfPreviewPlugin(),
+  createVideoPreviewPlugin(),
+  createAudioPreviewPlugin(),
+  createOfficePreviewPlugin(),
+  createDownloadPlugin(),
+];
+
+/** 去掉兜底：没有插件认领的格式就会真的落到 unsupported */
+const WITHOUT_FALLBACK = OFFICIAL.filter((p) => p.name !== "DownloadPlugin");
+
+const PreviewWithFallback = withPlugins(FilePreviewCore, { plugins: OFFICIAL });
+const PreviewStrict = withPlugins(FilePreviewCore, {
+  plugins: WITHOUT_FALLBACK,
+});
 
 export function BasicDemo() {
   const [index, setIndex] = useState(0);
-  const file = FILES[index];
+  const [withFallback, setWithFallback] = useState(true);
 
-  // 页脚要如实说明「谁在渲染」—— 直接用导出的纯函数问一次，
-  // 而不是猜装配器选了谁。unsupported 时这里会是 null。
-  const winner = resolvePreview(plugins, file);
+  const file = FILES[index];
+  const activePlugins = withFallback ? OFFICIAL : WITHOUT_FALLBACK;
+  // 用导出的纯函数问一次「谁在渲染」，而不是猜装配器选了谁
+  const winner = resolvePreview(activePlugins, file);
+  const Preview = withFallback ? PreviewWithFallback : PreviewStrict;
 
   return (
     <section style={{ display: "grid", gap: 12 }}>
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
         {FILES.map((f, i) => (
           <button
             key={f.name}
             onClick={() => setIndex(i)}
             style={{
-              padding: "6px 12px",
+              padding: "5px 10px",
               borderRadius: 6,
               border: `1px solid ${i === index ? "#1f2329" : "#d8d8d8"}`,
               background: i === index ? "#1f2329" : "#fff",
               color: i === index ? "#fff" : "#1f2329",
-              fontSize: 13,
+              fontSize: 12,
               cursor: "pointer",
               fontFamily: "inherit",
             }}
@@ -161,26 +141,43 @@ export function BasicDemo() {
         ))}
       </div>
 
+      <label
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+          fontSize: 12,
+          color: "#57606a",
+        }}
+      >
+        <input
+          type="checkbox"
+          checked={withFallback}
+          onChange={(e) => setWithFallback(e.target.checked)}
+        />
+        装 DownloadPlugin 兜底（关掉它才能看到 unsupported 面板）
+      </label>
+
       <div
         data-card-stage
         style={{
-          height: 360,
+          height: 480,
           border: "1px solid #e6e6e6",
           borderRadius: 10,
           overflow: "hidden",
+          background: "#fff",
         }}
       >
         <Preview file={file} />
       </div>
 
-      <p style={{ margin: 0, fontSize: 12, color: "#8a8a8a" }}>
-        当前文件：{file.name} · {file.type} ·{" "}
-        {winner ? (
-          <>渲染它的插件：{winner.name}</>
-        ) : (
-          <>没有插件认领它 → 走 unsupported 面板</>
-        )}{" "}
-        （本地定义，未使用任何官方插件）
+      <p style={{ margin: 0, fontSize: 12, color: "#8a8a8a", lineHeight: 1.7 }}>
+        当前：<code>{file.name}</code> · {file.type || "MIME 未知"} · {file.note}
+        <br />
+        渲染它的插件：
+        <strong style={{ color: winner ? "#1f2329" : "#d1242f" }}>
+          {winner ? ` ${winner.name}` : "（无 · unsupported 面板）"}
+        </strong>
       </p>
     </section>
   );
