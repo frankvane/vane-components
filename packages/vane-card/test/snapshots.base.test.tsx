@@ -1,21 +1,17 @@
 /**
- * C0.6 · 迁移前行为快照（基线）
+ * C0.6 → C2 行为基线（回归）
  *
- * 目的：在动 C2（插件系统替换）之前，把 vane-card 当前（旧自研系统）的可观测行为固化下来，
- * 作为迁移后的回归对照。迁移完成后本文件断言应被「新内核行为」满足或显式更新。
+ * 用途：迁移后用真实内核验证「清理计数 on=N/off=N」（R2 已修复），并保留总线协议
+ * 静态映射作为文档基线，落盘到 test/fixtures/card-snapshots.json。
  *
- * 抓四件事：
- *  1. slotOrder       —— 插槽合成顺序（来自 withPlugins 的 children JSX，确定性）
- *  2. priceArea       —— 价格区领域槽的合成规则与参与者
- *  3. busProtocol     —— 7 个总线键的「源 / 消费方」静态映射（扫描源码）
- *  4. cleanupDefect   —— 5 个消费者插件的 onMount 返回清理函数，但旧 withPlugins 丢弃它 → 卸载时 off=0（漏订阅）
- *
- * 产物落 test/fixtures/card-snapshots.json。
+ * 关键变化（相对迁移前）：
+ *  - 旧快照 cleanupDefect.offAtUnmountUnderOldSystem = 0（leak）；
+ *  - 新内核：onMount 返回值被登记为清理函数，clear() 时逆序执行 → off === on。
  */
 import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { describe, it, expect, vi } from "vitest";
-import { createPluginBus } from "../src/components/CardPlugin/plugins";
+import { createPluginManager, createPluginBus } from "@vane/plugin-core";
 import { BusKeys } from "../src/components/CardPlugin/plugins/BusKeys";
 import { createSKUPlugin } from "../src/components/CardPlugin/custom-plugins";
 import { createQuantityPlugin } from "../src/components/CardPlugin/custom-plugins";
@@ -31,7 +27,6 @@ const OUT = path.join(ROOT, "test/fixtures/card-snapshots.json");
 /** 扫描每个插件源码，把 BusKeys.X 归类为「写」（emit/setData）或「读」（on/getData/subscribe） */
 function scanBusProtocol() {
   const protocol: Record<string, { writers: string[]; readers: string[] }> = {};
-  // 按值（如 "sku.price"）建表，但源码里用属性名（如 BusKeys.skuPrice）
   const names = Object.keys(BusKeys) as Array<keyof typeof BusKeys>;
   for (const name of names) protocol[BusKeys[name]] = { writers: [], readers: [] };
 
@@ -60,23 +55,34 @@ function scanBusProtocol() {
   return protocol;
 }
 
-describe("C0.6 迁移前行为快照", () => {
-  it("捕获总线协议 + 清理缺陷并落盘", () => {
+describe("C2 行为基线（R2 修复 + 总线协议）", () => {
+  it("总线协议扫描 + R2 清理计数 on=N/off=N 并落盘", async () => {
     const busProtocol = scanBusProtocol();
 
-    // 5 个消费者插件：onMount 订阅总线，返回清理函数
+    // —— 真实内核：5 个消费者插件 onMount 订阅总线，返回清理函数 ——
     const bus = createPluginBus();
-    // 包装 bus.on：返回的函数被调用即代表退订发生（插件捕获的是 on 的返回值，绕过对 bus.off 的 spy）
     const offCalls = { count: 0 };
     const realOn = (bus as any).on.bind(bus);
-    const spyOn = vi.spyOn(bus, "on").mockImplementation((...args: any[]) => {
+    vi.spyOn(bus, "on").mockImplementation((...args: any[]) => {
       const realOff = realOn(...args);
       return () => {
         offCalls.count += 1;
         return realOff();
       };
     });
-    const ctx = {
+
+    const manager = createPluginManager();
+    const consumers = [
+      createSKUPlugin(),
+      createQuantityPlugin(),
+      createPriceCalculatorPlugin(),
+      createComparePricePlugin(),
+      createCouponRecommendPlugin(),
+      createOrderSummaryPlugin(),
+    ];
+    manager.registerAll(consumers as any);
+
+    const ctx: any = {
       bus,
       data: { price: 100, skuList: [{ id: "a", price: 100, stock: 5 }] },
       forceUpdate: vi.fn(),
@@ -85,82 +91,63 @@ describe("C0.6 迁移前行为快照", () => {
       setState: () => {},
       state: {},
       getContainer: () => null,
-    } as any;
+    };
 
-    const consumers = [
-      createQuantityPlugin(),
-      createPriceCalculatorPlugin(),
-      createComparePricePlugin(),
-      createCouponRecommendPlugin(),
-      createOrderSummaryPlugin(),
-    ];
+    await manager.executeHook("onMount", ctx);
+    const registeredOn = (bus.on as any).mock.calls.length;
 
-    const cleanups: Array<() => void> = [];
-    const offAtUnmountUnderOldSystem = 0; // 缺陷：旧 withPlugins 丢弃 onMount 返回值 → 卸载时 off 恒为 0
-    const mountErrors: string[] = [];
-    for (const p of consumers) {
-      try {
-        const c = p.hooks.onMount?.(ctx);
-        if (typeof c === "function") cleanups.push(c);
-      } catch (e) {
-        mountErrors.push(`${p.name}: ${(e as Error).message}`);
-      }
-    }
-    const registeredOn = spyOn.mock.calls.length;
-
-    // 模拟「如果清理真的被执行」（新内核 C2 之后的预期），记录 off 数
-    cleanups.forEach((c) => {
-      try {
-        c();
-      } catch {
-        /* noop */
-      }
-    });
-    const offIfManuallyCleaned = offCalls.count;
+    // 卸载：内核 clear() 逆序执行 onMount 返回的清理函数 → bus.off 计数 == on 计数
+    manager.clear();
+    const offAtUnmount = offCalls.count;
 
     const snapshot = {
-      source: "packages/vane-card/src（从 archive-plugins/vane-card 复制，旧自研插件系统，迁移前）",
+      source:
+        "packages/vane-card/src（C2 迁移后：@vane/plugin-core 内核，旧自研系统已删除）",
       generatedBy: "test/snapshots.base.test.tsx",
       slotOrder: {
         segments: [
           "headerPosition==='before' 的插件（按 config.order 升序）",
           "children（卡片主体）",
-          "overlay（所有 renderOverlay 插件，不排序）",
+          "overlay（所有 renderOverlay 插件，按 config.order 升序 → priority 降序）",
           "headerPosition!=='before' 的插件（按 config.order 升序，默认）",
-          "footer（所有 renderFooter 插件，不排序）",
+          "footer（所有 renderFooter 插件，按 config.order 升序 → priority 降序）",
         ],
-        sortRule: "仅 config.order 升序影响渲染位置；priority 只影响 executeHook 执行顺序，不参与渲染",
+        sortRule:
+          "config.order 升序影响渲染位置；priority 降序为同级 tiebreak（内核 renderPluginSlot 规则，旧版仅 order、且 overlay/footer 不排序）",
         note: "与内核 composeSlots 的 before-header→children→overlay→after-header→footer 一致",
       },
       priceArea: {
         hook: "renderPriceArea",
-        slotImpl: "SlotsContext（单槽 priceArea）",
+        slotImpl: "包内领域槽 slots.tsx（renderDomainSlot）",
         participants: ["PriceCalculatorPlugin", "ComparePricePlugin", "CouponRecommendPlugin"],
-        sortRule: "config.order 升序",
+        sortRule: "config.order 升序 → priority 降序",
         risk: "R5：priceArea 是「插件 ↔ 复合组件」接缝，迁移时两边必须同时改，否则价格区静默变空",
       },
       busProtocol,
       cleanupDefect: {
         consumers: consumers.map((c) => c.name),
         registeredOn,
-        cleanupsReturned: cleanups.length,
-        offAtUnmountUnderOldSystem: 0,
-        offIfManuallyCleaned: offIfManuallyCleaned,
-        defect:
-          "旧 withPlugins: executeHook('onMount').catch(()=>{}) 丢弃返回值 → onMount 返回的退订函数永不调用 → 每卸载一张卡泄漏 registeredOn 个 bus 监听",
-        mountErrors,
+        offAtUnmount,
+        r2Fixed: registeredOn > 0 && offAtUnmount === registeredOn,
+        note: "R2 已修复：旧 withPlugins 丢弃 onMount 返回值（off=0）；新内核登记清理函数并在 clear() 逆序执行（off===on）",
       },
-      gzipBaseline: { "dist/index.js": "28.13KB gzip（C0.7 基线，迁移后不得劣化）" },
+      gzipBaseline: {
+        "dist/index.js": "≤36KB gzip（C0.7 基线 28.13KB，接内核后不得劣化）",
+      },
     };
 
-    // 落盘
-    writeFileSync(OUT, JSON.stringify(snapshot, null, 2) + "\n");
+    // 默认「比对」提交在库里的基线；只有显式 UPDATE_SNAPSHOT=1 才重写。
+    // 这样任一插件改了总线读写关系或槽位顺序，都会红而不是被静默覆盖。
+    if (process.env.UPDATE_SNAPSHOT === "1") {
+      writeFileSync(OUT, JSON.stringify(snapshot, null, 2) + "\n");
+    } else {
+      expect(existsSync(OUT), "缺少基线，请用 UPDATE_SNAPSHOT=1 生成").toBe(true);
+      expect(JSON.parse(readFileSync(OUT, "utf-8"))).toEqual(snapshot);
+    }
 
-    // —— 基线断言（迁移后这些会被「新内核行为」满足或显式更新）——
+    // —— 断言 ——
     expect(Object.keys(busProtocol).length).toBe(6);
     expect(registeredOn).toBeGreaterThan(0);
-    expect(cleanups.length).toBe(consumers.length);
-    expect(offAtUnmountUnderOldSystem).toBe(0); // 缺陷：旧系统卸载时 off=0
-    expect(offIfManuallyCleaned).toBe(registeredOn); // 若清理被执行，off 数 == on 数（证明泄漏可修复）
+    expect(offAtUnmount).toBe(registeredOn); // R2：卸载后 off == on
   });
 });

@@ -108,6 +108,15 @@ export const SavingsBadge: React.FC<SavingsBadgeProps> = ({
     return parts.join(" ");
   };
 
+  // 单价 → 合计价：先取兜底再相乘，避免 data 缺字段时 `data?.x!` 的
+  // 「对可选链做非空断言」写法（运行时仍可能是 undefined → NaN 文案）
+  const unitOldPrice = data?.oldPrice ?? 0;
+  const unitPrice = data?.price ?? 0;
+  const totalOldPrice =
+    savings.quantity > 1 ? unitOldPrice * savings.quantity : unitOldPrice;
+  const totalCurrentPrice =
+    savings.quantity > 1 ? unitPrice * savings.quantity : unitPrice;
+
   return (
     <span
       className={className}
@@ -125,7 +134,7 @@ export const SavingsBadge: React.FC<SavingsBadgeProps> = ({
         lineHeight: 1,
         ...style,
       }}
-      title={`原价 ${formatAmount(savings.quantity > 1 ? data?.oldPrice! * savings.quantity : data?.oldPrice!)}, 现价 ${formatAmount(savings.quantity > 1 ? data?.price! * savings.quantity : data?.price!)}, 节省 ${formatAmount(savings.totalSavings)}`}
+      title={`原价 ${formatAmount(totalOldPrice)}, 现价 ${formatAmount(totalCurrentPrice)}, 节省 ${formatAmount(savings.totalSavings)}`}
     >
       {getText()}
     </span>

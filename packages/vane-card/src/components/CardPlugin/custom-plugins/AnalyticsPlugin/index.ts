@@ -1,4 +1,5 @@
 import type { CardPlugin, CardPluginContext } from "../../plugins";
+import React from "react";
 
 export interface AnalyticsPluginConfig {
   transport?: (event: string, payload: any) => void; // 自定义上报管道
@@ -6,7 +7,9 @@ export interface AnalyticsPluginConfig {
   minExposureMs?: number; // 最小曝光时长阈值，短于此不记入曝光退出
 }
 
-export const createAnalyticsPlugin = (config: AnalyticsPluginConfig = {}): CardPlugin => ({
+export const createAnalyticsPlugin = (
+  config: AnalyticsPluginConfig = {}
+): CardPlugin => ({
   name: "AnalyticsPlugin",
   version: "1.2.0",
   description: "点击、购物车与曝光统计（含上报管道与总线事件）",
@@ -40,38 +43,41 @@ export const createAnalyticsPlugin = (config: AnalyticsPluginConfig = {}): CardP
 
       // 曝光监测
       let visibleSince: number | null = null;
-      const io = new IntersectionObserver(
-        (entries) => {
-          const entry = entries[0];
-          if (!entry) return;
-          const isVisible = entry.isIntersecting;
-          if (isVisible) {
-            visibleSince = performance.now();
-            send("exposure_enter", { cardId: context.cardId, ts: Date.now() });
-          } else {
-            const dwellMs = visibleSince ? performance.now() - visibleSince : 0;
-            visibleSince = null;
-            if (!config.minExposureMs || dwellMs >= config.minExposureMs) {
-              send("exposure_exit", {
-                cardId: context.cardId,
-                ts: Date.now(),
-                dwellMs: Math.round(dwellMs),
-              });
-            }
+      const io = new IntersectionObserver((entries) => {
+        const entry = entries[0];
+        if (!entry) return;
+        const isVisible = entry.isIntersecting;
+        if (isVisible) {
+          visibleSince = performance.now();
+          send("exposure_enter", { cardId: context.cardId, ts: Date.now() });
+        } else {
+          const dwellMs = visibleSince ? performance.now() - visibleSince : 0;
+          visibleSince = null;
+          if (!config.minExposureMs || dwellMs >= config.minExposureMs) {
+            send("exposure_exit", {
+              cardId: context.cardId,
+              ts: Date.now(),
+              dwellMs: Math.round(dwellMs),
+            });
           }
-        },
-        { threshold: [0, 0.25, 0.5, 0.75, 1] }
-      );
-
+        }
+      });
       io.observe(el);
 
+      // 返回的清理函数会被内核在卸载时执行（R2 修复）
       return () => {
-        try { io.disconnect(); } catch {}
+        try {
+          io.disconnect();
+        } catch {}
         if (offSku) {
-          try { offSku(); } catch {}
+          try {
+            offSku();
+          } catch {}
         }
         if (offPrice) {
-          try { offPrice(); } catch {}
+          try {
+            offPrice();
+          } catch {}
         }
       };
     },
@@ -109,7 +115,12 @@ export const createAnalyticsPlugin = (config: AnalyticsPluginConfig = {}): CardP
       });
     },
 
-    onCartChange: (context: CardPluginContext, added: boolean) => {
+    // 旧版 onCartChange 死钩子 → 改为监听 onStateChange 的 cart 差分
+    onStateChange: (
+      context: CardPluginContext,
+      prev: { cart?: boolean; wishlist?: boolean },
+      next: { cart?: boolean; wishlist?: boolean }
+    ) => {
       const send = (eventName: string, payload: any) => {
         try {
           if (typeof config.transport === "function") {
@@ -121,7 +132,18 @@ export const createAnalyticsPlugin = (config: AnalyticsPluginConfig = {}): CardP
           }
         } catch {}
       };
-      send("cart", { cardId: context.cardId, action: added ? "add" : "remove" });
+      if (prev.cart !== next.cart) {
+        send("cart", {
+          cardId: context.cardId,
+          action: next.cart ? "add" : "remove",
+        });
+      }
+      if (prev.wishlist !== next.wishlist) {
+        send("wishlist", {
+          cardId: context.cardId,
+          action: next.wishlist ? "add" : "remove",
+        });
+      }
     },
   },
 });

@@ -1,8 +1,35 @@
 /**
- * withPlugins - HOC 组合器
- * 为 CardCore 注入插件系统，支持插件生命周期管理和钩子执行
+ * withPlugins - HOC 组合器（C2 · 接 @vane/plugin-core）
+ *
+ * 旧版自建 PluginBus/PluginManager/SlotsContext（约 1154 行）全部删除，改用内核
+ * usePluginRuntime + composeSlots + PluginErrorBoundary。领域适配在此补齐：
+ *
+ *  1. 领域上下文：内核 context + cardId / data / size / getContainer / getSize /
+ *     sharedData / bus；
+ *  2. Core 回调 → 钩子链：onMount / onClick / onHover / onVisibilityChange / onResize；
+ *  3. onStateChange 从 setState 的 updater 内移出，改为 state 变化后 in useEffect 触发
+ *     （updater 保持纯函数，避免旧版在 updater 内同步触发导致的重渲染抖动）；
+ *  4. 渲染插槽：composeSlots（before-header → children → overlay → after-header → footer），
+ *     与 C0.6 快照的五段顺序一致；价格区走包内领域槽（见 slots.tsx）；
+ *  5. R2 修复：onMount 返回值（清理函数）交内核 —— 内核在 clear() 时逆序执行，
+ *     不再像旧版那样 .catch(()=>{}) 丢弃；
+ *  6. onUnmount 不在此重复触发：内核在卸载的 useLayoutEffect 里已执行
+ *     executeHook("onUnmount") + clear()，这里只透传用户原始回调。
+ *
+ * priority 同向：旧版「越大越先注册」= 新版「越大越先执行」，不做反转适配。
  */
 
+import React, {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useRef,
+} from "react";
+import {
+  composeSlots,
+  PluginErrorBoundary,
+  usePluginRuntime,
+} from "@vane/plugin-core";
 import type { CardCoreProps, CardCoreRef } from "../core/CardCore";
 import type {
   CardPlugin,
@@ -10,56 +37,24 @@ import type {
   CardSize,
   CardState,
   DeviceInfo,
-  PluginManager,
+  PluginBus,
+  WithPluginsConfig,
 } from "./types";
-import React, {
-  forwardRef,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { CardSlotProvider } from "./slots";
 
-import { createPluginBus } from "./PluginBus";
-import { createPluginManager } from "./PluginManager";
-import { PluginSlotsProvider } from "./SlotsContext";
-
-export interface WithPluginsConfig<T = any> {
+export interface WithPluginsConfigInternal<T = any> {
   plugins: CardPlugin<T>[];
   enableDebug?: boolean;
 }
 
-// 检测设备信息
-function detectDevice(): DeviceInfo {
-  const width = typeof window !== "undefined" ? window.innerWidth : 1024;
-  const height = typeof window !== "undefined" ? window.innerHeight : 768;
-  const dpr = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
-  const ua = typeof navigator !== "undefined" ? navigator.userAgent || "" : "";
-
-  const isMobile = /Mobile|Android|iPhone|iPad/i.test(ua);
-  const isTablet = /iPad|Tablet/i.test(ua);
-  const type: DeviceInfo["type"] = isTablet
-    ? "tablet"
-    : isMobile
-    ? "mobile"
-    : "desktop";
-
-  const isTouchDevice =
-    typeof window !== "undefined" &&
-    ("ontouchstart" in window || navigator.maxTouchPoints > 0);
-
-  return {
-    type,
-    os: ua,
-    browser: ua,
-    devicePixelRatio: dpr,
-    viewportWidth: width,
-    viewportHeight: height,
-    isTouchDevice,
-    isRetina: dpr >= 2,
-  };
-}
+const INITIAL_STATE: CardState = {
+  isHovered: false,
+  isVisible: false,
+  isActive: false,
+  isSelected: false,
+  cart: false,
+  wishlist: false,
+};
 
 export function withPlugins<T = any>(
   WrappedComponent: React.ForwardRefExoticComponent<
@@ -68,248 +63,189 @@ export function withPlugins<T = any>(
   config: WithPluginsConfig<T> | CardPlugin<T>[]
 ) {
   const normalized: WithPluginsConfig<T> = Array.isArray(config)
-    ? { plugins: config, enableDebug: false }
+    ? { plugins: config }
     : config;
-
   const { plugins, enableDebug = false } = normalized;
 
   const WithPluginsComponent = forwardRef<CardCoreRef, CardCoreProps<T>>(
     (props, ref) => {
-      // 插件管理器和事件总线
-      const pluginManagerRef = useRef<PluginManager<T>>(
-        createPluginManager<T>()
-      );
-      const pluginManager = pluginManagerRef.current;
-      const busRef = useRef(createPluginBus());
-      const bus = busRef.current;
-
-      // Refs
       const containerRef = useRef<HTMLDivElement | null>(null);
-      const sharedDataRef = useRef<Map<string, any>>(new Map());
-      const coreRef = useRef<CardCoreRef>(null);
+      const coreRef = useRef<CardCoreRef | null>(null);
+      const transformedPropsRef = useRef<CardCoreProps<T>>(props);
 
-      // State
-      const [cardState, setCardState] = useState<CardState>({
-        isHovered: false,
-        isVisible: false,
-        isActive: false,
-        isSelected: false,
-        cart: false,
-        wishlist: false,
-      });
+      // 插件数组 → 内核插件：结构兼容，类型用 any 桥接（领域钩子靠 extendContext 注入领域上下文）
+      const kernelPlugins = plugins as any;
 
-      const [cardSize, setCardSize] = useState<CardSize>({
-        width: 0,
-        height: 0,
-      });
+      // 领域上下文扩展：在内核 context 基础上附加卡片专属字段
+      // 返回类型放宽到 any：内核要求返回 PluginContext，而领域 CardPluginContext 是
+      // 在其上叠加字段的超集（含 base 的 refs/shared/logger），结构兼容，仅需绕过
+      // 类型系统的精确匹配。
+      const extendContext = useCallback(
+        (base: any): any => {
+          const tProps = () =>
+            (transformedPropsRef.current as CardCoreProps<T>) ??
+            (props as CardCoreProps<T>);
+          const size = (): CardSize =>
+            base.getSize ? (base.getSize() as CardSize) : { width: 0, height: 0 };
 
-      // 设备信息
-      const deviceInfo = useMemo(() => detectDevice(), []);
+          const ctx: CardPluginContext<T> = {
+            ...base,
+            cardId: props.cardId,
+            data: props.data as T | undefined,
+            containerRef: (base.refs?.container ??
+              containerRef) as React.RefObject<HTMLDivElement | null>,
+            getContainer: () =>
+              (base.refs?.getContainer
+                ? base.refs.getContainer()
+                : null) as HTMLDivElement | null,
+            state: (base.state ?? {}) as CardState,
+            setState: (updates: Partial<CardState>) => base.setState(updates),
+            size: size(),
+            props: tProps(),
+            bus: base.bus as PluginBus,
+            sharedData: (base.shared as Map<string, any>) ?? new Map(),
+            deviceInfo: base.deviceInfo as DeviceInfo,
+            forceUpdate: base.forceUpdate,
+            getSize: () => size(),
+          };
 
-      // 构造插件上下文
-      const pluginContext: CardPluginContext<T> = useMemo(
-        () => ({
-          cardId: props.cardId,
-          data: props.data,
-          containerRef,
-          getContainer: () => containerRef.current,
-          state: cardState,
-          setState: (updates: Partial<CardState>) => {
-            setCardState((prev) => {
-              const next = { ...prev, ...updates };
-              // 触发状态变化钩子
-              pluginManager
-                .executeHook("onStateChange", pluginContext, prev, next)
-                .catch(() => {});
-              return next;
-            });
-          },
-          size: cardSize,
-          props: props as CardCoreProps<T>,
-          bus,
-          sharedData: sharedDataRef.current,
-          deviceInfo,
-          forceUpdate: () => coreRef.current?.forceUpdate(),
-          getSize: () => coreRef.current?.getSize() || { width: 0, height: 0 },
-        }),
-        [props, cardState, cardSize, bus, deviceInfo, pluginManager]
+          // 动态 getter：props 取 transformProps 之后；data / size 实时读取
+          Object.defineProperties(ctx, {
+            props: { get: tProps, enumerable: true, configurable: true },
+            data: {
+              get: () => props.data as T | undefined,
+              enumerable: true,
+              configurable: true,
+            },
+            size: { get: size, enumerable: true, configurable: true },
+          });
+          return ctx;
+        },
+        [props]
       );
 
-      // 注册插件
-      const prevPluginNamesRef = useRef<string[]>([]);
-      const currentNames = plugins.map((p) => p.name);
-      if (
-        prevPluginNamesRef.current.length === 0 ||
-        prevPluginNamesRef.current.join("|") !== currentNames.join("|")
-      ) {
-        if (enableDebug) {
-          console.debug("[withPlugins] register plugins:", currentNames);
-        }
-        pluginManager.clear();
-        pluginManager.registerAll(plugins);
-        prevPluginNamesRef.current = currentNames;
-      }
+      const runtime = usePluginRuntime<CardCoreProps<T>, T>({
+        plugins: kernelPlugins,
+        props,
+        data: props.data,
+        initialState: INITIAL_STATE as unknown as Record<string, unknown>,
+        containerRef,
+        extendContext,
+        enableDebug,
+      });
 
-      // Props 变化时触发插件钩子
+      // 最新 context（供 ref 回调 / 钩子链读取）
+      const ctxRef = useRef(runtime.context as unknown as CardPluginContext<T>);
+      ctxRef.current = runtime.context as unknown as CardPluginContext<T>;
+
+      const execute = useCallback(
+        (hookName: string, ...args: unknown[]) =>
+          runtime.execute(hookName as any, ...args),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [runtime.manager]
+      );
+
+      const transformedProps = runtime.transformProps(props) as CardCoreProps<T>;
+      transformedPropsRef.current = transformedProps;
+
+      // onMount：layout effect 之后触发钩子链（内核不自动跑 onMount）
+      useEffect(() => {
+        void execute("onMount");
+      }, [execute]);
+
+      // onUnmount 由内核在卸载的 useLayoutEffect 内统一执行（executeHook + clear）
+
+      // onStateChange：state 变化后触发（updater 保持纯函数）
+      const prevStateRef = useRef<Record<string, unknown>>(runtime.state);
+      useEffect(() => {
+        const prev = prevStateRef.current;
+        const next = runtime.state;
+        if (prev !== next) {
+          prevStateRef.current = next;
+          void execute("onStateChange", prev, next);
+        }
+      }, [runtime.state, execute]);
+
+      // onPropsChange
       const prevPropsRef = useRef(props);
       useEffect(() => {
-        const prevProps = prevPropsRef.current;
-        if (prevProps !== props) {
-          pluginManager
-            .executeHook("onPropsChange", pluginContext, prevProps, props)
-            .catch(() => {});
+        const prev = prevPropsRef.current;
+        if (prev !== props) {
           prevPropsRef.current = props;
+          void execute("onPropsChange", prev, props);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-      }, [props]);
+      }, [props, execute]);
 
-      // transformProps 链式处理
-      const transformedProps = useMemo(() => {
-        let p = { ...props } as CardCoreProps<T>;
-        plugins.forEach((plugin) => {
-          if (plugin.hooks.transformProps) {
-            p = plugin.hooks.transformProps(p);
-          }
+      // onResize：通过 ResizeObserver 触发（Core 本身不暴露 resize 回调）
+      useEffect(() => {
+        const el = containerRef.current;
+        if (!el || typeof ResizeObserver === "undefined") return;
+        const ro = new ResizeObserver((entries) => {
+          const entry = entries[0];
+          if (!entry) return;
+          const { width, height } = entry.contentRect;
+          void execute("onResize", width, height);
         });
-        return p;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-      }, [props, plugins]);
+        ro.observe(el);
+        return () => ro.disconnect();
+      }, [execute]);
 
-      // 生命周期钩子注入
       const enhancedProps: CardCoreProps<T> = {
         ...transformedProps,
         containerRefExternal: containerRef,
         debug: transformedProps.debug ?? enableDebug,
 
-        // 挂载/卸载
+        // 用户原始生命周期回调（插件链由上面 useEffect 触发，避免重复）
         onMount: () => {
           transformedProps.onMount?.();
-          pluginManager.executeHook("onMount", pluginContext).catch(() => {});
         },
         onUnmount: () => {
           transformedProps.onUnmount?.();
-          pluginManager.executeHook("onUnmount", pluginContext).catch(() => {});
         },
 
-        // 点击
-        onClick: (event: React.MouseEvent) => {
+        // Core 交互回调 → 钩子链
+        onClick: (event) => {
           transformedProps.onClick?.(event);
-          pluginManager
-            .executeHook("onClick", pluginContext, event)
-            .catch(() => {});
+          void execute("onClick", event);
         },
-
-        // 悬停
-        onHover: (isHovered: boolean) => {
-          setCardState((prev) => ({ ...prev, isHovered }));
+        onHover: (isHovered) => {
+          runtime.setState({ isHovered });
           transformedProps.onHover?.(isHovered);
-          pluginManager
-            .executeHook("onHover", pluginContext, isHovered)
-            .catch(() => {});
+          void execute("onHover", isHovered);
         },
-
-        // 可见性变化
-        onVisibilityChange: (isVisible: boolean) => {
-          setCardState((prev) => ({ ...prev, isVisible }));
+        onVisibilityChange: (isVisible) => {
+          runtime.setState({ isVisible });
           transformedProps.onVisibilityChange?.(isVisible);
-          pluginManager
-            .executeHook("onVisibilityChange", pluginContext, isVisible)
-            .catch(() => {});
+          void execute("onVisibilityChange", isVisible);
         },
 
-        // 子元素 + 插件渲染区域（支持位置与顺序控制）
+        // 子元素 + 插件渲染区域（composeSlots 五段）
         children: (
-          <>
-            {/* 头部内容：在 children 之前的 Header */}
-            {plugins
-              .filter((p) => p.hooks.renderHeader && p.config?.headerPosition === "before")
-              .sort((a, b) => (a.config?.order ?? 0) - (b.config?.order ?? 0))
-              .map((plugin, idx) => {
-                const header = plugin.hooks.renderHeader?.(pluginContext);
-                if (!header) return null;
-                return (
-                  <React.Fragment key={`plugin-header-before-${plugin.name}-${idx}`}>
-                    {header}
-                  </React.Fragment>
-                );
-              })}
-
-            {transformedProps.children}
-
-            {/* 插件渲染的覆盖层（通常为绝对定位叠加），保留在 children 之后 */}
-            {plugins.map((plugin, idx) => {
-              const overlay = plugin.hooks.renderOverlay?.(pluginContext);
-              if (!overlay) return null;
-              return (
-                <React.Fragment key={`plugin-overlay-${plugin.name}-${idx}`}>
-                  {overlay}
-                </React.Fragment>
-              );
-            })}
-
-            {/* 头部内容：在 children 之后的 Header（默认） */}
-            {plugins
-              .filter((p) => p.hooks.renderHeader && p.config?.headerPosition !== "before")
-              .sort((a, b) => (a.config?.order ?? 0) - (b.config?.order ?? 0))
-              .map((plugin, idx) => {
-                const header = plugin.hooks.renderHeader?.(pluginContext);
-                if (!header) return null;
-                return (
-                  <React.Fragment key={`plugin-header-after-${plugin.name}-${idx}`}>
-                    {header}
-                  </React.Fragment>
-                );
-              })}
-
-            {/* 插件渲染的底部 */}
-            {plugins.map((plugin, idx) => {
-              const footer = plugin.hooks.renderFooter?.(pluginContext);
-              if (!footer) return null;
-              return (
-                <React.Fragment key={`plugin-footer-${plugin.name}-${idx}`}>
-                  {footer}
-                </React.Fragment>
-              );
-            })}
-          </>
+          <PluginErrorBoundary>
+            {composeSlots(
+              runtime.orderedPlugins,
+              runtime.context,
+              transformedProps.children
+            )}
+          </PluginErrorBoundary>
         ),
       };
 
-      // 监听尺寸变化
-      useEffect(() => {
-        if (!containerRef.current) return;
-
-        const resizeObserver = new ResizeObserver((entries) => {
-          const entry = entries[0];
-          if (!entry) return;
-
-          const { width, height } = entry.contentRect;
-          setCardSize({ width, height });
-
-          pluginManager
-            .executeHook("onResize", pluginContext, width, height)
-            .catch(() => {});
-        });
-
-        resizeObserver.observe(containerRef.current);
-
-        return () => {
-          resizeObserver.disconnect();
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-      }, []);
-
-      // 暴露给外部的 ref
-      React.useImperativeHandle(ref, () => ({
-        getContainer: () => coreRef.current?.getContainer() || null,
-        forceUpdate: () => coreRef.current?.forceUpdate(),
-        getSize: () => coreRef.current?.getSize() || { width: 0, height: 0 },
-      }));
-
       return (
-        <PluginSlotsProvider pluginContext={pluginContext} plugins={plugins}>
-          <WrappedComponent ref={coreRef} {...enhancedProps} />
-        </PluginSlotsProvider>
+        <CardSlotProvider
+          orderedPlugins={runtime.orderedPlugins as unknown as CardPlugin<any>[]}
+          context={runtime.context as unknown as CardPluginContext<T>}
+        >
+          <WrappedComponent
+            ref={(node: CardCoreRef | null) => {
+              coreRef.current = node;
+              if (typeof ref === "function") ref(node);
+              else if (ref)
+                (ref as React.MutableRefObject<CardCoreRef | null>).current = node;
+            }}
+            {...enhancedProps}
+          />
+        </CardSlotProvider>
       );
     }
   );
@@ -317,3 +253,5 @@ export function withPlugins<T = any>(
   WithPluginsComponent.displayName = "WithPlugins(CardCore)";
   return WithPluginsComponent;
 }
+
+export default withPlugins;

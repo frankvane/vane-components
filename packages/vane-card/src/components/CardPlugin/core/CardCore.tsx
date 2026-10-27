@@ -180,14 +180,19 @@ const CardCore = forwardRef<CardCoreRef, CardCoreProps>(function CardCore<
   }, [onHover]);
 
   // ===== 可见性监听 =====
+  // 用 ref 存最新回调 + 仅挂载时建立一次 IO：
+  // 旧版把 onVisibilityChange 放进依赖数组，每次渲染都换新函数 → 每次 hover 都重建 IO。
+  const onVisibilityChangeRef = useRef(onVisibilityChange);
+  onVisibilityChangeRef.current = onVisibilityChange;
+
   useEffect(() => {
-    if (!onVisibilityChange || !containerRef.current) return;
+    if (!containerRef.current) return;
 
     observerRef.current = new IntersectionObserver(
       (entries) => {
         const isIntersecting = entries[0]?.isIntersecting || false;
         setIsVisible(isIntersecting);
-        onVisibilityChange(isIntersecting);
+        onVisibilityChangeRef.current?.(isIntersecting);
       },
       { threshold: 0.1 }
     );
@@ -197,7 +202,9 @@ const CardCore = forwardRef<CardCoreRef, CardCoreProps>(function CardCore<
     return () => {
       observerRef.current?.disconnect();
     };
-  }, [onVisibilityChange, containerRef]);
+    // 仅挂载时建立一次，避免重渲染重建 IO
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ===== 挂载时初始化 =====
   useEffect(() => {
@@ -232,7 +239,7 @@ const CardCore = forwardRef<CardCoreRef, CardCoreProps>(function CardCore<
   // ===== 渲染 =====
   return (
     <div
-      ref={containerRef as React.LegacyRef<HTMLDivElement>}
+      ref={containerRef as React.RefObject<HTMLDivElement>}
       data-card-id={cardId}
       className={`card-core ${layoutClass} ${containerClassName || ""}`}
       style={{

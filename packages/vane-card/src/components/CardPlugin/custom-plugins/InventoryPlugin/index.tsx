@@ -17,53 +17,53 @@ export const createInventoryPlugin: PluginCreator<any, InventoryPluginConfig> = 
     description: "库存状态展示插件（徽章/覆盖层）",
     priority: 45,
     hooks: {
+      // 旧版 renderBadge 钩子已删除（C2 钩子面 24→15），低库存角标并入 renderOverlay，
+      // 由 composeSlots 的 overlay 段统一渲染（绝对定位叠加层）。
       renderOverlay: (context) => {
         const inventory: number = (context.data as any)?.inventory ?? 0;
-        if (showOverlayWhenSoldOut && inventory <= 0) {
-          return (
-            <div
-              style={{
-                position: "absolute",
-                inset: 0,
-                background: "rgba(0,0,0,0.5)",
-                color: "#fff",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 18,
-                fontWeight: 600,
-                borderRadius: 8,
-                zIndex: 9,
-              }}
-            >
-              已售罄
-            </div>
-          );
-        }
-        return null;
-      },
-      renderBadge: (context) => {
-        const inventory: number = (context.data as any)?.inventory ?? 0;
-        if (inventory > 0 && inventory <= lowStockThreshold) {
-          return (
-            <div
-              style={{
-                position: "absolute",
-                top: 8,
-                left: 8,
-                background: "#FF9800",
-                color: "#fff",
-                padding: "4px 8px",
-                fontSize: 12,
-                borderRadius: 4,
-                zIndex: 10,
-              }}
-            >
-              库存紧张
-            </div>
-          );
-        }
-        return null;
+        const soldOut = showOverlayWhenSoldOut && inventory <= 0;
+        const lowStock = inventory > 0 && inventory <= lowStockThreshold;
+        if (!soldOut && !lowStock) return null;
+        return (
+          <>
+            {soldOut && (
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  background: "rgba(0,0,0,0.5)",
+                  color: "#fff",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 18,
+                  fontWeight: 600,
+                  borderRadius: 8,
+                  zIndex: 9,
+                }}
+              >
+                已售罄
+              </div>
+            )}
+            {lowStock && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: 8,
+                  left: 8,
+                  background: "#FF9800",
+                  color: "#fff",
+                  padding: "4px 8px",
+                  fontSize: 12,
+                  borderRadius: 4,
+                  zIndex: 10,
+                }}
+              >
+                库存紧张
+              </div>
+            )}
+          </>
+        );
       },
     },
     config,

@@ -11,8 +11,6 @@ export type {
   CardPlugin,
   CardPluginContext,
   CardPluginHooks,
-  PluginManager,
-  PluginBus,
   PluginCreator,
   WithPluginsConfig,
   CardState,
@@ -21,9 +19,11 @@ export type {
   AnimationConfig,
 } from "./plugins";
 
-export { createPluginBus } from "./plugins";
-export { createPluginManager } from "./plugins";
-export { withPlugins } from "./plugins";
+export type { PluginBus } from "./plugins";
+
+export { withPlugins, usePluginSlot, renderDomainSlot } from "./plugins";
+export { BusKeys } from "./plugins";
+export type { BusKey } from "./plugins";
 
 // 自定义插件统一导出
 export * from "./custom-plugins";

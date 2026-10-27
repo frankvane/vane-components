@@ -1,26 +1,26 @@
 {
-  "source": "packages/vane-card/src（从 archive-plugins/vane-card 复制，旧自研插件系统，迁移前）",
+  "source": "packages/vane-card/src（C2 迁移后：@vane/plugin-core 内核，旧自研系统已删除）",
   "generatedBy": "test/snapshots.base.test.tsx",
   "slotOrder": {
     "segments": [
       "headerPosition==='before' 的插件（按 config.order 升序）",
       "children（卡片主体）",
-      "overlay（所有 renderOverlay 插件，不排序）",
+      "overlay（所有 renderOverlay 插件，按 config.order 升序 → priority 降序）",
       "headerPosition!=='before' 的插件（按 config.order 升序，默认）",
-      "footer（所有 renderFooter 插件，不排序）"
+      "footer（所有 renderFooter 插件，按 config.order 升序 → priority 降序）"
     ],
-    "sortRule": "仅 config.order 升序影响渲染位置；priority 只影响 executeHook 执行顺序，不参与渲染",
+    "sortRule": "config.order 升序影响渲染位置；priority 降序为同级 tiebreak（内核 renderPluginSlot 规则，旧版仅 order、且 overlay/footer 不排序）",
     "note": "与内核 composeSlots 的 before-header→children→overlay→after-header→footer 一致"
   },
   "priceArea": {
     "hook": "renderPriceArea",
-    "slotImpl": "SlotsContext（单槽 priceArea）",
+    "slotImpl": "包内领域槽 slots.tsx（renderDomainSlot）",
     "participants": [
       "PriceCalculatorPlugin",
       "ComparePricePlugin",
       "CouponRecommendPlugin"
     ],
-    "sortRule": "config.order 升序",
+    "sortRule": "config.order 升序 → priority 降序",
     "risk": "R5：priceArea 是「插件 ↔ 复合组件」接缝，迁移时两边必须同时改，否则价格区静默变空"
   },
   "busProtocol": {
@@ -81,6 +81,7 @@
   },
   "cleanupDefect": {
     "consumers": [
+      "SKUPlugin",
       "QuantityPlugin",
       "PriceCalculatorPlugin",
       "ComparePricePlugin",
@@ -88,13 +89,11 @@
       "OrderSummaryPlugin"
     ],
     "registeredOn": 12,
-    "cleanupsReturned": 5,
-    "offAtUnmountUnderOldSystem": 0,
-    "offIfManuallyCleaned": 12,
-    "defect": "旧 withPlugins: executeHook('onMount').catch(()=>{}) 丢弃返回值 → onMount 返回的退订函数永不调用 → 每卸载一张卡泄漏 registeredOn 个 bus 监听",
-    "mountErrors": []
+    "offAtUnmount": 12,
+    "r2Fixed": true,
+    "note": "R2 已修复：旧 withPlugins 丢弃 onMount 返回值（off=0）；新内核登记清理函数并在 clear() 逆序执行（off===on）"
   },
   "gzipBaseline": {
-    "dist/index.js": "28.13KB gzip（C0.7 基线，迁移后不得劣化）"
+    "dist/index.js": "≤36KB gzip（C0.7 基线 28.13KB，接内核后不得劣化）"
   }
 }

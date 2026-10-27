@@ -6,15 +6,11 @@
 // 统一导出 CardPlugin 的所有公共 API（包含 CardCore、插件系统、复合组件等）
 export * from "./components/CardPlugin";
 
-// 同时提供别名导出，方便区分语义或避免命名冲突
-export {
-  createPluginBus as createCardPluginBus,
-  createPluginManager as createCardPluginManager,
-  withPlugins as withCardPlugins,
-} from "./components/CardPlugin/plugins";
+// 别名导出：withPlugins 同时以 withCardPlugins 暴露
+export { withPlugins as withCardPlugins } from "./components/CardPlugin/plugins";
+export { usePluginSlot, renderDomainSlot } from "./components/CardPlugin/plugins";
 
 export type {
-  PluginManager as CardPluginManager,
   PluginBus as CardPluginBus,
   PluginCreator as CardPluginCreator,
   WithPluginsConfig as CardWithPluginsConfig,

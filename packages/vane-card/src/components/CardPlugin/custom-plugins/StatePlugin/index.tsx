@@ -37,14 +37,15 @@ export const createStatePlugin: PluginCreator<any, StatePluginConfig> = (
         });
       },
 
-      onCartChange: (context, isAdded) => {
-        context.setState({ cart: isAdded });
-        onCartChange?.(context.cardId, isAdded);
-      },
-
-      onWishlistChange: (context, isWishlisted) => {
-        context.setState({ wishlist: isWishlisted });
-        onWishlistChange?.(context.cardId, isWishlisted);
+      // onCartChange / onWishlistChange 是旧版死钩子（无人触发）；
+      // 改为订阅 onStateChange 的状态差分，状态变化时回调外部配置。
+      onStateChange: (context, prev, next) => {
+        if (prev.cart !== next.cart) {
+          onCartChange?.(context.cardId, Boolean(next.cart));
+        }
+        if (prev.wishlist !== next.wishlist) {
+          onWishlistChange?.(context.cardId, Boolean(next.wishlist));
+        }
       },
     },
 

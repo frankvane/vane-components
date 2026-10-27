@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useProductCard } from "../ProductCard";
-import { usePluginSlot } from "../../plugins/SlotsContext";
+import { usePluginSlot } from "../../plugins/slots";
 
 export type CouponInfo = {
   id: string;
