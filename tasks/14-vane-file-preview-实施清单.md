@@ -293,7 +293,10 @@ demo            13 个示例页 + Home + ReadmeDemo + _layout
 ## P5 · demo 重写（三视角）
 
 - [ ] **P5.1 骨架**：`demo/vite.config.ts`（`createDemoConfig`）、`App.tsx`（4 项导航）、`pages/{HomePage,WorkshopPage,DemosPage,ScenariosPage}.tsx`
-- [ ] **P5.2 样本资产**：`public/` 37 个真实文件（15MB）搬进 `demo/public/`（**绝不进 dist**）
+- [x] **P5.2 样本资产**：`archive-plugins/vane-file-preview/public` 的 36 个根级真实文件（15MB）全部搬进 `demo/public/samples/`（**绝不进 dist**：`demo-dist/` 在 .gitignore 里，库产物无 samples）
+  - 当前 39 个 = 归档 36 + 自建 3（`gbk-data.csv` GB18030 / `xss-demo.md` XSS 样本 / `fake-book.epub` zip 改名的假书）
+  - 归档里的 `sample-epub/` 是**解压后的目录书**，本插件只吃单文件，故不搬（已记录）
+  - 逐个真机点开确认：GIF / WebP / 两个 PDF / WebM / MP3 / WAV / package.json / 竖线 CSV / 混排 CSV 全部正常，控制台无错误
 - [ ] **P5.3 工坊（17 张卡）**：每卡 = 一个插件 + 一个默认文件 + 配置项说明 + 一句「拿手的活」
 - [ ] **P5.4 逐项示例（17 页）**
   - [ ] 一文件一页：`demo/src/demos/<NN>-<slug>.tsx`，双 glob（eager 组件 + `?raw` 同源，同 vane-card）
