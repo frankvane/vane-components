@@ -47,7 +47,9 @@ const TS_SOURCE = `export function add(a: number, b: number) {
 }
 `;
 
-describe("Code · 渲染", () => {
+// prism + 主题是按需动态 import 的（第一次要真去加载 react-syntax-highlighter 的
+// 语言包与主题），并行跑全量时单条用例会摸到默认 5s 上限。这里放宽而不是靠「再跑一次」。
+describe("Code · 渲染", { timeout: 15000 }, () => {
   it("高亮出 pre/code，且显示行数与语言", async () => {
     stubFetch({ "blob:code": TS_SOURCE });
     const h = renderPreview([createCodePreviewPlugin()], {
@@ -182,9 +184,11 @@ describe("CSV · 渲染", () => {
 });
 
 describe("Epub · 前置校验", () => {
-  it("非 zip 内容给出明确错误，而不是空白", async () => {
+  it("HTML 404 页：说出「看起来像 HTML 页面」而不是把它当书", async () => {
     stubFetch({
-      "blob:fake": new TextEncoder().encode("<html><body>404 Not Found</body></html>"),
+      "blob:fake": new TextEncoder().encode(
+        "<!DOCTYPE html><html><body>404 Not Found</body></html>"
+      ),
     });
     const h = renderPreview([createEpubPreviewPlugin()], {
       file: file({
@@ -196,18 +200,55 @@ describe("Epub · 前置校验", () => {
     });
 
     await waitFor(() => h.container.querySelector('[data-vfp-panel="error"]') !== null);
-    expect(h.container.textContent).toContain("这不是一个 EPUB");
+    const text = h.container.textContent ?? "";
+    expect(text).toContain("这不是一个 EPUB");
+    expect(text).toContain("HTML 页面");
+    // 二进制头部不能当文本打印：上一版这里是 `PK\uFFFD\uFFFD\uFFFDUO…`
+    expect(text).not.toContain("\uFFFD");
   });
 
-  it("普通 ZIP（魔数相同但没有 container.xml）不会被硬塞给 epub.js", async () => {
+  it("二进制头部打印成十六进制，不再出现替换符乱码", async () => {
+    // 1x1 PNG 的开头，代表「用户把一张图片改了后缀」
+    stubFetch({
+      "blob:png": new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0]),
+    });
+    const h = renderPreview([createEpubPreviewPlugin()], {
+      file: file({
+        name: "pic.epub",
+        type: "application/epub+zip",
+        extension: "epub",
+        url: "blob:png",
+      }),
+    });
+
+    await waitFor(() => h.container.querySelector('[data-vfp-panel="error"]') !== null);
+    const text = h.container.textContent ?? "";
+    expect(text).toContain("PNG 图片");
+    expect(text).toContain("89 50 4E 47");
+    expect(text).not.toContain("\uFFFD");
+  });
+
+  it("普通 ZIP 会列出实际条目，让「为什么不是 EPUB」一眼可查", async () => {
     // EPUB 就是 zip，所以**只看魔数区分不了** EPUB 与普通 zip —— 上一版
     // 就是这么写的，结果「a.zip 改名成 a.epub」会一路交到 epub.js 手里，
     // 用户看到的是一句与文件无关的 "Error loading book"。
-    // 现在多看一步：任何 EPUB 都必须有 META-INF/container.xml。
-    const zipBytes = new Uint8Array([
-      0x50, 0x4b, 0x03, 0x04, // zip 魔数，和 epub 完全一样
-      ...new TextEncoder().encode("hello.txt"),
-    ]);
+    // 样本必须是**真 zip 且内容里藏着假的中央目录签名**。
+    //
+    // 第一版的条目列举是「全文线性扫 PK\x01\x02，再按固定偏移读名字长度」，
+    // 而 zip 的压缩数据完全可以恰好包含这四个字节 —— 于是读出一段随机字节
+    // 当文件名。真浏览器里 `fake-book.epub` 那次就是这么变成满屏乱码的，
+    // 但当时手搓的合成样本里没有数据区，测试是绿的（又一次「单测绿、真文件红」）。
+    // 所以这里用 STORE 存一段内容明确含 `PK\x01\x02` 的数据，让旧实现必然踩到。
+    const JSZip = (await import("jszip")).default;
+    const zip = new JSZip();
+    const decoy = new Uint8Array(64);
+    decoy.set([0x50, 0x4b, 0x01, 0x02], 0);
+    decoy[28] = 6; // 旧实现在这里读「名字长度」
+    decoy.set([0xff, 0xfe, 0x80, 0x81, 0x82, 0x83], 46); // 一段非法 UTF-8
+    zip.file("payload.bin", decoy, { compression: "STORE" });
+    zip.file("src/App.css", "body { color: red }");
+    zip.file("src/main.tsx", "export const a = 1;");
+    const zipBytes = await zip.generateAsync({ type: "uint8array" });
     stubFetch({ "blob:plainzip": zipBytes });
 
     const h = renderPreview([createEpubPreviewPlugin()], {
@@ -220,7 +261,14 @@ describe("Epub · 前置校验", () => {
     });
 
     await waitFor(() => h.container.querySelector('[data-vfp-panel="error"]') !== null);
-    expect(h.container.textContent).toContain("普通 ZIP");
-    expect(h.container.textContent).toContain("META-INF/container.xml");
+    const text = h.container.textContent ?? "";
+    expect(text).toContain("普通 ZIP");
+    expect(text).toContain("META-INF/container.xml");
+    // 必须是**恰好**这三项：多出来任何一项都说明旧实现把数据区当成了目录，
+    // 而且那条假条目排在最前面，所以这里断言完整的字符串而不是 contains
+    expect(text).toContain("实际条目是：payload.bin、src/App.css、src/main.tsx。");
+    expect(text).not.toContain("\uFFFD");
+    // 失败面板不能是死路
+    expect(h.container.querySelector("[data-vfp-error-action]")).not.toBeNull();
   });
 });

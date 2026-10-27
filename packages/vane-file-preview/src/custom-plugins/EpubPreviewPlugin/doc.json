@@ -2,7 +2,12 @@
   "name": "EpubPreviewPlugin",
   "description": "EPUB 电子书预览，基于 react-reader（epub.js）：目录抽屉、翻页、进度记忆（由宿主控制）。依赖 react-reader（optional peer，约 200KB+）。",
   "since": "2.0.0",
-  "tags": ["epub", "ebook", "电子书", "document"],
+  "tags": [
+    "epub",
+    "ebook",
+    "电子书",
+    "document"
+  ],
   "config": [
     {
       "name": "showToc",
@@ -26,15 +31,21 @@
   "example": "import { createEpubPreviewPlugin } from \"vane-file-preview/custom-plugins/EpubPreviewPlugin\";\n\nconst plugins = [createEpubPreviewPlugin({ showToc: true, swipeable: false })];\n// 别忘了装依赖：npm i react-reader",
   "features": [
     "打开前两级校验：先看 zip 魔数（404 页面常是 HTML+200），再看压缩包里有没有 META-INF/container.xml —— 普通 zip 改名成 .epub 也能准确报错",
+    "报错信息会说出「它其实是什么」：文件头十六进制 + 格式识别（PNG/JPEG/PDF/HTML…），普通 zip 则按中央目录（EOCD）列出实际条目名",
     "内容取成 ArrayBuffer 直接交给 epub.js，不经 blob: URL —— 只下载一次，也绕开了 epub.js 只按扩展名猜类型（无扩展名会被当成「已解压目录」）的坑",
     "工具栏只有一条（迁移前正文里还有一条几乎一样的「📚 文件名 / N 章节」）",
-    "依赖缺失时渲染安装提示面板，不是白屏"
+    "依赖缺失或解析失败时给出可操作面板（下载原始文件），不是白屏"
   ],
-  "useCases": ["在线书城试读", "课件 / 教材附件预览", "资料库电子书快速翻阅"],
+  "useCases": [
+    "在线书城试读",
+    "课件 / 教材附件预览",
+    "资料库电子书快速翻阅"
+  ],
   "notes": [
     "react-reader + epubjs 合起来 200KB+，是本包最重的可选依赖。所以它不在根入口也不在 ./plugins，只能显式子路径引入。",
     "阅读位置不持久化：关掉再打开回到起始位置。要记住进度由宿主监听 locationChanged 自己存，再通过 startLocation 传回来 —— 组件自己写 localStorage 会让不同用户的进度互相覆盖。",
     "epub.js 把每章渲染在 iframe 里，所以浏览器插件 / 全局 CSS 不会影响正文排版，这是有意的隔离。",
-    "React StrictMode 下开发环境会多一条 404（META-INF/container.xml）：epub.js 的 Book.destroy() 会把 archived 重置为 false，第一次挂载被立即卸载后，仍在进行中的 open 链会退化成网络请求。生产构建不会出现，可以忽略。"
+    "React StrictMode 下开发环境会多一条 404（META-INF/container.xml）：epub.js 的 Book.destroy() 会把 archived 重置为 false，第一次挂载被立即卸载后，仍在进行中的 open 链会退化成网络请求。生产构建不会出现，可以忽略。",
+    "条目名取自 zip 的中央目录（EOCD → CD offset → 逐条记录）。不要改成「全文扫 PK\\x01\\x02」——压缩数据里可能恰好含这四个字节，会把随机字节读成文件名，面板上又是一片乱码。"
   ]
 }

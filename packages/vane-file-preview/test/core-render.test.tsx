@@ -88,13 +88,13 @@ describe("Core 渲染结构", () => {
     h2.unmount();
   });
 
-  it("loading 与 error 各显示自己的遮罩，且 error 带 message", async () => {
+  it("loading 与 error 各显示自己的遮罩，且 error 是中文面板并带下载出路", async () => {
     const h = renderCore();
     // 同步时刻：runLoad 已经 commit 了 loading，但 await 还没回来
-    expect(h.container.textContent).toContain("Loading...");
+    expect(h.container.textContent).toContain("加载中…");
 
     await flush();
-    expect(h.container.textContent).not.toContain("Loading...");
+    expect(h.container.textContent).not.toContain("加载中…");
     h.unmount();
 
     const h2 = renderCore({
@@ -103,8 +103,13 @@ describe("Core 渲染结构", () => {
       },
     });
     await flush();
-    expect(h2.container.textContent).toContain("Load Failed");
+    expect(h2.container.querySelector('[data-vfp-panel="error"]')).toBeTruthy();
+    expect(h2.container.textContent).toContain("无法预览这个文件");
     expect(h2.container.textContent).toContain("文件损坏");
+    // 迁移前这句是硬编码的英文 "❌ Load Failed"，17 个插件里唯一一处英文
+    expect(h2.container.textContent).not.toContain("Load Failed");
+    // 失败面板不能是死路：文件就在手上，至少能下载
+    expect(h2.container.querySelector("[data-vfp-error-action]")).toBeTruthy();
     h2.unmount();
   });
 });

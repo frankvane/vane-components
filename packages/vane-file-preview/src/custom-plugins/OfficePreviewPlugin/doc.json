@@ -2,7 +2,14 @@
   "name": "OfficePreviewPlugin",
   "description": "Office 文档（doc/docx/xls/xlsx/ppt/pptx）在线预览：走 Microsoft Office Online 或 Google Docs Viewer。要求文件 URL 公网可达。零依赖。",
   "since": "2.0.0",
-  "tags": ["document", "office", "docx", "xlsx", "pptx", "文档"],
+  "tags": [
+    "document",
+    "office",
+    "docx",
+    "xlsx",
+    "pptx",
+    "文档"
+  ],
   "config": [
     {
       "name": "viewer",
@@ -28,9 +35,14 @@
     "URL 不是公网可达（blob: / data: / localhost / 内网段 / 无点主机名）时直接换成说明面板，不渲染必然超时的 iframe",
     "auto 模式提供「换查看器」按钮，手动在微软与 Google 之间切换",
     "preferDocxOnline 只提升 docx 的优先级，不会抢走 XlsxPreviewPlugin / PptxPreviewPlugin 的活",
-    "说明面板只显示主机名，不把整条 URL（可能带签名 token）打到界面上"
+    "说明面板只显示主机名，不把整条 URL（可能带签名 token）打到界面上",
+    "无法在线预览时（blob:/data:/localhost/内网）给出说明面板 + 「下载后用本地应用打开」按钮"
   ],
-  "useCases": ["企业网盘里的 Office 附件", "公网 CDN 上的合同/报表", "不想为一个 docx 装 mammoth 的场景"],
+  "useCases": [
+    "企业网盘里的 Office 附件",
+    "公网 CDN 上的合同/报表",
+    "不想为一个 docx 装 mammoth 的场景"
+  ],
   "notes": [
     "它的原理是「查看器的服务器去拉你的 URL」，所以本地开发（localhost）与内网地址一律不可用，这不是 bug。",
     "iframe 的 onError 对跨域加载失败**不会触发**，无法自动探测「查看器挂了」并降级；迁移前那段自动切 Google 的逻辑实际是死代码，现在改成手动按钮。",

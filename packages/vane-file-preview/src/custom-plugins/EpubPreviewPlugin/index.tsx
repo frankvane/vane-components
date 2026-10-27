@@ -135,11 +135,134 @@ function containsAscii(bytes: Uint8Array, needle: string): boolean {
 /** 任何 EPUB 都必须有的容器描述文件；普通 zip 不会有 */
 const EPUB_CONTAINER_PATH = "META-INF/container.xml";
 
-function decodeHead(bytes: Uint8Array, length = 80): string {
-  return new TextDecoder("utf-8")
-    .decode(bytes.subarray(0, 120))
+/**
+ * 失败信息里那段「文件开头是什么」。
+ *
+ * 上一版是 `new TextDecoder().decode(head).slice(0, 80)` —— 对二进制文件直接把
+ * 原始字节当 UTF-8 解，屏幕上就是一片 `PK☐☐☐UO☐☐` 加一堆替换符。对最后一个
+ * 「打不开」的提示来说，这既没有信息量，还像是程序崩了。
+ *
+ * 现在分三档：能认出格式就说格式；是纯文本就引一段原文；都不是才退到十六进制。
+ */
+function hexHead(bytes: Uint8Array, count = 8): string {
+  return Array.from(bytes.subarray(0, count))
+    .map((b) => b.toString(16).toUpperCase().padStart(2, "0"))
+    .join(" ");
+}
+
+/**
+ * 只认最常见的那几种 —— 这是给人看的提示，不是 file 命令。
+ * 导出仅供单测（造几个假头部就能覆盖分支，比塞真文件省事）。
+ */
+export function sniffFormat(bytes: Uint8Array): string | null {
+  const at = (i: number) => bytes[i] ?? -1;
+  if (at(0) === 0x89 && at(1) === 0x50 && at(2) === 0x4e && at(3) === 0x47) return "PNG 图片";
+  if (at(0) === 0xff && at(1) === 0xd8 && at(2) === 0xff) return "JPEG 图片";
+  if (at(0) === 0x47 && at(1) === 0x49 && at(2) === 0x46) return "GIF 图片";
+  if (at(0) === 0x25 && at(1) === 0x50 && at(2) === 0x44 && at(3) === 0x46) return "PDF 文档";
+  if (at(0) === 0x1f && at(1) === 0x8b) return "GZIP 压缩包";
+  if (at(0) === 0x52 && at(1) === 0x61 && at(2) === 0x72 && at(3) === 0x21) return "RAR 压缩包";
+  const head = new TextDecoder("utf-8", { fatal: false })
+    .decode(bytes.subarray(0, 200))
+    .trimStart()
+    .toLowerCase();
+  if (head.startsWith("<!doctype html") || head.startsWith("<html"))
+    return "HTML 页面（服务器很可能返回了 404 或登录页，而不是文件本身）";
+  return null;
+}
+
+/**
+ * 内容是不是「像文本」的，是就返回开头一小段。
+ *
+ * 判据只看可打印字符比例：二进制文件里 0x00~0x1f 的控制字符会成片出现，
+ * 而 JSON / XML / 脚本基本都是可打印 ASCII。导出仅供单测。
+ */
+export function readableText(bytes: Uint8Array, limit = 60): string | null {
+  const slice = bytes.subarray(0, 200);
+  if (slice.length === 0) return null;
+  let printable = 0;
+  for (const b of slice) {
+    if (b === 0x09 || b === 0x0a || b === 0x0d || (b >= 0x20 && b !== 0x7f)) printable++;
+  }
+  if (printable / slice.length < 0.95) return null;
+  return new TextDecoder("utf-8", { fatal: false })
+    .decode(slice)
     .replace(/\s+/g, " ")
-    .slice(0, length);
+    .trim()
+    .slice(0, limit);
+}
+
+/**
+ * 把 zip 条目缩成「一眼能认出这是什么项目」的长度。
+ *
+ * 直接截前 36 个字符会出现 `src/components/FilePreviewPlugin/co…` 与
+ * `…/cu…` 这种两条几乎一样的条目 —— 路径前缀把信息量全占了，文件名（唯一
+ * 有区别的部分）反而被截掉。所以深路径只留 `…/文件名`。
+ */
+export function shortenEntry(name: string, limit = 28): string {
+  const parts = name.split("/");
+  const short = parts.length > 2 ? `…/${parts[parts.length - 1]}` : name;
+  return short.length > limit ? `${short.slice(0, limit - 1)}…` : short;
+}
+
+/**
+ * 从中央目录里抄出前几个条目名。
+ *
+ * 只用来「让错误信息说得具体」，所以不引 jszip，但**必须按 EOCD 正经解析**。
+ * 第一版是全文线性扫 `PK\x01\x02` 然后按固定偏移读长度 —— 真 zip 里压缩数据
+ * 完全可能恰好包含这四个字节，读出来的就是一段随机字节当文件名，面板上又是
+ * 一片乱码（和上一版的 `PK☐☐☐UO☐` 一样难看的另一种形式）。测试用的合成 zip
+ * 没有压缩数据，所以那条断言是绿的 —— 又一次「单测绿、真文件红」。
+ *
+ * 正确路径：文件尾的 EOCD（`PK\x05\x06`）→ 中央目录偏移 → 顺序走记录。
+ * 导出的原因：单测要直接验它。
+ */
+export function listZipEntries(bytes: Uint8Array, limit = 8): string[] {
+  if (bytes.length < 22) return [];
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const decoder = new TextDecoder("utf-8", { fatal: false });
+
+  // EOCD 之后最多跟 64KB 注释，所以只在尾部这一段里找
+  let eocd = -1;
+  const stop = Math.max(0, bytes.length - 22 - 0xffff);
+  for (let i = bytes.length - 22; i >= stop; i--) {
+    if (
+      bytes[i] === 0x50 &&
+      bytes[i + 1] === 0x4b &&
+      bytes[i + 2] === 0x05 &&
+      bytes[i + 3] === 0x06
+    ) {
+      eocd = i;
+      break;
+    }
+  }
+  if (eocd < 0) return [];
+
+  let offset = view.getUint32(eocd + 16, true);
+  const total = view.getUint16(eocd + 10, true);
+  const names: string[] = [];
+
+  for (let n = 0; n < total && names.length < limit; n++) {
+    if (offset + 46 > bytes.length) break;
+    if (
+      bytes[offset] !== 0x50 ||
+      bytes[offset + 1] !== 0x4b ||
+      bytes[offset + 2] !== 0x01 ||
+      bytes[offset + 3] !== 0x02
+    ) {
+      break;
+    }
+    const nameLen = view.getUint16(offset + 28, true);
+    const extraLen = view.getUint16(offset + 30, true);
+    const commentLen = view.getUint16(offset + 32, true);
+    const start = offset + 46;
+    if (start + nameLen > bytes.length) break;
+    const name = decoder.decode(bytes.subarray(start, start + nameLen)).trim();
+    // 目录条目（`src/`）对「这到底是什么文件」没有信息量，跳过
+    if (name && !name.endsWith("/")) names.push(name);
+    offset = start + nameLen + extraLen + commentLen;
+  }
+  return names;
 }
 
 function EpubBody({
@@ -168,14 +291,25 @@ function EpubBody({
         const bytes = new Uint8Array(buf);
 
         if (!looksLikeZip(bytes)) {
+          const format = sniffFormat(bytes);
+          const text = readableText(bytes);
           throw new Error(
-            `这不是一个 EPUB 文件：连 zip 魔数都不对（不是压缩包）。前 80 个字符：${decodeHead(bytes)}`
+            `这不是一个 EPUB 文件：文件头是 ${hexHead(bytes)}` +
+              (format ? `，看起来像 ${format}` : "，不是 zip 压缩包") +
+              (text ? `。开头内容：「${text}」` : "")
           );
         }
 
         if (!containsAscii(bytes, EPUB_CONTAINER_PATH)) {
+          const entries = listZipEntries(bytes);
+          // 七八条深路径就能把面板撑成十几行。这个面板要的是「一眼看出这不是本书」，
+          // 不是完整目录树：取前 5 条、深路径只留 `…/文件名`。
+          const shown = entries.slice(0, 5).map((name) => shortenEntry(name));
           throw new Error(
-            `这看起来是一个普通 ZIP，不是 EPUB：压缩包里找不到 ${EPUB_CONTAINER_PATH}。前 80 个字符：${decodeHead(bytes)}`
+            `这看起来是一个普通 ZIP，不是 EPUB：压缩包里找不到 ${EPUB_CONTAINER_PATH}。` +
+              (shown.length
+                ? `实际条目是：${shown.join("、")}${entries.length > 5 ? " 等" : ""}。`
+                : "")
           );
         }
 
@@ -219,7 +353,16 @@ function EpubBody({
   }
 
   if (state.status === "error") {
-    return <ErrorPanel label="EPUB 打开失败" error={state.error} />;
+    return (
+      <ErrorPanel
+        label="EPUB 打开失败"
+        error={state.error}
+        action={{
+          label: "下载原始文件",
+          onClick: () => triggerDownload(context.file.url, context.file.name),
+        }}
+      />
+    );
   }
 
   if (!Reader) {
@@ -257,6 +400,10 @@ function EpubBody({
           <ErrorPanel
             label="EPUB 解析失败"
             error="epub.js 打不开这本书：压缩包结构不全、OPF 指向的章节缺失，或文件已损坏。可以下载后用其他阅读器确认。"
+            action={{
+              label: "下载原始文件",
+              onClick: () => triggerDownload(context.file.url, context.file.name),
+            }}
           />
         }
       />
@@ -280,10 +427,13 @@ function EpubToolbar({
         icon="📚"
       />
       <ToolbarSeparator />
-      {/* 体积已经被 FileMeta 显示了一次，这里只说渲染方式，不重复报数字 */}
-      <span style={{ fontSize: 12, color: "#9ca3af" }}>
-        epub.js 渲染（章节在 iframe 里）
-      </span>
+      {/*
+        这里原来写着「epub.js 渲染（章节在 iframe 里）」。删掉有两个原因：
+        ① 它是实现细节，对看书的人没有信息量；
+        ② 打开失败时它自相矛盾 —— 正文是「EPUB 打开失败」，工具栏还在说
+           「章节在 iframe 里」。工具栏在装配层，看不到 EpubBody 的局部状态，
+           要修就得为这一句装饰性文案引入跨组件状态，不划算。
+      */}
       <ToolbarButton
         onClick={() => triggerDownload(context.file.url, context.file.name)}
         icon="📥"

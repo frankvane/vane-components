@@ -10,6 +10,7 @@
  * 那是 hook 数量变化的路径，也是那条 bug 的现场。
  */
 import { describe, expect, it } from "vitest";
+import { act } from "react";
 
 import { createImagePreviewPlugin } from "../src/custom-plugins/ImagePreviewPlugin";
 import { createPdfPreviewPlugin } from "../src/custom-plugins/PdfPreviewPlugin";
@@ -74,6 +75,32 @@ describe("A 批插件 · 渲染冒烟", () => {
     expect(h.container.querySelector("[data-vfp-toolbar]")?.textContent).toContain(
       "MP4 Video"
     );
+    h.unmount();
+  });
+
+  it("Video：.avi 必定播不了，失败提示要说准而不是「可能不支持」", async () => {
+    // 迁移前的统一文案是「浏览器可能不支持该编码」。对 .avi 这种现代内核
+    // 必然没有解码器的格式，「可能」会让用户去查自己的文件、反复重试。
+    const avi = file({
+      name: "clip.avi",
+      type: "video/x-msvideo",
+      extension: "avi",
+      url: "blob:avi",
+    });
+    const h = renderPreview([createVideoPreviewPlugin()], { file: avi });
+    await flush();
+
+    const video = h.container.querySelector("video")!;
+    act(() => {
+      video.dispatchEvent(new Event("error"));
+    });
+    await flush();
+
+    const text = h.container.textContent ?? "";
+    expect(text).toContain("浏览器无法播放 AVI");
+    expect(text).not.toContain("可能不支持");
+    // 失败面板必须给出口，否则用户只能刷新页面
+    expect(h.container.querySelector("[data-vfp-error-action]")).not.toBeNull();
     h.unmount();
   });
 

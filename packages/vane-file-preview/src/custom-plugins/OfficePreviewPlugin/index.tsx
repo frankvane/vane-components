@@ -145,6 +145,27 @@ function UnreachablePanel({ file }: { file: FileInfo }) {
         想看离线渲染请装 <code>DocxPreviewPlugin</code> / <code>MammothDocxPlugin</code>
         （docx）或 <code>XlsxPreviewPlugin</code>（xlsx）。
       </div>
+      {/*
+        说明面板原本是死路：讲清了「为什么不行」，却没给下一个动作。
+        而这里最该给的还是「下载」—— 文件就在手上，只是浏览器看不了。
+      */}
+      <button
+        type="button"
+        data-vfp-office-download
+        onClick={() => triggerDownload(file.url, file.name)}
+        style={{
+          marginTop: 4,
+          padding: "6px 14px",
+          border: "1px solid #d0d7de",
+          borderRadius: 6,
+          background: "#fff",
+          color: "#1f2329",
+          fontSize: 12,
+          cursor: "pointer",
+        }}
+      >
+        📥 下载后用本地应用打开
+      </button>
     </div>
   );
 }

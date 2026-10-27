@@ -59,6 +59,32 @@ function videoLabel(extension: string): string {
   return VIDEO_TYPE_LABELS[key] ? `${VIDEO_TYPE_LABELS[key]} Video` : "Video";
 }
 
+/**
+ * 浏览器内核**普遍不支持**的容器（不是「可能不支持」）。
+ *
+ * 这几个格式在 `supportedExtensions` 里是有意保留的 —— 用户拿到一个 .avi 时，
+ * 与其让它一路落到兜底下变成「什么都看不出来」，不如明确告诉他「这个格式浏览器
+ * 播不了，去下载」。但提示语必须说准：迁移前统一写「浏览器**可能**不支持该编码」，
+ * 对 .avi 这种必然失败的格式，这个「可能」会让用户反复重试或去查自己的文件。
+ */
+const UNSUPPORTED_IN_BROWSER: Record<string, string> = {
+  avi: "AVI 是老式容器，编码多为 DivX/Xvid，现代浏览器内核都不内置解码器",
+  wmv: "WMV 是微软的私有格式，Chrome / Firefox / Safari 都不支持",
+  flv: "FLV 依赖已经停止支持的 Flash 技术栈",
+  mkv: "MKV 只是容器，浏览器能否播取决于里面的编码；Chrome 通常不支持",
+  mov: "QuickTime 在 Safari 之外基本不可播（除非内部就是 H.264）",
+};
+
+/** 失败提示要能回答「为什么」和「现在怎么办」，答不上来时保持保守措辞 */
+function videoErrorMessage(fileName: string, extension: string): string {
+  const key = normalizeExtension(extension);
+  const known = UNSUPPORTED_IN_BROWSER[key];
+  if (known) {
+    return `浏览器无法播放 ${key.toUpperCase()}：${known}。<video> 只保证 MP4(H.264) / WebM / OGV 三种，可以下载后用本地播放器打开，或先转成 MP4。`;
+  }
+  return `视频加载失败：${fileName}。可能是编码不在 <video> 支持范围内（H.264 / VP9 / AV1 最稳），也可能文件本身损坏；可以下载后用本地播放器确认。`;
+}
+
 export function createVideoPreviewPlugin(
   config: VideoPreviewPluginConfig = {}
 ): FilePreviewPlugin {
@@ -131,7 +157,7 @@ export function createVideoPreviewPlugin(
               onError={() => {
                 context.reportState({
                   state: "error",
-                  message: `视频加载失败：${file.name}（浏览器可能不支持该编码）`,
+                  message: videoErrorMessage(file.name, file.extension),
                 });
               }}
             >

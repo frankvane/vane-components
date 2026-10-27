@@ -198,7 +198,8 @@ export interface ProgressIndicatorProps {
 
 export const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({
   progress,
-  status = "Loading...",
+  // 默认值与包内其它文案保持一致的中文。调用方要英文自己传 status。
+  status = "加载中…",
 }) => {
   return (
     <div style={toolbarStyles.progress}>

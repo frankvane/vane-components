@@ -52,12 +52,22 @@ export interface ErrorPanelProps {
   label: string;
   error: string;
   icon?: string;
+  /**
+   * 可选的出路按钮。
+   *
+   * 加这个参数是因为：解析失败的面板原本是**死路** —— 用户看着一句
+   * 「打不开」，既不能重试也不能拿到文件。而这类失败十有八九是「浏览器
+   * 不解这个格式」，此时最该给的按钮是「下载」。按钮文案由调用方定，
+   * 面板不猜。
+   */
+  action?: { label: string; onClick: () => void };
 }
 
 export const ErrorPanel: React.FC<ErrorPanelProps> = ({
   label,
   error,
   icon = "⚠️",
+  action,
 }) => (
   <div
     data-vfp-panel="error"
@@ -90,6 +100,25 @@ export const ErrorPanel: React.FC<ErrorPanelProps> = ({
     >
       {error}
     </div>
+    {action ? (
+      <button
+        type="button"
+        data-vfp-error-action
+        onClick={action.onClick}
+        style={{
+          marginTop: 2,
+          padding: "6px 14px",
+          border: "1px solid #fecaca",
+          borderRadius: 6,
+          background: "#fff",
+          color: "#b91c1c",
+          fontSize: 12,
+          cursor: "pointer",
+        }}
+      >
+        {action.label}
+      </button>
+    ) : null}
   </div>
 );
 

@@ -13,6 +13,8 @@ import type {
   PreviewStateInfo,
   PreviewStatePatch,
 } from "../plugins/types";
+import { ErrorPanel } from "../shared/panels";
+import { triggerDownload } from "../shared/fileHelpers";
 import React, {
   forwardRef,
   useCallback,
@@ -262,28 +264,37 @@ export const FilePreviewCore = forwardRef<
             zIndex: 2,
           }}
         >
-          <span style={{ color: "#999", fontSize: 14 }}>Loading...</span>
+          <span style={{ color: "#999", fontSize: 14 }}>加载中…</span>
         </div>
       )}
 
       {/* Error 状态 */}
       {state.state === "error" && (
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "#d32f2f",
-            zIndex: 2,
-          }}
-        >
-          <span style={{ fontSize: 14, marginBottom: 8 }}>❌ Load Failed</span>
-          {state.message && (
-            <span style={{ fontSize: 12, color: "#666" }}>{state.message}</span>
-          )}
+        <div style={{ position: "absolute", inset: 0, zIndex: 2 }}>
+          {/*
+            以前这里是手写的一句英文 "❌ Load Failed" + 裸文案，两个问题：
+            ① 全部 17 个插件的面板都是中文，只有这一处英文，看着像没做完；
+            ② 它是死路 —— 用户既不能重试也拿不到文件。
+            现在复用插件层的 ErrorPanel（同一套视觉），并给一个「下载」出路：
+            走到这里基本只有两种情况，加载链路出错，或者浏览器不支持这个格式，
+            两种情况下「先拿到文件」都是唯一有意义的动作。
+          */}
+          <ErrorPanel
+            label="无法预览这个文件"
+            error={
+              state.message ||
+              state.error?.message ||
+              "渲染过程中出现了未知错误，可以下载后用本地应用打开。"
+            }
+            action={
+              file.url
+                ? {
+                    label: "下载文件",
+                    onClick: () => triggerDownload(file.url, file.name),
+                  }
+                : undefined
+            }
+          />
         </div>
       )}
 
