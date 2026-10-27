@@ -1,0 +1,51 @@
+{
+  "name": "CountdownPlugin",
+  "description": "倒计时角标：按截止时间或持续时长每秒刷新，归零显示「已结束」并停止计时。",
+  "since": "2.0.0",
+  "tags": ["display", "overlay", "倒计时"],
+  "config": [
+    {
+      "name": "endTimestamp",
+      "type": "number",
+      "default": "-",
+      "description": "结束时间戳（毫秒）；与 durationMs 二选一，优先本项"
+    },
+    {
+      "name": "durationMs",
+      "type": "number",
+      "default": "3600000",
+      "description": "从挂载时刻起的持续时长（毫秒），默认 1 小时"
+    },
+    {
+      "name": "position",
+      "type": "\"top-left\" | \"top-right\" | \"bottom-left\" | \"bottom-right\"",
+      "default": "\"top-left\"",
+      "description": "角标位置"
+    },
+    {
+      "name": "style",
+      "type": "React.CSSProperties",
+      "default": "{}",
+      "description": "覆盖默认样式（黑底白字等宽）"
+    },
+    {
+      "name": "prefix",
+      "type": "string",
+      "default": "\"⏰\"",
+      "description": "文本前缀"
+    }
+  ],
+  "example": "const Card = withPlugins(CardCore, [\n  createCountdownPlugin({ endTimestamp: Date.now() + 2 * 3600 * 1000, position: \"top-left\" }),\n]);\n\n// 按「进页面后 30 分钟」倒计时\ncreateCountdownPlugin({ durationMs: 30 * 60 * 1000 });",
+  "features": [
+    "endTimestamp 优先于 durationMs",
+    "durationMs 在挂载时才求值一次，父级重渲染不会把倒计时重置",
+    "归零显示「已结束」并清掉定时器，不再每秒空转",
+    "已过期时连定时器都不创建"
+  ],
+  "useCases": ["限时秒杀", "优惠截止提醒", "预售结束倒计时"],
+  "notes": [
+    "只精确到秒，不做服务端时间校正；客户端时间被改动会直接反映在文案上。",
+    "倒计时组件是模块级稳定组件（旧版在 renderOverlay 里 useMemo 造组件，属 hooks 违规）。",
+    "多个 CountdownPlugin 会叠在同一个角，只留一个。"
+  ]
+}

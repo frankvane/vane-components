@@ -1,0 +1,38 @@
+{
+  "name": "SKUPlugin",
+  "description": "变体选择与匹配：属性选择写入总线，命中的变体（价格/库存/图片）同步到 selection、variant、price、image 四个键，是整条交易链的源头。",
+  "since": "2.0.0",
+  "tags": ["buy", "sku", "bus-source"],
+  "config": [
+    {
+      "name": "attributes",
+      "type": "SKUAttribute[]",
+      "default": "-",
+      "description": "属性定义，如 [{ name: \"颜色\", options: [\"红\",\"蓝\"] }]"
+    },
+    {
+      "name": "variants",
+      "type": "SKUVariant[]",
+      "default": "-",
+      "description": "变体列表，每项 { sku, attrs, price?, stock?, image? }"
+    },
+    {
+      "name": "renderIn",
+      "type": "\"footer\" | \"overlay\"",
+      "default": "\"footer\"",
+      "description": "选择控件渲染位置"
+    }
+  ],
+  "example": "const Card = withPlugins(CardCore, [\n  createSKUPlugin({\n    attributes: [\n      { name: \"颜色\", options: [\"红\", \"蓝\"] },\n      { name: \"尺码\", options: [\"M\", \"L\"] },\n    ],\n    variants: [\n      { sku: \"R-M\", attrs: { 颜色: \"红\", 尺码: \"M\" }, price: 299, stock: 8 },\n      { sku: \"B-L\", attrs: { 颜色: \"蓝\", 尺码: \"L\" }, price: 319, stock: 0 },\n    ],\n  }),\n]);",
+  "features": [
+    "只匹配「所有已选属性都命中」的变体，选不全就不写 variant",
+    "挂载时按 data.defaultAttrs 预选，首屏即带默认规格",
+    "写入总线后，价格/数量/库存/图片相关插件自动跟随，插件之间零耦合"
+  ],
+  "useCases": ["多规格商品", "颜色 + 尺码选择", "带图切换的变体（variant.image）"],
+  "notes": [
+    "priority 60，仅次于 State/A11y（100），保证它是交易链里最早写总线的那个。",
+    "本插件是纯「源」：只写不订阅，所以不会因为自己的写入而重渲染 —— 需要跟随变化的消费者请自行订阅。",
+    "属性值全选齐但无匹配变体时，variant 保持上一次的命中值（不清空），界面会停在上一个规格；需要严格置空请自行监听 sku:change 处理。"
+  ]
+}

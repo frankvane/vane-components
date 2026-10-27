@@ -1,0 +1,39 @@
+{
+  "name": "A11yPlugin",
+  "description": "无障碍增强：给卡片补 role / aria-label、可选键盘导航与聚焦播报、高对比配色。",
+  "since": "2.0.0",
+  "tags": ["infra", "a11y", "无障碍"],
+  "config": [
+    {
+      "name": "announceOnFocus",
+      "type": "boolean",
+      "default": "false",
+      "description": "聚焦时向全局播报区写入「聚焦：xx」"
+    },
+    {
+      "name": "keyboardNavigation",
+      "type": "boolean",
+      "default": "true",
+      "description": "容器可聚焦，Enter / Space 触发点击"
+    },
+    {
+      "name": "highContrast",
+      "type": "boolean",
+      "default": "false",
+      "description": "黑描边白底黑字的高对比模式"
+    }
+  ],
+  "example": "const Card = withPlugins(CardCore, [\n  createA11yPlugin({ keyboardNavigation: true, announceOnFocus: true }),\n]);",
+  "features": [
+    "role=article + aria-label（取 data.name / data.title，兜底「商品卡片」）",
+    "全局播报区 #a11y-live-region 按引用计数共享，最后一张卡卸载时才移除",
+    "focus / keydown 监听都是具名 handler，随卸载一起摘掉，不累积",
+    "卸载时清掉 role / tabindex / aria-label，容器被复用时不留脏属性"
+  ],
+  "useCases": ["商品列表的无障碍改造", "键盘用户浏览", "读屏播报"],
+  "notes": [
+    "priority 100，和 StatePlugin 同属最早执行的一批（要赶在渲染前把 ARIA 打上）。",
+    "Enter / Space 是直接在事件目标上 .click()，若子元素本身是按钮会触发两次 —— 卡内已有原生按钮时建议关掉 keyboardNavigation。",
+    "播报区是 document.body 上的单例节点，SSR 下不会创建（typeof document 守卫），水合后才生效。"
+  ]
+}

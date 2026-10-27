@@ -1,0 +1,56 @@
+{
+  "name": "CouponRecommendPlugin",
+  "description": "按当前小计推荐可用券，可自动套用最优券；套用结果写进总线 coupon.applied，与手选券（CouponPlugin）共用同一个键。",
+  "since": "2.0.0",
+  "tags": ["buy", "coupon", "bus-source"],
+  "config": [
+    {
+      "name": "coupons",
+      "type": "Coupon[]",
+      "default": "-",
+      "description": "候选券列表（必填）"
+    },
+    {
+      "name": "placement",
+      "type": "\"footer\" | \"overlay\"",
+      "default": "\"footer\"",
+      "description": "渲染位置"
+    },
+    {
+      "name": "autoApplyBest",
+      "type": "boolean",
+      "default": "false",
+      "description": "挂载时自动套用门槛内优惠力度最大的券"
+    },
+    {
+      "name": "currency",
+      "type": "string",
+      "default": "CNY",
+      "description": "货币代码"
+    },
+    {
+      "name": "locale",
+      "type": "string",
+      "default": "zh-CN",
+      "description": "格式化区域"
+    },
+    {
+      "name": "order",
+      "type": "number",
+      "default": "0",
+      "description": "priceArea 渲染顺序"
+    }
+  ],
+  "example": "const Card = withPlugins(CardCore, [\n  createCouponRecommendPlugin({\n    coupons: [\n      { code: \"NEW10\", discount: 10, minAmount: 99 },\n      { code: \"VIP50\", discount: 50, minAmount: 299 },\n    ],\n    autoApplyBest: true,\n  }),\n]);",
+  "features": [
+    "按小计过滤门槛内的券，再按 discount 取最优",
+    "订阅 skuPrice / quantity / couponApplied，数量变化后推荐随之更新",
+    "与手选券共写 coupon.applied，谁后写谁生效（同屏建议只留一种）"
+  ],
+  "useCases": ["凑单推荐", "最优券自动套用", "满减阶梯提示"],
+  "notes": [
+    "priority 22，高于 PriceCalculator（20），保证 autoApplyBest 写入的券能被首次算价读到 —— 这条顺序是价格正确的前提。",
+    "同时装 CouponPlugin 时两者都写 coupon.applied，autoApply 与 autoApplyBest 会互相覆盖，表现为「选了又跳回去」；请只启用其中一个。",
+    "券不过期校验（expiry 未参与判断），过期券只要在列表里就可能被推荐。"
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "name": "OrderSummaryPlugin",
+  "description": "订单汇总：小计、券抵扣、税费、运费、合计逐行展开，数据全部取自总线，不重复算价。",
+  "since": "2.0.0",
+  "tags": ["buy", "summary", "footer"],
+  "config": [
+    {
+      "name": "showBreakdown",
+      "type": "boolean",
+      "default": "true",
+      "description": "显示明细行（小计/优惠/税/运费）"
+    },
+    {
+      "name": "showTax",
+      "type": "boolean",
+      "default": "false",
+      "description": "显示税费"
+    },
+    {
+      "name": "showShipping",
+      "type": "boolean",
+      "default": "false",
+      "description": "显示运费"
+    },
+    {
+      "name": "currency",
+      "type": "string",
+      "default": "CNY",
+      "description": "货币代码"
+    },
+    {
+      "name": "locale",
+      "type": "string",
+      "default": "zh-CN",
+      "description": "格式化区域"
+    },
+    {
+      "name": "taxRate",
+      "type": "number",
+      "default": "0",
+      "description": "税率，0.1 表示 10%（按小计计）"
+    },
+    {
+      "name": "shippingFee",
+      "type": "number",
+      "default": "0",
+      "description": "固定运费"
+    },
+    {
+      "name": "placement",
+      "type": "\"footer\" | \"overlay\"",
+      "default": "\"footer\"",
+      "description": "渲染位置"
+    }
+  ],
+  "example": "const Card = withPlugins(CardCore, [\n  createOrderSummaryPlugin({\n    showTax: true,\n    taxRate: 0.06,\n    showShipping: true,\n    shippingFee: 12,\n  }),\n]);",
+  "features": [
+    "券抵扣做 Math.min(券额, 小计) 保护，不会把合计算成负数",
+    "订阅价格/数量/券三键，任何变化都自动重算",
+    "税费按小计计（不含运费），运费单独加"
+  ],
+  "useCases": ["下单前费用确认", "含税价格展示", "运费明细"],
+  "notes": [
+    "priority 18，低于 PriceCalculator（20）：它只做展示，不发布事件，顺序只影响钩子执行先后。",
+    "合计口径与 PriceCalculator 的 total 一致（小计 - 券 + 税 + 运费），两处同时展示时不会对不上。",
+    "showBreakdown 关闭时只显示一行合计；税费/运费关闭时既不显示也不计入。"
+  ]
+}

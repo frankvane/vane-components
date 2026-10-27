@@ -156,15 +156,21 @@
 - [x] `test/plugins-a.test.tsx`：10 个用例逐个确认「真的渲染出来」（这批插件在新内核下从未跑过）
 
 
-### C3.2 B 级 10 个（逐个，需改造）
+### C3.2 B 级 10 个（逐个，需改造）· ✅ 已完成
 
-- [ ] **总线 6 个**：`SKU`（源，只写不订阅）+ 5 个消费者（Quantity、PriceCalculator、ComparePrice、CouponRecommend、OrderSummary）
-  - [ ] `setupForceUpdateOnBusKeys` 的返回值改为 `onMount` 返回值（退订真正发生）
-  - [ ] Quantity 的 `renderIn` 配置项：**要么实现（决定渲染在 footer 还是 overlay），要么从 config 类型删除**（今天 0 处读取）
-- [ ] Countdown：`setInterval` 挂清理；倒计时归零后停止计时
-- [ ] State：`onCartChange` / `onWishlistChange` 死钩子 → 由 `setState` 差分触发；localStorage 写回加 `typeof window` 判定
-- [ ] Analytics：删掉自建 IO，改消费 `onVisibilityChange`；`onCartChange` 同上
-- [ ] A11y：`focus` 监听具名化 + 回收；全局 `#a11y-live-region` 引用计数
+- [x] **总线 6 个**：`SKU`（源，只写不订阅）+ 5 个消费者（Quantity、PriceCalculator、ComparePrice、CouponRecommend、OrderSummary）
+  - [x] `setupForceUpdateOnBusKeys` 的返回值已在 `onMount` 中 `return`，C2 的内核 cleanup 让它真正生效（快照实测 on=12/off=12）
+  - [x] Quantity 的 `renderIn`：**已实现**（`renderFooter` + `renderOverlay` 两条分支都在）——原「今天 0 处读取」的判断是错的，实测两处读取，故不改代码、只更正文档
+- [x] Countdown：定时器归零后自停（`tick()` 返回 false 时 `clearInterval`），已过期时连定时器都不创建；卸载时清理
+- [x] State：死钩子 → `onStateChange` 差分（C2 已做）；**`localStorage` 判定不适用**——本插件从不读写 localStorage，清单该条原本就无对象
+- [x] Analytics：删掉自建 `IntersectionObserver`，改消费 Core 下发的 `onVisibilityChange`；曝光时长存**每卡自己的 `sharedData`**（不能用工厂作用域变量，否则 A 卡的进入时间会和 B 卡的离开时间相减）；顺带把 4 份重复的 `send` 提到工厂层
+- [x] A11y：`focus` 改为具名 handler 并在 `onMount` 返回值里摘掉；`#a11y-live-region` 改引用计数（多卡共享、最后一张卸载才移除）；卸载时清掉 `role/tabindex/aria-label` 脏属性
+
+**顺序约定（实测得出，R6 相关）**：钩子按 `priority` 降序执行，`onMount` 里**订阅必须先于发布**才能收到首个事件。
+Analytics(50) 能收到 PriceCalculator(20) 的首个 `price:change`，靠的就是 50 > 20；写第三方插件时同理。
+
+**C3.2 测试**：`test/plugins-b.test.tsx` 11 用例 —— 价格链路（含券抵扣 100→90）、Analytics 只建 1 个 IO、
+`minExposureMs` 未达标不上报、播报区引用计数 2→1→0、focus 卸载后不再触发、ARIA 属性清理、Countdown 已过期不起定时器/卸载清定时器。
 
 ### C3.3 C 级 3 个（重写）
 

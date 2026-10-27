@@ -1,0 +1,62 @@
+{
+  "name": "ComparePricePlugin",
+  "description": "竞品比价：列出其它平台价格，标出最低价，并高亮「比我们便宜」的项。当前价取自总线 skuPrice，变化时会重算高亮。",
+  "since": "2.0.0",
+  "tags": ["buy", "price", "比价"],
+  "config": [
+    {
+      "name": "competitors",
+      "type": "Array<{ name: string; price: number; url?: string }>",
+      "default": "[]",
+      "description": "竞品列表；为空时整块不渲染"
+    },
+    {
+      "name": "showLowestPrice",
+      "type": "boolean",
+      "default": "true",
+      "description": "标记最低价"
+    },
+    {
+      "name": "sortBy",
+      "type": "\"price\" | \"name\"",
+      "default": "\"price\"",
+      "description": "排序字段"
+    },
+    {
+      "name": "sortOrder",
+      "type": "\"asc\" | \"desc\"",
+      "default": "\"asc\"",
+      "description": "排序方向"
+    },
+    {
+      "name": "filterMaxPrice",
+      "type": "number",
+      "default": "-",
+      "description": "只显示不高于该价格的竞品"
+    },
+    {
+      "name": "highlightLowerThanOurPrice",
+      "type": "boolean",
+      "default": "true",
+      "description": "高亮比当前价低的竞品"
+    },
+    {
+      "name": "priceDiffHighlightThreshold",
+      "type": "number",
+      "default": "0",
+      "description": "价差超过该值才高亮"
+    }
+  ],
+  "example": "const Card = withPlugins(CardCore, [\n  createComparePricePlugin({\n    competitors: [\n      { name: \"某东\", price: 289 },\n      { name: \"某猫\", price: 305, url: \"https://example.com\" },\n    ],\n    highlightLowerThanOurPrice: true,\n    priceDiffHighlightThreshold: 10,\n  }),\n]);",
+  "features": [
+    "当前价优先取总线 skuPrice（跟随变体），没有再回落到 data.price",
+    "订阅 skuPrice，规格切换后高亮状态实时重算",
+    "支持按价格/名称排序与价格上限过滤"
+  ],
+  "useCases": ["比价促销卡", "「买贵退差」宣称", "多平台价格对照"],
+  "notes": [
+    "priority 20，与 PriceCalculator 同级；两者都在价格区但互不依赖，只共享总线上的价格。",
+    "competitors 为空数组时 onMount 仍会订阅总线（一次无害订阅），但页脚不渲染任何节点。",
+    "价差阈值判断的是「竞品价 - 当前价」，当前价为 0 时所有竞品都会被判为更贵，不会误高亮。"
+  ]
+}

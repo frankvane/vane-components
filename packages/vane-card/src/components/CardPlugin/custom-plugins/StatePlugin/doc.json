@@ -1,0 +1,44 @@
+{
+  "name": "StatePlugin",
+  "description": "卡片状态初值与差分回调：把 cart / wishlist 初始化为 false，并在状态变化时回调 config 里的 onCartChange / onWishlistChange。",
+  "since": "2.0.0",
+  "tags": ["infra", "state", "生命周期"],
+  "config": [
+    {
+      "name": "enableCart",
+      "type": "boolean",
+      "default": "true",
+      "description": "启用购物车状态"
+    },
+    {
+      "name": "enableWishlist",
+      "type": "boolean",
+      "default": "true",
+      "description": "启用心愿单状态"
+    },
+    {
+      "name": "onCartChange",
+      "type": "(cardId: string, isAdded: boolean) => void",
+      "default": "-",
+      "description": "购物车状态变化回调（由 onStateChange 差分触发）"
+    },
+    {
+      "name": "onWishlistChange",
+      "type": "(cardId: string, isWishlisted: boolean) => void",
+      "default": "-",
+      "description": "心愿单状态变化回调"
+    }
+  ],
+  "example": "const Card = withPlugins(CardCore, [\n  createStatePlugin({\n    onCartChange: (cardId, added) => cart.add(cardId, added),\n    onWishlistChange: (cardId, on) => wishlist.toggle(cardId, on),\n  }),\n]);",
+  "features": [
+    "挂载时把 cart / wishlist 置为 false，保证按钮文案有确定的初值",
+    "回调走 onStateChange 的差分比较，只在真的变了才触发（不会因无关状态更新而误报）",
+    "priority 100，是整个插件链里最早初始化状态的"
+  ],
+  "useCases": ["加购/收藏的外部同步", "按钮文案的初始态", "跨卡购物车汇总"],
+  "notes": [
+    "旧版的 onCartChange / onWishlistChange 是**插件钩子**（24 个钩子里的两个），但没有任何地方触发它们 —— 属于死钩子，C2 已删除；现在同名的是 config 回调，由 onStateChange 差分驱动，名字保留是为了兼容旧配置。",
+    "enableCart / enableWishlist 目前只影响状态初始化，不阻止别的插件写 cart / wishlist（真要禁用请别装 ActionsPlugin）。",
+    "本插件不持久化，刷新即丢；需要保留状态请在外层接 onCartChange 自己存。"
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "name": "PriceCalculatorPlugin",
+  "description": "价格区核心：展示单价、划线原价、折扣、节省额与合计，并在价格/数量/券变化时发布 price:change 事件。",
+  "since": "2.0.0",
+  "tags": ["buy", "price", "bus-source"],
+  "config": [
+    {
+      "name": "showOriginalPrice",
+      "type": "boolean",
+      "default": "false",
+      "description": "显示划线原价（需 data.originalPrice > 当前价）"
+    },
+    {
+      "name": "showDiscount",
+      "type": "boolean",
+      "default": "false",
+      "description": "显示折扣百分比"
+    },
+    {
+      "name": "showSavings",
+      "type": "boolean",
+      "default": "false",
+      "description": "显示节省金额"
+    },
+    {
+      "name": "showSavingsBadgeInPriceArea",
+      "type": "boolean",
+      "default": "false",
+      "description": "在价格区放节省徽章"
+    },
+    {
+      "name": "showTotalPrice",
+      "type": "boolean",
+      "default": "false",
+      "description": "显示按数量与优惠折算后的合计"
+    },
+    {
+      "name": "currency",
+      "type": "string",
+      "default": "CNY",
+      "description": "货币代码，交给 Intl.NumberFormat"
+    },
+    {
+      "name": "locale",
+      "type": "string",
+      "default": "zh-CN",
+      "description": "格式化区域"
+    },
+    {
+      "name": "order",
+      "type": "number",
+      "default": "0",
+      "description": "priceArea 渲染顺序（越小越前）"
+    }
+  ],
+  "example": "const Card = withPlugins(CardCore, [\n  createPriceCalculatorPlugin({\n    showOriginalPrice: true,\n    showDiscount: true,\n    showTotalPrice: true,\n    currency: \"CNY\",\n    order: 1,\n  }),\n]);",
+  "features": [
+    "价格来源优先级：总线 skuPrice（选中变体价）> data.price",
+    "监听 skuPrice / quantity / couponApplied 三键，任一变化即重算并 emit price:change",
+    "合计做 Math.max(0, …) 保护，不会被券扣成负数",
+    "货币格式化失败时退回 ¥ 前缀，不会抛错"
+  ],
+  "useCases": ["商品单价展示", "折扣与节省额", "随数量/优惠券实时变价"],
+  "notes": [
+    "priority 20：低于订阅方 Analytics（50），所以 Analytics 能收到首个 price:change；调整优先级时注意这条隐式顺序。",
+    "price:change 只是事件，渲染用的价格仍是各插件直接读总线 —— 别把「有没有收到事件」当成「界面有没有更新」。",
+    "券的门槛（minAmount）不由本插件校验，直接套用不达门槛的券会算出异常低价；需要校验请在选券侧拦截。"
+  ]
+}

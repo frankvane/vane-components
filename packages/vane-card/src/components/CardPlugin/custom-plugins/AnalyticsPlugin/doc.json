@@ -1,0 +1,39 @@
+{
+  "name": "AnalyticsPlugin",
+  "description": "曝光 / 点击 / 加购 / 心愿单上报。曝光复用 CardCore 的可见性观测（不自建 IntersectionObserver），可接自定义 transport 或第三方 SDK。",
+  "since": "2.0.0",
+  "tags": ["infra", "analytics", "埋点"],
+  "config": [
+    {
+      "name": "transport",
+      "type": "(event: string, payload: any) => void",
+      "default": "-",
+      "description": "自定义上报管道，优先级高于 sdk"
+    },
+    {
+      "name": "sdk",
+      "type": "{ track?: (event: string, payload: any) => void }",
+      "default": "-",
+      "description": "第三方 SDK 适配；transport 未提供时才用"
+    },
+    {
+      "name": "minExposureMs",
+      "type": "number",
+      "default": "0",
+      "description": "最小曝光时长阈值，短于此时不上报 exposure_exit"
+    }
+  ],
+  "example": "const Card = withPlugins(CardCore, [\n  createAnalyticsPlugin({\n    transport: (event, payload) => beacon(\"/track\", { event, ...payload }),\n    minExposureMs: 500,\n  }),\n]);",
+  "features": [
+    "事件：exposure_enter / exposure_exit / click / cart / wishlist / sku_change / price_change",
+    "曝光进入/离开由 Core 的 onVisibilityChange 下发，每张卡只有一个观测器",
+    "曝光时长存在该卡自己的 sharedData 里，多卡并发不会串数据",
+    "transport 抛错被吞掉并 warn，不影响卡片渲染"
+  ],
+  "useCases": ["商品曝光率统计", "加购转化漏斗", "点击热区埋点"],
+  "notes": [
+    "priority 50，高于价格/券类发布方（20~22）：onMount 里先订阅，才收得到首个 price:change / sku:change。",
+    "dwellMs 用 Date.now() 计算，不依赖 performance.now()（后者在部分 SSR/测试环境缺失）。",
+    "未提供 transport 也未提供 sdk 时打到 console.log，线上务必显式接入，否则等于静默丢弃。"
+  ]
+}

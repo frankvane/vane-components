@@ -1,0 +1,63 @@
+{
+  "name": "QuantityPlugin",
+  "description": "数量步进器：上下限随变体库存自动收紧，数量写入总线（quantity）供价格/汇总插件消费；可渲染在页脚或覆盖层。",
+  "since": "2.0.0",
+  "tags": ["buy", "quantity", "stepper"],
+  "config": [
+    {
+      "name": "min",
+      "type": "number",
+      "default": "1",
+      "description": "最小数量"
+    },
+    {
+      "name": "max",
+      "type": "number",
+      "default": "自动",
+      "description": "最大数量；不填则由变体库存或 data.inventory 推断"
+    },
+    {
+      "name": "step",
+      "type": "number",
+      "default": "1",
+      "description": "每次增减的步长"
+    },
+    {
+      "name": "renderIn",
+      "type": "\"footer\" | \"overlay\"",
+      "default": "\"footer\"",
+      "description": "渲染位置（footer 页脚 / overlay 覆盖层，两条分支都已实现）"
+    },
+    {
+      "name": "useVariantStock",
+      "type": "boolean",
+      "default": "true",
+      "description": "优先用选中变体的库存作为上限"
+    },
+    {
+      "name": "resetOnVariantChange",
+      "type": "boolean",
+      "default": "true",
+      "description": "切换规格时把数量重置回最小值"
+    },
+    {
+      "name": "clampOnMaxDecrease",
+      "type": "boolean",
+      "default": "true",
+      "description": "上限变小时把当前数量钳制到新上限"
+    }
+  ],
+  "example": "const Card = withPlugins(CardCore, [\n  createSKUPlugin({ attributes, variants }),\n  createQuantityPlugin({ min: 1, max: 10, step: 1, useVariantStock: true }),\n]);",
+  "features": [
+    "上限优先级：config.max > 变体库存 > data.inventory > 99",
+    "库存为 0 时上限归零，数量直接为 0（缺货不显示 1）",
+    "输入框有防抖与本地显示值，不会每敲一个字符就写一次总线",
+    "规格切换后自动重置/钳制，避免把上一规格的数量带过去"
+  ],
+  "useCases": ["加购数量选择", "限购商品", "按库存收紧的预售卡"],
+  "notes": [
+    "priority 30，晚于 SKUPlugin（60）执行，所以 onMount 时能读到默认变体的库存。",
+    "数量写入的是 BusKeys.quantity，价格插件读同一键；不要在外层再维护一份数量，否则两边会打架。",
+    "库存为 0 时数量为 0，但并不会禁用按钮 —— 需要「售罄置灰」请配合 InventoryPlugin 或自行在 renderCustomActions 里判断。"
+  ]
+}
