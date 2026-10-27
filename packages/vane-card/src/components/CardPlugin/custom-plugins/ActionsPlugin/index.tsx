@@ -110,7 +110,9 @@ export const createActionsPlugin: PluginCreator<any, ActionsPluginConfig> = (
       },
     },
 
-    config,
+    // order 给 20：footer 里「按钮永远排最后」应该是结构性的，而不是靠 priority 撞运气。
+    // 价格区默认 order 10、券条 0，于是顺序稳定为 券 → 价格 → 按钮。
+    config: { order: 20, ...config },
   };
 
   return plugin;
