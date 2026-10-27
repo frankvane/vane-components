@@ -1,0 +1,80 @@
+{
+  "name": "VideoPlugin",
+  "description": "在卡片头部区域渲染 16:9 视频；可选悬停自动播放/暂停。与 GalleryPlugin 同时启用时自动让位，避免重复渲染。",
+  "since": "2.0.0",
+  "tags": ["media", "header", "视频"],
+  "config": [
+    {
+      "name": "src",
+      "type": "string",
+      "default": "-",
+      "description": "视频地址；不填则读 data.video"
+    },
+    {
+      "name": "autoplay",
+      "type": "boolean",
+      "default": "false",
+      "description": "进页面即自动播放"
+    },
+    {
+      "name": "muted",
+      "type": "boolean",
+      "default": "true",
+      "description": "静音；autoplay 时必须为 true，否则浏览器会拦截"
+    },
+    {
+      "name": "loop",
+      "type": "boolean",
+      "default": "false",
+      "description": "循环播放"
+    },
+    {
+      "name": "controls",
+      "type": "boolean",
+      "default": "true",
+      "description": "显示原生播放控件"
+    },
+    {
+      "name": "poster",
+      "type": "string",
+      "default": "-",
+      "description": "封面图；不填则读 data.poster"
+    },
+    {
+      "name": "playOnHover",
+      "type": "boolean",
+      "default": "false",
+      "description": "悬停播放、移开暂停（需打开 controls 或 autoplay 才有意义）"
+    },
+    {
+      "name": "style",
+      "type": "React.CSSProperties",
+      "default": "{}",
+      "description": "视频元素样式"
+    },
+    {
+      "name": "headerPosition",
+      "type": "\"before\" | \"after\"",
+      "default": "\"after\"",
+      "description": "放在卡片主体之前还是之后"
+    },
+    {
+      "name": "order",
+      "type": "number",
+      "default": "0",
+      "description": "同区域内的排序权重（越小越前）"
+    }
+  ],
+  "example": "const Card = withPlugins(CardCore, [\n  createVideoPlugin({ src: \"/demo.mp4\", muted: true, playOnHover: true, headerPosition: \"before\" }),\n]);",
+  "features": [
+    "16:9 容器固定比例，避免加载后跳版",
+    "playOnHover 走插件 onHover 钩子，不额外挂 DOM 监听",
+    "检测到 bus 上的 media.handledByGallery 标记时主动让位"
+  ],
+  "useCases": ["服饰 / 家居的动效展示", "开箱视频", "商品详情首屏"],
+  "notes": [
+    "autoplay 需同时 muted: true，否则被浏览器策略拦截（静默失败，不报错）。",
+    "与 GalleryPlugin 同时启用且都配了视频时，以 Gallery 为准（VideoPlugin 不渲染）。",
+    "playOnHover 取容器内第一个 <video>，自定义 renderContent 里若有别的视频会被误伤。"
+  ]
+}

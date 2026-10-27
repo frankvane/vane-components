@@ -1,0 +1,49 @@
+{
+  "name": "HoverPlugin",
+  "description": "悬停时的视觉反馈：投影 / 轻微放大 / 描边。走 transformProps 注入容器样式，不额外包 DOM。",
+  "since": "2.0.0",
+  "tags": ["display", "interaction", "hover"],
+  "config": [
+    {
+      "name": "enableShadow",
+      "type": "boolean",
+      "default": "true",
+      "description": "悬停加投影"
+    },
+    {
+      "name": "enableScale",
+      "type": "boolean",
+      "default": "true",
+      "description": "悬停轻微放大"
+    },
+    {
+      "name": "enableBorder",
+      "type": "boolean",
+      "default": "false",
+      "description": "悬停加描边"
+    },
+    {
+      "name": "shadowIntensity",
+      "type": "\"light\" | \"medium\" | \"heavy\"",
+      "default": "\"medium\"",
+      "description": "投影强度"
+    },
+    {
+      "name": "scaleRatio",
+      "type": "number",
+      "default": "1.02",
+      "description": "放大倍数，1 表示不放大"
+    }
+  ],
+  "example": "const Card = withPlugins(CardCore, [\n  createHoverPlugin({ shadowIntensity: \"heavy\", scaleRatio: 1.03 }),\n]);",
+  "features": [
+    "通过 transformProps 改容器样式，零额外 DOM 包裹",
+    "阴影 / 放大 / 描边可独立开关",
+    "过渡曲线固定 0.3s ease，避免和布局动画打架"
+  ],
+  "useCases": ["列表卡片的可点击暗示", "图片墙的悬停聚焦"],
+  "notes": [
+    "priority 5（最低），保证它先注入基础样式、被其它插件的样式覆盖。",
+    "放大用 transform，不触发重排；但父容器 overflow: hidden 时会裁掉边缘，需要留 padding。"
+  ]
+}

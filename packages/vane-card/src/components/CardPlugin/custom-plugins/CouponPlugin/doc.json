@@ -1,0 +1,32 @@
+{
+  "name": "CouponPlugin",
+  "description": "展示可选优惠券并写入总线（coupon.applied），供 OrderSummary / PriceCalculator 等消费。可配置自动套用第一张。",
+  "since": "2.0.0",
+  "tags": ["buy", "footer", "优惠券", "bus-source"],
+  "config": [
+    {
+      "name": "coupons",
+      "type": "Coupon[]",
+      "default": "[]",
+      "description": "可用券列表（必填），每项含 code / discount / minAmount? / expiry?"
+    },
+    {
+      "name": "autoApply",
+      "type": "boolean",
+      "default": "false",
+      "description": "挂载时自动套用第一张券"
+    }
+  ],
+  "example": "const Card = withPlugins(CardCore, [\n  createCouponPlugin({\n    coupons: [\n      { code: \"NEW10\", discount: 10, minAmount: 99 },\n      { code: \"VIP20\", discount: 20, minAmount: 199 },\n    ],\n    autoApply: false,\n  }),\n]);",
+  "features": [
+    "选券/取消券只改总线数据，价格由下游插件重算，插件之间零耦合",
+    "autoApply 在 onMount 里套用第一张，首屏即带优惠价",
+    "无券时不渲染整块页脚"
+  ],
+  "useCases": ["领券后下单", "满减券选择器", "会员专属券展示"],
+  "notes": [
+    "写入的键是 BusKeys.couponApplied（coupon.applied）；只写不订阅，因此不会引起自身重渲染。",
+    "本插件不校验 minAmount / expiry，门槛判断由消费方（PriceCalculator）负责 —— 直接套用不满足门槛的券会算出负价。",
+    "选券状态的唯一真相在总线上，卸载插件会丢；需要跨卡片保留请自行在外层持有。"
+  ]
+}

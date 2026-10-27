@@ -1,0 +1,50 @@
+{
+  "name": "ActionsPlugin",
+  "description": "页脚的操作按钮区：加入购物车 / 加入心愿单，状态写在卡片 state 上（cart / wishlist），并向外抛出 cart:change 事件。",
+  "since": "2.0.0",
+  "tags": ["interaction", "footer", "按钮"],
+  "config": [
+    {
+      "name": "showCartButton",
+      "type": "boolean",
+      "default": "true",
+      "description": "显示购物车按钮"
+    },
+    {
+      "name": "showWishlistButton",
+      "type": "boolean",
+      "default": "true",
+      "description": "显示心愿单按钮"
+    },
+    {
+      "name": "cartButtonText",
+      "type": "{ add: string; remove: string }",
+      "default": "{ add: \"加入购物车\", remove: \"移出购物车\" }",
+      "description": "购物车按钮在两种状态下的文案"
+    },
+    {
+      "name": "wishlistButtonText",
+      "type": "{ add: string; remove: string }",
+      "default": "{ add: \"加入心愿单\", remove: \"移出心愿单\" }",
+      "description": "心愿单按钮在两种状态下的文案"
+    },
+    {
+      "name": "renderCustomActions",
+      "type": "(context) => React.ReactNode",
+      "default": "-",
+      "description": "在所有按钮之后追加自定义操作区"
+    }
+  ],
+  "example": "const Card = withPlugins(CardCore, [\n  createActionsPlugin({\n    showWishlistButton: false,\n    cartButtonText: { add: \"立即抢购\", remove: \"取消\" },\n  }),\n]);",
+  "features": [
+    "按钮文案随 cart / wishlist 状态自动切换",
+    "点击后同时更新卡片 state 并 emit cart:change，便于外层接购物车",
+    "支持 renderCustomActions 追加业务按钮"
+  ],
+  "useCases": ["商品卡加购", "收藏 / 心愿单", "自定义「立即购买」"],
+  "notes": [
+    "state 是每张卡独立的，不做跨卡同步；购物车总量请在外层监听 cart:change 汇总。",
+    "renderCustomActions 收到的是插件上下文（含 state / bus / data），不是 React 组件，别在里面调 hook。",
+    "与 StatePlugin 同时启用时，state.cart 的初值由 StatePlugin 决定（false），按钮文案会在挂载后对齐。"
+  ]
+}

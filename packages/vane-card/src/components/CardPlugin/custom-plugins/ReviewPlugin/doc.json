@@ -1,0 +1,44 @@
+{
+  "name": "ReviewPlugin",
+  "description": "页脚评价区：星级 + 评分 + 评价数；可选开启用户打分与评论输入。",
+  "since": "2.0.0",
+  "tags": ["buy", "footer", "评价"],
+  "config": [
+    {
+      "name": "showRating",
+      "type": "boolean",
+      "default": "true",
+      "description": "显示星级与平均分"
+    },
+    {
+      "name": "showReviewCount",
+      "type": "boolean",
+      "default": "true",
+      "description": "显示评价条数"
+    },
+    {
+      "name": "enableUserReview",
+      "type": "boolean",
+      "default": "false",
+      "description": "开启用户打分与评论输入框"
+    },
+    {
+      "name": "onReviewSubmit",
+      "type": "(rating: number, comment: string) => void",
+      "default": "-",
+      "description": "提交回调，自己负责发请求"
+    }
+  ],
+  "example": "const Card = withPlugins(CardCore, [\n  createReviewPlugin({\n    enableUserReview: true,\n    onReviewSubmit: (rating, comment) => api.review({ rating, comment }),\n  }),\n]);\n\n// 评分数据来自 data.rating / data.ratingCount\n<Card data={{ rating: 4.6, ratingCount: 128 }} />;",
+  "features": [
+    "展示态与录入态共用一套星级，enableUserReview 关闭时零交互",
+    "评分四舍五入到整星，数字保留一位小数",
+    "用户打分/评论是独立组件内的局部状态，改它不会重渲染整张卡"
+  ],
+  "useCases": ["商品卡口碑展示", "晒单引导", "低分商品的差评预警"],
+  "notes": [
+    "data.rating 缺失时按 0 处理，会显示 0.0 与五颗空星 —— 无评价的商品建议关掉 showRating。",
+    "提交只回调、不落库，也不做必填校验；rating = 0 时也可以提交，请在回调里自行拦截。",
+    "priority 30，页脚内排在操作按钮（20）之后。"
+  ]
+}

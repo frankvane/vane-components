@@ -142,13 +142,19 @@
 
 > 统一动作（每批都要做）：换 import → 补 `doc.json`（name / description / since / tags / config / example / features / useCases / notes）→ `index.ts` 挂 `.meta` → 桶文件按 4 组注释。
 
-### C3.1 A 级 9 个（近零改动）
+### C3.1 A 级 9 个（近零改动）· ✅ 已完成
 
-- [ ] 写 `scripts/migrate-card-plugins.mjs`（参照 `scripts/migrate-plugins.mjs`）：路径改写 / `CardPlugin` → 领域类型 / CRLF→LF
-- [ ] display 3：Badge、UserTag、Hover
-- [ ] media 3：Video、Gallery（timer 补清理）、Responsive
-- [ ] buy 2：Coupon、Review；interaction 1：Actions
-- [ ] 每个插件 `doc.json` 的 `config` 从源码类型 + 工厂默认值抽取，一句话描述人工校对
+- [x] ~~写 `scripts/migrate-card-plugins.mjs`~~ —— **不需要**：C1 已整目录复制源码且 typecheck 通过，
+  路径/类型早已对齐，再写一次迁移脚本属空转（记录此偏差，避免后来人重复劳动）
+- [x] display 3：Badge、UserTag、Hover
+- [x] media 3：Video、Gallery（timer 已有 `clearInterval`，复核通过）、Responsive
+- [x] buy 2：Coupon、Review；interaction 1：Actions
+- [x] 每个插件 `doc.json` 的 `config` 从源码类型 + 工厂默认值抽取，一句话描述人工校对（9/9 通过 schema 校验）
+- [x] ~~`index.ts` 挂 `.meta`~~ —— **不做**：`scripts/generate-plugin-docs.mjs` 只读 `doc.json`，
+  没有 `.meta` 读取方；`doc.json` 即唯一真相，避免同一份信息两处维护
+- [x] 桶文件 `custom-plugins/index.ts` 按 media / buy / display / interaction / infra 五组重排（22 个，无遗漏）
+- [x] `test/plugins-a.test.tsx`：10 个用例逐个确认「真的渲染出来」（这批插件在新内核下从未跑过）
+
 
 ### C3.2 B 级 10 个（逐个，需改造）
 

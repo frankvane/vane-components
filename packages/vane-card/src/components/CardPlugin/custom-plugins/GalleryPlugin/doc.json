@@ -1,0 +1,93 @@
+{
+  "name": "GalleryPlugin",
+  "description": "图片/视频轮播头图：指示点、缩略图、点击放大，视频可插到指定位置。一张图时退化为静态图。",
+  "since": "2.0.0",
+  "tags": ["media", "header", "画廊"],
+  "config": [
+    {
+      "name": "images",
+      "type": "string[]",
+      "default": "[]",
+      "description": "图片地址列表；不填则读 data.images"
+    },
+    {
+      "name": "autoplay",
+      "type": "boolean",
+      "default": "false",
+      "description": "自动轮播（含视频时自动关闭，避免抢播）"
+    },
+    {
+      "name": "interval",
+      "type": "number",
+      "default": "3000",
+      "description": "轮播间隔（毫秒）"
+    },
+    {
+      "name": "showIndicators",
+      "type": "boolean",
+      "default": "true",
+      "description": "显示底部指示点"
+    },
+    {
+      "name": "enableZoom",
+      "type": "boolean",
+      "default": "false",
+      "description": "点击图片放大查看"
+    },
+    {
+      "name": "showThumbnails",
+      "type": "boolean",
+      "default": "true",
+      "description": "显示缩略图条"
+    },
+    {
+      "name": "style",
+      "type": "React.CSSProperties",
+      "default": "{}",
+      "description": "画廊容器样式"
+    },
+    {
+      "name": "videoSrc",
+      "type": "string",
+      "default": "-",
+      "description": "要插入的单个视频地址"
+    },
+    {
+      "name": "videoPoster",
+      "type": "string",
+      "default": "-",
+      "description": "视频封面"
+    },
+    {
+      "name": "videoIndex",
+      "type": "number",
+      "default": "末尾",
+      "description": "视频插入位置（从 1 开始），默认追加到末尾"
+    },
+    {
+      "name": "headerPosition",
+      "type": "\"before\" | \"after\"",
+      "default": "\"before\"",
+      "description": "放在卡片主体之前还是之后"
+    },
+    {
+      "name": "order",
+      "type": "number",
+      "default": "0",
+      "description": "同区域内的排序权重（越小越前）"
+    }
+  ],
+  "example": "const Card = withPlugins(CardCore, [\n  createGalleryPlugin({\n    images: [\"/a.jpg\", \"/b.jpg\", \"/c.jpg\"],\n    videoSrc: \"/demo.mp4\",\n    videoIndex: 1,\n    enableZoom: true,\n  }),\n]);",
+  "features": [
+    "单图自动退化为静态图，不渲染指示点与缩略图",
+    "含视频时强制关闭自动轮播，防止视频被切走",
+    "手动翻页后停止自动轮播，把控制权交还用户",
+    "进入画廊后向 bus 写 media.handledByGallery，VideoPlugin 据此让位"
+  ],
+  "useCases": ["服饰多角度图", "3C 产品的图片 + 演示视频", "家具场景图"],
+  "notes": [
+    "定时器在副作用返回里清理，组件卸载/切换不残留 interval。",
+    "videoIndex 从 1 开始计数；超出范围时按追加处理。",
+    "图片地址失效时没有兜底占位（按 D1-A 已把图片能力降级为占位，需要懒加载/兜底请用 vane-lazy-image）。"
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "name": "UserTagPlugin",
+  "description": "在图片右下角叠加一组用户标签（如「宝妈首选」「回购 3 次」），超量自动截断。",
+  "since": "2.0.0",
+  "tags": ["display", "overlay", "标签"],
+  "config": [
+    {
+      "name": "tags",
+      "type": "UserTag[]",
+      "default": "[]",
+      "description": "标签列表；data.tags 有值时以数据为准"
+    },
+    {
+      "name": "maxTags",
+      "type": "number",
+      "default": "3",
+      "description": "最多展示几个，超出直接丢弃（不做省略号）"
+    }
+  ],
+  "example": "const Card = withPlugins(CardCore, [\n  createUserTagPlugin({\n    tags: [{ label: \"回购 3 次\" }, { label: \"宝妈首选\", color: \"#ffe0b2\" }],\n    maxTags: 2,\n  }),\n]);",
+  "features": [
+    "data.tags 优先于 config.tags，便于按商品动态给标签",
+    "标签自带颜色，未指定时用浅灰底",
+    "无标签时不渲染"
+  ],
+  "useCases": ["个性化推荐理由", "复购 / 收藏行为标签", "人群圈选标签"],
+  "notes": [
+    "标签过多会挤压图片可视区，maxTags 建议 ≤3。",
+    "priority 35，高于徽章（15），两者同在右下角时标签在上层。"
+  ]
+}

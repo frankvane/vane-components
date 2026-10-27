@@ -1,0 +1,38 @@
+{
+  "name": "ResponsivePlugin",
+  "description": "按容器宽度切换布局方向与容器样式：手机/平板竖向、桌面横向，并在容器上写 data-layout 供 CSS 选择器使用。",
+  "since": "2.0.0",
+  "tags": ["media", "responsive", "布局"],
+  "config": [
+    {
+      "name": "breakpoints",
+      "type": "{ mobile: number; tablet: number; desktop: number }",
+      "default": "{ mobile: 600, tablet: 900, desktop: 1200 }",
+      "description": "三档宽度阈值（px），按容器实际宽度判断"
+    },
+    {
+      "name": "layouts",
+      "type": "{ mobile?: \"vertical\" | \"horizontal\"; tablet?: ...; desktop?: ... }",
+      "default": "{ mobile: \"vertical\", tablet: \"vertical\", desktop: \"horizontal\" }",
+      "description": "各档位的布局方向"
+    },
+    {
+      "name": "containerStyles",
+      "type": "{ mobile?: CSSProperties; tablet?: CSSProperties; desktop?: CSSProperties }",
+      "default": "{}",
+      "description": "各档位注入到容器的内联样式"
+    }
+  ],
+  "example": "const Card = withPlugins(CardCore, [\n  createResponsivePlugin({\n    breakpoints: { mobile: 480, tablet: 768, desktop: 1024 },\n    layouts: { mobile: \"vertical\", tablet: \"horizontal\", desktop: \"horizontal\" },\n  }),\n]);",
+  "features": [
+    "按容器宽度而非视口宽度判断，同一页面可混排不同尺寸卡片",
+    "在容器上写 data-layout，配套 CSS 用 [data-layout=\"horizontal\"] 精准命中",
+    "切换布局时自动加 0.2s 过渡"
+  ],
+  "useCases": ["PC / 移动端共用一套卡片", "侧边栏窄卡与主区宽卡并存", "响应式商品墙"],
+  "notes": [
+    "改的是容器的内联样式与属性，样式优先级高于外部 class，需要外部覆盖时要显式写 !important。",
+    "containerStyles 是按档位整体 Object.assign，多次切换不会自动回滚上一档的样式 —— 想让样式互斥，请给每档写全字段。",
+    "与 HoverPlugin 的 transform 冲突时以后执行的为准，二者都在 transformProps 层，建议只保留一个负责动画。"
+  ]
+}

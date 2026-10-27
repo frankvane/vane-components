@@ -1,0 +1,43 @@
+{
+  "name": "BadgePlugin",
+  "description": "在卡片角落渲染一枚角标（甄选 / 热卖 / 新品 / 促销）。config 优先，未配置时回落到数据里的 badge 与 badgeType 字段。",
+  "since": "2.0.0",
+  "tags": ["display", "overlay", "角标"],
+  "config": [
+    {
+      "name": "text",
+      "type": "string",
+      "default": "-",
+      "description": "角标文案；不填则读 data.badge"
+    },
+    {
+      "name": "type",
+      "type": "\"premium\" | \"hot\" | \"new\" | \"sale\" | \"default\"",
+      "default": "\"default\"",
+      "description": "配色，对应金 / 橙 / 绿 / 红 / 灰；不填则读 data.badgeType"
+    },
+    {
+      "name": "position",
+      "type": "\"top-left\" | \"top-right\" | \"bottom-left\" | \"bottom-right\"",
+      "default": "\"top-right\"",
+      "description": "角标贴哪个角"
+    },
+    {
+      "name": "customStyle",
+      "type": "React.CSSProperties",
+      "default": "{}",
+      "description": "覆盖默认样式（默认配色之后合并）"
+    }
+  ],
+  "example": "const Card = withPlugins(CardCore, [\n  createBadgePlugin({ text: \"甄选\", type: \"premium\" }),\n]);\n\n// 也可以在数据里给，config 不写文案时生效\n<Card data={{ badge: \"限时\", badgeType: \"sale\" }} />;",
+  "features": [
+    "config 与 data 双来源，config 优先",
+    "文案为空时整块不渲染（不留空壳节点）",
+    "只占 overlay 层，不影响正文布局"
+  ],
+  "useCases": ["商品列表的「甄选 / 自营」标识", "限时促销角标", "新品标记"],
+  "notes": [
+    "priority 15，低于库存/倒计时类告警角标；同时开启时后者会盖在上面。",
+    "同一张卡只建议用一个 BadgePlugin，多个会叠在同一个角。"
+  ]
+}
