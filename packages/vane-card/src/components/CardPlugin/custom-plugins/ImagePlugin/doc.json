@@ -1,0 +1,51 @@
+{
+  "name": "ImagePlugin",
+  "description": "商品主图（占位实现）：固定 1:1、加载前可占位、失败可兜底；选中变体带图时自动换图。要真正的懒加载/模糊占位请用 vane-lazy-image。",
+  "since": "2.0.0",
+  "tags": ["media", "header", "图片"],
+  "config": [
+    {
+      "name": "src",
+      "type": "string",
+      "default": "-",
+      "description": "固定封面图；不填则依次取变体图、data.image"
+    },
+    {
+      "name": "alt",
+      "type": "string",
+      "default": "data.name 或「商品图片」",
+      "description": "替代文本"
+    },
+    {
+      "name": "lazyLoad",
+      "type": "boolean",
+      "default": "false",
+      "description": "只透传给 <img loading>，不做真正的懒加载（已废弃，见 notes）"
+    },
+    {
+      "name": "placeholder",
+      "type": "React.ReactNode",
+      "default": "-",
+      "description": "加载完成前显示的内容"
+    },
+    {
+      "name": "errorFallback",
+      "type": "React.ReactNode",
+      "default": "-",
+      "description": "加载失败时替换整张图的内容"
+    }
+  ],
+  "example": "const Card = withPlugins(CardCore, [\n  createImagePlugin({\n    placeholder: <Skeleton />,\n    errorFallback: <span>图片暂不可用</span>,\n  }),\n]);\n\n// 变体带图时主图自动跟随：variants 里给 image 即可\ncreateSKUPlugin({ attributes, variants: [{ sku: \"R\", attrs: { 颜色: \"红\" }, image: \"/red.jpg\" }] });",
+  "features": [
+    "src 优先级：config.src > 选中变体图 > data.image",
+    "订阅 skuVariant，切规格后主图实时更换",
+    "加载完成前显示 placeholder，完成后淡入（0.2s）",
+    "加载失败时整块换成 errorFallback（旧版是恒 display:none 的死代码，只会留一块空白灰底）"
+  ],
+  "useCases": ["商品列表主图", "变体换图", "图片加载失败兜底"],
+  "notes": [
+    "D1-A 决策：本项目不再自带图片优化能力，ImagePlugin 只保证「有图、有比例、有兜底」。懒加载/自适应尺寸/模糊占位请交给 vane-lazy-image。",
+    "lazyLoad 只是给 <img> 加 loading 属性，浏览器支持程度不同，不要据此认为已实现懒加载。",
+    "placeholder 在图片加载完成（onLoad）后移除；若图片来源被缓存直接命中，onLoad 仍会触发，不会一直停在占位态。"
+  ]
+}

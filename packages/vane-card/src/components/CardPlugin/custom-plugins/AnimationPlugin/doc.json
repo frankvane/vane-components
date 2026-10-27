@@ -1,0 +1,20 @@
+{
+  "name": "AnimationPlugin",
+  "description": "入场动画：挂载时淡入 + 上移 20px。尊重系统「减弱动效」偏好，卸载时清理定时器并复原内联样式。",
+  "since": "2.0.0",
+  "tags": ["display", "animation", "动效"],
+  "config": [],
+  "example": "const Card = withPlugins(CardCore, [\n  createAnimationPlugin(),\n  createImagePlugin(),\n  createBadgePlugin({ text: \"新品\" }),\n]);",
+  "features": [
+    "挂载后 100ms 开始，500ms 内淡入并从 translateY(20px) 归位",
+    "prefers-reduced-motion: reduce 时完全不动画（不写任何内联样式）",
+    "卸载时 clearTimeout 并把 opacity / transform 复原，容器复用时不会「隐形」"
+  ],
+  "useCases": ["列表首屏的入场节奏", "瀑布流/网格的加载观感"],
+  "notes": [
+    "无配置项（工厂不接收参数），要调节奏只能改源码里的 DURATION_MS / DELAY_MS / OFFSET_PX。",
+    "priority 1（最低）意味着 onMount 最后执行：入场动画会盖掉其它插件在 onMount 里写的内联 opacity/transform。",
+    "HoverPlugin 的放大是在 hover 事件时才写 transform，那时入场动画已结束，两者不冲突；但连续 hover 与入场动画重叠会有轻微抖动，同屏建议只留一个负责 transform。",
+    "动画用的是内联 style 而非 CSS 变量，和 D4-B 的样式抽取不是同一套机制；需要主题化时先还原成 class。"
+  ]
+}

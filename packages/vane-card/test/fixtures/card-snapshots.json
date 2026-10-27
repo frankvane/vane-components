@@ -35,6 +35,8 @@
         "SKUPlugin"
       ],
       "readers": [
+        "ImagePlugin",
+        "InventoryPlugin",
         "QuantityPlugin"
       ]
     },

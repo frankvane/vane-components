@@ -1,0 +1,33 @@
+{
+  "name": "InventoryPlugin",
+  "description": "库存状态：无货盖「已售罄」蒙层，低库存角标提示。库存口径与 QuantityPlugin 一致（选中变体库存优先）。",
+  "since": "2.0.0",
+  "tags": ["buy", "overlay", "库存"],
+  "config": [
+    {
+      "name": "lowStockThreshold",
+      "type": "number",
+      "default": "5",
+      "description": "低库存阈值，库存 ≤ 该值且 > 0 时显示「库存紧张」"
+    },
+    {
+      "name": "showOverlayWhenSoldOut",
+      "type": "boolean",
+      "default": "true",
+      "description": "无货时是否盖蒙层"
+    }
+  ],
+  "example": "const Card = withPlugins(CardCore, [\n  createSKUPlugin({ attributes, variants }),\n  createInventoryPlugin({ lowStockThreshold: 3 }),\n]);",
+  "features": [
+    "库存口径：选中变体 stock > data.inventory > 0",
+    "订阅 skuVariant，切换规格后售罄/紧张状态实时变化",
+    "售罄蒙层与低库存角标互斥（售罄时只盖蒙层）",
+    "库存充足时不渲染任何节点"
+  ],
+  "useCases": ["售罄置灰", "仅剩 N 件提醒", "预售/补货提示"],
+  "notes": [
+    "旧版只看 data.inventory，会和 QuantityPlugin 的口径打架（选了缺货规格时数量变 0，但卡片不显示售罄）；现已统一，两面同时看变体库存。",
+    "低库存角标过去挂在已删除的 renderBadge 钩子上，从来没显示过；C2 起并入 renderOverlay。",
+    "本插件只做展示，不阻止加购 —— 需要「售罄不可加购」请配合 ActionsPlugin 关闭按钮或自行在 renderCustomActions 判断。"
+  ]
+}

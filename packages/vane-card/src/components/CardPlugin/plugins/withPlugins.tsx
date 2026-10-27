@@ -23,6 +23,7 @@ import React, {
   forwardRef,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
 } from "react";
 import {
@@ -73,8 +74,23 @@ export function withPlugins<T = any>(
       const coreRef = useRef<CardCoreRef | null>(null);
       const transformedPropsRef = useRef<CardCoreProps<T>>(props);
 
-      // 插件数组 → 内核插件：结构兼容，类型用 any 桥接（领域钩子靠 extendContext 注入领域上下文）
-      const kernelPlugins = plugins as any;
+      // 插件数组 → 内核插件。
+      // 领域字段适配：vane-card 的公开配置叫 headerPosition（before/after），
+      // 内核认的是 config.slotPosition，这里做一次映射；不做的话 headerPosition
+      // 会被内核忽略，所有头部插件都落到默认的 after 段。
+      const kernelPlugins = useMemo(
+        () =>
+          plugins.map((p) => {
+            const hp = (p.config as { headerPosition?: string } | undefined)
+              ?.headerPosition;
+            if (hp !== "before" && hp !== "after") return p as any;
+            return {
+              ...p,
+              config: { ...(p.config as object), slotPosition: hp },
+            } as any;
+          }),
+        [plugins]
+      );
 
       // 领域上下文扩展：在内核 context 基础上附加卡片专属字段
       // 返回类型放宽到 any：内核要求返回 PluginContext，而领域 CardPluginContext 是
