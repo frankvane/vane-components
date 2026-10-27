@@ -26,6 +26,7 @@ export const meta: ScenarioMeta = {
   id: "sku-detail",
   title: "SKU 联动商详",
   group: "商详",
+  industry: "通用",
   ref: { label: "规格选择 + 价格联动", url: "https://github.com/frankvane/vane-components" },
   pain: "选规格之后价格、库存、主图三处都要变，手写时总会漏掉一处。",
   plugs: [

@@ -40,6 +40,12 @@ export const GROUPS: string[] = SCENARIOS.reduce<string[]>((acc, s) => {
   return acc;
 }, []);
 
+/** 行业（按首次出现顺序）。"通用" 永远排第一，它是基线，不是某个行业 */
+export const INDUSTRIES: string[] = SCENARIOS.reduce<string[]>((acc, s) => {
+  if (!acc.includes(s.meta.industry)) acc.push(s.meta.industry);
+  return acc;
+}, []).sort((a, b) => (a === "通用" ? -1 : b === "通用" ? 1 : 0));
+
 /** 全部场景用到的插件工厂（去重，供总览统计与校验脚本核对） */
 export const USED_PLUGINS: string[] = Array.from(
   new Set(SCENARIOS.flatMap((s) => s.meta.plugs.map((p) => p.fn)))

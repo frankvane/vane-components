@@ -18,7 +18,7 @@ const LayoutsPage = lazy(() =>
 const NAV = [
   { to: "/", no: "01", label: "总览", hint: "overview" },
   { to: "/plugins", no: "02", label: "插件工坊", hint: "22 plugins" },
-  { to: "/scenarios", no: "03", label: "场景示例", hint: "10 plates" },
+  { to: "/scenarios", no: "03", label: "场景示例", hint: "16 plates" },
   { to: "/layouts", no: "04", label: "布局专区", hint: "9 layouts" },
 ];
 

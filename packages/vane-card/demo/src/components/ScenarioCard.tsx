@@ -28,6 +28,7 @@ export function ScenarioCard({ entry }: { entry: ScenarioEntry }) {
         <h3 className="scn-title">{meta.title}</h3>
         <div className="scn-head-meta">
           <code className="scn-id">{file}</code>
+          <span className="scn-industry">{meta.industry}</span>
           <a className="scn-ref" href={meta.ref.url} target="_blank" rel="noreferrer">
             {meta.ref.label} ↗
           </a>

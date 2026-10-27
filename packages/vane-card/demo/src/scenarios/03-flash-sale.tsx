@@ -21,6 +21,7 @@ export const meta: ScenarioMeta = {
   id: "flash-sale",
   title: "秒杀倒计时",
   group: "交易",
+  industry: "通用",
   ref: { label: "限时特卖卡形态", url: "https://github.com/frankvane/vane-components" },
   pain: "倒计时、库存告警、折扣价三个催促点同时存在时，很容易互相遮挡或互相打断。",
   plugs: [

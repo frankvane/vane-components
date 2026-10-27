@@ -19,6 +19,7 @@ export const meta: ScenarioMeta = {
   id: "mobile-swipe",
   title: "移动端横滑卡",
   group: "列表",
+  industry: "通用",
   ref: { label: "横滑商品位", url: "https://github.com/frankvane/vane-components" },
   pain: "同一个商品卡，放在主图位、侧栏、横滑位宽度差 3 倍，媒体查询写死就会错位。",
   plugs: [

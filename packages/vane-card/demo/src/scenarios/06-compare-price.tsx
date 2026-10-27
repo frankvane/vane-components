@@ -18,6 +18,7 @@ export const meta: ScenarioMeta = {
   id: "compare-price",
   title: "比价",
   group: "商详",
+  industry: "通用",
   ref: { label: "多渠道比价", url: "https://github.com/frankvane/vane-components" },
   pain: "用户先在别处比价再回来下单，页面却假装自己最便宜 —— 一旦被识破就失去信任。",
   plugs: [

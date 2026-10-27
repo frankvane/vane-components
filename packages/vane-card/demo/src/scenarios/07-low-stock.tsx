@@ -21,6 +21,7 @@ export const meta: ScenarioMeta = {
   id: "low-stock",
   title: "低库存告警",
   group: "交易",
+  industry: "通用",
   ref: { label: "库存紧迫感", url: "https://github.com/frankvane/vane-components" },
   pain: "「仅剩 4 件」和步进器上限各写一遍，改一次库存要改两处，最后一定对不上。",
   plugs: [

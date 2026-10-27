@@ -22,6 +22,7 @@ export const meta: ScenarioMeta = {
   id: "video-detail",
   title: "视频商详",
   group: "商详",
+  industry: "通用",
   ref: { label: "视频首屏", url: "https://github.com/frankvane/vane-components" },
   pain: "户外 / 家电类商品，图片说不清「用起来什么感觉」，但自动播视频又会被骂。",
   plugs: [

@@ -8,21 +8,29 @@
  * 结果直接列在页面上 —— 几何问题只有真实布局引擎能发现，肉眼逐卡看会漏。
  */
 import React, { useCallback, useMemo, useState } from "react";
-import { GROUPS, SCENARIOS, USED_PLUGINS } from "../scenarios/catalog";
+import { GROUPS, INDUSTRIES, SCENARIOS, USED_PLUGINS } from "../scenarios/catalog";
 import { ScenarioCard } from "../components/ScenarioCard";
 import { auditCards, summarize, type AuditIssue } from "../lib/audit";
 
 export function ScenariosPage() {
   const [group, setGroup] = useState<string>("全部");
+  const [industry, setIndustry] = useState<string>("全部");
   const [issues, setIssues] = useState<AuditIssue[] | null>(null);
   const [running, setRunning] = useState(false);
 
+  /** 两个维度叠加：形态（列表/商详/交易/内容）× 行业（生鲜/3C/美妆…） */
   const list = useMemo(
-    () => (group === "全部" ? SCENARIOS : SCENARIOS.filter((s) => s.meta.group === group)),
-    [group]
+    () =>
+      SCENARIOS.filter(
+        (s) =>
+          (group === "全部" || s.meta.group === group) &&
+          (industry === "全部" || s.meta.industry === industry)
+      ),
+    [group, industry]
   );
 
   const tabs = ["全部", ...GROUPS];
+  const industries = ["全部", ...INDUSTRIES];
 
   const runAudit = useCallback(() => {
     setRunning(true);
@@ -40,8 +48,9 @@ export function ScenariosPage() {
           <p className="eyebrow">plates · 版式索引</p>
           <h2 className="page-title">场景示例</h2>
           <p className="page-sub">
-            {SCENARIOS.length} 个真实场景，全部可交互（选规格、领券、改数量、悬停播放都真的能用）。
-            每张卡右边有「最小装配」和「完整源码」两份代码，都能直接复制。
+            {SCENARIOS.length} 个真实场景，覆盖 {INDUSTRIES.length} 类平台（通用电商 + 生鲜 / 3C / 美妆 /
+            家居 / 票务 / 课程）。生鲜按重量卖、3C 版本组合要比价、票务按场次票档 ——
+            换个行业，卡的形状就变了。全部可交互，每张右边有「最小装配」和「完整源码」。
           </p>
         </div>
         <div className="page-facts">
@@ -50,8 +59,8 @@ export function ScenariosPage() {
             <span>plates</span>
           </div>
           <div>
-            <b>{GROUPS.length}</b>
-            <span>groups</span>
+            <b>{INDUSTRIES.length}</b>
+            <span>industries</span>
           </div>
           <div>
             <b>{USED_PLUGINS.length}</b>
@@ -82,6 +91,31 @@ export function ScenariosPage() {
         <button type="button" className="scn-tab scn-tab-audit" onClick={runAudit} disabled={running}>
           {running ? "体检中…" : "体检全部"}
         </button>
+      </div>
+
+      {/* 行业是第二维：形态回答「链路哪一段」，行业回答「哪种平台」 */}
+      <div className="scn-tabs scn-tabs--industry">
+        <span className="scn-tabs-label">行业</span>
+        {industries.map((ind) => {
+          const count =
+            ind === "全部"
+              ? SCENARIOS.length
+              : SCENARIOS.filter((s) => s.meta.industry === ind).length;
+          return (
+            <button
+              key={ind}
+              type="button"
+              className={`scn-tab scn-tab-sm${industry === ind ? " is-active" : ""}`}
+              onClick={() => {
+                setIndustry(ind);
+                setIssues(null);
+              }}
+            >
+              {ind}
+              <span className="n">{count}</span>
+            </button>
+          );
+        })}
       </div>
 
       {issues ? (

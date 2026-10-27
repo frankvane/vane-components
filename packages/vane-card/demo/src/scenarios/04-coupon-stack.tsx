@@ -20,6 +20,7 @@ export const meta: ScenarioMeta = {
   id: "coupon-stack",
   title: "券叠加到手价",
   group: "交易",
+  industry: "通用",
   ref: { label: "券包 + 到手价", url: "https://github.com/frankvane/vane-components" },
   pain: "用户算不清「用券后多少钱」，客服也答不上来 —— 因为三个地方各算了一遍。",
   plugs: [

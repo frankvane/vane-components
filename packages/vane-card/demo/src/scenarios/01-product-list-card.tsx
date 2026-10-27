@@ -21,6 +21,7 @@ export const meta: ScenarioMeta = {
   id: "product-list-card",
   title: "商品列表卡",
   group: "列表",
+  industry: "通用",
   ref: { label: "通用电商列表卡形态", url: "https://github.com/frankvane/vane-components" },
   pain: "列表里一张卡要同时表达「长什么样、多少钱、有什么标签、能不能点」，但每项来源不同。",
   plugs: [

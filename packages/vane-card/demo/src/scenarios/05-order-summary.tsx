@@ -19,6 +19,7 @@ export const meta: ScenarioMeta = {
   id: "order-summary",
   title: "订单摘要",
   group: "交易",
+  industry: "通用",
   ref: { label: "结算页摘要", url: "https://github.com/frankvane/vane-components" },
   pain: "明细行加起来和合计对不上 —— 因为合计是「另一个函数」算的。",
   plugs: [

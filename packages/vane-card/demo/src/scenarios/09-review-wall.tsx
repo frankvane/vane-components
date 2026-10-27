@@ -19,6 +19,7 @@ export const meta: ScenarioMeta = {
   id: "review-wall",
   title: "评论墙",
   group: "内容",
+  industry: "通用",
   ref: { label: "UGC 卡片墙", url: "https://github.com/frankvane/vane-components" },
   pain: "一屏十几张卡同时存在，最容易出的是「状态串了」和「悬停时全部一起动」。",
   plugs: [
