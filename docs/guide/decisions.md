@@ -309,3 +309,39 @@
 复现：`esbuild dist/index.js --bundle --minify --format=esm --packages=external` 后 gzip。
 `dist` 的三条硬闸门（`import("pkg")` 原样保留 / 无整库内联标识 / raw 单文件 ≤60KB、总量 ≤220KB、桶 ≤140KB）
 仍由 `test/dist-external.test.ts` 断言，与上面这张表不是同一件事。
+
+## ADR-17 · 文件预览领域层收口：11 钩子面、纯函数路由、optional peer、主题收敛
+
+**背景**：ADR-16 定了 vane-file-preview 的迁移总方向（17 插件全留、optional peer、单赢家路由、内核内联）。
+但「领域层到底暴露哪些能力、路由放哪、主题怎么收敛」在 ADR-16 里是散落的，落地时又补了几条独立判断，这里汇总成一篇，防止后人各自发挥。
+
+**决定**：
+
+1. **钩子面收口到 11（迁移前 17）**，只保留有真实调用点的钩子。
+   - 领域 6（由 `withPlugins` 直接调）：`canHandle` / `render` / `renderToolbar` / `onLoadStart` / `onLoadSuccess` / `onLoadError`；
+   - 内核 5（重声明为领域 context，语义不变）：`onMount` / `onUnmount` / `renderOverlay` / `transformData` / `onError`；
+   - 逃生口 `priorityOf(file)`（非钩子，仅 `OfficePreviewPlugin` 需要按文件算优先级）。
+   - 被删的 6 个（`onBeforeLoad` / `onLoadProgress` / `onDownload` / `onZoom` / `onRotate` / `onFullscreen`）在旧实现里 0 调用点；其中 `onZoom` / `onRotate` 是被图片/PDF 工具栏内部状态吸收的，不进插件钩子面。
+   - 新增钩子必须同时有「调用点 + 单测」，否则不进 `FilePreviewPluginHooks`。
+
+2. **路由是包内纯函数 `resolvePreview(plugins, file)`，不放进 `withPlugins` 内部逻辑。**
+   - 无 React 依赖，可脱离 DOM 单测（30 种真实文件 × 17 插件，正序 + 反转赢家必须一致）；
+   - 排序键固定为 `priority 降序 → matchStrength 降序 → 声明顺序`，`matchStrength` 把「认不认」拆成 2（canHandle 命中 / MIME 命中）与 1（仅扩展名命中），同 priority 时 MIME 命中压过「只有扩展名像」。
+
+3. **重依赖一律 optional peer，`dependencies: {}`**，缺失是「可渲染状态」而非崩溃。
+   - 16 个包声明为 `peerDependenciesMeta.*.optional`，只列代码里真实 import 的集合；
+   - 全部走动态 `import()`，失败时 `shared/panels.tsx` 的 `MissingDependency` 渲染「包名 + `npm i <pkg>` + 备选方案 + 折叠错误原文」，**不白屏**；
+   - 约束顺带成立：`render` / `renderToolbar` 里不许有 hooks（加载依赖的副作用由 `useDynamicModule` 钩子承担，插件正文只读它的 `status`），否则赢家一换就抛 "Rendered fewer hooks than expected"。
+
+4. **主题收敛到「跟随系统 + 三选一」**，不再提供九选一配色。
+   - 所有带主题概念的插件（Code / Json / Xml / Markdown）只暴露 `theme: "auto" | "light" | "dark"`，`auto` 按 `prefers-color-scheme` 解析并监听变化；
+   - Code 的高亮主题从「41 套 prism 主题桶」收敛到 `one-light` + `vsc-dark-plus` + `auto`（一个主题桶实测拖出 792KB chunk）；
+   - 偏好持久化统一键前缀 `vane-file-preview:`，且 `storage: false` 时全 noop —— 组件库不经允许不该写宿主存储。
+
+**代价与边界**：
+
+- 11 钩子比 17 少了表达能力，但那 6 个被删钩子本来就没被执行，删掉只是让「写了不生效」的假象消失；
+- optional peer 把「装包即全能力」变成「预览前先装 peer」，代价由文档的「按文件类型装依赖」表兜底；
+- 主题三选一牺牲了定制深度，但换来了零额外体积与一致的深浅色行为，对「预览组件」这个定位是合理的。
+
+**验证**：`test/routing-all.test.ts`（路由赢家一致性）、`test/dist-external.test.ts`（optional peer 降级 + 体积）、各插件 `doc.json` notes（边界提示）、`test/with-plugin-hooks.test.tsx`（11 钩子逐一有调用点与断言）。

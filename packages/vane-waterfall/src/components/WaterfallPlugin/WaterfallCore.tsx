@@ -11,7 +11,7 @@
  *  - 不内置任何业务行为（分组、吸顶、拖拽、埋点都在插件里）；
  *  - 不接管渲染内容（`renderItem` 由调用方给，插件可通过 `renderItemWrapper` 包一层）。
  *
- * 相对旧实现（archive-plugins/vane-waterfall）的改动：
+ * 相对旧实现（旧仓库/vane-waterfall）的改动：
  *  - 布局抽成纯函数 `layout.ts`，支持 D1-A 三个布局钩子；
  *  - 新增 `virtualize`（D2-A），只裁渲染不裁布局；
  *  - 项级 ResizeObserver 在容器卸载时统一 disconnect（旧版只靠 ref 回调传 null）；

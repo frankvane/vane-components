@@ -26,6 +26,20 @@ function configCell(config) {
 }
 
 /**
+ * 描述列转义：插件描述里常出现原生标签名（`<audio>` / `<img>` / `<video>` / `<iframe>` /
+ * `<embed>`），而 docs 站的 markdown 经 Vue 模板编译器处理，会把裸 `<audio>` 当成真实
+ * HTML 元素、又找不到闭合标签，直接 `Element is missing end tag` 挂掉整站构建。
+ * 这里只转义 `<` `>` `&` 三类，markdown 内联语法（反引号 / `**`）不受影响；
+ * 配置列保留 `<br/>`（那是表格换行的真实 HTML，且自闭合，编译器认）。
+ */
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+/**
  * 从源码里取 priority。
  *
  * 它是「行为」不是「文档」，正文放在 doc.json 里会与实现分叉（改代码忘改文档）。
@@ -93,7 +107,7 @@ for (const dir of dirs) {
     rows.push({
       cells: [
         `[${doc.name}](./${pd.name})`,
-        doc.description,
+        escapeHtml(doc.description),
         configCell(doc.config),
         doc.since ?? "-",
         (doc.tags ?? []).join(", "),

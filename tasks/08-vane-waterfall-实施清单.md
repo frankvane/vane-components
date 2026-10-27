@@ -2,7 +2,7 @@
 
 > 用法：每完成一项打勾；**每个阶段末尾有验收门，不过门不进下一阶段**。
 > 关联：事实基线与决策项见 `tasks/07-vane-waterfall-迁移分析.md`；样板范式见 `tasks/02-实施清单.md`（P1 lazy-image）
-> 前置状态：`archive-plugins/vane-waterfall` 只读快照（未跟踪进主仓，自带 `.git`），**不可运行、不可重建**（`tsc -b` exit=2）
+> 前置状态：`旧仓库/vane-waterfall` 只读快照（未跟踪进主仓，自带 `.git`），**不可运行、不可重建**（`tsc -b` exit=2）
 
 ---
 
@@ -26,7 +26,7 @@
 | 指标 | 旧仓实测 | 复现命令 |
 | --- | --- | --- |
 | 可运行性 | **不可运行**：35/40 demo 页 `import from "vane-waterfall"`，`dist/` 不存在、`node_modules/vane-waterfall` 自链接不存在 | — |
-| 可构建性 | **不可构建**：`tsc -b` **exit=2**，66 个类型错误（38 找不到 `vane-waterfall` + 28 隐式 any） | `cd archive-plugins/vane-waterfall && npx tsc -b` |
+| 可构建性 | **不可构建**：`tsc -b` **exit=2**，66 个类型错误（38 找不到 `vane-waterfall` + 28 隐式 any） | `cd 旧仓库/vane-waterfall && npx tsc -b` |
 | 源码规模 | `.ts/.tsx` **8394 行 / 79 文件**：core 836、自建插件系统 1600、27 插件 1582、demo 4025、壳与入口 ~200、`src/index.ts` 41 | `find src -name "*.ts*" \| xargs wc -l` |
 | 插件数 | **27**（A 14 / B 11 / C 2） | `ls src/components/WaterfallPlugin/custom-plugins` |
 | 钩子面 | 声明 **48**，实际有调用点 **17**，死钩子 **31** | 见 07 · 4.5 |

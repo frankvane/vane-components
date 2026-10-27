@@ -1,7 +1,7 @@
 # 11 · vane-card 迁移分析（资产盘点 / 架构差距 / 逐插件分级）
 
 > 状态：**决策已锁定（D1–D5 见第六章标注）· 迁移进行中（C1 起）**（本文不改任何代码）
-> 基线：`archive-plugins/vane-card`（`package.json` 1.0.8，npm 已发布 1.0.8，解包 381KB），本机实测于 2026-10-27
+> 基线：`旧仓库/vane-card`（`package.json` 1.0.8，npm 已发布 1.0.8，解包 381KB），本机实测于 2026-10-27
 > 参照范式：`packages/vane-lazy-image`（P1 样板包）+ `packages/vane-waterfall`（P2 已完成的同类迁移）+ `tasks/07` / `tasks/08`
 > 实施步骤见 `tasks/12-vane-card-实施清单.md`
 
@@ -61,7 +61,7 @@
 ### 2.2 源码地图
 
 ```
-archive-plugins/vane-card/src/
+旧仓库/vane-card/src/
 ├── index.ts                                # 单入口：CardPlugin 全量导出 + 别名（withCardPlugins 等）
 ├── main.tsx / App.tsx / App.css            # demo 壳（App.tsx 343 行手写 52 条 <Route>）
 ├── components/CardPlugin/
@@ -157,7 +157,7 @@ archive-plugins/vane-card/src/
 ## 三、现状体检基线（可复现）
 
 ```bash
-cd archive-plugins/vane-card
+cd 旧仓库/vane-card
 npx tsc -b                                   # exit=0
 npx vite build --mode lib                    # 6.03s，index.es.js 151.83KB / 35.66KB gzip
 ls dist                                      # 存在（但含 404.jpg / vite.svg）

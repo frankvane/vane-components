@@ -6,7 +6,7 @@ import tseslint from "typescript-eslint";
 
 /**
  * 统一 lint 规则。
- * 与旧仓库（archive-plugins）的差异：
+ * 与旧仓库（旧仓库）的差异：
  *  - no-explicit-any 降为 warn（插件系统本身大量使用 any，但提示仍在）
  *  - no-unused-vars 恢复为 warn，避免历史包袱直接 FAIL CI
  *  - 明确放开 console（插件沙箱内部需要 console.warn）

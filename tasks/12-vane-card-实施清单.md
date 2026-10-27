@@ -2,7 +2,7 @@
 
 > 用法：每完成一项打勾；**每个阶段末尾有验收门，不过门不进下一阶段**。
 > 关联：事实基线与决策项见 `tasks/11-vane-card-迁移分析.md`；同类迁移的实操记录见 `tasks/08-vane-waterfall-实施清单.md`
-> 前置状态：`archive-plugins/vane-card` 只读快照（未跟踪进主仓，自带 `.git`），**可构建、类型全绿**（`tsc -b` exit=0、lib build 6.03s），但 demo 跑的是 npm 上的 1.0.8
+> 前置状态：`旧仓库/vane-card` 只读快照（未跟踪进主仓，自带 `.git`），**可构建、类型全绿**（`tsc -b` exit=0、lib build 6.03s），但 demo 跑的是 npm 上的 1.0.8
 
 ---
 
@@ -26,7 +26,7 @@
 
 | 指标 | 旧仓实测 | 复现命令 |
 | --- | --- | --- |
-| 可构建性 | **可构建**：`tsc -b` **exit=0**；`vite build --mode lib` 6.03s / 82 modules | `cd archive-plugins/vane-card && npx tsc -b && npx vite build --mode lib` |
+| 可构建性 | **可构建**：`tsc -b` **exit=0**；`vite build --mode lib` 6.03s / 82 modules | `cd 旧仓库/vane-card && npx tsc -b && npx vite build --mode lib` |
 | 产物体积 | ES 151.83KB / **35.66KB gzip**；UMD 97.57KB / 29.91KB gzip | 见上（building 输出） |
 | 源码规模 | **13174 行 / 129 文件**：core 258、自建插件系统 1154、22 插件 2444、compound 2772、demo 6126、壳与入口 420 | `find src -name "*.ts*" \| xargs cat \| wc -l` |
 | 插件数 | **22**（A 9 / B 10 / C 3） | `ls src/components/CardPlugin/custom-plugins` |

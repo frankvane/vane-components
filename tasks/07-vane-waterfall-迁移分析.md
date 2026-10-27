@@ -1,7 +1,7 @@
 # 07 · vane-waterfall 迁移分析（资产盘点 / 架构差距 / 逐插件分级）
 
 > 状态：**分析完成 · 待评审**（本文不改任何代码）
-> 基线：`archive-plugins/vane-waterfall`（`package.json` 1.0.4，npm 已发布 1.0.5），本机实测于 2026-10-26
+> 基线：`旧仓库/vane-waterfall`（`package.json` 1.0.4，npm 已发布 1.0.5），本机实测于 2026-10-26
 > 参照范式：`packages/vane-lazy-image`（P1 完成的样板包）+ `tasks/01` / `tasks/02`
 > 实施步骤见 `tasks/08-vane-waterfall-实施清单.md`
 
@@ -43,7 +43,7 @@
 ### 2.2 源码地图
 
 ```
-archive-plugins/vane-waterfall/src/
+旧仓库/vane-waterfall/src/
 ├── index.ts                                  # 单入口桶导出（Core + 插件系统 + 27 插件）
 ├── main.tsx / App.tsx / App.css              # demo 壳
 ├── components/WaterfallPlugin/
@@ -129,7 +129,7 @@ archive-plugins/vane-waterfall/src/
 ## 三、现状体检基线（可复现）
 
 ```bash
-cd archive-plugins/vane-waterfall
+cd 旧仓库/vane-waterfall
 npx tsc -b                       # exit=2，66 个错误
 [ -d dist ] || echo 无产物        # 无 dist
 [ -e node_modules/vane-waterfall ] || echo 无自链接

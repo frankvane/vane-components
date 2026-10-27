@@ -10,6 +10,7 @@
  *   zero-size      挂载点宽或高 ≤ 1px（父级没给高度；PDF/iframe 的经典死法）
  *   overflow       挂载点横向滚动条（内容比框宽）
  *   no-plugin      挂载点里是 Core 的「没有插件能预览这个文件」
+ *   squashed       `<audio controls>` 被压扁（< 24px）或被父级裁掉一部分
  *   page-overflow  整页比视口宽（网格被内容顶宽，通常是右栏的表格或长 token）
  *
  * 纵向溢出**不算问题**：预览正文本来就该能滚。
@@ -27,7 +28,7 @@
 export interface AuditIssue {
   /** 块锚点值：`[data-demo]` / `[data-plugin]` / `[data-scenario]` 的属性值 */
   block: string;
-  kind: "empty" | "zero-size" | "overflow" | "no-plugin" | "page-overflow";
+  kind: "empty" | "zero-size" | "overflow" | "no-plugin" | "squashed" | "page-overflow";
   detail: string;
 }
 
@@ -93,6 +94,28 @@ export function auditPreviews(root: ParentNode = document): AuditIssue[] {
           kind: "no-plugin",
           detail: "挂载点里是 Core 的「没有插件能预览这个文件」",
         });
+      }
+
+      // 原生音频控件高度由浏览器画（Chrome 54px）。被 flex 压扁之后时间轴与按钮
+      // 会被裁掉，而块和挂载点的尺寸全都正常 —— 上面每条判据都是绿的。
+      for (const media of Array.from(mount.querySelectorAll<HTMLMediaElement>("audio[controls]"))) {
+        const mb = media.getBoundingClientRect();
+        if (mb.height < 24) {
+          issues.push({
+            block: name,
+            kind: "squashed",
+            detail: `原生音频控件只剩 ${Math.round(mb.height)}px 高`,
+          });
+          continue;
+        }
+        const visible = Math.min(mb.bottom, box.bottom) - Math.max(mb.top, box.top);
+        if (visible < mb.height - TOL) {
+          issues.push({
+            block: name,
+            kind: "squashed",
+            detail: `音频控件被裁：可见 ${Math.round(visible)} / ${Math.round(mb.height)}px`,
+          });
+        }
       }
     }
   }

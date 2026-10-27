@@ -18,6 +18,7 @@
  *   zero-size  挂载点宽或高 ≤ 1px
  *   overflow   挂载点横向 scrollWidth > clientWidth
  *   no-plugin  挂载点里是 Core 的「没有插件能预览这个文件」（块在、尺寸正常，几何全绿）
+ *   squashed   `<audio controls>` 被压扁（< 24px）或被父级裁掉一部分
  *   page-overflow  整页 body 比视口宽（网格被内容顶宽，通常是右栏表格）
  *   lazy       滚到底之后仍有 `.ws-placeholder`（LazyMount 没触发）
  *
@@ -167,6 +168,25 @@ const AUDIT_JS = `(() => {
       // 不认 DownloadPlugin 的「没有插件能预览这种格式」（那是兜底插件的正常文案）。
       if (mount.textContent.indexOf("没有插件能预览这个文件") !== -1) {
         issues.push({ block: name, kind: "no-plugin", detail: "挂载点里是 Core 的「没有插件能预览这个文件」" });
+      }
+
+      // 原生音频控件：高度由浏览器画（Chrome 54px），一旦被 flex 压缩，
+      // 时间轴/按钮会被裁成一条两像素的细线 —— 块和挂载点尺寸全都正常，
+      // 上面所有判据都是绿的。实测踩过：逐项页压到 2.1px，工坊卡直接 0。
+      for (const media of mount.querySelectorAll("audio[controls]")) {
+        const mb = media.getBoundingClientRect();
+        if (mb.height < 24) {
+          issues.push({ block: name, kind: "squashed", detail: "原生音频控件只剩 " + Math.round(mb.height) + "px 高" });
+          continue;
+        }
+        const visible = Math.min(mb.bottom, box.bottom) - Math.max(mb.top, box.top);
+        if (visible < mb.height - TOL) {
+          issues.push({
+            block: name,
+            kind: "squashed",
+            detail: "音频控件被裁：可见 " + Math.round(visible) + " / " + Math.round(mb.height) + "px",
+          });
+        }
       }
     }
   }

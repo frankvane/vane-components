@@ -61,13 +61,3 @@ npm 不允许覆盖已发布版本，只能发一个更高的 patch 修复。所
 1. 发版后立刻在消费项目里装一次验证；
 2. 发现问题先 `npm deprecate <pkg>@<version>`，再发修复版。
 
-## 历史包袱：四个旧包的迁移
-
-`archive-plugins/` 下的四个仓库按以下顺序迁入本结构：
-
-1. `vane-lazy-image`（已有 peerDependencies，改动最小，作为样板）
-2. `vane-card`
-3. `vane-waterfall`
-4. `vane-file-preview`（依赖最重，需要把 pdfjs-dist 等做成可选 peer）
-
-迁移动作统一为：删本地插件系统 → 依赖 `@vane/plugin-core` → demo 依赖移入 devDependencies → 补 `doc.json` → 生成文档 → changeset 发 2.0.0（破坏性：子路径与导入方式变化）。

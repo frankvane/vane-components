@@ -1,7 +1,7 @@
 # 13 · vane-file-preview 迁移分析（资产盘点 / 架构差距 / 逐插件分级）
 
 > 状态：**分析完成 · 6 个决策待拍板**（本文不改任何代码）
-> 基线：`archive-plugins/vane-file-preview`（`package.json` 1.0.4，npm 已发布 **1.0.5**，解包 2.09MB / 38 文件），本机实测于 2026-10-27
+> 基线：`旧仓库/vane-file-preview`（`package.json` 1.0.4，npm 已发布 **1.0.5**，解包 2.09MB / 38 文件），本机实测于 2026-10-27
 > 参照范式：`packages/vane-lazy-image`（P1 样板）+ `packages/vane-waterfall`（P2）+ `packages/vane-card`（P3，四视角 demo 已跑通）+ `tasks/11` / `tasks/12`
 > 实施步骤见 `tasks/14-vane-file-preview-实施清单.md`
 
@@ -158,7 +158,7 @@ src/components/FilePreviewPlugin/
 
 ## 三、现状体检基线（可复现）
 
-在本机 `archive-plugins/vane-file-preview` 实测（依赖已装好）：
+在本机 `旧仓库/vane-file-preview` 实测（依赖已装好）：
 
 | 命令 | 结果 |
 | --- | --- |

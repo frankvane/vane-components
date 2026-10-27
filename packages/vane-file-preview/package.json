@@ -1,6 +1,6 @@
 {
   "name": "vane-file-preview",
-  "version": "1.0.5",
+  "version": "2.0.0",
   "description": "React 文件预览组件：17 个按文件类型路由的预览插件（图片 / PDF / Office / 音视频 / 代码 / Markdown / 数据 / 压缩包 / EPUB），重依赖全部 optional peer",
   "type": "module",
   "main": "./dist/index.js",

@@ -297,7 +297,7 @@ demo            13 个示例页 + Home + ReadmeDemo + _layout
   - 视觉照 `packages/vane-lazy-image/demo` 抄：琥珀橙 `#ff7a29` + 暖墨黑 `#0b0a09` + Chakra Petch/JetBrains Mono 自托管
   - **唯一的关键偏离**：新增一套 `--paper*` 灯箱令牌。文件预览的内容天生是白底（PDF 页、docx 纸面、Markdown 正文），
     暗场里直接放白底内容会糊成一片；外框仍是仪器暗色，形成「暗房里的灯箱」。理由写在 `App.css` 文件头
-- [x] **P5.2 样本资产**：`archive-plugins/vane-file-preview/public` 的 36 个根级真实文件（15MB）全部搬进 `demo/public/samples/`（**绝不进 dist**：`demo-dist/` 在 .gitignore 里，库产物无 samples）
+- [x] **P5.2 样本资产**：`旧仓库/vane-file-preview/public` 的 36 个根级真实文件（15MB）全部搬进 `demo/public/samples/`（**绝不进 dist**：`demo-dist/` 在 .gitignore 里，库产物无 samples）
   - 当前 39 个 = 归档 36 + 自建 3（`gbk-data.csv` GB18030 / `xss-demo.md` XSS 样本 / `fake-book.epub` zip 改名的假书）
   - 归档里的 `sample-epub/` 是**解压后的目录书**，本插件只吃单文件，故不搬（已记录）
   - 逐个真机点开确认：GIF / WebP / 两个 PDF / WebM / MP3 / WAV / package.json / 竖线 CSV / 混排 CSV 全部正常，控制台无错误
@@ -330,17 +330,17 @@ demo            13 个示例页 + Home + ReadmeDemo + _layout
 
 ## P6 · 文档 / README / 体积 / 发布
 
-- [ ] **P6.1** `docs/components/vane-file-preview/` 四件套
-  - [ ] `index.md`：卖点 + 安装 + 30 秒示例 + **按文件类型装依赖的表格**（这是本包最容易踩的坑）+ 插件速览 + 1.x 迁移差异
-  - [ ] `api.md`：`FilePreviewCoreProps` / `FilePreviewCoreRef` / 插件 context / **11 个钩子** / `resolvePreview` 契约
-  - [ ] `plugins.md`：17 个插件 × （职责 / 依赖 / 能力边界 / 配置）——**必须写清 4 条边界**：Office 需公网 URL、Pptx 只出文本、Epub 引入 200KB+、Docx 两种模式二选一
-  - [ ] `recipes.md`：3 个配方（上传即预览 / 附件列表 / 多类型分流）
-- [ ] **P6.2 README**：`node scripts/sync-readme.mjs` 生成
-- [ ] **P6.3** `docs/guide/decisions.md` 补 ADR（17→11 钩子面、路由纯函数、optional peer、主题收敛）
-- [ ] **P6.4** `.changeset/vane-file-preview-200.md`（major）：exports 变更 + 依赖变更 + 钩子面变更
-- [ ] **P6.5** `npm pack --dry-run`：只含 `dist` + `README` + `package.json`；**不含 `public/` 样本、不含 demo**
-- [ ] **P6.6** 回归：`eslint` 0 / `tsc --noEmit` 0 / `vitest` ≥40 / `check-packages` 三线全绿 / `vitepress build` 通过
-- [ ] **P6.7** 发布 `vane-file-preview@2.0.0`（**发布动作单独确认**）
+- [x] **P6.1** `docs/components/vane-file-preview/` 四件套
+  - [x] `index.md`：卖点 + 安装 + 30 秒示例 + **按文件类型装依赖的表格**（这是本包最容易踩的坑）+ 插件速览 + 1.x 迁移差异
+  - [x] `api.md`：`FilePreviewCoreProps` / `FilePreviewCoreRef` / 插件 context / **11 个钩子** / `resolvePreview` 契约
+  - [x] `plugins.md`：17 个插件 × （职责 / 依赖 / 能力边界 / 配置）——**写清 4 条边界**：Office 需公网 URL、Pptx 只出文本、Epub 引入 200KB+、Docx 两种模式二选一
+  - [x] `recipes.md`：3 个配方（上传即预览 / 附件列表 / 多类型分流）
+- [x] **P6.2 README**：`node scripts/sync-readme.mjs` 生成（首屏含 `npm install vane-file-preview`）
+- [x] **P6.3** `docs/guide/decisions.md` 补 ADR-17（17→11 钩子面、路由纯函数、optional peer、主题收敛）
+- [x] **P6.4** `.changeset/vane-file-preview-200.md`（major）：exports 变更 + 依赖变更 + 钩子面变更
+- [x] **P6.5** `npm pack --dry-run`：只含 `dist` + `README` + `package.json`；**不含 `public/` 样本、不含 demo**（tarball 111 文件 / 105KB）
+- [x] **P6.6** 回归：`eslint` 0 error（77 warning 基线）/ `tsc --noEmit` 0 / `vitest` 260（18 文件）/ `check-packages` 三线全绿（14.9/16 · 6.9/8 · 71.5/90）/ `vitepress build` 通过
+- [ ] **P6.7** 发布 `vane-file-preview@2.0.0`（**发布动作单独确认** —— changeset 已就位，待用户确认后跑 `changeset version` + `changeset publish`）
 
 **验收门 P6**：`check-packages` 全绿；`docs:build` 通过；README 由 docs 同步；pack 干净；changeset 就位。
 
@@ -558,6 +558,23 @@ demo            13 个示例页 + Home + ReadmeDemo + _layout
    它是 1px 隔线拼出来的表格感网格；通栏标题要求网格跨行，于是只有一张卡的分组会在
    同一行里留下两个**带边框的空格**，看起来像数据缺失（试过，比原来的右侧留白更糟，已回退）。
    工坊是无边框的 gap 网格，用单网格 + 通栏标题就没这个问题（那部分保留）。
+45. **flex 会把「唯一有固有高度的子项」压成两像素 —— 原生音频控件就是这么消失的。**
+   用户截图反馈「音频的播放控制器有问题」：逐项页只剩一条细线，工坊卡里干脆看不见。
+   实测：逐项页挂载点 232px、工坊卡只有 **83px**（165px 舞台再被工具栏吃掉 83），
+   而原布局是「72px 音符 / 文件名 / 控件」纵向排，纵向预算 180px 起步 —— 越界后 flex
+   按比例压缩子项，唯一可压的就是 `<audio>`：**2.1px（逐项页）/ 0px（工坊卡）**。
+   原生控件的高度是浏览器画的，压扁之后时间轴、按钮全被裁掉，而所有既有判据
+   （块数、尺寸、溢出、no-plugin）**全是绿的**。
+   修法两条：
+   - 布局改横向（音符左、文件名与控件右）+ `<audio>` 写死 `flexShrink: 0`；
+   - `ResizeObserver` 量实际高度，矮于 128px 自动收成「只留控件」（文件名/音符是可省的
+     装饰，播放器不是；工具栏里本来就写着文件名）。
+   新增 `squashed` 判据（`<audio controls>` < 24px，或其底边被挂载点裁掉）。
+   **反向验证时踩了自己一脚**：只删 `flexShrink` 时体检仍然绿 —— 紧凑档已经把内容装下了，
+   那不是回归场景。真正复现要两步：`NAME_MIN_H/NOTE_MIN_H` 改成 -1（强制全布局）+ 删
+   `flexShrink`，`/workshop` 立刻红（`squashed 音频控件被裁：可见 -50 / 54px`）。
+   **「删掉修复代码仍然绿」不等于判据有效 —— 要看删的是不是真的会让 bug 复现的那一半。**
+
 ---
 
 ## 执行记录（随实施追加）

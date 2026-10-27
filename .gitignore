@@ -3,8 +3,8 @@ dist/
 demo-dist/
 *.tsbuildinfo
 .turbo/
-.vitepress/cache/
-.vitepress/dist/
+docs/.vitepress/cache/
+docs/.vitepress/dist/
 coverage/
 .DS_Store
 *.log

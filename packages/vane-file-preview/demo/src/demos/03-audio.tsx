@@ -5,6 +5,12 @@
  * 给一个稳定的落点之后，列表里多条音频不会忽高忽低。
  *
  * 坑位：没有波形图与自定义进度条，只有原生控件。要波形需要解码整段音频（AudioContext + canvas），与「零依赖 + 首屏快」的定位冲突。
+ *
+ * 坑位二（2026-10-27 修）：这一页的舞台只有 232px 高，工坊卡更只有 83px。
+ * 原布局「音符 / 文件名 / 控件」纵向排，纵向预算 180px 起步 —— 越界之后 flex
+ * 按比例压缩子项，唯一有固有高度的 `<audio>` 被压成 2.1px（这里）和 0（工坊卡），
+ * 原生控件只剩一条细线。现在改成横向布局 + `flexShrink: 0`，矮于 128px 自动收成
+ * 「只留控件」，并由 `squashed` 判据在体检里守着。
  */
 import React from "react";
 import { FilePreviewCore, withPlugins } from "vane-file-preview";

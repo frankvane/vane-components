@@ -112,6 +112,26 @@ describe("A 批插件 · 渲染冒烟", () => {
     h.unmount();
   });
 
+  it("Audio：原生控件不许被 flex 压缩（flexShrink: 0）", async () => {
+    // 几何 bug 的根因之一：容器一矮，flex 就把唯一有固有高度的 <audio> 压扁，
+    // 控件内部的时间轴/按钮被裁成两像素。happy-dom 没有布局引擎量不出高度，
+    // 但「有没有写 flexShrink」是能断言的 —— 这是那条几何判据的前置条件。
+    const h = renderPreview([createAudioPreviewPlugin()], { file: AUDIO });
+    await flush();
+    const audio = h.container.querySelector("audio") as HTMLAudioElement;
+    expect(audio.hasAttribute("controls")).toBe(true);
+    expect(audio.style.flexShrink).toBe("0");
+    h.unmount();
+  });
+
+  it("Audio：controls=false 时补一句「控件已隐藏」", async () => {
+    // 否则整张卡片上没有任何可点的东西，看起来像预览坏了
+    const h = renderPreview([createAudioPreviewPlugin({ controls: false })], { file: AUDIO });
+    await flush();
+    expect(h.container.textContent).toContain("控件已隐藏");
+    h.unmount();
+  });
+
   it("Office：blob: URL 不渲染 iframe，改给「无法在线预览」说明", async () => {
     const h = renderPreview([createOfficePreviewPlugin()], { file: OFFICE });
     await flush();
