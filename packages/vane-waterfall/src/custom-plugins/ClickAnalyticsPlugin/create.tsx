@@ -46,6 +46,10 @@ export function createClickAnalyticsPlugin<T = any>(
         const sum = total();
         context.sharedData?.set("click-count", sum);
         context.bus?.emit("analytics:click", { index, item, event, total: sum });
+        // 计数只存在闭包 Map 里，宿主不会因为「点了一下」重渲染；
+        // 不主动请求一次，`renderOverlay` 要等到下次布局 / 滚动才重算，
+        // 表现就是「点了数字不动，一滚动才跳变」。
+        context.forceUpdate?.();
         if (log) {
           // 基本日志输出，避免过多信息
           console.log(`[ClickAnalytics] item=${index} total=${sum}`);

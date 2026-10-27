@@ -115,6 +115,15 @@ export function withPlugins<T = any>(
       const itemRefsMap = useRef<Map<number, HTMLElement>>(new Map());
       const coreRef = useRef<WaterfallCoreRef | null>(null);
       const networkInfo = useMemo(() => detectNetwork(), []);
+      /**
+       * 最近一次 `transformProps` 的结果。
+       *
+       * 插件钩子里的 `context.props` 必须是 **Core 真正收到的那份**，否则插件之间没法
+       * 通过 `transformProps` 传参：GapPlugin 把 `columnGap / rowGap` 写进 props 之后，
+       * PinItemPlugin 读 `context.props.rowGap` 仍是 undefined —— 它退化成 gap=0，
+       * 表现为置顶块与下一项上下贴死、x 少一个 columnGap。
+       */
+      const transformedPropsRef = useRef<WaterfallCoreProps<T> | null>(null);
 
       // ---------- Core 状态镜像 ----------
       const [layout, setLayout] = useState<LayoutInfo>(EMPTY_LAYOUT);
@@ -169,10 +178,18 @@ export function withPlugins<T = any>(
           };
 
           // 把三个布局字段改成 getter：插件无论在哪个钩子里读，拿到的都是此刻的布局
+          // props 同理走 getter（见 transformedPropsRef 的说明）
           Object.defineProperties(ctx, {
             layout: { get: liveLayout, enumerable: true, configurable: true },
             itemPositions: { get: livePositions, enumerable: true, configurable: true },
             viewport: { get: liveViewport, enumerable: true, configurable: true },
+            props: {
+              get: () =>
+                (transformedPropsRef.current ??
+                  (base.props as WaterfallCoreProps<T>)) as WaterfallCoreProps<T>,
+              enumerable: true,
+              configurable: true,
+            },
             visibleRange: {
               get: () => {
                 const vp = liveViewport();
@@ -338,6 +355,7 @@ export function withPlugins<T = any>(
 
       // ---------- Core 回调 → 钩子链 ----------
       const transformedProps = runtime.transformProps(props) as WaterfallCoreProps<T>;
+      transformedPropsRef.current = transformedProps;
 
       const handleBeforeLayout = useCallback(async () => {
         setIsLayouting(true);

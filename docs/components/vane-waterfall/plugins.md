@@ -100,6 +100,8 @@ createPinItemPlugin({ pinnedIndices: [0, 1], column: 0 });
 
 限制：置顶项若索引**大于**该列已排好的项，会把后续项往下推但已布局的项不回退，视觉上会重叠。同一列多条置顶按 `pinnedIndices` 顺序纵向堆叠。
 
+换列后的 `x` 由布局引擎按**本轮**列宽补齐，插件只返回 `column` 即可。自己用「列宽 + 间距」反推 `x` 会在间距由 `GapPlugin` 经 `transformProps` 注入时少算一个 `columnGap`（2.x 早期的实际缺陷：钉住的第二张卡左缩 12px、与上一张上下贴死）。
+
 > 这个插件在 1.x 里是彻底空转的：逻辑全压在 `calculateItemPosition` 上，而旧 Core 没有任何地方执行这个钩子。
 
 ---
@@ -215,6 +217,8 @@ createClickAnalyticsPlugin({ showOverlay: true, log: false });
 `showOverlay` 默认 **false**（生产版式不该有角标），示例页打开它是为了肉眼确认钩子真的触发。
 
 `getStats()` 把内存里的计数吐成 `{ total, byIndex: [{ index, clicks }] }`，接到自己的上报通道时直接取它（示例页的「导出 JSON」就是干这个）。
+
+角标与汇总条都存在插件闭包里，宿主的渲染与它们无关。`renderOverlay` 只在宿主渲染时求值，所以点击后必须调一次 `context.forceUpdate()` —— 漏了这一步的表现是「点了数字不动，一滚动才跳变」（计数没丢，只是没被重绘）。写自己的埋点插件时同理：**事件里改了闭包状态，就得主动要一帧**。
 
 ### HeatmapAnalyticsPlugin `priority 0`
 

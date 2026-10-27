@@ -182,7 +182,20 @@ export function computeLayout(params: LayoutParams): LayoutResult {
 
     // ---- D1-A 执行点 3：单项位置 ----
     const override = hooks?.calculateItemPosition?.(i, itemHeight, position);
-    if (override) position = { ...position, ...override };
+    if (override) {
+      const merged: ItemPosition = { ...position, ...override };
+      // 不变式：`column` 与 `x` 必须一致。
+      // 把项换列的插件（PinItem 等）算不出**本轮**的 columnWidth，只能返回 column；
+      // 早先它们各自用 `base.width + columnGap` 反推 x，gap 一旦来自 transformProps
+      // 就反推错（少一个 columnGap）。这里统一按本轮列宽补 x，插件不必自己算。
+      // 显式给了 x 的以插件为准（跨列、自定义排版）。
+      if (override.column !== undefined && override.x === undefined) {
+        merged.x =
+          padding.left +
+          Math.min(Math.max(0, merged.column), columns - 1) * (columnWidth + columnGap);
+      }
+      position = merged;
+    }
 
     positions.set(i, position);
 

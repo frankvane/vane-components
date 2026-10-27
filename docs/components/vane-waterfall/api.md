@@ -107,6 +107,7 @@ const Waterfall = withPlugins(WaterfallCore, { plugins, enableDebug: true });
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
 | `items` / `itemCount` | `T[]` / `number` | 当前数据（`transformProps` 之后） |
+| `props` | `WaterfallCoreProps<T>` | **getter**，读的是 **`transformProps` 之后**那份（插件之间靠它传参，如 `GapPlugin` 注入的 `rowGap`） |
 | `containerRef` | `RefObject<HTMLDivElement>` | 滚动容器（`renderOverlay` 的定位基准） |
 | `itemRefs` / `getItemRef(index)` | `Map` / `(i) => HTMLElement \| null` | 项 DOM |
 | `layout` | `LayoutInfo` | **getter，读 Core 实时值** |
@@ -119,8 +120,9 @@ const Waterfall = withPlugins(WaterfallCore, { plugins, enableDebug: true });
 | `bus` | `PluginBus` | `emit / on / once / off` |
 | `networkInfo` / `dragInfo` | — | 网络状况 / 拖拽状态 |
 | `relayout()` / `scrollToItem()` / `scrollToTop()` / `scrollToBottom()` / `measureItem()` | — | 转发到 ref 契约 |
+| `forceUpdate()` | `() => void` | 请求宿主**重渲染一次（不重排）**。`renderOverlay` / `renderItemWrapper` 只在宿主渲染时求值，点击、键盘、定时器这类事件改的是插件闭包里的状态，宿主无从感知 —— 不调这个，覆盖层要等到下次布局或滚动才更新（表现为「点了数字不动，一滚动才跳变」） |
 
-> 四个几何字段是 **getter**：`onLayoutComplete` 里读到的就是本次布局结果。旧版这里是渲染快照，插件在布局完成钩子里只能自己去 DOM 里量。
+> 四个几何字段是 **getter**：`onLayoutComplete` 里读到的就是本次布局结果。旧版这里是渲染快照，插件在布局完成钩子里只能自己去 DOM 里量。`props` 同理走 getter，见上表。
 
 ## 20 个钩子
 

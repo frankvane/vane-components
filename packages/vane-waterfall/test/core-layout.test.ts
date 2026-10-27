@@ -94,3 +94,45 @@ describe("布局等价性（旧算法快照）", () => {
     expect(round(out.totalHeight)).toBe(c.expect.totalHeight);
   });
 });
+
+describe("D1-A 位置钩子的不变式", () => {
+  /** 列宽 = (420 - 20) / 2 = 200；列 0 的 x = 0、列 1 的 x = 220 */
+  const base = {
+    heights: [100, 100, 100, 100],
+    columns: 2,
+    containerWidth: 420,
+    columnGap: 20,
+    rowGap: 10,
+  };
+
+  it("只返回 column 时，x 由本轮列宽补齐（插件不必自己反推）", () => {
+    const out = computeLayout({
+      ...base,
+      hooks: {
+        // 第 1 项本该落列 1，插件把它钉回列 0（只给目标列，不给 x）
+        calculateItemPosition: (_index, _height, pos) =>
+          pos.column === 1 ? { column: 0, y: 130 } : undefined,
+      },
+    });
+
+    const pinned = out.positions.get(1)!;
+    expect(pinned.column).toBe(0);
+    expect(pinned.x).toBe(0);
+    expect(pinned.y).toBe(130);
+    expect(pinned.width).toBe(200);
+  });
+
+  it("显式返回 x 时以插件为准（跨列 / 自定义排版不被改写）", () => {
+    const out = computeLayout({
+      ...base,
+      hooks: {
+        calculateItemPosition: (_index, _height, pos) => ({ column: 0, x: pos.x + 7 }),
+      },
+    });
+
+    const moved = out.positions.get(1)!;
+    expect(moved.column).toBe(0);
+    // 列 1 的 base.x 是 220，插件又 +7 → 引擎不覆盖
+    expect(moved.x).toBe(227);
+  });
+});

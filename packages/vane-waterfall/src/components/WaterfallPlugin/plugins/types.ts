@@ -133,6 +133,14 @@ export interface WaterfallPluginContext<T = any>
   dragInfo?: DragInfo;
 
   // --- 工具 ---
+  /**
+   * 请求宿主重渲染一次（不重排）。
+   *
+   * `renderOverlay` / `renderItemWrapper` 只在宿主渲染时求值，而点击、键盘、定时器
+   * 这类事件改的是插件闭包里的状态，宿主无从感知 —— 不调这个，覆盖层要等到下一次
+   * 布局或滚动才更新（"点了数字不动，滚动一下才跳"就是漏了这一步）。
+   */
+  forceUpdate: () => void;
   relayout: () => void;
   scrollToItem: (index: number, options?: ScrollToItemOptions) => void;
   scrollToTop: (options?: ScrollToOptions) => void;

@@ -66,8 +66,11 @@ export function createHeatmapAnalyticsPlugin<T = any>(
       onItemEnterViewport: (_context, index) => {
         views.set(index, (views.get(index) || 0) + 1);
       },
-      onItemClick: (_context, index) => {
+      onItemClick: (context, index) => {
         clicks.set(index, (clicks.get(index) || 0) + 1);
+        // 同 ClickAnalytics：统计只在闭包里，不请求重渲染的话顶部汇总条
+        // 要等到下次布局 / 滚动才更新
+        context.forceUpdate?.();
       },
       renderOverlay: () => {
         if (!showOverlay) return null;

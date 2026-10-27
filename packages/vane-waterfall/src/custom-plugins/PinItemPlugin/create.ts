@@ -58,16 +58,17 @@ export function createPinItemPlugin<T = any>(config: PinItemConfig): WaterfallPl
           return undefined;
         }
 
-        const pitch = base.width + (context.props.columnGap ?? rowGap);
         const y = floorByColumn.get(targetColumn) ?? 0;
         floorByColumn.set(targetColumn, y + itemHeight + rowGap);
 
+        // 只改 column、不自己算 x：换列后的 x 由 `computeLayout` 按**本轮**列宽补齐。
+        // 早先这里用 `base.width + columnGap` 反推，而 columnGap 若由 GapPlugin 经
+        // transformProps 注入，插件读到的是 undefined → x 整整少一个 columnGap。
         return {
-          x: base.x + (targetColumn - base.column) * pitch,
+          column: targetColumn,
           y,
           width: base.width,
           height: itemHeight,
-          column: targetColumn,
           row: 0,
         };
       },

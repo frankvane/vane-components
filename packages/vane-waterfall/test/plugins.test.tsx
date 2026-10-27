@@ -246,6 +246,33 @@ describe("端到端", () => {
     expect(ref.current!.getItemPosition(1)!.y).toBe(110);
   });
 
+  it("PinItem 读得到 GapPlugin 经 transformProps 注入的间隔", async () => {
+    // props 上不留 gap：间距只能由 GapPlugin 写进 transformProps 的结果。
+    // 早先插件钩子里的 `context.props` 是**未经 transformProps 的那份**，
+    // 于是 PinItem 读到 rowGap=undefined → 第二项与置顶块贴死（y 差 0 而非 gap），
+    // x 也少算一个 columnGap（真实 demo 里表现为第二张卡左缩 12px）。
+    await mount(
+      [
+        plugins.createGapPlugin({ columnGap: 20, rowGap: 20 }),
+        plugins.createPinItemPlugin({ pinnedIndices: [0, 1], column: 0 }),
+      ],
+      { columns: 2, gap: undefined, columnGap: undefined, rowGap: undefined }
+    );
+
+    // 列宽 = (900 - 20) / 2 = 440
+    expect(ref.current!.getLayoutInfo().columnWidth).toBe(440);
+
+    const first = ref.current!.getItemPosition(0)!;
+    const second = ref.current!.getItemPosition(1)!;
+
+    // 第 1 项本该落列 1，被钉回列 0：x 必须与列 0 对齐，不能留一个 columnGap
+    expect(second.column).toBe(0);
+    expect(second.x).toBe(0);
+    // 高度 100 + rowGap 20
+    expect(second.y).toBe(120);
+    expect(first.y).toBe(0);
+  });
+
   it("覆盖层渲染在滚动容器内部且可被 StickyHeader 用 sticky 定位", async () => {
     await mount([
       plugins.createGroupingPlugin({ groupBy: (item: any) => item.name }),
