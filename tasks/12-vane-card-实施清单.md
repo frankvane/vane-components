@@ -100,34 +100,41 @@
 
 ---
 
-## C2 · 插件系统替换（删 1154 行，接内核）
+## C2 · 插件系统替换（删 1154 行，接内核）· ✅ 已完成（commit `838f267`）
 
-- [ ] **C2.1 删除** `plugins/{PluginBus.ts,PluginManager.ts,SlotsContext.tsx}`（保留并重写 `types.ts` / `withPlugins.tsx`；`BusKeys.ts` / `utils/` 保留）
-- [ ] **C2.2 重写 `plugins/types.ts`**：钩子面 **24 → 15**
-  - [ ] 内核 9 个（直接派生，不重复声明）：`onMount` `onUnmount` `onPropsChange` `onError` `transformProps` `transformData` `renderOverlay` `renderHeader` `renderFooter`
-  - [ ] 领域 6 个：`onClick` `onHover` `onVisibilityChange` `onResize` `onStateChange` `renderPriceArea`
-  - [ ] 删除 9 个：`onSelectionChange` `onCartChange` `onWishlistChange` `onBeforeDataChange` `onDataChange` `renderContainer` `renderContentWrapper` `renderBadge` `renderActions`
-  - [ ] `CardPluginContext` = 内核 `PluginContext` & 领域字段（`cardId` / `data` / `size` / `getContainer` / `getSize` / `sharedData` / `bus`）
-- [ ] **C2.3 重写 `plugins/withPlugins.tsx`**（参照 waterfall 同名文件）：
-  - [ ] `usePluginRuntime({ plugins, props, containerRef, extendContext })`
-  - [ ] `extendContext` 注入：`cardId` / `data`（**getter 取 `transformProps` 之后的那份**）/ `size`（getter）/ `getContainer` / `getSize` / `sharedData: base.shared`
-  - [ ] Core 回调 → 钩子链：`onMount` / `onUnmount` / `onClick` / `onHover` / `onVisibilityChange` / `onResize`
-  - [ ] 渲染插槽：`composeSlots`（before-header → children → overlay → after-header → footer），替换旧的手写五段
-  - [ ] **`onMount` 返回值必须交给内核**（不再 `.catch(() => {})` 丢弃）—— 这是 R2 的核心修复
-  - [ ] **`setState` 里的 `onStateChange` 移到 `useEffect`**（state 变化后触发），updater 保持纯函数
-- [ ] **C2.4 领域槽位（D3-A）**：新增 `plugins/slots.ts`
-  - [ ] `renderDomainSlot(plugins, context, hookName)`：`config.order` 升序 → `priority` 降序 + 逐插件 `PluginErrorBoundary`
-  - [ ] `usePluginSlot("priceArea")` 改为读 `orderedPlugins`（签名不变，复合组件零改动）
-- [ ] **C2.5 排序统一**：确认 `priority` 与 `config.order` 在 C0.6 快照上的差异，逐项确认（价格区顺序最敏感）
-- [ ] **C2.6 单测（第二批）**：
-  - [ ] 钩子返回 `false` 中断链；返回其他值短路
-  - [ ] `onMount` 返回的清理函数在卸载时**被执行一次**
-  - [ ] **卸载后 `bus.on` 计数归零**（R2 的回归锁）
-  - [ ] `renderOverlay` 输出在 `container.contains()` 之内
-  - [ ] 单个插件渲染抛错只丢自己那一段（`PluginErrorBoundary`）
-  - [ ] `renderPriceArea` 装 3 个插件 → 输出 3 段且顺序符合 order/priority 规则（R5）
+- [x] **C2.1 删除** `plugins/{PluginBus.ts,PluginManager.ts,SlotsContext.tsx}`（保留并重写 `types.ts` / `withPlugins.tsx`；`BusKeys.ts` / `utils/` 保留）
+- [x] **C2.2 重写 `plugins/types.ts`**：钩子面 **24 → 15**
+  - [x] 内核 9 个（直接派生，不重复声明）：`onMount` `onUnmount` `onPropsChange` `onError` `transformProps` `transformData` `renderOverlay` `renderHeader` `renderFooter`
+  - [x] 领域 6 个：`onClick` `onHover` `onVisibilityChange` `onResize` `onStateChange` `renderPriceArea`
+  - [x] 删除 9 个：`onSelectionChange` `onCartChange` `onWishlistChange` `onBeforeDataChange` `onDataChange` `renderContainer` `renderContentWrapper` `renderBadge` `renderActions`
+  - [x] `CardPluginContext` = 内核 `PluginContext` & 领域字段（`cardId` / `data` / `size` / `getContainer` / `getSize` / `sharedData` / `bus`）
+- [x] **C2.3 重写 `plugins/withPlugins.tsx`**（参照 waterfall 同名文件）：
+  - [x] `usePluginRuntime({ plugins, props, containerRef, extendContext })`
+  - [x] `extendContext` 注入：`cardId` / `data`（**getter 取 `transformProps` 之后的那份**）/ `size`（getter）/ `getContainer` / `getSize` / `sharedData: base.shared`
+  - [x] Core 回调 → 钩子链：`onMount` / `onUnmount` / `onClick` / `onHover` / `onVisibilityChange` / `onResize`
+  - [x] 渲染插槽：`composeSlots`（before-header → children → overlay → after-header → footer），替换旧的手写五段
+  - [x] **`onMount` 返回值必须交给内核**（不再 `.catch(() => {})` 丢弃）—— 这是 R2 的核心修复
+  - [x] **`setState` 里的 `onStateChange` 移到 `useEffect`**（state 变化后触发），updater 保持纯函数
+- [x] **C2.4 领域槽位（D3-A）**：新增 `plugins/slots.tsx`
+  - [x] `renderDomainSlot(plugins, context, hookName)`：`config.order` 升序 → `priority` 降序 + 逐插件 `PluginErrorBoundary`
+  - [x] `usePluginSlot("priceArea")` 改为读 `orderedPlugins`（签名不变，复合组件零改动）
+- [x] **C2.5 排序统一**：旧版「`order` 管位置、`priority` 管钩子顺序」两套轴，新内核统一为
+  `order` 升序定位 → `priority` 降序 tiebreak；C0.6 快照的五段顺序未变
+- [x] **C2.6 单测（第二批）**：26 用例 / 6 文件
+  - [x] 钩子返回 `false` 中断链；返回其他值短路
+  - [x] `onMount` 返回的清理函数在卸载时**被执行一次**
+  - [x] **卸载后 `bus.off` 计数 == `bus.on` 计数**（R2 的回归锁，实测 on=12 / off=12）
+  - [x] `renderOverlay` 输出在 `container.contains()` 之内
+  - [x] 单个插件渲染抛错只丢自己那一段（`PluginErrorBoundary`）
+  - [x] `renderPriceArea` 装 3 个插件 → 输出 3 段且顺序符合 order/priority 规则（R5）
 
-**验收门 C2**：自建插件系统 3 个文件已删；`typecheck` 0 错；`test` ≥18 通过；11 · 4.1–4.8 每一条差异都有对应断言或说明；C0.6 的「清理计数」快照从 `on=N/off=0` 变为 `on=N/off=N`。
+**验收门 C2**：自建插件系统 3 个文件已删；`typecheck` 0 错；`test` ≥18 通过（实到 26）；11 · 4.1–4.8 每一条差异都有对应断言或说明；C0.6 的「清理计数」快照从 `on=N/off=0` 变为 `on=N/off=N`（12/12）。
+
+**C2 过程中额外发现并修掉的真实缺陷**（不在原计划里，都是旧代码遗留）：
+1. `CountdownPlugin.renderOverlay` 内 `React.useMemo`、`ReviewPlugin.renderFooter` 内 `React.useState` —— hooks 写在「渲染期被调用的普通函数」里，启停插件会改变父组件 hook 数量。已抽成模块级组件，并加 `test/hooks-safety.test.tsx` 行为回归。
+2. `SavingsBadge` 用 `data?.oldPrice!`（对可选链做非空断言），字段缺失时文案出 `NaN`；改为先兜底再相乘。
+3. **打包陷阱**：`@vane/plugin-core` 未发布 npm（registry 404）却挂在 `peerDependencies`，且构建时已内联；消费方安装会 `Cannot find module`。已降为 `devDependencies`，并把 `PluginBus` 改为包内声明，公开 `d.ts` 不再 import 内核包名（waterfall 仍是旧写法，属同类隐患，留待其会话处理）。
+4. 测试基础设施：内核 `executeHook` 是 async，同步断言会读到「钩子还没跑」的假象 —— `test/helpers.tsx` 增 `flush()`；快照测试改为默认**比对**、`UPDATE_SNAPSHOT=1` 才写盘，避免基线被静默覆盖。
 
 ---
 
@@ -312,4 +319,5 @@ C0（决策 + 快照）
 | 阶段 | 计划指标 | 实测 |
 | --- | --- | --- |
 | C0 | 决策落纸 + 4 份快照 | ✅ D1–D5 落地（tasks/11/12 标注）；`test/fixtures/card-snapshots.json` 已生成且 `test/snapshots.base.test.tsx` 通过；gzip 基线 28.13KB |
-| C1 | 包骨架 + Core 迁入 + demo 指回源码 | 🟡 进行中：包骨架/配置/依赖/typecheck0错/lib build通过/demo 构建通过（R1 已证）；C1.4 的 Core 单测暂缓到 C2（与新插件系统一起写），C1.3 的 51 页旧 demo 不搬运（留 C5 重写） |
+| C1 | 包骨架 + Core 迁入 + demo 指回源码 | ✅ 包骨架/配置/依赖/typecheck 0 错/lib build 通过/demo 构建通过（R1 已证）；C1.4 的 Core 单测在 C2 一并补齐（3 个文件 14 用例），C1.3 的 51 页旧 demo 不搬运（留 C5 重写） |
+| C2 | 删 1154 行旧系统 / 钩子面 15 / test ≥18 / 清理计数 on=N off=N | ✅ 三文件已删；typecheck 0 / eslint --quiet 0 / vitest 26 passed（6 文件）/ gzip 30.37KB（预算 36KB）；清理计数 **on=12 / off=12**（旧系统 off=0）；额外修掉 2 处 rules-of-hooks 违规 + 1 个 npm 打包陷阱（见 C2 节末） |
