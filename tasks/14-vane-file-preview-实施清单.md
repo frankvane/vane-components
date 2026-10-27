@@ -229,13 +229,13 @@ demo            13 个示例页 + Home + ReadmeDemo + _layout
 
 ### P3.2 B 级 7 个（依赖边界）
 
-- [ ] `ZipPreviewPlugin`（233 / `jszip`）
-- [ ] `JsonPreviewPlugin`（640 / `@uiw/react-json-view`）—— **10 个主题子路径收敛到 2 个**（亮 / 暗），或改 `style` 对象
-- [ ] `XmlPreviewPlugin`（423 / `react-xml-viewer`）—— **修 `../../plugins/types` → `../plugins/types`**（当前 TS2307）；`style` prop 不在 `XMLViewerProps` 里，改外层容器控制
-- [ ] `XlsxPreviewPlugin`（374 / `xlsx`）—— 大文件分块；文档注明 `xlsx` 的 license
-- [ ] `PptxPreviewPlugin`（553 / `jszip`）—— **UI 标注「文本大纲预览」**（它只抽 `ppt/slides/*.xml` 的文本，无版式与图片）
-- [ ] `DocxPreviewPlugin`（289 / `docx-preview`）—— `canHandle` 读 `file.docxMode`
-- [ ] `MammothDocxPlugin`（237 / `mammoth/mammoth.browser`）—— 同上，默认值 `mammoth`
+- [x] `ZipPreviewPlugin`（233 / `jszip`）—— 动态 import + 缺失依赖面板；`maxFiles` / `showFileSize` **从死配置变成真生效**；**删掉 `.rar` / `.7z`**（jszip 解不开，认领了只是把「兜底下载」变成「报错」）
+- [x] `JsonPreviewPlugin`（640 / `@uiw/react-json-view`）—— **9 个主题子路径收敛到 2 个**（light / dark + auto 跟随系统）；删 12 处 `console.log`；导出改 Blob URL（5MB 的 JSON 拼 data URL 会得到十几 MB 的 href）；非对象 JSON 退化成 `<pre>`
+- [x] `XmlPreviewPlugin`（423 / `react-xml-viewer`）—— 修 `../../plugins/types` → `../plugins/types`；**`hooks.toolbar` 是空转钩子**（装配层读 `renderToolbar`），改掉；`style` 不在 `XMLViewerProps` 里 → 外层容器控制；**删掉 4 个从未生效的配置**（enableValidation / showAttributes / showComments / showProcessingInstructions）与「格式化」按钮（正则切分会改坏 CDATA）；`collapsedLevels` 终于接上 `initialCollapsedDepth`；`name` 从 `xml-preview` 改回 PascalCase
+- [x] `XlsxPreviewPlugin`（374 / `xlsx`）—— 删 16 处 `console.log`；**Sheet 切换从假变真**（sharedData 单一真源 + `forceUpdate`）；**行列上限**（`maxRows` / `maxCols`，按 `!ref` 裁 range）；doc.json 与 notes 注明 Apache-2.0 与「npm 上停在 0.18.5」
+- [x] `PptxPreviewPlugin`（553 / `jszip`）—— UI 三处标注「文本大纲」；**标题启发式修了个真 bug**（`lvl` 在 `a:pPr` 上，不在 `a:p` 上 → 原来每段都当标题）；缩略图导航重写成窗口化页码条
+- [x] `DocxPreviewPlugin`（289 / `docx-preview`）—— `canHandle` 读 `file.docxMode`（**只在 `"docx-preview"` 时命中**）；priority 7 → **8**（平手会输给 Office）；删掉 `* { display: block !important }` 死样式（一旦生效会让表格散架）
+- [x] `MammothDocxPlugin`（237 / `mammoth/mammoth.browser`）—— `docxMode` 未设或 `"mammoth"` 时命中（默认实现）；删 `styleMap: []` 与「Mammoth 模式」调试横幅
 
 ### P3.3 C 级 4 个（拆分 / 重构）
 
@@ -264,20 +264,23 @@ demo            13 个示例页 + Home + ReadmeDemo + _layout
 ## P4 · 依赖边界与体积工程（本包独有，前三包没有这一关）
 
 - [ ] **P4.1 单插件子路径入口**：17 个 `custom-plugins/<Name>/index.tsx`，每人的重依赖只在该文件里 import
-- [ ] **P4.2 external 支持子路径**（基础设施改动，`internal/build-config`）
-  - [ ] `LibOptions.external` 放宽为 `(string | RegExp)[]`，透传给 `rollupOptions.external`
-  - [ ] 本包传 `/^mammoth(\/|$)/`、`/^react-syntax-highlighter(\/|$)/`、`/^@uiw\/react-json-view(\/|$)/`、`/^react-reader(\/|$)/`、`/^docx-preview$/`、`/^xlsx$/`、`/^jszip$/`、`/^papaparse$/`、`/^react-markdown$/`、`/^rehype-/`、`/^remark-/`、`/^react-xml-viewer$/`
-  - [ ] **闸门断言**：`dist/**/*.js` 内不得出现 `mammoth` / `prism` 主题特征串（当前 986KB 的根因，分析 1.4）
+- [x] **P4.2 external 支持子路径**（基础设施改动，`internal/build-config`）—— **P3-B 提前完成**：
+  B 批一迁入就会把 jszip / xlsx / mammoth / docx-preview 全内联（实测反证：退化成包名字符串后
+  出现 `chunks/mammoth.browser-*.js = 492.4KB`），体积闸门根本过不去。
+  - [x] `LibOptions.external` 放宽为 `(string | RegExp)[]`，透传给 `rollupOptions.external`
+  - [x] 本包传 `/^mammoth(\/|$)/`、`/^react-syntax-highlighter(\/|$)/`、`/^@uiw\/react-json-view(\/|$)/`、`/^react-reader$/`、`/^docx-preview$/`、`/^xlsx$/`、`/^jszip$/`、`/^papaparse$/`、`/^react-markdown$/`、`/^rehype-/`、`/^remark-/`、`/^react-xml-viewer$/`（C 批要用的也提前写好了，迁入时不用再改构建配置）
+  - [x] **闸门断言**：`test/dist-external.test.ts` 三条 —— ① 9 个 `import("pkg")` 必须原样留在对应入口；② 不得出现 `JSZip` / `SheetJS` / `--w-rjv-` / `docx-wrapper` 这四个「整库内联才有」的标识；③ **单文件 ≤60KB、全量 ≤220KB**（签名漏掉的库由体积兜底）。**注**：清单原来写「不得出现 mammoth / prism 特征串」，实测发现 `import("mammoth/mammoth.browser")` 与 `docxMode === "docx-preview"` 会假阳性，改用内部标识 + 体积双判据
 - [ ] **P4.3 optional peer 声明**（**16 个，一个字都不多不少**——这是代码里真实 import 的完整集合，已用脚本核对）
   - [ ] 文本 / 结构：`docx-preview`、`mammoth`、`xlsx`、`jszip`、`papaparse`、`react-xml-viewer`
   - [ ] Markdown 链：`react-markdown`、`remark-breaks`、`remark-gfm`、`remark-math`、`rehype-highlight`、`rehype-katex`、`rehype-raw`
   - [ ] 富组件：`@uiw/react-json-view`、`react-syntax-highlighter`、`react-reader`
-  - [ ] 全部 `peerDependenciesMeta.*.optional: true`
+  - [x] **已声明 6 个**（P3-B）：`jszip` / `xlsx` / `docx-preview` / `mammoth` / `@uiw/react-json-view` / `react-xml-viewer`，全部 `peerDependenciesMeta.*.optional: true`；余下 10 个等 C 批迁入
+  - [x] 全部 `peerDependenciesMeta.*.optional: true`
   - [ ] `pdfjs-dist` / `react-pdf` / `react-player` / `react-h5-audio-player` / `pptx-parser` / `highlight.js` **一个都不声明**（代码 0 引用）
-- [ ] **P4.4 友好降级面板**
-  - [ ] `custom-plugins/shared/MissingDependency.tsx`：`未安装 <pkg>，请 npm i <pkg>`（带包名与一行命令）
-  - [ ] 每个重依赖插件：`try { const m = await import("x") } catch { return <MissingDependency pkg="x" /> }`
-  - [ ] 单测：mock `import` reject → 断言渲染出提示而不是抛错
+- [x] **P4.4 友好降级面板**（P3-B 完成，落在 `components/FilePreviewPlugin/shared/` 而不是 `custom-plugins/shared/` —— 与 A 批的共享模块同目录）
+  - [x] `shared/panels.tsx`：`MissingDependency`（包名 + `npm i <pkg>` + 可选 hint + 折叠的错误原文）、`LoadingPanel`、`ErrorPanel`，三者都带 `data-vfp-panel` / `data-vfp-missing` 断言锚点
+  - [x] `shared/useDynamicModule.ts`：模块级 loader → `{ status, mod, error }`，插件只在 `status === "ready"` 时才发 fetch
+  - [x] 7 个插件全部改动态 import；`test/missing-dependency.test.tsx` 用 `vi.mock("jszip", () => { throw … })` 让 import 真的 reject，断言出现 `[data-vfp-missing="jszip"]` 而不是崩溃
 - [ ] **P4.5 体积三口径**：根入口 ≤12KB / `./core` ≤8KB / 全量并集 ≤90KB，写进 `vane` 字段
 
 **验收门 P4**：`node scripts/check-packages.mjs` 三条线全绿；根入口 gzip ≤12KB；`dist` 无重依赖特征串；`dependencies` 为 `{}`；未安装 optional peer 时**渲染提示而不是白屏**。
@@ -372,6 +375,33 @@ demo            13 个示例页 + Home + ReadmeDemo + _layout
    改预算而不是砍插件：D3 的意图就是「装完 import 即可用 6 个原生插件」，
    砍掉 Office（2.5KB，最重的那个）会让根入口变得不完整。
 
+13. **`docx` 的赢家必须由 `docxMode` 决定，不能由 priority 决定 —— 平手就是定时炸弹。**
+   两个 docx 插件最初都是 priority 7，与 `OfficePreviewPlugin` 的 7 相同，于是
+   `resolvePreview` 走到「平手按声明顺序」，测试里把 office 挪到数组第一位，赢家就从
+   `DocxPreviewPlugin` 变成 `OfficePreviewPlugin`。修法：`DocxPreviewPlugin` 提到 **8**。
+   这条是单测先红才发现的 —— 说明「互斥的 canHandle」还不够，priority 也必须留出空档。
+14. **`lvl` 属性不在 `<a:p>` 上，而在子节点 `<a:pPr lvl="…">` 上。**
+   Pptx 的标题启发式原来写 `p.getAttribute("lvl") ?? "1"`，读不到就默认 1 → **每一段都被判成标题**。
+   真浏览器截图里一页 PPT 的「标题 / 汇报人 / 时间」三行全被涂成蓝色粗体，才暴露出来。
+   改成读 `a:pPr`，读不到时退到「只有第一段算标题」。
+15. **`hooks.toolbar` 是一个不存在的钩子名。** Xml 插件的下载工具栏写的是 `toolbar:`，
+   装配层读 `renderToolbar:` —— 那段代码从来没被执行过，`tsc` 也不报错（对象字面量里多一个键，
+   而 `FilePreviewPluginHooks` 是可选属性集合，多出的键在 `as` 之后就被接受）。
+   修完之后 Xml 的工具栏第一次真的出现。
+16. **「声明了但没生效」是本包最容易积累的技术债，B 批一次清掉 9 个。**
+   Zip 的 `maxFiles` / `showFileSize`、Xml 的 4 个开关 + `collapsedLevels`、Xlsx 的 `defaultSheetIndex`、
+   Json 的 `collapsed` —— 全都在 `config` 里、也都进了文档，但渲染时不读。
+   判断标准很简单：**doc.json 里的每个 config 必须在渲染路径上被读到**，所以
+   `plugins-b.test.ts` 对账的是「字段集合 + 默认值」，人眼对账的是「有没有真的用」。
+17. **`dist` 特征串断言差点写成假阳性机器。**
+   第一版按包名扫（`mammoth` / `xlsx` / `docx-preview`），结果 `import("mammoth/mammoth.browser")`
+   与 `docxMode === "docx-preview"` 全部命中；换成 `SheetJS` 后又撞上我自己写的一句
+   「离线解析 xlsx 需要 SheetJS」。最终用「只有整库内联才会出现的内部标识」
+   （`JSZip` 类名 / `SheetJS` banner / `--w-rjv-` CSS 变量前缀 / `docx-wrapper` class）
+   **加上体积双判据**，并在源码里避免用这些词写用户文案。
+18. **`xlsx` 在 npm 上停在 0.18.5。** SheetJS 从 0.19 起改在自己的 CDN 分发，
+   npm 包不再更新（License 仍是 Apache-2.0）。这条写进了 `doc.json` 的 notes 与插件头注释，
+   免得消费方以为 `npm i xlsx` 拿到的是最新版。
 ---
 
 ## 执行记录（随实施追加）
@@ -382,6 +412,7 @@ demo            13 个示例页 + Home + ReadmeDemo + _layout
 | P1 | 2026-10-27 | 包骨架 + Core 状态机收敛 + demo 指回源码（14 单测） |
 | P2 | 2026-10-27 | 装配器接内核 + 单赢家路由纯函数（54 单测） |
 | P3-A | 2026-10-27 | 6 个轻量插件 + 共享模块 + 6 份 doc.json（88 单测） |
+| P3-B | 2026-10-27 | 7 个重依赖插件动态化 + external 正则 + 缺失依赖面板 + demo 文档页（126 单测） |
 | P4 | — | — |
 | P5 | — | — |
 | P6 | — | — |

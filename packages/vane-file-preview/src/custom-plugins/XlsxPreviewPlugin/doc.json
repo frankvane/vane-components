@@ -1,0 +1,39 @@
+{
+  "name": "XlsxPreviewPlugin",
+  "description": "XLSX / XLSM / XLS 离线解析成表格，多 Sheet 页签切换，超大表按行列上限截断。依赖 xlsx（SheetJS，optional peer）。",
+  "since": "2.0.0",
+  "tags": ["document", "spreadsheet", "excel", "表格"],
+  "config": [
+    {
+      "name": "defaultSheetIndex",
+      "type": "number",
+      "default": "0",
+      "description": "默认打开第几个 sheet（从 0 开始），会按 sheet 数量夹紧"
+    },
+    {
+      "name": "maxRows",
+      "type": "number",
+      "default": "200",
+      "description": "最多渲染多少行；超出按 !ref 裁 range 并显示「只渲染了前 N 行」告警"
+    },
+    {
+      "name": "maxCols",
+      "type": "number",
+      "default": "50",
+      "description": "最多渲染多少列"
+    }
+  ],
+  "example": "import { createXlsxPreviewPlugin } from \"vane-file-preview/custom-plugins/XlsxPreviewPlugin\";\n\nconst plugins = [createXlsxPreviewPlugin({ maxRows: 500, maxCols: 30 })];\n// 别忘了装依赖：npm i xlsx",
+  "features": [
+    "Sheet 页签是真的能切：正文把 sheetNames 写进 sharedData，工具栏照着渲染，点击改 sharedData 再 forceUpdate",
+    "按 used range 裁行列再转 HTML：一张 5 万行的表不会当场产出几十万个 <td>",
+    "首行 sticky、数字按单元格类型对齐，表头底色与斑马纹只用一条内联 <style>"
+  ],
+  "useCases": ["报价单 / 对账单预览", "导出的报表核对", "后台附件快速看数"],
+  "notes": [
+    "**License**：xlsx（SheetJS Community Edition）是 Apache-2.0，商用可以。但它从 0.19 起不在 npm 更新了，官方改在自己的 CDN（https://cdn.sheetjs.com/）分发；npm 上的 0.18.5 是最后一版，需要新特性得换源安装。",
+    "不还原单元格样式：条件格式、图表、批注、图片、冻结窗格都没有；合并单元格不会真的合并（sheet_to_html 只输出 td，靠 colSpan 需要自己遍历 !merges）。要保真请走 Office 在线预览。",
+    "超大表是截断而不是虚拟滚动：虚拟滚动要自己实现行高测量与窗口化，收益（能看完整表）与复杂度不成比例 —— 看完整表请下载文件。",
+    "xlsx 是 optional peer：未安装时渲染 npm i 提示面板，并提示可以改用 OfficePreviewPlugin。"
+  ]
+}

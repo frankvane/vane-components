@@ -1,0 +1,52 @@
+{
+  "name": "JsonPreviewPlugin",
+  "description": "JSON 树视图：折叠 / 展开、关键字搜索 + 路径复制、导出格式化 JSON，跟随系统深浅色。依赖 @uiw/react-json-view（optional peer）。",
+  "since": "2.0.0",
+  "tags": ["data", "json", "结构化数据"],
+  "config": [
+    {
+      "name": "maxFileSize",
+      "type": "number",
+      "default": "5242880",
+      "description": "超过这个字节数直接拒绝渲染（5MB）。在 fetch 之前按 file.size 拦，不等 JSON.parse"
+    },
+    {
+      "name": "enableSearch",
+      "type": "boolean",
+      "default": "true",
+      "description": "顶部搜索框：同时匹配键名与字符串/数字值，命中项可一键复制 JS 访问路径"
+    },
+    {
+      "name": "enableCopy",
+      "type": "boolean",
+      "default": "true",
+      "description": "节点内的复制按钮（交给 JsonView 的 enableClipboard）"
+    },
+    {
+      "name": "theme",
+      "type": "\"auto\" | \"light\" | \"dark\"",
+      "default": "\"auto\"",
+      "description": "auto 跟随 prefers-color-scheme 并监听变化；只剩两套配色，不再提供 nord / monokai 等九选一"
+    },
+    {
+      "name": "collapsed",
+      "type": "number",
+      "default": "0",
+      "description": "初始折叠层级：0 = 全展开，1 = 只展开根，以此类推"
+    }
+  ],
+  "example": "import { createJsonPreviewPlugin } from \"vane-file-preview/custom-plugins/JsonPreviewPlugin\";\n\nconst plugins = [\n  createJsonPreviewPlugin({ theme: \"dark\", collapsed: 1, maxFileSize: 1024 * 1024 }),\n];\n// 别忘了装依赖：npm i @uiw/react-json-view",
+  "features": [
+    "主题从 9 套收敛到 2 套（浅/深）+ auto：原来 9 个主题子路径全是静态 import，整库被内联进产物",
+    "搜索同时命中「键名」与「值」，结果里给出的路径可直接当 JS 表达式用（a.b[0].c）",
+    "导出用 Blob URL 而不是 data: URL —— 5MB JSON 拼 data URL 会得到十几 MB 的 href，部分浏览器直接拒绝",
+    "合法但非对象的 JSON（123 / \"str\" / true）退化成 <pre>，不会渲染成空白"
+  ],
+  "useCases": ["接口返回体排查", "配置文件查看", "日志 JSON 快速定位字段"],
+  "notes": [
+    "5MB 上限不是随便定的：JSON.parse 出来的对象树通常是原文件的 5~10 倍内存，再交给树视图渲染，标签页会直接卡死。需要看大文件请调 maxFileSize 并自己承担风险。",
+    "搜索只在已解析的对象上做，不做增量索引：几万节点的搜索是同步递归，会阻塞一次（通常 <100ms）。",
+    "不支持 JSON5 / JSONC（带注释、尾逗号）：用的是原生 JSON.parse，格式不合法会明确报「JSON 格式错误」而不是猜。",
+    "@uiw/react-json-view 是 optional peer：未安装时渲染 npm i 提示面板。"
+  ]
+}

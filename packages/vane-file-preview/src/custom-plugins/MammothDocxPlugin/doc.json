@@ -1,0 +1,34 @@
+{
+  "name": "MammothDocxPlugin",
+  "description": "DOCX 语义 HTML 预览（默认的 docx 实现）：标题 / 段落 / 列表 / 表格转成干净语义标签。依赖 mammoth（optional peer）。",
+  "since": "2.0.0",
+  "tags": ["document", "docx", "word", "office"],
+  "config": [
+    {
+      "name": "withDefaultStyle",
+      "type": "boolean",
+      "default": "true",
+      "description": "附带 mammoth 的默认样式映射（标题、列表、表格、粗斜体）；关掉只保留最原始的段落"
+    },
+    {
+      "name": "enabled",
+      "type": "boolean",
+      "default": "true",
+      "description": "整个插件开关；关掉后 .docx 交给 DocxPreviewPlugin（需 docxMode）或 OfficePreviewPlugin"
+    }
+  ],
+  "example": "import { createMammothDocxPlugin } from \"vane-file-preview/custom-plugins/MammothDocxPlugin\";\n\n// 不设 file.docxMode 时它就是 .docx 的默认赢家\nconst plugins = [createMammothDocxPlugin({ withDefaultStyle: true })];\n// 别忘了装依赖：npm i mammoth",
+  "features": [
+    "产物是语义 HTML（h1/h2/p/ul/table），便于二次提取、搜索、复制 —— 与还原版式的 DocxPreviewPlugin 互补",
+    "mammoth 的转换提示（不支持的元素等）折叠在正文下方，默认不打扰，点开才看",
+    "与 DocxPreviewPlugin 由 file.docxMode 互斥，不存在「谁 priority 高」的隐式规则"
+  ],
+  "useCases": ["正文内容提取 / 检索", "移动端轻量预览", "需要把 docx 内容嵌进现有排版"],
+  "notes": [
+    "**默认实现**：`file.docxMode` 未设置或为 \"mammoth\" 时由它命中。要还原版式请显式设 `file.docxMode = \"docx-preview\"` 并装 docx-preview。",
+    "不还原版式：没有分页、页边距、字号、页眉页脚、颜色。这是 mammoth 的设计取向（语义优先），不是 bug。",
+    "图片会以 base64 内联进 HTML：一份 20MB 的图文 docx 转出来的字符串可能上百 MB，移动端要留意内存。",
+    "mammoth 是 optional peer，且用 `mammoth/mammoth.browser` 子路径（浏览器构建）：external 必须写正则 `/^mammoth(\\/|$)/`，否则整库会被内联进产物。",
+    "未安装时渲染 npm i 提示面板，并提示可以改用 docx-preview。"
+  ]
+}

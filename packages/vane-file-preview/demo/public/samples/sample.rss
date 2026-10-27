@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>示例 RSS 订阅</title>
+    <link>https://example.com</link>
+    <description>这是一个示例 RSS 订阅源</description>
+    <language>zh-CN</language>
+    <lastBuildDate>Mon, 01 Jan 2024 12:00:00 GMT</lastBuildDate>
+    <item>
+      <title>第一篇文章</title>
+      <link>https://example.com/article1</link>
+      <description>这是第一篇文章的描述内容</description>
+      <pubDate>Mon, 01 Jan 2024 10:00:00 GMT</pubDate>
+      <guid>https://example.com/article1</guid>
+    </item>
+    <item>
+      <title>第二篇文章</title>
+      <link>https://example.com/article2</link>
+      <description>这是第二篇文章的描述内容</description>
+      <pubDate>Tue, 02 Jan 2024 14:30:00 GMT</pubDate>
+      <guid>https://example.com/article2</guid>
+    </item>
+  </channel>
+</rss>

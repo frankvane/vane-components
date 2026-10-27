@@ -87,27 +87,59 @@
     "prepublishOnly": "npm run build"
   },
   "peerDependencies": {
+    "@uiw/react-json-view": ">=2.0.0-alpha.39",
+    "docx-preview": "^0.3.0",
+    "jszip": "^3.10.0",
+    "mammoth": "^1.6.0",
     "react": ">=16.8.0",
-    "react-dom": ">=16.8.0"
+    "react-dom": ">=16.8.0",
+    "react-xml-viewer": "^3.0.0",
+    "xlsx": "^0.18.5"
+  },
+  "peerDependenciesMeta": {
+    "@uiw/react-json-view": {
+      "optional": true
+    },
+    "docx-preview": {
+      "optional": true
+    },
+    "jszip": {
+      "optional": true
+    },
+    "mammoth": {
+      "optional": true
+    },
+    "react-xml-viewer": {
+      "optional": true
+    },
+    "xlsx": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@types/node": "^20.19.18",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
+    "@uiw/react-json-view": "2.0.0-alpha.44",
     "@vane/build-config": "workspace:*",
     "@vane/eslint-config": "workspace:*",
     "@vane/plugin-core": "workspace:*",
     "@vane/tsconfig": "workspace:*",
     "@vane/vitest-config": "workspace:*",
     "@vitejs/plugin-react": "^4.3.1",
+    "docx-preview": "^0.3.7",
     "happy-dom": "^15.11.7",
+    "jszip": "^3.10.2",
+    "mammoth": "^1.13.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.26.2",
+    "react-xml-viewer": "^3.0.5",
     "typescript": "^5.5.3",
     "vite": "^5.4.1",
     "vite-plugin-dts": "^4.5.4",
-    "vitest": "^2.1.9"
+    "vitest": "^2.1.9",
+    "xlsx": "^0.18.5"
   },
   "vane": {
     "sizeBudgetKb": 14,

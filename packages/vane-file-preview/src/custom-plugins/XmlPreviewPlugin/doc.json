@@ -1,0 +1,51 @@
+{
+  "name": "XmlPreviewPlugin",
+  "description": "XML / RSS / Atom / KML 源码树视图：可折叠、带行号、可复制全文。依赖 react-xml-viewer（optional peer）。",
+  "since": "2.0.0",
+  "tags": ["data", "xml", "rss", "结构化数据"],
+  "config": [
+    {
+      "name": "maxFileSize",
+      "type": "number",
+      "default": "10485760",
+      "description": "超过这个字节数直接拒绝渲染（10MB）"
+    },
+    {
+      "name": "enableSearch",
+      "type": "boolean",
+      "default": "true",
+      "description": "顶部搜索框：只统计命中行数，不做高亮（查看器不支持）"
+    },
+    {
+      "name": "enableCopy",
+      "type": "boolean",
+      "default": "true",
+      "description": "顶部「复制全文」按钮"
+    },
+    {
+      "name": "theme",
+      "type": "\"auto\" | \"light\" | \"dark\"",
+      "default": "\"auto\"",
+      "description": "auto 跟随系统 prefers-color-scheme 并监听变化"
+    },
+    {
+      "name": "collapsedLevels",
+      "type": "number",
+      "default": "2",
+      "description": "初始折叠层级，传给查看器的 initialCollapsedDepth"
+    }
+  ],
+  "example": "import { createXmlPreviewPlugin } from \"vane-file-preview/custom-plugins/XmlPreviewPlugin\";\n\nconst plugins = [createXmlPreviewPlugin({ collapsedLevels: 3 })];\n// 别忘了装依赖：npm i react-xml-viewer",
+  "features": [
+    "XML 非法时由查看器渲染「Invalid XML!」提示，而不是抛错把整棵树带崩",
+    "主题用 css 变量式的 theme 对象（tag / attribute / cdata / 行号各自配色），深浅两套写死在文件里，不额外引 CSS",
+    "不声明 .svg：SVG 应当由图片插件渲染，这里再声明一次只会让「按扩展名」路径有机会抢走它"
+  ],
+  "useCases": ["RSS / Atom 源排查", "SOAP / WSDL 调试", "KML / GPX 轨迹文件检查"],
+  "notes": [
+    "迁移时删掉了四个从来没生效的配置：enableValidation / showAttributes / showComments / showProcessingInstructions。react-xml-viewer 的 props 里根本没有这些开关，文档写着能关、实际关不掉，比不提供更糟。",
+    "也删掉了「格式化」按钮：原实现是 xml.replace(/></g, \">\\n<\") 再补缩进，会把 CDATA 与属性值里的 > 一起切开，可能把合法 XML 改坏。要格式化请在构建期用 prettier，不要在预览层改数据。",
+    "搜索只做行级计数，不做高亮与跳转 —— 查看器没有暴露「高亮某个节点」的能力，硬做只能在外层套一层自己实现的渲染器。",
+    "react-xml-viewer 是 optional peer：未安装时渲染 npm i 提示面板。"
+  ]
+}

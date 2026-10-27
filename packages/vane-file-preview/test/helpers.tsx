@@ -54,6 +54,27 @@ export async function flush(times = 3): Promise<void> {
   });
 }
 
+/**
+ * 等到某个条件成立，最多轮询 `rounds` 次。
+ *
+ * 为什么需要它：`flush(n)` 是「猜 n 够不够」。B 批插件的链路长度不一样
+ * （Zip：import → fetch → 解包；Pptx：再乘上逐页 DOMParser），
+ * 猜小了断言在 loading 面板上失败，猜大了白等，而且换个 happy-dom 版本就可能翻车。
+ * 这里改成「轮询到条件成立」——断言本身还是那条断言，只是不再依赖轮数。
+ */
+export async function waitFor(
+  check: () => boolean,
+  message = "waitFor 超出轮数上限",
+  rounds = 60
+): Promise<void> {
+  for (let i = 0; i < rounds; i += 1) {
+    if (check()) return;
+    await flush(1);
+  }
+  if (check()) return;
+  throw new Error(message);
+}
+
 export function renderCore(
   props: Partial<FilePreviewCoreProps> = {}
 ): CoreHandle {

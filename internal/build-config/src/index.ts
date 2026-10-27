@@ -25,8 +25,15 @@ export interface LibOptions {
   name: string;
   /** 包根目录，默认 process.cwd() */
   root?: string;
-  /** 额外 external（如 localforage、pdfjs-dist） */
-  external?: string[];
+  /**
+   * 额外 external（如 localforage、pdfjs-dist）。
+   *
+   * **字符串是精确匹配，正则才管子路径。** 这是踩过的坑：写 `"mammoth"` 匹配不到
+   * `"mammoth/mammoth.browser"`，写 `"react-syntax-highlighter"` 匹配不到
+   * `"react-syntax-highlighter/dist/esm/styles/prism"` —— rollup 不报错，
+   * 只是把整个库静默内联进来。子路径依赖一律写正则：`/^mammoth(\/|$)/`。
+   */
+  external?: Array<string | RegExp>;
   /** 输出格式，默认仅 es（现代打包器均支持；需要兼容 CJS 时传 ["es","cjs"]） */
   formats?: Array<"es" | "cjs">;
   /** 是否生成 d.ts，默认 true */

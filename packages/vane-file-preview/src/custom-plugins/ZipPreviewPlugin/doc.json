@@ -1,0 +1,33 @@
+{
+  "name": "ZipPreviewPlugin",
+  "description": "压缩包条目列表：解出 zip 内部结构，目录在前、文件在后，显示未压缩大小。依赖 jszip（optional peer）。",
+  "since": "2.0.0",
+  "tags": ["archive", "zip", "压缩包", "data"],
+  "config": [
+    {
+      "name": "showFileSize",
+      "type": "boolean",
+      "default": "true",
+      "description": "每一项右侧显示未压缩大小。拿不到时显示「—」而不是 0"
+    },
+    {
+      "name": "maxFiles",
+      "type": "number",
+      "default": "200",
+      "description": "最多列出多少项，超出只提示总数（一个 5000 文件的包铺 5000 个节点会卡）"
+    }
+  ],
+  "example": "import { createZipPreviewPlugin } from \"vane-file-preview/custom-plugins/ZipPreviewPlugin\";\n\nconst plugins = [createZipPreviewPlugin({ maxFiles: 100 })];\n// 别忘了装依赖：npm i jszip",
+  "features": [
+    "目录排在文件前面、同层按名称排序，与资源管理器习惯一致",
+    "只声明 .zip —— .rar / .7z 换容器格式，jszip 一律解不开，认领了只会变成「报错而不是兜底下载」",
+    "未压缩大小读 jszip 内部的 _data.uncompressedSize（它没有公开 API），读不到就显示「—」",
+    "依赖缺失时渲染安装提示面板，不是白屏"
+  ],
+  "useCases": ["上传前确认压缩包内容", "后台附件快速核对", "构建产物检查"],
+  "notes": [
+    "只列条目、不解压内容。要预览压缩包里的某个文件，用户得先下载解开 —— 递归预览意味着把内层文件再走一遍整个预览管线，复杂度不成比例。",
+    "jszip 是 optional peer：不装也能 import 本插件，只是渲染时给出 npm i jszip 的提示。",
+    "不识别加密 zip：jszip 会抛「encrypted zip are not supported」，界面落到错误面板。"
+  ]
+}

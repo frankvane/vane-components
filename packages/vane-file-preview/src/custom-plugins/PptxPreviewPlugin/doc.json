@@ -1,0 +1,27 @@
+{
+  "name": "PptxPreviewPlugin",
+  "description": "PPTX 文本大纲预览：解包 ppt/slides/*.xml，抽每页文字，按页翻看。无版式、无图片。依赖 jszip（optional peer）。",
+  "since": "2.0.0",
+  "tags": ["document", "pptx", "slides", "幻灯片"],
+  "config": [
+    {
+      "name": "maxParagraphsPerSlide",
+      "type": "number",
+      "default": "40",
+      "description": "单页最多展示多少段，超出截断（防止一页塞了整个讲稿时把整块区域撑爆）"
+    }
+  ],
+  "example": "import { createPptxPreviewPlugin } from \"vane-file-preview/custom-plugins/PptxPreviewPlugin\";\n\nconst plugins = [createPptxPreviewPlugin({ maxParagraphsPerSlide: 30 })];\n// 别忘了装依赖：npm i jszip",
+  "features": [
+    "正文顶部常驻一条口径说明「文本大纲预览」，工具栏标题也写「PPTX · 文本大纲」——避免用户以为是渲染坏了",
+    "页码条窗口化：≤9 页全显示，更多时显示「首页两点 + 当前页 ±1 + 末尾两点」，不会出现当前页重复两个按钮",
+    "段落抽取兼容带命名空间（a:p / a:t）与丢了前缀（p / t）两种 OOXML 产物"
+  ],
+  "useCases": ["快速找某页讲了什么", "演讲稿复制文字", "上传前检查页数"],
+  "notes": [
+    "**它不是 PPT 渲染器**。要还原版式（图片、形状、母版、字体、动画）需要解析 drawingml，那是另一个项目的体量；本插件只承诺「把文字按页抽出来」。",
+    "标题判定是启发式的（大纲层级 lvl ≤ 1 或首句短于 50 字），样式信息在 OOXML 里靠母版继承，这里不解析 —— 所以标题/正文的分类必然有误判。",
+    "只读 ppt/slides/*.xml：备注页（notesSlides）、母版（slideLayouts）里的文字不在大纲里。",
+    "jszip 是 optional peer：未安装时渲染 npm i 提示面板；想要真实版式请改用 OfficePreviewPlugin（需公网可访问 URL）。"
+  ]
+}

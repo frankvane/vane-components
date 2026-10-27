@@ -1,0 +1,39 @@
+{
+  "name": "DocxPreviewPlugin",
+  "description": "DOCX 版式还原预览：分页、页边距、字号、表格边框按文档里的 OOXML 来。依赖 docx-preview（optional peer）。",
+  "since": "2.0.0",
+  "tags": ["document", "docx", "word", "office"],
+  "config": [
+    {
+      "name": "enabled",
+      "type": "boolean",
+      "default": "true",
+      "description": "整个插件开关；关掉后 .docx 交给 MammothDocxPlugin 或 OfficePreviewPlugin"
+    },
+    {
+      "name": "breakPages",
+      "type": "boolean",
+      "default": "true",
+      "description": "分页显示（页与页之间留白），false 时连成一片连续内容"
+    },
+    {
+      "name": "renderHeaders",
+      "type": "boolean",
+      "default": "true",
+      "description": "同时渲染页眉与页脚"
+    }
+  ],
+  "example": "import { createDocxPreviewPlugin } from \"vane-file-preview/custom-plugins/DocxPreviewPlugin\";\n\n// 只有 file.docxMode === \"docx-preview\" 时才会命中这个插件\nconst plugins = [createDocxPreviewPlugin({ breakPages: false })];\nconst file = { name: \"a.docx\", docxMode: \"docx-preview\" };\n// 别忘了装依赖：npm i docx-preview",
+  "features": [
+    "按 OOXML 还原版式：分页、页边距、字号、表格边框、页眉页脚",
+    "与 MammothDocxPlugin 由 file.docxMode 互斥，不靠 priority 抢 —— 谁渲染是配置决定的，不是注册顺序决定的"
+  ],
+  "useCases": ["合同 / 公文按原样查看", "需要看到分页与页眉页脚的场景", "排版验收"],
+  "notes": [
+    "**只在 `file.docxMode === \"docx-preview\"` 时命中。** 默认的 docx 实现是 MammothDocxPlugin（语义 HTML、更轻）；要版式就得显式声明，否则用户会同时装两个却永远只看到 mammoth 的结果。",
+    "docx-preview 的产物是带内联样式的 DOM 树，比 mammoth 的语义 HTML 大一个量级，渲染慢一些；长文档（几百页）首次渲染可能几百毫秒。",
+    "不支持老的二进制 .doc（Word 97-2003）：那是完全不同的容器格式，要它得另装解析器。",
+    "迁移时删掉了一段 `* { display: block !important }` 的样式：类名从来没被挂到元素上（死代码），而一旦生效会把 table / tr / li 全部 block 化，表格当场散架。",
+    "docx-preview 是 optional peer：未安装时渲染 npm i 提示面板，并提示可以改用 mammoth。"
+  ]
+}

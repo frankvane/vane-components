@@ -231,22 +231,40 @@
    冲突时 MIME 该赢。配套把 `.ogg` 从 Video 的扩展名列表里拿掉（视频 ogg 走 `video/ogg` 或 `.ogv`）。
    注意 `priority` 仍排在置信度**之前** —— 它是插件的显式意图，不该被「碰巧 MIME 命中」推翻。
 
+8. **D8 · 重依赖一律「动态 import + 可选 peer + 降级面板」**（P3-B 实装时补的）。
+   7 个重依赖插件（Zip / Json / Xml / Xlsx / Pptx / Docx×2）迁移前都是**顶层静态 import**，
+   于是「消费方没装 jszip」不是一种状态，而是一次崩溃：模块图加载阶段就炸，整页白屏，
+   控制台只有一句 Failed to fetch dynamically imported module —— 用户既不知道少装了什么，
+   也不知道该装哪个。改成 `import("pkg")` 之后，缺依赖变成**可渲染的状态**：
+   `shared/panels.tsx` 的 `MissingDependency` 写明包名、给出一行 `npm i <pkg>`、
+   附带备选方案（例如 mammoth 缺失时提示改用 docx-preview）。
+   配套约束：`render` / `renderToolbar` 里不许有 hooks（见 P3-A），所以「加载依赖」这件事
+   由 `shared/useDynamicModule.ts` 的钩子承担，插件正文只读它的 `status`。
+   两个 docx 实现的取舍由 `file.docxMode` 决定、`canHandle` 互斥 —— **不靠 priority 抢**，
+   因为「注册顺序决定渲染器」是没人能调试的隐式规则（P3-B 单测里把 office 挪到第一位就换过赢家，
+   所以 `DocxPreviewPlugin` 的 priority 从 7 提到 8，与 Office 的 7 拉开）。
+
 **关键判断（写在这里防止复发）**：
 
 - **这是「单赢家路由」，不是 vane-card 的「多插件合成」。** 一个文件只能有一个插件渲染正文，
   把 17 个插件塞进槽位合成会让它们同时渲染。所以不套用 vane-card 的槽位模型。
 - **`external` 对子路径静默失效** 是 986KB 的直接原因：字符串 `"mammoth"` 匹配不到
   `"mammoth/mammoth.browser"`，`"react-syntax-highlighter"` 匹配不到它的主题子路径。
-  P4.2 把 `internal/build-config` 的 `external` 放宽为 `(string | RegExp)[]`，
-  并加一条断言「`dist/**/*.js` 内不得出现 `mammoth` / prism 主题特征串」。
-  这条不报错、只是白胖，**只能靠断言守，不能靠构建绿灯守**。
+  P4.2 把 `internal/build-config` 的 `external` 放宽为 `(string | RegExp)[]`。
+  **实测反证**（P3-B）：把 external 退化成包名字符串重建，立刻多出
+  `chunks/mammoth.browser-*.js = 492.4KB`，`@uiw/react-json-view/light` 也被内联 ——
+  而构建日志全绿。所以闸门是 `test/dist-external.test.ts` 的三条判据：
+  ① 9 个 `import("pkg")` 必须原样留在入口；② 不得出现「整库内联才有」的内部标识
+  （`JSZip` / `SheetJS` / `--w-rjv-` / `docx-wrapper`）；③ 单文件 ≤60KB、全量 ≤220KB。
+  第三条件是真正的兜底：**按包名扫会一直假阳性**（`import("mammoth/…")`、
+  `docxMode === "docx-preview"` 都是合法字符串），而体积骗不了人。
 - **`manualChunks` 与 `external` 互斥**：旧配置里 9 个 chunk 全写的是外部模块名，等于没写。
   改为多入口后自然分片，不需要手写 chunk。
 
 **代价**：消费者要按文件类型自己装 peer（文档里给一张「文件类型 → 需要装什么」的表）；
 根入口只管 6 个轻量插件，剩下 11 个要写子路径 import。
 
-**验证**：体积三口径（根入口 ≤**14KB** / `./core` ≤8KB / 全量并集 ≤90KB）+ `dist` 特征串断言 +
+**验证**：体积三口径（根入口 ≤**14KB** / `./core` ≤8KB / 全量并集 ≤90KB，P3-B 实测 12.9 / 6.5 / 32.2）+ `dist` 内联断言 +
 `resolvePreview` 对 17 种文件的赢家断言 + `MissingDependency` 的 mock reject 单测。
 入口预算是 P3-A 迁完 6 个插件后从 12KB 上调的（实测 12.5KB：装配 6.4 + 6 插件约 6 + 共享工具栏 1.5），
 P1 定的 12KB 是在插件还没迁入时拍的，不是真实上限。
