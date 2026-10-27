@@ -198,10 +198,16 @@ Analytics(50) 能收到 PriceCalculator(20) 的首个 `price:change`，靠的就
 ② 给 `discover-entries.mjs` 加一层路径映射（公开子路径不变）。C6 定夺。
 
 
-### C3.5 单测（第三批）
+### C3.5 单测（第三批）· ✅ 已完成
 
-- [ ] 每个插件：工厂返回 `{ name, hooks, meta }`、`doc.json` 可解析、`config` 默认值正确（22 × 1 断言，表驱动）
-- [ ] 3 个端到端：SKU 联动（SKU + Quantity + PriceCalculator）、优惠叠加（Coupon + CouponRecommend + OrderSummary）、曝光上报（Analytics）
+- [x] 每个插件：工厂返回 `{ name, hooks }`、`doc.json` 可解析、`config` 字段完整（22 × 3 + 2 条 = 68 断言，表驱动）
+      —— `test/plugin-meta.test.tsx`，同时锁住「新增插件忘写 doc.json」与「文档里写了不存在的配置项」
+- [x] 3 个端到端：
+      - SKU 联动 → `test/bus-protocol.test.tsx`（299 → 319，数量 +1 → 598）
+      - 优惠叠加 → `test/plugins-b.test.tsx`（券 10 元：100 → 90）
+      - 曝光上报 → `test/plugins-b.test.tsx`（复用 Core 可见性、minExposureMs 门槛）
+
+**C3 收尾状态**：22 个插件全部迁入 + 22 份 `doc.json` + 3 个配方 + 11 个测试文件 129 用例。
 
 **验收门 C3**：`doc.json` **22/22**；桶文件 22 导出、5 组无遗漏；`docs:plugins` 生成 22 行；`typecheck` 0 错；`test` ≥30 通过；3 个配方可跑；**22/22 插件在 demo 中至少被装配一次**（脚本化覆盖闸门）。
 
