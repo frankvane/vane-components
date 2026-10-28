@@ -163,6 +163,13 @@ export const GalleryCore = forwardRef<GalleryCoreRef, GalleryCoreProps>(
               src={active?.src ?? ""}
               alt={active?.alt ?? ""}
               containerStyle={{ height: "100%", background: "transparent" }}
+              // 主图区为固定高度容器：用 contain 完整显示整张图，避免按自然比例
+              // 溢出后被裁切（cover 在「宽容器 + 竖图」下会切掉中部内容/标签）
+              imageStyle={{
+                width: "100%",
+                height: "100%",
+                objectFit: "contain",
+              }}
             />
           </div>
           {mainExtra}

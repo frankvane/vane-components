@@ -20,13 +20,36 @@ import { createComparisonPlugin } from "vane-lazy-image/custom-plugins/Compariso
 import { createDownloadButtonPlugin } from "vane-lazy-image/custom-plugins/DownloadButtonPlugin";
 import type { GalleryImage, GalleryPlugin } from "vane-lazy-image/gallery";
 
+/**
+ * 自包含占位图：内联 SVG data-URI，离线即可渲染，不依赖任何远程图床
+ * （picsum.photos 在受限网络下常加载失败，导致主图区空白）。
+ * 如需演示真实远程懒加载，把这里换成你自己的图床 URL 即可。
+ */
+function placeholderImage(label: string, hue: number): string {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="900" height="600" viewBox="0 0 900 600">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="hsl(${hue},62%,64%)"/>
+      <stop offset="1" stop-color="hsl(${(hue + 38) % 360},58%,46%)"/>
+    </linearGradient>
+  </defs>
+  <rect width="900" height="600" fill="url(#g)"/>
+  <rect x="285" y="150" width="330" height="300" rx="26" fill="rgba(255,255,255,0.88)"/>
+  <circle cx="450" cy="248" r="52" fill="rgba(17,24,39,0.12)"/>
+  <path d="M450 210 L450 286 M410 248 L490 248" stroke="rgba(17,24,39,0.30)" stroke-width="8" stroke-linecap="round"/>
+  <text x="450" y="330" font-family="system-ui,-apple-system,sans-serif" font-size="46" font-weight="700" fill="#111827" text-anchor="middle">${label}</text>
+  <text x="450" y="560" font-family="system-ui,-apple-system,sans-serif" font-size="20" fill="rgba(255,255,255,0.9)" text-anchor="middle">vane-gallery · demo 占位图</text>
+</svg>`;
+  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+}
+
 const images: GalleryImage[] = [
-  { src: "https://picsum.photos/seed/vaneg1/900/600", alt: "正面" },
-  { src: "https://picsum.photos/seed/vaneg2/900/600", alt: "侧面" },
-  { src: "https://picsum.photos/seed/vaneg3/900/600", alt: "背面" },
-  { src: "https://picsum.photos/seed/vaneg4/900/600", alt: "细节" },
-  { src: "https://picsum.photos/seed/vaneg5/900/600", alt: "场景" },
-  { src: "https://picsum.photos/seed/vaneg6/900/600", alt: "包装" },
+  { src: placeholderImage("正面", 8), alt: "正面" },
+  { src: placeholderImage("侧面", 200), alt: "侧面" },
+  { src: placeholderImage("背面", 150), alt: "背面" },
+  { src: placeholderImage("细节", 280), alt: "细节" },
+  { src: placeholderImage("场景", 330), alt: "场景" },
+  { src: placeholderImage("包装", 50), alt: "包装" },
 ];
 
 interface ToggleDef {
