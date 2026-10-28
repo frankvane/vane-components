@@ -48,7 +48,7 @@ export function Wall({ item }: { item: ProductData }) {
 }
 ```
 
-**`withPlugins` 不要在渲染里调**。它每次调用都返回新的组件类型，React 看到类型变了就整棵卸载重建 —— `onMount` 重跑、内部状态全丢、图片重新加载。要按条件换插件，用「按插件名记忆」的写法（见 [API · 装配](api.md#装配-withplugins)）。
+**`withPlugins` 不要在渲染里调**。它每次调用都返回新的组件类型，React 看到类型变了就整棵卸载重建 —— `onMount` 重跑、内部状态全丢、图片重新加载。要按条件换插件，用「按插件名记忆」的写法（见 [API · 装配](../../docs/components/vane-card/api.md#装配-withplugins)）。
 
 ## 导入方式与体积
 
@@ -90,7 +90,7 @@ demo/               演示站：38 页逐项示例 + 9 版式 + 16 场景（不�
 | 交互 | Actions / Hover | 加购与收藏、悬停反馈 |
 | 基础设施 | State / Analytics / A11y / Responsive | 状态初值、埋点、无障碍、尺寸自适应 |
 
-每个插件的 priority、配置项、坑位说明见 [插件](plugins.md)；现成组合见 [组合配方](recipes.md)。
+每个插件的 priority、配置项、坑位说明见 [插件](../../docs/components/vane-card/plugins.md)；现成组合见 [组合配方](../../docs/components/vane-card/recipes.md)。
 
 ## 两个排序轴，别混
 

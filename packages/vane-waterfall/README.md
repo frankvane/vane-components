@@ -65,7 +65,7 @@ export function Feed({ items }: { items: Item[] }) {
 
 单文件实测：`WaterfallCore` 4.68 KB gzip、`withPlugins` 5.62 KB gzip。
 
-> 根入口**不桶导出插件**——插件请走子路径，未引入的不进产物。插件目录见 [插件](plugins.md)，现成组合见 [组合配方](recipes.md)。
+> 根入口**不桶导出插件**——插件请走子路径，未引入的不进产物。插件目录见 [插件](../../docs/components/vane-waterfall/plugins.md)，现成组合见 [组合配方](../../docs/components/vane-waterfall/recipes.md)。
 
 ## 包内有什么
 
@@ -89,7 +89,7 @@ demo/               演示站：34 页逐项示例 + 工坊 + 13 场景（不随
 | 交互与埋点 | ClickAnalytics / HeatmapAnalytics / DragReorder / ScrollAnchor / Recycle | 点击与曝光统计、拖拽、锚点、离屏回收 |
 | 语义与状态 | A11y / Grouping / StickyHeader / Bookmark / StatePersistence / URLSync | 可访问性、分组、吸顶、位置书签、状态与 URL 同步 |
 
-完整配置项见 [插件](plugins.md)。
+完整配置项见 [插件](../../docs/components/vane-waterfall/plugins.md)。
 
 ## 虚拟化的估值策略
 
@@ -126,7 +126,7 @@ virtualize={{ estimateQuantile: 0.95 }}
 | 变化 | 影响 | 怎么改 |
 | --- | --- | --- |
 | 插件系统换成内核 | 自建 `PluginBus` / `PluginManager` 删除 | 不要再 import 它们；`withPlugins` / `Plugin` 从包里取 |
-| 钩子面 48 → 20 | 31 个从未被执行过的钩子删除 | 按 [API](api.md) 的钩子表逐个核对，被删的钩子本来也没生效 |
+| 钩子面 48 → 20 | 31 个从未被执行过的钩子删除 | 按 [API](../../docs/components/vane-waterfall/api.md) 的钩子表逐个核对，被删的钩子本来也没生效 |
 | 插件状态与清理 | `onMount` 返回值统一当清理函数 | 把 `unsubscribe` 逻辑放进返回的函数 |
 | 虚拟化下沉 Core | `VirtualWaterfallPlugin` 删除 | 去掉插件，改传 `virtualize` |
 | 多入口 | 插件不再桶导出进根入口 | `import { createXxxPlugin } from "vane-waterfall/custom-plugins/XxxPlugin"` |
@@ -144,7 +144,7 @@ virtualize={{ estimateQuantile: 0.95 }}
 | **插件工坊** | 26 插件 | 组合实验台：勾选任意组合，现场看冲突提示并生成装配代码 |
 | **场景库** | 13 版式 | 组合视角：真实版式（图文 / 电商 / 视频 / 看板 / 长文…），每卡两份源码 |
 
-逐项示例分三组，与 [API](api.md) 的钩子表一一对得上：
+逐项示例分三组，与 [API](../../docs/components/vane-waterfall/api.md) 的钩子表一一对得上：
 
 - **基础功能**（3）：基础示例、自定义列数、自定义间距 —— 只用 Core props
 - **高级功能**（3）：Ref 方法调用（13 个方法逐个点）、生命周期和事件（13 个回调接满）、高级配置（padding / useTransform / alignmentMode / 节流防抖）

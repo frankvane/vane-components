@@ -104,7 +104,7 @@ export default function App() {
 | 压缩包 | Zip | `jszip` |
 | 其他 | Code / Download | `react-syntax-highlighter` / 无 |
 
-17 个插件的完整配置表见 [plugins.md](./plugins.md)（由 `pnpm docs:plugins` 从各插件 `doc.json` 生成）。API 详见 [api.md](./api.md)，常见组合见 [recipes.md](./recipes.md)。
+17 个插件的完整配置表见 [plugins.md](../../docs/components/vane-file-preview/plugins.md)（由 `pnpm docs:plugins` 从各插件 `doc.json` 生成）。API 详见 [api.md](../../docs/components/vane-file-preview/api.md)，常见组合见 [recipes.md](../../docs/components/vane-file-preview/recipes.md)。
 
 ## 体积三口径
 

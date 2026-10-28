@@ -76,9 +76,9 @@ const LazyImage = withPlugins(LazyLoadImageCore, [
 
 ## 文档
 
-- [API](api.md)
-- [插件目录](plugins.md)
-- [组合配方](recipes.md)
+- [API](../../docs/components/vane-lazy-image/api.md)
+- [插件目录](../../docs/components/vane-lazy-image/plugins.md)
+- [组合配方](../../docs/components/vane-lazy-image/recipes.md)
 
 ## License
 
