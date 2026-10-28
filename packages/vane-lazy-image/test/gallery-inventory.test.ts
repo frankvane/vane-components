@@ -23,12 +23,11 @@ import { createSocialSharePlugin } from "../src/custom-plugins/SocialSharePlugin
 import { createDownloadButtonPlugin } from "../src/custom-plugins/DownloadButtonPlugin";
 
 describe("gallery 插件库存（规划 ≥15）", () => {
-  it("galleryPreset 返回 4 个核心插件且命名符合约定", () => {
+  it("galleryPreset 返回 3 个默认核心插件且命名符合约定", () => {
     const preset = galleryPreset();
     const names = preset.map((p) => p.name);
     expect(names).toEqual([
       "gallery-thumb-sync",
-      "gallery-spin-360",
       "gallery-counter",
       "gallery-indicator",
     ]);

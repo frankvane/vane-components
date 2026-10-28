@@ -13,15 +13,15 @@
 // 以把 doc.json 排除在 ./gallery 入口闭包之外（独立子路径 ./custom-plugins/XxxPlugin
 // 仍保留 .meta，不破坏约定）。doc.json 仅用于 demo 文档生成，运行时不需要。
 import { createThumbSyncPlugin } from "../../custom-plugins/ThumbSyncPlugin/create";
-import { createSpin360Plugin } from "../../custom-plugins/Spin360Plugin/create";
 import { createCounterPlugin } from "../../custom-plugins/CounterPlugin/create";
 import { createIndicatorPlugin } from "../../custom-plugins/IndicatorPlugin/create";
 import type { GalleryPlugin } from "../types";
 
 export function galleryPreset(): GalleryPlugin[] {
+  // 注：Spin360 是「有意开启的专门模式」（用 images 当帧序列、全屏覆盖主图），
+  // 不应默认开启——否则默认图集主图被黑底遮罩盖死（首屏黑屏）。改为调用方按需注入。
   return [
     createThumbSyncPlugin(),
-    createSpin360Plugin(),
     createCounterPlugin(),
     createIndicatorPlugin(),
   ];

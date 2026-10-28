@@ -74,7 +74,7 @@ export function createSpin360Plugin(config: Spin360Config = {}): GalleryPlugin {
           touchAction: "none",
           userSelect: "none",
           zIndex: 5,
-          background: "#000",
+          background: "transparent",
         }}
         title="拖拽旋转 360°"
       >

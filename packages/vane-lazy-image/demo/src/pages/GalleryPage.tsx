@@ -39,7 +39,7 @@ interface ToggleDef {
 // 10 个 gallery 域插件：4 个默认预设 + 6 个可选
 const DOMAIN_PLUGINS: ToggleDef[] = [
   { key: "thumb", label: "缩略联动", create: createThumbSyncPlugin, optional: false },
-  { key: "spin", label: "360 环物", create: createSpin360Plugin, optional: false },
+  { key: "spin", label: "360 环物", create: createSpin360Plugin, optional: true },
   { key: "counter", label: "计数", create: createCounterPlugin, optional: false },
   { key: "indicator", label: "指示点", create: createIndicatorPlugin, optional: false },
   { key: "carousel", label: "轮播", create: createCarouselPlugin, optional: true },
@@ -136,7 +136,7 @@ function runGeometryAudit(root: HTMLElement): AuditResult {
 const GalleryPage: React.FC = () => {
   const [domain, toggleDomain] = useToggleMap(
     DOMAIN_PLUGINS.map((d) => d.key),
-    { thumb: true, spin: true, counter: true, indicator: true }
+    { thumb: true, counter: true, indicator: true }
   );
   const [main, toggleMain] = useToggleMap(
     MAIN_PLUGINS.map((d) => d.key),

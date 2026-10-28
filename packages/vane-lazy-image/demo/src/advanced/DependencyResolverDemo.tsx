@@ -7,7 +7,7 @@ import {
 import React, { useState } from "react";
 
 import { DemoLayout } from "../components/DemoLayout";
-import { DependencyResolver } from "vane-lazy-image";
+import { DependencyResolver } from "vane-lazy-image/advanced";
 
 // 创建带版本和依赖信息的插件
 const createPluginWithDeps = (

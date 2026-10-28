@@ -124,7 +124,7 @@ describe("ThumbPreloadPlugin.onActiveChange 预加载", () => {
   });
 
   it("切换主图后预热后续张（去重、不预热当前张）", () => {
-    const p = createThumbPreloadPlugin({ lookahead: 2 });
+    const p: any = createThumbPreloadPlugin({ lookahead: 2 });
     p.hooks.onActiveChange!(baseCtx(), 0);
     expect(created).toEqual(["b.jpg", "c.jpg"]);
     // 重复切换同一张不重复预热
@@ -137,7 +137,7 @@ describe("ThumbPreloadPlugin.onActiveChange 预加载", () => {
     created.length = 0;
     // 用独立图片集，避免模块级 preloaded Set 与上一用例（a/b/c.jpg）去重串扰
     const other = [{ src: "p1.jpg" }, { src: "p2.jpg" }, { src: "p3.jpg" }];
-    const p = createThumbPreloadPlugin({ lookahead: 1, alsoPrevious: true });
+    const p: any = createThumbPreloadPlugin({ lookahead: 1, alsoPrevious: true });
     p.hooks.onActiveChange!(baseCtx({ images: other as any }), 1);
     expect(created).toEqual(["p3.jpg", "p1.jpg"]);
   });

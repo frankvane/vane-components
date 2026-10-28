@@ -6,7 +6,7 @@ import React, { useMemo, useState } from "react";
 import {
   SandboxConfig,
   wrapPluginHook,
-} from "vane-lazy-image";
+} from "vane-lazy-image/advanced";
 
 import { DemoLayout } from "../components/DemoLayout";
 
