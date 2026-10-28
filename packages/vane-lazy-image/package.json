@@ -1,6 +1,6 @@
 {
   "name": "vane-lazy-image",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "高性能 React 图片懒加载组件：插件化架构、59 个领域插件、ObserverPool/GlobalContext 性能工程",
   "type": "module",
   "main": "./dist/index.js",
@@ -396,7 +396,6 @@
     "verify:scenarios": "node scripts/verify-scenarios.mjs"
   },
   "peerDependencies": {
-    "vane-plugin-core": "workspace:*",
     "react": ">=16.8.0",
     "react-dom": ">=16.8.0"
   },

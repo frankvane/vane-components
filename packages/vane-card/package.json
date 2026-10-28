@@ -1,6 +1,6 @@
 {
   "name": "vane-card",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "React 卡片组件：插件化、可组合电商卡，22 个领域插件 + 38 个复合组件",
   "type": "module",
   "main": "./dist/index.js",

@@ -1,6 +1,6 @@
 {
   "name": "vane-waterfall",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "React 瀑布流布局组件：插件化、可变高、虚拟化，27 个领域插件",
   "type": "module",
   "main": "./dist/index.js",
@@ -185,7 +185,6 @@
     "audit:controls": "node scripts/audit-controls.mjs"
   },
   "peerDependencies": {
-    "vane-plugin-core": "workspace:*",
     "react": ">=16.8.0",
     "react-dom": ">=16.8.0"
   },
