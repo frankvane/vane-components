@@ -194,6 +194,22 @@
 
 ---
 
+## 进度（2026-10-28）
+
+| 阶段 | 状态 | 说明 |
+| --- | --- | --- |
+| P0 决策拍板 | ✅ | grill B1–B6 全部锁定并落纸 |
+| P1 包骨架 | ✅ | `packages/vane-sku` 可构建；exports/预算/依赖策略就位；`pnpm check` 通过 |
+| P2 core 引擎 | ✅ | `matrix.ts`（组合矩阵+禁用推导）+ `withPlugins.tsx`（extendContext）+ `SkuSelectorCore.tsx`；单测 8+6 |
+| P3 渲染与插槽 | ✅ | 逐段插槽（before/overlay/after/footer）映射内核三槽，零改内核 |
+| P4 三个插件 | ✅ | PriceLink / Quota / ImageLink + doc.json + 子路径；单测 7 |
+| P5 demo | ✅ | 工坊（插件开关+实时状态+几何体检）/ 场景集（6 个）/ 浏览器内自测 12/12 |
+| P6 文档与发布前置 | ✅ | index/api/plugins/recipes 写实、README 由 docs:sync 生成、changeset 就位 |
+
+**实现期对分析的修正（已同步回 `tasks/19`）**：
+1. 子路径由 `/pricing` `/quota` `/image` 改为 `./custom-plugins/PriceLink|Quota|ImageLink` —— `discover-entries.mjs` 只认这几类目录，`/pricing` 之类的形态不会被自动发现。
+2. 根入口预算 3.5KB → **7KB**（实测 6.08KB）：3.5KB 是「core 走 peer 外部化」前提下的估计；本项目按 B6 采用 core 内联，core 会打进 dist（与 vane-card 6.77KB 同派）。插件子路径 1KB → **2KB**（闭包含 doc.json 元数据）。
+
 ## 收尾核对
 
 - [ ] `git status` 仅含 `packages/vane-sku/**` + `tasks/19` + `tasks/20` + `docs/components/sku/**`（不夹带 `.lh/` 等未跟踪垃圾）
