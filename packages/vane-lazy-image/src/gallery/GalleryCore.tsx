@@ -96,10 +96,20 @@ export const GalleryCore = forwardRef<GalleryCoreRef, GalleryCoreProps>(
 
     const rootStyle: React.CSSProperties = {
       display: "flex",
-      flexDirection: horizontal ? "column" : "row",
+      flexDirection: "column",
       width,
       // 让可直接被 demo/调用方覆盖
       ...style,
+    };
+
+    // stage 包裹「缩略区 + 主图区」：横向（top/bottom）纵向堆叠、纵向（left/right）
+    // 并排。toolbar 始终位于 root 第二行（下方），避免 left/right 时 root 变成 row 把
+    // 工具栏挤到主图/缩略条旁边造成溢出错位。
+    const stageStyle: React.CSSProperties = {
+      display: "flex",
+      flexDirection: horizontal ? "column" : "row",
+      width: "100%",
+      minWidth: 0,
     };
 
     const thumbStyle: React.CSSProperties = horizontal
@@ -129,6 +139,15 @@ export const GalleryCore = forwardRef<GalleryCoreRef, GalleryCoreProps>(
       overflow: "hidden",
     };
 
+    const toolbarStyle: React.CSSProperties = {
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      padding: "6px 0",
+      flexWrap: "wrap",
+      width: "100%",
+    };
+
     const thumbs = renderGallerySlot(galleryPlugins, ctx, "galleryThumbArea");
     const overlay = renderGallerySlot(galleryPlugins, ctx, "galleryOverlay");
     const toolbar = renderGallerySlot(galleryPlugins, ctx, "galleryToolbarArea");
@@ -146,49 +165,39 @@ export const GalleryCore = forwardRef<GalleryCoreRef, GalleryCoreProps>(
         onKeyDown={onKeyDown}
         style={rootStyle}
       >
-        {thumbBefore && <div style={thumbStyle}>{thumbs}</div>}
-        <div style={mainStyle}>
-          {/* key=activeIndex：切换主图时重置加载态 + 重挂载插件 */}
-          <div
-            style={{
-              width: "100%",
-              height: "100%",
-              transform: zoom !== 1 ? `scale(${zoom})` : undefined,
-              transformOrigin: "center center",
-              transition: "transform 150ms ease",
-            }}
-          >
-            <MainImage
-              key={activeIndex}
-              src={active?.src ?? ""}
-              alt={active?.alt ?? ""}
-              containerStyle={{ height: "100%", background: "transparent" }}
-              // 主图区为固定高度容器：用 contain 完整显示整张图，避免按自然比例
-              // 溢出后被裁切（cover 在「宽容器 + 竖图」下会切掉中部内容/标签）
-              imageStyle={{
+        <div style={stageStyle}>
+          {thumbBefore && <div style={thumbStyle}>{thumbs}</div>}
+          <div style={mainStyle}>
+            {/* key=activeIndex：切换主图时重置加载态 + 重挂载插件 */}
+            <div
+              style={{
                 width: "100%",
                 height: "100%",
-                objectFit: "contain",
+                transform: zoom !== 1 ? `scale(${zoom})` : undefined,
+                transformOrigin: "center center",
+                transition: "transform 150ms ease",
               }}
-            />
+            >
+              <MainImage
+                key={activeIndex}
+                src={active?.src ?? ""}
+                alt={active?.alt ?? ""}
+                containerStyle={{ height: "100%", background: "transparent" }}
+                // 主图区为固定高度容器：用 contain 完整显示整张图，避免按自然比例
+                // 溢出后被裁切（cover 在「宽容器 + 竖图」下会切掉中部内容/标签）
+                imageStyle={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "contain",
+                }}
+              />
+            </div>
+            {mainExtra}
+            {overlay}
           </div>
-          {mainExtra}
-          {overlay}
+          {!thumbBefore && <div style={thumbStyle}>{thumbs}</div>}
         </div>
-        {!thumbBefore && <div style={thumbStyle}>{thumbs}</div>}
-        {toolbar ? (
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              padding: "6px 0",
-              flexWrap: "wrap",
-            }}
-          >
-            {toolbar}
-          </div>
-        ) : null}
+        {toolbar ? <div style={toolbarStyle}>{toolbar}</div> : null}
       </div>
     );
   }

@@ -74,7 +74,21 @@ const DOMAIN_PLUGINS: ToggleDef[] = [
 ];
 
 const MAIN_PLUGINS: ToggleDef[] = [
-  { key: "price", label: "价格标签", create: createPriceTagPlugin, optional: true },
+  // 价格标签需配置价格数据，否则 renderOverlay 因 finalPrice 为 undefined 而返回 null。
+  // 此处给一组示例价格（人民币 / 原价 / 折扣），选中即主图右上角显示价格标签。
+  // 真实业务可改用 fetchPrice 按图片异步拉取，或后续让 GalleryImage 携带 price 字段。
+  {
+    key: "price",
+    label: "价格标签",
+    create: () =>
+      createPriceTagPlugin({
+        price: 199,
+        originalPrice: 299,
+        discount: "限时8折",
+        currency: "¥",
+      }),
+    optional: true,
+  },
   { key: "hoverzoom", label: "悬停放大", create: createHoverZoomPlugin, optional: true },
   { key: "video", label: "视频位", create: createVideoPosterPlugin, optional: true },
   { key: "compare", label: "对比", create: createComparisonPlugin, optional: true },
@@ -165,6 +179,7 @@ const GalleryPage: React.FC = () => {
     MAIN_PLUGINS.map((d) => d.key),
     { price: true }
   );
+  // 默认方位 bottom（横向缩略条）。left/right 纵向布局已由 GalleryCore 重构支持。
   const [thumbPos, setThumbPos] = React.useState<ThumbPos>("bottom");
   const [audit, setAudit] = React.useState<AuditResult | null>(null);
   const rootRef = React.useRef<HTMLDivElement | null>(null);

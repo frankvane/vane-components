@@ -37,8 +37,12 @@ export function createThumbSyncPlugin(config: ThumbSyncConfig = {}): GalleryPlug
     hooks: {
       galleryThumbArea: (context: GalleryContext) => {
         const { images, activeIndex, setActiveIndex } = context;
+        // 注意：缩略条的整体排列方向（横向/纵向）由 GalleryCore 的 thumbStyle
+        // 控制（top/bottom 横向、left/right 纵向）。此处不再包一层写死的横向
+        // flex，否则 left/right 竖排容器（宽 84）里 6 个 64px 缩略图会被横向
+        // 裁切只剩 1 个。直接返回 button 列表，方向交给外层 thumbStyle + 其 gap。
         return (
-          <div style={{ display: "flex", gap, alignItems: "center" }}>
+          <>
             {images.map((img, i) => {
               const active = i === activeIndex;
               return (
@@ -79,7 +83,7 @@ export function createThumbSyncPlugin(config: ThumbSyncConfig = {}): GalleryPlug
                 </button>
               );
             })}
-          </div>
+          </>
         );
       },
     },
