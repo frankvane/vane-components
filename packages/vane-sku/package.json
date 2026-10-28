@@ -1,0 +1,107 @@
+{
+  "name": "vane-sku",
+  "version": "0.1.0",
+  "description": "插件式 React SKU 规格选择引擎：组合矩阵 / 禁用推导 / 价格联动 / 限购校验",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./custom-plugins": {
+      "types": "./dist/custom-plugins/index.d.ts",
+      "import": "./dist/custom-plugins/index.js"
+    },
+    "./custom-plugins/PriceLink": {
+      "types": "./dist/custom-plugins/PriceLink/index.d.ts",
+      "import": "./dist/custom-plugins/PriceLink/index.js"
+    },
+    "./custom-plugins/Quota": {
+      "types": "./dist/custom-plugins/Quota/index.d.ts",
+      "import": "./dist/custom-plugins/Quota/index.js"
+    },
+    "./custom-plugins/ImageLink": {
+      "types": "./dist/custom-plugins/ImageLink/index.d.ts",
+      "import": "./dist/custom-plugins/ImageLink/index.js"
+    },
+    "./custom-plugins/*": {
+      "types": "./dist/custom-plugins/*/index.d.ts",
+      "import": "./dist/custom-plugins/*/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "react",
+    "plugin",
+    "sku",
+    "spec",
+    "typescript"
+  ],
+  "author": "Frank Vane",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/frankvane/vane-components.git",
+    "directory": "packages/vane-sku"
+  },
+  "bugs": {
+    "url": "https://github.com/frankvane/vane-components/issues"
+  },
+  "homepage": "https://github.com/frankvane/vane-components/tree/main/packages/vane-sku#readme",
+  "scripts": {
+    "dev": "vite --config demo/vite.config.ts",
+    "build": "vite build --mode lib",
+    "build:demo": "vite build --config demo/vite.config.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "lint": "eslint .",
+    "sync:exports": "node ../../scripts/sync-exports.mjs",
+    "serve:demo": "node scripts/serve-demo.cjs",
+    "demo": "pnpm build:demo && node scripts/serve-demo.cjs",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "react": ">=16.8.0",
+    "react-dom": ">=16.8.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vane/build-config": "workspace:*",
+    "@vane/eslint-config": "workspace:*",
+    "@vane/tsconfig": "workspace:*",
+    "@vane/vitest-config": "workspace:*",
+    "@vitejs/plugin-react": "^4.3.1",
+    "happy-dom": "^15.11.7",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "typescript": "^5.6.3",
+    "vane-plugin-core": "workspace:*",
+    "vite": "^5.4.1",
+    "vite-plugin-dts": "^4.5.4",
+    "vitest": "^2.1.8"
+  },
+  "vane": {
+    "sizeBudgetKb": 7,
+    "subpathBudgets": {
+      "./custom-plugins/PriceLink": 2,
+      "./custom-plugins/Quota": 2,
+      "./custom-plugins/ImageLink": 2
+    },
+    "sizeBudgetNote": "根入口 = SkuSelectorCore（规格按钮组含禁用态 + 选中摘要）+ withPlugins 装配器（extendContext 注入选择态/禁用集/变体）+ 组合矩阵与禁用推导纯函数 + 类型；gzip 实测 6.08KB。规划里的 3.5KB 是「core 走 peer 外部化」前提下的估计（参照 vane-profile 3.09KB，其 peer 声明 core、构建期外部化）；而 vane-sku 按 B6 决策采用「core devDep 内联」策略（与 vane-card 6.77KB / vane-waterfall 11.06KB / vane-lazy-image 26.92KB 同一派），core 会被打进 dist，故隔离边界不同、实测值本就更高——6.08KB 与同策略的 vane-card（6.77KB）同量级。本预算据实上调到 7KB（留余量），非静默放大。三个插件（PriceLink/Quota/ImageLink）严格走子路径 vane-sku/custom-plugins/*（ADR-6），不进根入口。子路径预算 2KB（实测 1.0–1.5KB）：闭包含同目录 doc.json 元数据——meta 是家族约定（驱动 pnpm docs:plugins 与 demo 导航），必须与插件一同发布，故子路径天然比纯逻辑代码大。",
+    "sizeBudgetAlternatives": "若希望根入口回到 3KB 量级，可改走 vane-profile 的 peer 外部化策略（peerDependencies 加 vane-plugin-core 并在 vite external 中声明），代价是消费者需自行安装内核。"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

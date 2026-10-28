@@ -1,0 +1,31 @@
+{
+  "name": "Quota",
+  "description": "限购校验：读 variant.quota 与已购数渲染限购提示条，并把 canPurchase 写入内核 state 供宿主加购按钮门控。",
+  "since": "0.1.0",
+  "tags": ["sku", "quota", "limit"],
+  "config": [
+    {
+      "name": "purchasedCount",
+      "type": "number",
+      "default": "0",
+      "description": "当前用户已购件数"
+    },
+    {
+      "name": "onExceed",
+      "type": "() => void",
+      "default": "-",
+      "description": "超出限购时回调"
+    }
+  ],
+  "example": "const Sku = createSkuSelector([createQuotaPlugin({ purchasedCount: 1 })]);",
+  "features": [
+    "variant.quota 声明限购件数；未声明视为不限购",
+    "canPurchase 写入内核 state（onMount / onSkuChange），宿主加购按钮可直接读",
+    "超限变体切换时触发 onExceed 回调"
+  ],
+  "useCases": ["限量/每人限购的商品", "会员等级限购"],
+  "notes": [
+    "走 renderHeader 的 after 段，渲染在价格浮层之后。",
+    "canPurchase 只在事件钩子写入，不在渲染期 setState，避免渲染期改状态告警。"
+  ]
+}

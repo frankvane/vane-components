@@ -1,0 +1,37 @@
+{
+  "name": "PriceLink",
+  "description": "价格联动：把命中变体的价格渲染到浮层（选中摘要之后），支持原价删除线与折扣文案。",
+  "since": "0.1.0",
+  "tags": ["sku", "price", "overlay"],
+  "config": [
+    {
+      "name": "currency",
+      "type": "string",
+      "default": "\"¥\"",
+      "description": "货币符号"
+    },
+    {
+      "name": "showOriginal",
+      "type": "boolean",
+      "default": "true",
+      "description": "是否展示原价（原价 > 现价时才画删除线）"
+    },
+    {
+      "name": "discountText",
+      "type": "string",
+      "default": "-",
+      "description": "折扣文案，如 \"限时8折\""
+    }
+  ],
+  "example": "const Sku = createSkuSelector([createPriceLinkPlugin({ currency: \"¥\", discountText: \"限时8折\" })]);",
+  "features": [
+    "订阅命中变体，未命中（未选全/无货）时不渲染价格区",
+    "原价高于现价时自动画删除线",
+    "定价策略可替换：默认取 variant.price"
+  ],
+  "useCases": ["多规格商品的价格联动", "带折扣文案的促销价展示"],
+  "notes": [
+    "走 renderOverlay 段，渲染位置在 core「选中摘要」之后、Quota 提示条之前。",
+    "priority 50；渲染插槽内 priority 越大越靠后。"
+  ]
+}

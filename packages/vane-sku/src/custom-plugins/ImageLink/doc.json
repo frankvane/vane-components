@@ -1,0 +1,25 @@
+{
+  "name": "ImageLink",
+  "description": "规格切主图：命中变体带 image 时抛事件（回调 + 总线 sku:image），自身不渲染任何 UI。",
+  "since": "0.1.0",
+  "tags": ["sku", "image", "event"],
+  "config": [
+    {
+      "name": "onImageChange",
+      "type": "(image: string) => void",
+      "default": "-",
+      "description": "主图切换回调（推荐用法）"
+    }
+  ],
+  "example": "const Sku = createSkuSelector([createImageLinkPlugin({ onImageChange: setMainImage })]);",
+  "features": [
+    "只发事件不渲染：主图由外层 gallery / card 负责，联动与渲染解耦",
+    "同时回调与总线广播（sku:image），两种接法都支持",
+    "未命中变体或变体无图时不发事件"
+  ],
+  "useCases": ["选颜色切主图", "规格图与 vane-gallery 联动"],
+  "notes": [
+    "不占用任何渲染插槽，纯粹是事件插件。",
+    "priority 30；事件钩子按 priority 从大到小执行。"
+  ]
+}
