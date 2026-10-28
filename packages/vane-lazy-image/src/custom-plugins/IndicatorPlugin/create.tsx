@@ -23,7 +23,9 @@ export function createIndicatorPlugin(config: IndicatorConfig = {}): GalleryPlug
     size = 8,
     gap = 6,
     activeColor = "#2b7de9",
-    idleColor = "rgba(0,0,0,0.25)",
+    // 未选中色：用中性灰（默认黑 rgba(0,0,0,.25) 在深色工具条上不可见）。
+    // 灰在深/浅背景都可读，消费者仍可用 idleColor 覆盖。
+    idleColor = "rgba(150,150,150,0.6)",
   } = config;
   return {
     name: "gallery-indicator",
@@ -59,6 +61,10 @@ export function createIndicatorPlugin(config: IndicatorConfig = {}): GalleryPlug
                     borderRadius: "50%",
                     cursor: "pointer",
                     background: active ? activeColor : idleColor,
+                    // 未选中点加细描边，确保在任意背景上都有可辨轮廓
+                    boxShadow: active
+                      ? "none"
+                      : "inset 0 0 0 1px rgba(255,255,255,0.25)",
                     transition: "background 120ms ease",
                   }}
                 />

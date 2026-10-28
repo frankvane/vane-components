@@ -57,6 +57,9 @@ interface ToggleDef {
   label: string;
   create: () => GalleryPlugin;
   optional: boolean;
+  /** 清单卡片描述来源；包装型工厂（如 () => createX({...})）无法从 .create 取到
+   *  .meta，需在此显式挂上真实 creator 的 meta，否则卡片描述空白。 */
+  meta?: { description?: string };
 }
 
 // 10 个 gallery 域插件：4 个默认预设 + 6 个可选
@@ -69,7 +72,7 @@ const DOMAIN_PLUGINS: ToggleDef[] = [
   { key: "zoom", label: "缩放控制", create: createZoomControlPlugin, optional: true },
   { key: "fullscreen", label: "全屏", create: createFullscreenPlugin, optional: true },
   { key: "preload", label: "相邻预加载", create: createThumbPreloadPlugin, optional: true },
-  { key: "hotspot", label: "热点", create: () => createHotspotPlugin({ hotspots: [{ x: 42, y: 38, label: "防水面料" }, { x: 66, y: 72, label: "透气网眼" }] }), optional: true },
+  { key: "hotspot", label: "热点", create: () => createHotspotPlugin({ hotspots: [{ x: 42, y: 38, label: "防水面料" }, { x: 66, y: 72, label: "透气网眼" }] }), meta: (createHotspotPlugin as any).meta, optional: true },
   { key: "favorite", label: "收藏", create: createFavoritePlugin, optional: true },
 ];
 
@@ -87,6 +90,7 @@ const MAIN_PLUGINS: ToggleDef[] = [
         discount: "限时8折",
         currency: "¥",
       }),
+    meta: (createPriceTagPlugin as any).meta,
     optional: true,
   },
   { key: "hoverzoom", label: "悬停放大", create: createHoverZoomPlugin, optional: true },
@@ -302,7 +306,7 @@ const GalleryPage: React.FC = () => {
         <h2>图集插件清单（10）</h2>
         <div className="card-grid">
           {DOMAIN_PLUGINS.map((d) => {
-            const meta = (d.create as any).meta as
+            const meta = (d.meta ?? (d.create as any).meta) as
               | { description?: string }
               | undefined;
             return (
