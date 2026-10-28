@@ -1,0 +1,53 @@
+{
+  "name": "FollowEcho",
+  "description": "关注回显：关注 / 已关注 / 互相关注三态按钮，受控于 props.followState。点击仅作乐观 UI，真相由消费方回写；关系变为 mutual 时可触发 onMutual。",
+  "since": "0.1.0",
+  "tags": ["ui", "follow", "关注"],
+  "config": [
+    {
+      "name": "state",
+      "type": "\"none\" | \"following\" | \"mutual\"",
+      "default": "props.followState",
+      "description": "强制关注态，覆盖 props.followState"
+    },
+    {
+      "name": "labels",
+      "type": "Partial<Record<FollowState, ReactNode>>",
+      "default": "{ none: 关注, following: 已关注, mutual: 互相关注 }",
+      "description": "三态文案覆盖"
+    },
+    {
+      "name": "size",
+      "type": "\"sm\" | \"md\"",
+      "default": "md",
+      "description": "按钮尺寸"
+    },
+    {
+      "name": "onFollow",
+      "type": "function",
+      "default": "-",
+      "description": "点击切换后的回调"
+    },
+    {
+      "name": "onMutual",
+      "type": "function",
+      "default": "-",
+      "description": "关系变为 mutual 时的回调"
+    }
+  ],
+  "example": "// 关注按钮，受控于服务端返回的 followState。\nconst Profile = withPlugins(ProfileCore, [\n  createFollowEchoPlugin({\n    onFollow: (next) => api.toggleFollow(uid, next),\n  }),\n]);\n\n<Profile followState={serverState} />;",
+  "features": [
+    "三态受控按钮",
+    "点击乐观切换，真相回写 props",
+    "关系变为 mutual 触发 onMutual",
+    "点击态 / 已关注态样式区分"
+  ],
+  "useCases": [
+    "个人主页关注按钮",
+    "用户卡片关注态",
+    "需要关注关系回显的任意档案"
+  ],
+  "notes": [
+    "按钮为受控组件，关注真相请由消费方维护并回写 props.followState。"
+  ]
+}

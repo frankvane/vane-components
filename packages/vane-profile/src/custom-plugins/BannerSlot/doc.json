@@ -1,0 +1,64 @@
+{
+  "name": "BannerSlot",
+  "description": "头图区：封面图或渐变背景打底，左下角浮出头像（与数据行区重叠），并可叠加昵称 / 标语文案。读取 props.banner 作为默认叠加内容。",
+  "since": "0.1.0",
+  "tags": ["ui", "banner", "头图"],
+  "config": [
+    {
+      "name": "cover",
+      "type": "string",
+      "default": "\"\"",
+      "description": "封面图 URL；与 gradient 至少其一"
+    },
+    {
+      "name": "gradient",
+      "type": "[string, string]",
+      "default": "[\"#6a11cb\", \"#2575fc\"]",
+      "description": "渐变起止色，无 cover 时作背景"
+    },
+    {
+      "name": "avatar",
+      "type": "string",
+      "default": "\"\"",
+      "description": "头像 URL，浮于头图左下"
+    },
+    {
+      "name": "avatarSize",
+      "type": "number",
+      "default": "64",
+      "description": "头像直径（px）"
+    },
+    {
+      "name": "avatarRound",
+      "type": "boolean",
+      "default": "true",
+      "description": "头像是否圆形"
+    },
+    {
+      "name": "height",
+      "type": "number",
+      "default": "160",
+      "description": "头图区高度（px）"
+    },
+    {
+      "name": "overlay",
+      "type": "ReactNode",
+      "default": "context.banner",
+      "description": "叠加文案，缺省用 props.banner"
+    }
+  ],
+  "example": "// 头图 + 头像 + 昵称标语。\nconst Profile = withPlugins(ProfileCore, [\n  createBannerSlotPlugin({\n    cover: user.cover,\n    avatar: user.avatar,\n    overlay: <strong>{user.name}</strong>,\n  }),\n]);\n\n<Profile banner={<span>@{user.handle}</span>} />;",
+  "features": [
+    "封面图 / 渐变背景二选一",
+    "头像浮层与数据行区重叠（经典主页观感）",
+    "叠加文案支持自定义或复用 props.banner"
+  ],
+  "useCases": [
+    "社交平台个人主页头部",
+    "创作者 / 品牌主页",
+    "需要头像 + 封面组合的任意档案页"
+  ],
+  "notes": [
+    "头像以负 bottom 浮出，父容器不要设 overflow:hidden 否则会被裁切。"
+  ]
+}

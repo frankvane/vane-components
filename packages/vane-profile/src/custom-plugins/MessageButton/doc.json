@@ -1,0 +1,19 @@
+{
+  "name": "MessageButton",
+  "description": "私信按钮：与关注回显同区并排，点击拉起会话。",
+  "since": "0.1.0",
+  "tags": ["ui", "message", "私信", "renderFollowArea"],
+  "config": [
+    { "name": "size", "type": "\"sm\" | \"md\"", "default": "md", "description": "按钮尺寸" },
+    { "name": "label", "type": "ReactNode", "default": "私信", "description": "按钮文案" },
+    { "name": "onMessage", "type": "function", "default": "-", "description": "点击回调，参数为领域上下文" }
+  ],
+  "example": "// 私信按钮，与关注并排。\nconst Profile = withPlugins(ProfileCore, [\n  createFollowEchoPlugin({ onFollow: toggleFollow }),\n  createMessageButtonPlugin({ onMessage: () => openChat(uid) }),\n]);",
+  "features": [
+    "走 renderFollowArea 领域槽，与 FollowEcho 横向并排",
+    "描边样式，与关注实心按钮形成主次",
+    "点击触发 onMessage（消费方拉起会话）"
+  ],
+  "useCases": ["主页私信入口", "客服会话触发", "需要一对一沟通的场景"],
+  "notes": ["按钮为无状态触发器，会话逻辑由消费方在 onMessage 里实现。"]
+}

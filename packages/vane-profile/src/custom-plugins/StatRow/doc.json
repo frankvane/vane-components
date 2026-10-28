@@ -1,0 +1,47 @@
+{
+  "name": "StatRow",
+  "description": "数据行：把关注 / 粉丝 / 获赞 / 作品等指标横排展示，每项显示「值 + 标签」。数据源为 config.items 或 props.stats。",
+  "since": "0.1.0",
+  "tags": ["ui", "stats", "数据"],
+  "config": [
+    {
+      "name": "items",
+      "type": "StatItem[]",
+      "default": "context.stats",
+      "description": "显式指标；缺省读 props.stats"
+    },
+    {
+      "name": "direction",
+      "type": "\"row\" | \"column\"",
+      "default": "row",
+      "description": "排布方向"
+    },
+    {
+      "name": "divider",
+      "type": "boolean",
+      "default": "true",
+      "description": "row 模式下项间分隔线"
+    },
+    {
+      "name": "onStatClick",
+      "type": "function",
+      "default": "-",
+      "description": "点击回调，可在此 setActiveTab 联动页签"
+    }
+  ],
+  "example": "// 关注 / 粉丝 / 获赞 / 作品。\nconst Profile = withPlugins(ProfileCore, [\n  createStatRowPlugin({\n    items: [\n      { value: 128, label: \"关注\" },\n      { value: 1.2, label: \"粉丝\" },\n      { value: 48, label: \"获赞\" },\n      { value: 9, label: \"作品\" },\n    ],\n  }),\n]);",
+  "features": [
+    "支持 config.items 覆盖 props.stats",
+    "row / column 两种排布",
+    "可选分隔线",
+    "点击回调可联动页签"
+  ],
+  "useCases": [
+    "个人主页指标展示",
+    "创作者数据概览",
+    "任意需要「值 + 标签」成组展示的场景"
+  ],
+  "notes": [
+    "divider 仅在 direction=row 时生效。"
+  ]
+}

@@ -1,0 +1,153 @@
+{
+  "name": "vane-profile",
+  "version": "0.1.0",
+  "description": "插件式个人主页引擎：头图 Banner + 数据行 StatRow + 内容页签 Tab 联动",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./entries/core": {
+      "types": "./dist/entries/core.d.ts",
+      "import": "./dist/entries/core.js"
+    },
+    "./entries/plugins": {
+      "types": "./dist/entries/plugins.d.ts",
+      "import": "./dist/entries/plugins.js"
+    },
+    "./custom-plugins/BannerSlot": {
+      "types": "./dist/custom-plugins/BannerSlot/index.d.ts",
+      "import": "./dist/custom-plugins/BannerSlot/index.js"
+    },
+    "./custom-plugins/BioSlot": {
+      "types": "./dist/custom-plugins/BioSlot/index.d.ts",
+      "import": "./dist/custom-plugins/BioSlot/index.js"
+    },
+    "./custom-plugins/FollowEcho": {
+      "types": "./dist/custom-plugins/FollowEcho/index.d.ts",
+      "import": "./dist/custom-plugins/FollowEcho/index.js"
+    },
+    "./custom-plugins/SocialLinks": {
+      "types": "./dist/custom-plugins/SocialLinks/index.d.ts",
+      "import": "./dist/custom-plugins/SocialLinks/index.js"
+    },
+    "./custom-plugins/StatRow": {
+      "types": "./dist/custom-plugins/StatRow/index.d.ts",
+      "import": "./dist/custom-plugins/StatRow/index.js"
+    },
+    "./custom-plugins/TabSync": {
+      "types": "./dist/custom-plugins/TabSync/index.d.ts",
+      "import": "./dist/custom-plugins/TabSync/index.js"
+    },
+    "./custom-plugins/TagList": {
+      "types": "./dist/custom-plugins/TagList/index.d.ts",
+      "import": "./dist/custom-plugins/TagList/index.js"
+    },
+    "./custom-plugins/VerifyBadge": {
+      "types": "./dist/custom-plugins/VerifyBadge/index.d.ts",
+      "import": "./dist/custom-plugins/VerifyBadge/index.js"
+    },
+    "./custom-plugins/WorksGrid": {
+      "types": "./dist/custom-plugins/WorksGrid/index.d.ts",
+      "import": "./dist/custom-plugins/WorksGrid/index.js"
+    },
+    "./custom-plugins/MembershipBadge": {
+      "types": "./dist/custom-plugins/MembershipBadge/index.d.ts",
+      "import": "./dist/custom-plugins/MembershipBadge/index.js"
+    },
+    "./custom-plugins/QRShare": {
+      "types": "./dist/custom-plugins/QRShare/index.d.ts",
+      "import": "./dist/custom-plugins/QRShare/index.js"
+    },
+    "./custom-plugins/LiveStatus": {
+      "types": "./dist/custom-plugins/LiveStatus/index.d.ts",
+      "import": "./dist/custom-plugins/LiveStatus/index.js"
+    },
+    "./custom-plugins/ContactCard": {
+      "types": "./dist/custom-plugins/ContactCard/index.d.ts",
+      "import": "./dist/custom-plugins/ContactCard/index.js"
+    },
+    "./custom-plugins/ActivitySummary": {
+      "types": "./dist/custom-plugins/ActivitySummary/index.d.ts",
+      "import": "./dist/custom-plugins/ActivitySummary/index.js"
+    },
+    "./custom-plugins/MessageButton": {
+      "types": "./dist/custom-plugins/MessageButton/index.d.ts",
+      "import": "./dist/custom-plugins/MessageButton/index.js"
+    },
+    "./custom-plugins/AchievementWall": {
+      "types": "./dist/custom-plugins/AchievementWall/index.d.ts",
+      "import": "./dist/custom-plugins/AchievementWall/index.js"
+    },
+    "./custom-plugins": {
+      "types": "./dist/custom-plugins/index.d.ts",
+      "import": "./dist/custom-plugins/index.js"
+    },
+    "./custom-plugins/*": {
+      "types": "./dist/custom-plugins/*/index.d.ts",
+      "import": "./dist/custom-plugins/*/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "react",
+    "plugin",
+    "profile",
+    "typescript"
+  ],
+  "author": "Frank Vane",
+  "license": "MIT",
+  "vane": {
+    "sizeBudgetKb": 3.5,
+    "sizeBudgetNote": "根入口含个人主页引擎三件套：ProfileCore + withPlugins 装配器 + 领域槽 slots。withPlugins 必须包 ProfileSlotProvider，ProfileCore 又消费 slots，故 slots 无法从根导入图剥离，根 gzip 实测约 3.0KB。规划文档的 2.5KB 为组件实现前的乐观估计。与家族其他根入口对齐（vane-card 6.8/12KB、vane-waterfall 11.1/14KB），装配器均置于根入口。9 个官方插件仍严格走子路径 ./custom-plugins/*（ADR-6 严格），不进根入口；其中 BannerSlot/StatRow/TabSync/VerifyBadge/FollowEcho 走首发 5 槽，BioSlot/SocialLinks/TagList 走新增 renderBioArea 槽，WorksGrid 走新增 renderContentArea 槽。"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/frankvane/vane-components.git",
+    "directory": "packages/vane-profile"
+  },
+  "scripts": {
+    "dev": "vite --config demo/vite.config.ts",
+    "build": "vite build --mode lib",
+    "build:demo": "vite build --config demo/vite.config.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "lint": "eslint .",
+    "docs:plugins": "node scripts/generate-plugin-docs.mjs",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "react": ">=16.8.0",
+    "react-dom": ">=16.8.0",
+    "vane-plugin-core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vane/build-config": "workspace:*",
+    "vane-plugin-core": "workspace:*",
+    "@vane/tsconfig": "workspace:*",
+    "@vitejs/plugin-react": "^4.3.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.26.2",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.1",
+    "vite-plugin-dts": "^4.5.4",
+    "vitest": "^2.1.8",
+    "@vane/vitest-config": "workspace:*",
+    "@vane/eslint-config": "workspace:*",
+    "happy-dom": "^15.11.7"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "WorksGrid",
+  "description": "作品网格：随 activeTab 联动的内容区插件。",
+  "since": "0.1.0",
+  "tags": ["content", "grid", "works", "renderContentArea"],
+  "config": [
+    { "name": "items", "type": "WorkItem[]", "default": "[]", "description": "作品列表，每项含 id / title / 可选 cover / coverColor / meta" },
+    { "name": "columns", "type": "number", "default": "3", "description": "网格列数" },
+    { "name": "gap", "type": "number", "default": "10", "description": "卡片间距（px）" },
+    { "name": "tab", "type": "string", "default": "-", "description": "仅在某个页签激活时显示（与 TabSync 联动）；不填则始终显示" },
+    { "name": "title", "type": "ReactNode", "default": "-", "description": "网格上方的分组标题" },
+    { "name": "empty", "type": "ReactNode", "default": "暂无作品", "description": "空列表占位文案" }
+  ],
+  "features": [
+    "走 renderContentArea 领域槽，Core 有内容插件时以它替代 children",
+    "config.tab 与 context.activeTab 联动：切到对应页签才出网格",
+    "封面支持图片 URL 或纯色占位，无图也能离线演示"
+  ],
+  "useCases": ["个人主页的作品 / 相册网格", "创作者主页的笔记 / 视频墙"],
+  "notes": ["与 TabSync 文本 children 二选一：装了 WorksGrid 后内容区由它接管"]
+}

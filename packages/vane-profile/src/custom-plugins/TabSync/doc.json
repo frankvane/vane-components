@@ -1,0 +1,53 @@
+{
+  "name": "TabSync",
+  "description": "页签系统：渲染页签栏（underline / pill / segmented 三种样式），点击切换 activeTab，并联动内容区重渲染。切换时默认把容器滚到顶部。",
+  "since": "0.1.0",
+  "tags": ["ui", "tab", "页签"],
+  "config": [
+    {
+      "name": "tabs",
+      "type": "TabItem[]",
+      "default": "-",
+      "description": "页签定义 { id, label, icon? }，至少一项"
+    },
+    {
+      "name": "variant",
+      "type": "\"underline\" | \"pill\" | \"segmented\"",
+      "default": "underline",
+      "description": "样式变体"
+    },
+    {
+      "name": "sticky",
+      "type": "boolean",
+      "default": "false",
+      "description": "是否吸顶"
+    },
+    {
+      "name": "scrollTopOnChange",
+      "type": "boolean",
+      "default": "true",
+      "description": "切换时容器滚到顶部"
+    },
+    {
+      "name": "onChange",
+      "type": "function",
+      "default": "-",
+      "description": "切换回调 (id, oldId)"
+    }
+  ],
+  "example": "// 作品 / 动态 / 关于 三个页签。\nconst Profile = withPlugins(ProfileCore, [\n  createTabSyncPlugin({\n    tabs: [\n      { id: \"works\", label: \"作品\" },\n      { id: \"feeds\", label: \"动态\" },\n      { id: \"about\", label: \"关于\" },\n    ],\n  }),\n]);\n\n<Profile>\n  <ProfileContent /> // 内部 useProfileContext().activeTab 决定渲染哪段\n</Profile>;",
+  "features": [
+    "三种样式变体",
+    "点击切换 activeTab",
+    "内容区经 useProfileContext 自动联动",
+    "可选吸顶 + 切换滚动复位"
+  ],
+  "useCases": [
+    "多内容区主页",
+    "作品 / 动态 / 收藏 切换",
+    "需要页签驱动的任意档案页"
+  ],
+  "notes": [
+    "内容区必须是消费 useProfileContext().activeTab 的子组件；TabSync 本身不渲染内容。"
+  ]
+}

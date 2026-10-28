@@ -1,0 +1,47 @@
+{
+  "name": "VerifyBadge",
+  "description": "认证徽标：个人 / 机构两种认证对勾（内联 SVG，无外部资源），浮于头图右上角。verified 为 false 时不渲染。",
+  "since": "0.1.0",
+  "tags": ["ui", "badge", "认证"],
+  "config": [
+    {
+      "name": "verified",
+      "type": "boolean",
+      "default": "props.verified",
+      "description": "强制认证态，覆盖 props.verified"
+    },
+    {
+      "name": "type",
+      "type": "\"personal\" | \"institution\"",
+      "default": "props.badgeType",
+      "description": "认证类型，改变徽标颜色与默认文字"
+    },
+    {
+      "name": "label",
+      "type": "ReactNode",
+      "default": "按 type 给「认证」/「机构认证」",
+      "description": "徽标旁文字"
+    },
+    {
+      "name": "showLabel",
+      "type": "boolean",
+      "default": "true",
+      "description": "是否展示文字"
+    }
+  ],
+  "example": "// 个人认证徽标。\nconst Profile = withPlugins(ProfileCore, [\n  createVerifyBadgePlugin({ type: \"personal\" }),\n]);\n\n<Profile verified badgeType=\"personal\" />;",
+  "features": [
+    "个人 / 机构两种配色",
+    "内联 SVG，零外部依赖",
+    "浮于头图右上角",
+    "verified=false 自动隐藏"
+  ],
+  "useCases": [
+    "认证用户主页标识",
+    "品牌 / 机构官方账号",
+    "需要信任标识的任意档案"
+  ],
+  "notes": [
+    "默认读取 props.verified / props.badgeType，也可经 config 强制覆盖。"
+  ]
+}

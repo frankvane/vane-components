@@ -1,0 +1,22 @@
+{
+  "name": "QRShare",
+  "description": "主页二维码分享：浮于头图右上的分享按钮，点击展开二维码与复制链接。",
+  "since": "0.1.0",
+  "tags": ["ui", "share", "qr", "renderBadgeArea"],
+  "config": [
+    { "name": "url", "type": "string", "default": "https://vane.dev/u/frankvane", "description": "要分享的主页地址" },
+    { "name": "buttonLabel", "type": "ReactNode", "default": "分享", "description": "按钮文案" },
+    { "name": "size", "type": "number", "default": "96", "description": "二维码占位区边长（px）" }
+  ],
+  "example": "// 头图右上分享按钮，点击展开二维码 + 复制链接。\nconst Profile = withPlugins(ProfileCore, [\n  createBannerSlotPlugin({ avatar: user.avatar }),\n  createQRSharePlugin({ url: user.homeUrl }),\n]);",
+  "features": [
+    "走 renderBadgeArea 领域槽，与 VerifyBadge / MembershipBadge 同区横向并排",
+    "点击展开分享面板（useState 控制）",
+    "面板提供「复制链接」（navigator.clipboard）",
+    "二维码为装饰性点阵占位，零外部依赖"
+  ],
+  "useCases": ["主页分享入口", "线下物料扫码引流", "需要快速传播主页链接的场景"],
+  "notes": [
+    "二维码为视觉占位（确定性点阵，非真实可扫码）；接入真实扫码请替换面板内的点阵为二维码库输出。"
+  ]
+}

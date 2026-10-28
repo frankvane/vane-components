@@ -1,0 +1,22 @@
+{
+  "name": "ContactCard",
+  "description": "联系信息卡：邮箱 / 电话 / 官网 / 地址，安全链接。",
+  "since": "0.1.0",
+  "tags": ["contact", "info", "renderBioArea"],
+  "config": [
+    { "name": "email", "type": "string", "default": "-", "description": "邮箱，渲染为 mailto: 链接" },
+    { "name": "phone", "type": "string", "default": "-", "description": "电话，渲染为 tel: 链接" },
+    { "name": "site", "type": "string", "default": "-", "description": "官网，外链带 rel 防钓鱼" },
+    { "name": "address", "type": "string", "default": "-", "description": "地址，纯文本不渲染为链接" },
+    { "name": "showIcon", "type": "boolean", "default": "true", "description": "是否显示左侧图标字" }
+  ],
+  "example": "// 联系信息卡：邮箱 + 官网。\nconst Profile = withPlugins(ProfileCore, [\n  createContactCardPlugin({ email: \"frank@vane.dev\", site: \"https://vane.dev\" }),\n]);",
+  "features": [
+    "走 renderBioArea 领域槽，与 BioSlot / SocialLinks / TagList 同区串联",
+    "邮箱走 mailto:、电话走 tel:、官网走 http(s) 外链",
+    "外链一律 rel=noreferrer noopener，防反向携带来源页信息",
+    "四项全空时整体不渲染"
+  ],
+  "useCases": ["商家 / 机构主页联系入口", "创作者商务合作方式", "需要公开联系方式的任意档案"],
+  "notes": ["地址为纯文本（不渲染为链接），避免误导用户点击。" ]
+}

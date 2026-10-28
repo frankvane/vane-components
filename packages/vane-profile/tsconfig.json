@@ -1,0 +1,10 @@
+{
+  "extends": "@vane/tsconfig/lib",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["src", "test", "vite.config.ts", "demo/vite.config.ts"]
+}

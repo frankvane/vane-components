@@ -345,3 +345,27 @@
 - 主题三选一牺牲了定制深度，但换来了零额外体积与一致的深浅色行为，对「预览组件」这个定位是合理的。
 
 **验证**：`test/routing-all.test.ts`（路由赢家一致性）、`test/dist-external.test.ts`（optional peer 降级 + 体积）、各插件 `doc.json` notes（边界提示）、`test/with-plugin-hooks.test.tsx`（11 钩子逐一有调用点与断言）。
+
+## ADR-18 · 个人主页引擎：领域槽 + 内核 state 驱动页签，装配器置于根入口
+
+**背景**：`vane-profile` 是首版个人主页引擎，要把「头图 / 数据行 / 页签栏 / 认证 / 关注」拆成可插拔插件，且页签切换要能联动内容区重渲染（消费方用同一份 `children` 渲染不同页签内容）。
+
+**决定**：
+
+1. **结构化段落走包内领域槽，不挤内核 header/overlay/footer**。内核插槽模型只有 header / overlay / footer 三类，没有「内容段落」插入点；主页的「头图区 / 数据行 / 页签栏 / 徽标 / 关注区」是结构化段落，因此建包内 `renderProfileSlot`（复用内核的 `config.order` 升序 + `priority` 降序排序 + `PluginErrorBoundary` 单槽隔离），而非硬塞进 header/footer。叠加类（徽标绝对定位浮在头图右上）仍可用 `renderOverlay` 兜底。
+
+2. **页签联动用内核 state，不用事件总线**。`TabSync` 把 `activeTab` 经 `extendContext` 注入 `ProfilePluginContext`，内容区 `useProfileContext().activeTab` 订阅即可实现「切页签 → 内容重渲染」；比 `bus` 事件更可预测、更易在单测里断言（`onTabChange` 事件钩子仍由 `withPlugins` 在 state 变化后触发，用于滚顶 / `onChange`）。
+
+3. **关注态受控**。`FollowEcho` 只做乐观 UI，真实关系由消费方回写 `props.followState`；`onPropsChange` 在关系由非 mutual 变 mutual 时触发 `onMutual`。主页不持用户关系真相，复用方（如 CRM）的存储逻辑不被绑架。
+
+4. **`withPlugins` 置于根入口，领域槽无法剥离**。根入口（≈3.0KB / 预算 3.5KB）含 `ProfileCore + withPlugins + ProfileSlotProvider/slots`；因 `withPlugins` 必须包 `ProfileSlotProvider`、`ProfileCore` 又消费 slots，slots 无法从根导入图剥离——与家族一致（vane-card / vane-waterfall 装配器均置于根入口）。5 个官方插件严格走子路径 `./custom-plugins/*`（ADR-6 严格），不进根入口。
+
+5. **体积预算 3.5KB 写在 `vane.sizeBudgetKb` + `sizeBudgetNote`**。规划文档的 2.5KB 是组件实现前的乐观估计，实测根入口约 3.0KB（含三件套），故上调并写明理由，不静默调大。
+
+**代价与边界**：
+
+- 领域槽与内核三槽是两套机制，叠加类需求要分清「走领域槽」还是「走 `renderOverlay`」；
+- 内容联动的唯一接线点是 `TabSync` + `useProfileContext().activeTab`——没装 `TabSync` 时 `activeTab` 恒为 `defaultActiveTab`，内容区静态；
+- `priority` 目前仅作同槽位多插件叠放顺序的扩展位（每个槽位暂只有一个官方插件）。
+
+**验证**：`test/core-render.test.tsx`（三段式壳 + 单槽错误隔离）、`test/plugins.test.tsx`（TabSync 切换经 `activeTab` 联动内容、FollowEcho `onMutual`、meta 契约），12/12 通过；`pnpm check` 体积闸门 3.0KB ≤ 3.5KB 通过。

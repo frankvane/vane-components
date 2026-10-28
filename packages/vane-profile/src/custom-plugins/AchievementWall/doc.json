@@ -1,0 +1,23 @@
+{
+  "name": "AchievementWall",
+  "description": "成就 / 勋章墙：随 activeTab 联动的内容区插件。",
+  "since": "0.1.0",
+  "tags": ["content", "achievement", "renderContentArea"],
+  "config": [
+    { "name": "items", "type": "AchievementItem[]", "default": "[]", "description": "成就列表，每项含 id / title / 可选 desc / glyph / color" },
+    { "name": "columns", "type": "number", "default": "4", "description": "网格列数" },
+    { "name": "gap", "type": "number", "default": "10", "description": "卡片间距（px）" },
+    { "name": "tab", "type": "string", "default": "-", "description": "仅在某个页签激活时显示（与 TabSync 联动）；不填则始终显示" },
+    { "name": "title", "type": "ReactNode", "default": "-", "description": "分组标题" },
+    { "name": "empty", "type": "ReactNode", "default": "暂无成就", "description": "空列表占位文案" }
+  ],
+  "example": "// 成就墙，挂在「关于」页签下。\nconst Profile = withPlugins(ProfileCore, [\n  createTabSyncPlugin({ tabs: [{ id: \"about\", label: \"关于\" }] }),\n  createAchievementWallPlugin({ items: user.badges, tab: \"about\", title: \"成就\" }),\n]);",
+  "features": [
+    "走 renderContentArea 领域槽，Core 有内容插件时替代 children",
+    "config.tab 与 context.activeTab 联动：切到对应页签才出墙",
+    "图标用单/双字占位，无图也能离线演示",
+    "与 WorksGrid 同区可共存（按 priority 纵向排列）"
+  ],
+  "useCases": ["个人主页成就展示", "创作者荣誉墙", "游戏 / 社区勋章系统"],
+  "notes": ["与 WorksGrid 同在内容区时，两者按 priority 纵向排列，互不覆盖。"]
+}

@@ -1,0 +1,16 @@
+{
+  "name": "TagList",
+  "description": "兴趣 / 标签行：一排圆角小标签。",
+  "since": "0.1.0",
+  "tags": ["tags", "interest", "renderBioArea"],
+  "config": [
+    { "name": "tags", "type": "string[]", "default": "[]", "description": "标签文本列表" },
+    { "name": "align", "type": "'left' | 'center' | 'right'", "default": "'left'", "description": "整组对齐方式" }
+  ],
+  "features": [
+    "走 renderBioArea 领域槽，与 BioSlot / SocialLinks 同区串联",
+    "tags 为空时整体不渲染"
+  ],
+  "useCases": ["个人主页的兴趣标签墙", "创作者主页的内容领域标记"],
+  "notes": ["标签样式用半透明底色，跟随容器文字颜色，不引入额外主题变量"]
+}

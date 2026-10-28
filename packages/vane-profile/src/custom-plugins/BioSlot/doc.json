@@ -1,0 +1,19 @@
+{
+  "name": "BioSlot",
+  "description": "简介区：昵称 + 签名 + 所在地 / 加入时间。",
+  "since": "0.1.0",
+  "tags": ["intro", "bio", "renderBioArea"],
+  "config": [
+    { "name": "name", "type": "ReactNode", "default": "-", "description": "昵称（头图已用 overlay 显示时留空，避免重复）" },
+    { "name": "subtitle", "type": "ReactNode", "default": "-", "description": "副标题 / 职业，显示在昵称下方小字" },
+    { "name": "bio", "type": "ReactNode", "default": "-", "description": "个性签名 / 一句话简介" },
+    { "name": "location", "type": "string", "default": "-", "description": "所在地" },
+    { "name": "joinDate", "type": "string", "default": "-", "description": "加入时间，如「2021 加入」" }
+  ],
+  "features": [
+    "走 renderBioArea 领域槽，排在头图与数据行之间",
+    "name/subtitle/bio/meta 全部为空时整体不渲染（不占空间）"
+  ],
+  "useCases": ["个人主页的签名档", "企业号的一句话简介"],
+  "notes": ["与 BannerSlot 的 overlay 各自独立：overlay 浮在头图上，本插件在头像下方的简介区"]
+}

@@ -1,0 +1,20 @@
+{
+  "name": "ActivitySummary",
+  "description": "活跃度小结：最近活跃 / 本月发布 / 总阅读，一行小字。",
+  "since": "0.1.0",
+  "tags": ["activity", "meta", "renderBioArea"],
+  "config": [
+    { "name": "lastActive", "type": "string", "default": "-", "description": "最近活跃描述，如「2 小时前」" },
+    { "name": "postsThisMonth", "type": "number", "default": "-", "description": "本月发布篇数" },
+    { "name": "totalViews", "type": "string", "default": "-", "description": "总阅读量描述，如「120w」" },
+    { "name": "showIcon", "type": "boolean", "default": "true", "description": "是否显示时钟图标字" }
+  ],
+  "example": "// 活跃度小结一行字。\nconst Profile = withPlugins(ProfileCore, [\n  createActivitySummaryPlugin({ lastActive: \"2 小时前\", postsThisMonth: 12, totalViews: \"120w\" }),\n]);",
+  "features": [
+    "走 renderBioArea 领域槽，与简介区其他插件同区串联",
+    "三项可任意组合，全空不渲染",
+    "浅色小字，不抢简介主体"
+  ],
+  "useCases": ["创作者活跃度展示", "社区用户粘性提示", "需要轻量数据小结的档案"],
+  "notes": ["数据由消费方计算后传入，本插件只做展示。"]
+}

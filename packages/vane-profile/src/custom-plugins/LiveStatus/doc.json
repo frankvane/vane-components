@@ -1,0 +1,19 @@
+{
+  "name": "LiveStatus",
+  "description": "在线 / 直播状态指示：圆点 + 文案，直播态高亮。",
+  "since": "0.1.0",
+  "tags": ["status", "live", "renderBioArea"],
+  "config": [
+    { "name": "status", "type": "\"online\" | \"away\" | \"busy\" | \"offline\" | \"live\"", "default": "online", "description": "状态类型，决定圆点颜色与文案" },
+    { "name": "liveTitle", "type": "string", "default": "-", "description": "status=live 时的直播标题" },
+    { "name": "showLabel", "type": "boolean", "default": "true", "description": "是否展示文案（仅圆点为 false）" }
+  ],
+  "example": "// 直播中状态，红点高亮。\nconst Profile = withPlugins(ProfileCore, [\n  createLiveStatusPlugin({ status: \"live\", liveTitle: \"前端架构夜聊\" }),\n]);",
+  "features": [
+    "走 renderBioArea 领域槽，与 BioSlot / SocialLinks / TagList 同区串联",
+    "5 种状态（在线/离开/忙碌/离线/直播中）配色",
+    "直播态红点带光晕，可附直播标题"
+  ],
+  "useCases": ["主播 / 达人主页实时状态", "客服在线标识", "社区用户活跃状态"],
+  "notes": ["状态为展示态，真实在线与否由消费方按业务维护并回写 config。"]
+}

@@ -1,0 +1,18 @@
+{
+  "name": "SocialLinks",
+  "description": "社交外链行：一排可点击的平台入口（微博 / 知乎 / GitHub …）。",
+  "since": "0.1.0",
+  "tags": ["social", "links", "renderBioArea"],
+  "config": [
+    { "name": "links", "type": "SocialLink[]", "default": "[]", "description": "外链列表，每项含 platform / href / 可选 label / glyph" },
+    { "name": "showLabel", "type": "boolean", "default": "true", "description": "是否显示文案（仅图标字时为 false）" },
+    { "name": "align", "type": "'left' | 'center' | 'right'", "default": "'left'", "description": "整组对齐方式" }
+  ],
+  "features": [
+    "走 renderBioArea 领域槽，与 BioSlot / TagList 同区串联",
+    "图标用单/双字占位（无图片资源），链接新窗口打开并带 rel 防钓鱼",
+    "常见平台（微博/知乎/GitHub…）有默认文案与图标字"
+  ],
+  "useCases": ["主页底部的社交入口聚合", "创作者主页的外链引流"],
+  "notes": ["链接一律 target=_blank + rel=noreferrer noopener，避免反向携带来源页信息"]
+}

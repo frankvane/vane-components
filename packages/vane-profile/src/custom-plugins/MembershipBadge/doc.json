@@ -1,0 +1,19 @@
+{
+  "name": "MembershipBadge",
+  "description": "会员 / VIP 等级角标：浮于头图右上，与认证徽标同区并排。",
+  "since": "0.1.0",
+  "tags": ["ui", "badge", "vip", "renderBadgeArea"],
+  "config": [
+    { "name": "level", "type": "1 | 2 | 3", "default": "1", "description": "会员等级，决定配色与默认文案" },
+    { "name": "label", "type": "ReactNode", "default": "-", "description": "覆盖默认文案；缺省按 level 给 VIP{n}" },
+    { "name": "showLabel", "type": "boolean", "default": "true", "description": "是否展示文案（仅图标时为 false）" }
+  ],
+  "example": "// 金色 VIP3 角标，浮于头图右上。\nconst Profile = withPlugins(ProfileCore, [\n  createBannerSlotPlugin({ avatar: user.avatar }),\n  createMembershipBadgePlugin({ level: 3 }),\n]);",
+  "features": [
+    "走 renderBadgeArea 领域槽，与 VerifyBadge / QRShare 同区横向并排",
+    "三档配色（VIP1 铜 / VIP2 银 / VIP3 金）",
+    "可覆盖文案，支持仅图标模式"
+  ],
+  "useCases": ["付费会员主页标识", "社区等级展示", "需要身份分级的任意档案"],
+  "notes": ["浮于头图右上角；ProfileCore 已将该区设为 flex 行排，多徽标不会错位。"]
+}
