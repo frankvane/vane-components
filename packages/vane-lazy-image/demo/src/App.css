@@ -2497,3 +2497,32 @@ pre {
     border-bottom: 1px solid var(--line-soft);
   }
 }
+
+/* ===== 商品图集引擎 demo 页 ===== */
+.gallery-page { padding: 20px 24px 64px; max-width: 1100px; margin: 0 auto; }
+.gallery-page .page-head h1 { font-size: 26px; margin: 8px 0 6px; letter-spacing: 0.02em; }
+.gallery-page .page-sub { color: var(--muted, #6b7280); margin: 0 0 18px; line-height: 1.6; }
+.gallery-page .page-sub code { background: rgba(127,127,127,0.12); padding: 1px 6px; border-radius: 4px; font-size: 13px; }
+.gallery-controls { display: flex; flex-direction: column; gap: 14px; margin-bottom: 18px; }
+.ctl-group { border: 1px solid var(--line-soft, #e5e7eb); border-radius: 10px; padding: 12px 14px; background: var(--panel, #fff); }
+.ctl-title { display: block; font-size: 12px; font-weight: 700; color: var(--muted, #6b7280); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+.ctl-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.ctl-chip { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; padding: 5px 10px; border: 1px solid var(--line-soft, #e5e7eb); border-radius: 999px; cursor: pointer; user-select: none; }
+.ctl-chip.is-fixed { background: rgba(43,125,233,0.08); border-color: rgba(43,125,233,0.35); }
+.ctl-chip em { font-style: normal; font-size: 11px; color: #2b7de9; }
+.ctl-btn { font-size: 12px; padding: 5px 12px; border: 1px solid var(--line-soft, #e5e7eb); border-radius: 8px; background: #fff; cursor: pointer; }
+.ctl-btn.is-active { background: #2b7de9; color: #fff; border-color: #2b7de9; }
+.gallery-stage { border: 1px solid var(--line-soft, #e5e7eb); border-radius: 12px; padding: 12px; background: var(--panel, #fff); }
+.gallery-audit { margin-top: 24px; }
+.gallery-audit h2, .gallery-cards h2 { font-size: 18px; margin: 0 0 12px; }
+.audit-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.audit-list li { display: flex; align-items: center; gap: 8px; font-size: 13px; padding: 6px 10px; border-radius: 8px; background: var(--panel, #fff); border: 1px solid var(--line-soft, #e5e7eb); }
+.audit-dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; }
+.audit-list li.bad .audit-dot { background: #ef4444; }
+.audit-detail { margin-left: auto; color: var(--muted, #6b7280); font-variant-numeric: tabular-nums; }
+.audit-list li.summary { font-weight: 700; justify-content: center; }
+.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.plugin-card { border: 1px solid var(--line-soft, #e5e7eb); border-radius: 10px; padding: 12px 14px; background: var(--panel, #fff); }
+.plugin-card h3 { margin: 0 0 6px; font-size: 14px; }
+.plugin-card h3 em { font-style: normal; font-size: 11px; color: #2b7de9; margin-left: 6px; }
+.plugin-card p { margin: 0; font-size: 12px; color: var(--muted, #6b7280); line-height: 1.5; }

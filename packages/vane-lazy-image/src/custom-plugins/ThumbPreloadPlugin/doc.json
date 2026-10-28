@@ -1,0 +1,17 @@
+{
+  "name": "ThumbPreloadPlugin",
+  "description": "相邻图预加载（gallery 增强插件）：监听主图切换事件，预加载后续若干张到浏览器缓存，使切换近乎瞬时。",
+  "since": "2.1.0",
+  "tags": ["gallery", "图集", "预加载", "性能"],
+  "config": [
+    { "name": "lookahead", "type": "number", "default": "1", "description": "向后预加载张数" },
+    { "name": "alsoPrevious", "type": "boolean", "default": "false", "description": "是否也预加载前一张" }
+  ],
+  "example": "import { GalleryCore } from \"vane-lazy-image/gallery\";\nimport { createThumbPreloadPlugin } from \"vane-lazy-image/custom-plugins/ThumbPreloadPlugin\";\n\n<GalleryCore images={images} plugins={[createThumbPreloadPlugin({ lookahead: 2 })]} />",
+  "examples": [
+    { "name": "预加载相邻图", "description": "切换主图后预热后 2 张（及前一张），缩略条点击切换零白屏；同 URL 只预热一次。", "config": { "lookahead": 2, "alsoPrevious": true } }
+  ],
+  "features": ["onActiveChange 监听", "相邻图预热", "模块级去重", "纯副作用无 UI"],
+  "useCases": ["大图图集", "弱网流畅切换", "电商商品多图"],
+  "notes": ["不渲染 UI；预热在 GalleryCore 的切换 effect 内执行，安全副作用。"]
+}

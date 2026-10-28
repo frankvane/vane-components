@@ -12,6 +12,7 @@
 - 插件化架构：`LazyLoadImageCore` 只做观察与渲染，其余全部是插件，按需引入、tree-shaking 友好
 - 60 个内置插件、8 大领域分组（视觉 / 加载策略 / 网络 / 缓存 / 可访问性 / 错误处理 / 监控 / 视口），只增不减
 - 5 个场景化配方（presets）：社交信息流 / 商品画廊 / 长文阅读 / 性能优先 / 离线优先
+- **商品图集引擎（gallery 子路径）**：多图容器 `GalleryCore`，主图复用 `LazyLoadImageCore` 全部能力，10 个图集域插件（缩略联动 / 360 / 计数 / 指示点 / 轮播 / 缩放 / 全屏 / 相邻预加载 / 热点 / 收藏）+ 单图插件作主图叠加
 - `GlobalContext` + `ObserverPool`：N 个图片实例共享一次设备检测、一个 IntersectionObserver
 - BlurUp / LQIP 渐进占位、骨架屏、进度条
 - 智能重试、CDN 回退、降级图片、离线缓存
@@ -44,6 +45,18 @@ const LazyImage = withPlugins(LazyLoadImageCore, [
 
 不用插件时 `LazyLoadImageCore` 可单独使用（视口检测 + ObserverPool 共享）。
 
+## 商品图集引擎（gallery）
+
+把「多图 + 主图」做成插件化图集，主图复用 `LazyLoadImageCore`。两层插件：图集域插件（缩略联动 / 计数 / 轮播 / 全屏 / 热点 / 收藏 …）经 `context.activeIndex` 协调；单图插件（放大镜 / 价格 / 促销 …）通过 `mainPlugins` 挂到主图实例。
+
+```tsx
+import { GalleryCore } from "vane-lazy-image/gallery";
+
+<GalleryCore images={images} plugins={[createThumbSyncPlugin(), createZoomControlPlugin()]} />
+```
+
+详见 [商品图集引擎（gallery）](../../docs/components/vane-lazy-image/gallery.md)。
+
 ## 导入方式与体积
 
 | 导入 | 说明 | 实测 Gzip |
@@ -56,6 +69,7 @@ const LazyImage = withPlugins(LazyLoadImageCore, [
 | `vane-lazy-image/custom-plugins` | 全部插件桶文件（仅 re-export 胶水，可摇） | 1.25 KB |
 | `vane-lazy-image/custom-plugins/X` | 单个插件（60 选 1） | 0.14 KB 起 |
 | `vane-lazy-image/presets/X` | 场景配方（5 选 1） | 0.18 KB 起 |
+| `vane-lazy-image/gallery` | 商品图集引擎（GalleryCore + 框架，默认含 4 个核心域插件） | 18.4 KB |
 
 > 表中的根入口 26.9 KB 是「`import "vane-lazy-image"` 却一个符号都不用」的**未 tree-shake 上界**：
 > 根入口为兼容 1.x 的 `import { createXxxPlugin } from "vane-lazy-image"` 写法，按需保留了对
@@ -79,6 +93,7 @@ const LazyImage = withPlugins(LazyLoadImageCore, [
 - [API](../../docs/components/vane-lazy-image/api.md)
 - [插件目录](../../docs/components/vane-lazy-image/plugins.md)
 - [组合配方](../../docs/components/vane-lazy-image/recipes.md)
+- [商品图集引擎（gallery）](../../docs/components/vane-lazy-image/gallery.md)
 
 ## License
 

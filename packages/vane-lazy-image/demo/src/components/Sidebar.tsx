@@ -73,6 +73,9 @@ export const Sidebar: React.FC<{ open: boolean; onClose: () => void }> = ({
         <NavLink to="/workshop" className="nav-app">
           插件工坊
         </NavLink>
+        <NavLink to="/gallery" className="nav-app">
+          商品图集
+        </NavLink>
 
         {GROUP_ORDER.map((cat, gi) => {
           const all = PLUGINS_BY_CATEGORY[cat];

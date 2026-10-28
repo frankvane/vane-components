@@ -1,0 +1,19 @@
+{
+  "name": "IndicatorPlugin",
+  "description": "圆点指示器（gallery 增强插件）：在工具条渲染圆点，点击第 N 点跳转到对应主图。",
+  "since": "2.1.0",
+  "tags": ["gallery", "图集", "指示点", "进度"],
+  "config": [
+    { "name": "size", "type": "number", "default": "8", "description": "圆点直径（px）" },
+    { "name": "gap", "type": "number", "default": "6", "description": "圆点间距（px）" },
+    { "name": "activeColor", "type": "string", "default": "#2b7de9", "description": "选中圆点颜色" },
+    { "name": "idleColor", "type": "string", "default": "rgba(0,0,0,0.25)", "description": "未选中圆点颜色" }
+  ],
+  "example": "import { GalleryCore } from \"vane-lazy-image/gallery\";\nimport { createIndicatorPlugin } from \"vane-lazy-image/custom-plugins/IndicatorPlugin\";\n\n<GalleryCore images={images} plugins={[createIndicatorPlugin()]} />",
+  "examples": [
+    { "name": "基础指示点", "description": "圆点显示位置进度，点击跳转。", "config": {} }
+  ],
+  "features": ["圆点指示器", "点击跳转", "选中态高亮"],
+  "useCases": ["电商商品图集", "轮播进度", "相册"],
+  "notes": ["与 ThumbSync 缩略条互补：缩略条看缩略图、圆点看位置进度。"]
+}

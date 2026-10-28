@@ -1,0 +1,18 @@
+{
+  "name": "ZoomControlPlugin",
+  "description": "按钮式缩放控制（gallery 增强插件）：在工具条渲染 − / 重置 / + 按钮，调整 context.zoom，GalleryCore 对主图施加 scale 变换。",
+  "since": "2.1.0",
+  "tags": ["gallery", "图集", "缩放", "放大"],
+  "config": [
+    { "name": "step", "type": "number", "default": "0.5", "description": "每步缩放增量" },
+    { "name": "min", "type": "number", "default": "1", "description": "最小缩放" },
+    { "name": "max", "type": "number", "default": "4", "description": "最大缩放" }
+  ],
+  "example": "import { GalleryCore } from \"vane-lazy-image/gallery\";\nimport { createZoomControlPlugin } from \"vane-lazy-image/custom-plugins/ZoomControlPlugin\";\n\n<GalleryCore images={images} plugins={[createZoomControlPlugin()]} />",
+  "examples": [
+    { "name": "主图缩放", "description": "点击 + 放大主图（scale 变换），>1 时主图区可滚动查看细节；点击重置回到 100%。", "config": {} }
+  ],
+  "features": ["−/重置/+ 按钮", "实时 scale 变换", "缩放范围限制", "与主图区滚动联动"],
+  "useCases": ["商品细节查看", "高清图放大", "材质纹理 inspection"],
+  "notes": ["zoom 经 GalleryCore 的 context.zoom 施加到主图区；为协调态，切换即重渲染。"]
+}

@@ -369,3 +369,28 @@
 - `priority` 目前仅作同槽位多插件叠放顺序的扩展位（每个槽位暂只有一个官方插件）。
 
 **验证**：`test/core-render.test.tsx`（三段式壳 + 单槽错误隔离）、`test/plugins.test.tsx`（TabSync 切换经 `activeTab` 联动内容、FollowEcho `onMutual`、meta 契约），12/12 通过；`pnpm check` 体积闸门 3.0KB ≤ 3.5KB 通过。
+
+## ADR-19 · 商品图集引擎（gallery）作为 `vane-lazy-image` 子特性并入，不建独立包
+
+**背景**：B 阶段规划评估了三种落地形态——B1（独立 `vane-gallery` 包）、B1-B（并入 `vane-lazy-image` 走子路径）、B2（并入 `vane-waterfall`）。图集本质是「多张图 + 主图实例」，而主图本身就是 `LazyLoadImageCore` 承载的懒加载/占位/容灾/插件链；独立成包会复制一整套图片内核（约 6.9KB）并重复维护。
+
+**决定**：
+
+1. **并入 `vane-lazy-image`，经独立子路径 `vane-lazy-image/gallery` 暴露，不进根桶**（与 ADR-14 一致）。`gallery/index.ts` 仅导出框架（GalleryCore / createGallery / useGalleryRuntime / renderGallerySlot / 类型），单测与运行时都不从这里进入那 6 个可选插件。
+
+2. **主图复用图片内核**：`GalleryCore` 内部 `withPlugins(LazyLoadImageCore, mainPlugins)` 渲染 `images[activeIndex]`。单图插件（HoverZoom / VideoPoster / 灯箱 / 价格 / 促销 …）零改动挂到主图实例——这是独立于「图集域插件」的两层：图集域插件经 `context.activeIndex` 协调，单图插件直接作用于主图。
+
+3. **协调态用 `useState` 持有，不走闭包 + `forceUpdate`**。`useGalleryRuntime` 经 `extendContext` 把 `activeIndex / frameIndex / zoom / favorited` 注入每个 gallery 域插件拿到的 context；状态变更即 `GalleryCore` 重渲染，全部图集域插件同步刷新（缩略联动 / 计数 / 指示点 / 轮播）——这是与 `vane-waterfall` 闭包态需手动 `forceUpdate` 的关键分野（waterfall 的 overlay 是 `renderOverlay` 求值，漏调 `forceUpdate` 会「点了没反应、滚动才跳」；gallery 没有这坑）。
+
+4. **插件规模 ≥15**：10 个 gallery 域插件（ThumbSync / Spin360 / Counter / Indicator 进 `galleryPreset` 默认组合；Carousel / ZoomControl / Fullscreen / ThumbPreload / Hotspot / Favorite 按需引入）+ 8 个可复用单图插件作主图 `mainPlugins`（HoverZoom / VideoPoster / Gallery / Comparison / PriceTag / PromoBadge / SocialShare / DownloadButton），图集生态合计 18 个接入点。
+
+5. **体积预算据实设，不静默调大**。子路径闭包实测 **18.4KB gzip**，构成：图片内核 `LazyLoadImageCore` 5.14KB（gallery 复用同一内核，非重复实现）+ 插件运行时 `withPlugins` 3.55KB（gallery / 单图插件共享）+ `PerformanceMonitor` 2.24KB（被 `LazyLoadImageCore` 静态依赖，与内核耦合，无法摘除）+ GalleryCore 壳 / 领域槽 / context 等框架 ~4.7KB + 默认预设 4 个 gallery 域插件 2.78KB。规划原 4.0KB 口径基于「独立包、自己实现最小内核」假设，并入后该假设失效；经 `pnpm verify` 复测后上调到 **20KB**（18.4 + 余量），理由写进 `package.json` 的 `gallerySizeBudgetNote`。真正可选的 6 个 gallery 域插件不在预设内、保持按需引入，tree-shaking 仍成立。
+
+**代价与边界**：
+
+- gallery 子路径比「纯框架」重（必然复用图片内核 + 插件运行时），这是 B1-B 合并的故意代价，不是膨胀；根入口 26.9KB 不受影响（gallery 不进根桶）。
+- `zoom` 经 `GalleryCore` 对主图区施加 `scale` 变换（居中放大），v1 不做拖拽平移。
+- 全屏 / 轮播悬停暂停依赖图集根容器的 `data-gallery-root` 锚点，由 `GalleryCore` 渲染时打上。
+- 体积闸门由 `scripts/check-packages.mjs` 递归闭包测量（含 `../chunks/`），避免漏算共享 chunk 导致假 PASS。
+
+**验证**：`test/gallery-core.test.tsx`（缩略联动 + 键盘切换 + 指示点）、`test/gallery-slots.test.tsx`（领域槽分发 / priority 升序 / 错误隔离）、`test/gallery-plugins.test.tsx`（10 个插件渲染表驱动 + ThumbPreload 预加载去重）、`test/gallery-inventory.test.ts`（库存 18 ≥ 15），28/28 通过；`pnpm check` 体积闸门 `./gallery` 18.4KB ≤ 20KB、根入口 26.9KB ≤ 28KB 均通过。

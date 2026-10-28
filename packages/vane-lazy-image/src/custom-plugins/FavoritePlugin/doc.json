@@ -1,0 +1,17 @@
+{
+  "name": "FavoritePlugin",
+  "description": "收藏切换（gallery 增强插件）：在工具条渲染心形按钮，绑定 context.favorited 协调态，点击切换并回调 onChange。",
+  "since": "2.1.0",
+  "tags": ["gallery", "图集", "收藏", "喜欢"],
+  "config": [
+    { "name": "onChange", "type": "(favorited: boolean) => void", "default": "-", "description": "切换时回调（持久化/上报）" },
+    { "name": "activeColor", "type": "string", "default": "#ff5a5f", "description": "激活态颜色" }
+  ],
+  "example": "import { GalleryCore } from \"vane-lazy-image/gallery\";\nimport { createFavoritePlugin } from \"vane-lazy-image/custom-plugins/FavoritePlugin\";\n\n<GalleryCore images={images} plugins={[createFavoritePlugin({ onChange: setFav })]} />",
+  "examples": [
+    { "name": "收藏商品", "description": "点击心形在 ♡/♥ 间切换，激活态变红；onChange 上报调用方做持久化。", "config": {} }
+  ],
+  "features": ["心形切换", "协调态绑定", "onChange 回调", "激活色可配"],
+  "useCases": ["商品收藏", "心愿单", "喜欢标记"],
+  "notes": ["favorited 为 useState 协调态，切换即重渲染；不跨会话持久化（由 onChange 接管）。"]
+}

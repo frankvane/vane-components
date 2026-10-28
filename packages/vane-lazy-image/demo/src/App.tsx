@@ -27,6 +27,9 @@ const ScenariosPage = lazy(() =>
 const WorkshopPage = lazy(() =>
   import("./pages/WorkshopPage").then((m) => ({ default: m.WorkshopPage }))
 );
+const GalleryPage = lazy(() =>
+  import("./pages/GalleryPage").then((m) => ({ default: m.GalleryPage }))
+);
 
 const Loading: React.FC = () => <div className="loading">loading modules…</div>;
 
@@ -38,6 +41,7 @@ function currentLabel(pathname: string): string {
   if (pathname.startsWith("/advanced")) return "advanced / 高级功能";
   if (pathname.startsWith("/scenarios")) return "scenario / 场景示例";
   if (pathname.startsWith("/workshop")) return "workshop / 插件工坊";
+  if (pathname.startsWith("/gallery")) return "gallery / 商品图集";
   return "index / 索引";
 }
 
@@ -108,6 +112,7 @@ const Shell: React.FC = () => {
               <Route path="/advanced/:id" element={<AdvancedPage />} />
               <Route path="/scenarios" element={<ScenariosPage />} />
               <Route path="/workshop" element={<WorkshopPage />} />
+              <Route path="/gallery" element={<GalleryPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>

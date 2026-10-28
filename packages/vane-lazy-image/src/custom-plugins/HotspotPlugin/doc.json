@@ -1,0 +1,16 @@
+{
+  "name": "HotspotPlugin",
+  "description": "主图热点标注（gallery 增强插件）：在 galleryOverlay 按百分比定位可交互热点，点击弹出标签气泡（含可选链接）。",
+  "since": "2.1.0",
+  "tags": ["gallery", "图集", "热点", "标注"],
+  "config": [
+    { "name": "hotspots", "type": "Hotspot[]", "default": "[]", "description": "热点集合（图集级，所有主图共用），含 x/y(0-100)/label/href?" }
+  ],
+  "example": "import { GalleryCore } from \"vane-lazy-image/gallery\";\nimport { createHotspotPlugin } from \"vane-lazy-image/custom-plugins/HotspotPlugin\";\n\n<GalleryCore images={images} plugins={[createHotspotPlugin({ hotspots: [{ x: 50, y: 50, label: \"核心卖点\" }] })]} />",
+  "examples": [
+    { "name": "圈点讲解", "description": "在主图叠加红点标记，点击展开卖点文案；可带 href 跳转详情。热点坐标相对主图百分比。", "config": { "hotspots": [{ "x": 40, "y": 35, "label": "防水面料" }, { "x": 65, "y": 70, "label": "透气网眼" }] } }
+  ],
+  "features": ["百分比定位", "点击气泡", "可选链接", "多热点"],
+  "useCases": ["商品卖点讲解", "局部细节标注", "区域介绍"],
+  "notes": ["hotspots 为图集级（所有主图共用同一组坐标）；气泡 pointerEvents 在带 href 时可点击。"]
+}

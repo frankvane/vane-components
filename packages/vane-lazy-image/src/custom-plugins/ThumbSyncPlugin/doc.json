@@ -1,0 +1,20 @@
+{
+  "name": "ThumbSyncPlugin",
+  "description": "缩略图联动（gallery 核心插件）：渲染缩略图条，点击缩略图切换主图，选中态描边高亮。",
+  "since": "2.1.0",
+  "tags": ["gallery", "图集", "缩略", "联动"],
+  "config": [
+    { "name": "gap", "type": "number", "default": "8", "description": "缩略图间距（px）" },
+    { "name": "thumbWidth", "type": "number", "default": "64", "description": "缩略图宽（px）" },
+    { "name": "thumbHeight", "type": "number", "default": "64", "description": "缩略图高（px）" },
+    { "name": "showActiveRing", "type": "boolean", "default": "true", "description": "选中缩略图描边高亮" },
+    { "name": "radius", "type": "number", "default": "6", "description": "缩略图圆角（px）" }
+  ],
+  "example": "import { GalleryCore } from \"vane-lazy-image/gallery\";\nimport { createThumbSyncPlugin } from \"vane-lazy-image/custom-plugins/ThumbSyncPlugin\";\n\n<GalleryCore images={images} plugins={[createThumbSyncPlugin()]} />",
+  "examples": [
+    { "name": "基础缩略联动", "description": "点击缩略图切换主图，选中态描边；键盘左右键也可切换（Core 级支持）。", "config": {} }
+  ],
+  "features": ["缩略图条渲染", "点击切换主图", "选中态描边", "键盘左右键切换（GalleryCore 级）"],
+  "useCases": ["电商商品图集", "多图详情页", "相册"],
+  "notes": ["activeIndex 由 useGalleryRuntime 用 useState 持有，切换即主图重渲染，无需手动 forceUpdate。"]
+}

@@ -27,6 +27,9 @@ export function createVitestConfig(options: VitestOptions = {}): UserConfig {
     environment,
     include,
     globals: true,
+    // Windows 下多 worker 各自建 happy-dom 临时目录会 EPERM；关掉文件级并行，
+    // 单 worker 顺序跑测试文件，规避该竞态（vane 工程硬约束）。
+    fileParallelism: false,
   };
   if (environmentMatchGlobs?.length) test.environmentMatchGlobs = environmentMatchGlobs;
   if (setupFiles?.length) test.setupFiles = setupFiles;

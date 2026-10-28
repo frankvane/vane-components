@@ -128,6 +128,54 @@ for (const dir of dirs) {
     }
   }
 
+  // 子路径预算（可选，vane.subpathBudgets：{ "./gallery": 14 }）：
+  // 递归闭包测量「入口 + 其全部相对引用（含 ../chunks）」，用于守住「新增子特性
+  // 不撑大根入口」的承诺（B7）。注意：入口对共享 chunk 的引用可能是 ../chunks/xxx，
+  // 不能只匹配 ./chunks/，否则会低估（假 PASS）。
+  const subpathBudgets = pkg.vane?.subpathBudgets;
+  if (subpathBudgets && typeof subpathBudgets === "object") {
+    for (const [sub, subBudgetKb] of Object.entries(subpathBudgets)) {
+      if (typeof subBudgetKb !== "number") continue;
+      const subEntry = path.join(
+        packagesDir,
+        dir,
+        "dist",
+        sub.replace(/^\.\//, ""),
+        "index.js"
+      );
+      if (!existsSync(subEntry)) continue;
+      const seen = new Set();
+      const collect = (file) => {
+        if (seen.has(file)) return;
+        seen.add(file);
+        if (!existsSync(file)) return;
+        const src = readFileSync(file, "utf-8");
+        for (const m of src.matchAll(/from\s*["'](\.[^"']+\.js)["']/g)) {
+          collect(path.resolve(path.dirname(file), m[1]));
+        }
+      };
+      collect(subEntry);
+      const subGz =
+        [...seen].reduce(
+          (sum, f) => sum + (existsSync(f) ? gzipSync(readFileSync(f)).length : 0),
+          0
+        ) / 1024;
+      if (subGz > subBudgetKb) {
+        record(
+          pkg.name,
+          "FAIL",
+          `${sub} 子路径闭包 gzip ${subGz.toFixed(1)}KB 超过预算 ${subBudgetKb}KB`
+        );
+      } else {
+        record(
+          pkg.name,
+          "PASS",
+          `${sub} 子路径闭包 gzip ${subGz.toFixed(1)}KB / 预算 ${subBudgetKb}KB`
+        );
+      }
+    }
+  }
+
   // 全量并集预算（可选，vane.fullSizeBudgetKb）：把 dist 下所有 .js 一起去重压缩。
   // 根入口瘦身之后，「只量入口」已经不能代表「最坏情况」—— 一个把插件和复合组件
   // 全用上的页面，成本接近全量并集。两个口径都设上限，才能同时守住「单卡轻」和

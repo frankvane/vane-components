@@ -1,0 +1,18 @@
+{
+  "name": "CarouselPlugin",
+  "description": "自动轮播（gallery 增强插件）：在工具条渲染 播放/暂停 按钮，按 interval 循环切换主图；悬停图集根容器可暂停。",
+  "since": "2.1.0",
+  "tags": ["gallery", "图集", "轮播", "自动播放"],
+  "config": [
+    { "name": "interval", "type": "number", "default": "3000", "description": "每帧停留时长（ms）" },
+    { "name": "autoStart", "type": "boolean", "default": "false", "description": "初始是否自动播放" },
+    { "name": "pauseOnHover", "type": "boolean", "default": "true", "description": "悬停图集根容器时暂停" }
+  ],
+  "example": "import { GalleryCore } from \"vane-lazy-image/gallery\";\nimport { createCarouselPlugin } from \"vane-lazy-image/custom-plugins/CarouselPlugin\";\n\n<GalleryCore images={images} plugins={[createCarouselPlugin({ interval: 2500 })]} />",
+  "examples": [
+    { "name": "自动轮播", "description": "点击 播放 后每 2.5s 切换一张，悬停图集暂停；计数/指示点同步刷新。", "config": { "interval": 2500, "autoStart": true } }
+  ],
+  "features": ["播放/暂停按钮", "循环切换主图", "悬停暂停", "与计数/指示点同步"],
+  "useCases": ["商品自动展示", "首页轮播图集", "展品巡览"],
+  "notes": ["len<2 时不渲染按钮；activeIndex 为协调态，轮播时缩略条/指示点同步。"]
+}

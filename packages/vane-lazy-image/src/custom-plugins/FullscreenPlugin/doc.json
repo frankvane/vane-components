@@ -1,0 +1,17 @@
+{
+  "name": "FullscreenPlugin",
+  "description": "全屏切换（gallery 增强插件）：在工具条渲染 全屏/退出 按钮，对图集根容器调用 requestFullscreen。",
+  "since": "2.1.0",
+  "tags": ["gallery", "图集", "全屏", "沉浸式"],
+  "config": [
+    { "name": "enterLabel", "type": "string", "default": "⛶ 全屏", "description": "进入全屏按钮文案" },
+    { "name": "exitLabel", "type": "string", "default": "✕ 退出", "description": "退出全屏按钮文案" }
+  ],
+  "example": "import { GalleryCore } from \"vane-lazy-image/gallery\";\nimport { createFullscreenPlugin } from \"vane-lazy-image/custom-plugins/FullscreenPlugin\";\n\n<GalleryCore images={images} plugins={[createFullscreenPlugin()]} />",
+  "examples": [
+    { "name": "沉浸浏览", "description": "点击 全屏 将整张图集容器进入全屏（含缩略条/工具条），再点退出恢复。", "config": {} }
+  ],
+  "features": ["全屏/退出按钮", "fullscreenchange 同步态", "基于 [data-gallery-root] 锚点"],
+  "useCases": ["商品沉浸看款", "展会大屏展示", "详情页全屏浏览"],
+  "notes": ["通过当前按钮向上查找 [data-gallery-root] 锚点，不依赖内核暴露 DOM 节点。"]
+}

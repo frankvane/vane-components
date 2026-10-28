@@ -1,0 +1,19 @@
+{
+  "name": "Spin360Plugin",
+  "description": "360° 环物旋转（gallery 核心插件）：把 images 当逐帧序列，拖拽或自动播放切换帧，覆盖主图显示。",
+  "since": "2.1.0",
+  "tags": ["gallery", "图集", "360", "环物", "旋转"],
+  "config": [
+    { "name": "sensitivity", "type": "number", "default": "6", "description": "拖拽灵敏度：像素位移超过该值才翻一帧" },
+    { "name": "autoPlay", "type": "boolean", "default": "false", "description": "是否自动旋转" },
+    { "name": "autoPlayInterval", "type": "number", "default": "120", "description": "自动旋转间隔（ms）" }
+  ],
+  "example": "import { GalleryCore } from \"vane-lazy-image/gallery\";\nimport { createSpin360Plugin } from \"vane-lazy-image/custom-plugins/Spin360Plugin\";\n\n<GalleryCore images={frames} plugins={[createSpin360Plugin({ autoPlay: true })]} />",
+  "examples": [
+    { "name": "拖拽旋转", "description": "在画布上左右拖拽切换 360 帧。", "config": { "autoPlay": false } },
+    { "name": "自动旋转", "description": "autoPlay 开启后自动逐帧旋转，适合展示。", "config": { "autoPlay": true, "autoPlayInterval": 120 } }
+  ],
+  "features": ["拖拽旋转 360°", "自动播放", "帧计数显示", "逐帧序列（images 即帧）"],
+  "useCases": ["商品 360 环物展示", "模型/预览图旋转", "全景预览"],
+  "notes": ["images 数组即 360 帧序列；少于 2 帧时不渲染。覆盖层 zIndex 5，独立于底层主图加载。"]
+}

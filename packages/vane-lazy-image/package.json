@@ -1,7 +1,7 @@
 {
   "name": "vane-lazy-image",
-  "version": "2.0.1",
-  "description": "高性能 React 图片懒加载组件：插件化架构、59 个领域插件、ObserverPool/GlobalContext 性能工程",
+  "version": "2.1.0",
+  "description": "高性能 React 图片懒加载组件：插件化架构、领域插件、商品图集引擎（gallery 子路径）、ObserverPool/GlobalContext 性能工程",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -26,6 +26,10 @@
     "./plugins": {
       "types": "./dist/plugins.d.ts",
       "import": "./dist/plugins.js"
+    },
+    "./gallery": {
+      "types": "./dist/gallery/index.d.ts",
+      "import": "./dist/gallery/index.js"
     },
     "./custom-plugins/A11yPlugin": {
       "types": "./dist/custom-plugins/A11yPlugin/index.d.ts",
@@ -427,7 +431,12 @@
   "vane": {
     "sizeBudgetKb": 28,
     "coreSizeBudgetKb": 12,
-    "sizeBudgetNote": "入口图 = dist/index.js + 其静态引入的 chunk，实测 26.9KB，是「引入根入口但不使用任何符号」的未 tree-shake 上界。根入口按 ADR-6 保留 export * from \"./custom-plugins\"（为兼容 1.x 的 import { createXxxPlugin } from \"vane-lazy-image\"），故该上界随插件数线性增长；消费方 sideEffects:false + ESM 会摇掉未用插件。按需最小体积请走 vane-lazy-image/core（6.9KB）或子路径。"
+    "gallerySizeBudgetKb": 20,
+    "subpathBudgets": {
+      "./gallery": 20
+    },
+    "sizeBudgetNote": "入口图 = dist/index.js + 其静态引入的 chunk，实测 26.9KB，是「引入根入口但不使用任何符号」的未 tree-shake 上界。根入口按 ADR-6 保留 export * from \"./custom-plugins\"（为兼容 1.x 的 import { createXxxPlugin } from \"vane-lazy-image\"），故该上界随插件数线性增长；消费方 sideEffects:false + ESM 会摇掉未用插件。按需最小体积请走 vane-lazy-image/core（6.9KB）或子路径。",
+    "gallerySizeBudgetNote": "vane-gallery 作为 lazy-image 子特性（B1-B 并入），经独立子路径 vane-lazy-image/gallery 暴露、不进根桶。该子路径闭包实测 18.4KB gzip，构成：图片内核 LazyLoadImageCore 5.14KB（gallery 复用同一内核，非重复实现）+ 插件运行时 withPlugins 3.55KB（gallery/单图插件共享）+ PerformanceMonitor 2.24KB（被 LazyLoadImageCore 静态依赖，与内核耦合，无法摘除）+ GalleryCore 壳/领域槽/context 等框架 ~4.7KB + 默认预设 4 个 gallery 域插件（ThumbSync/Spin360/Counter/Indicator）2.78KB。规划原 4.0KB 口径基于「独立包、自己实现最小内核」假设，并入后该假设失效；据实上调到 20KB（18.4 + 余量），根入口 28KB 不受影响。真正可选的 gallery 域插件（Carousel/ZoomControl/Fullscreen/ThumbPreload/Hotspot/Favorite）不在预设内、保持按需引入，tree-shaking 仍成立。"
   },
   "engines": {
     "node": ">=18"

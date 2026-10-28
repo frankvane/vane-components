@@ -1,0 +1,17 @@
+{
+  "name": "CounterPlugin",
+  "description": "图片计数指示器（gallery 增强插件）：在工具条渲染「当前 / 总数」，绑定 activeIndex。",
+  "since": "2.1.0",
+  "tags": ["gallery", "图集", "计数", "指示器"],
+  "config": [
+    { "name": "prefix", "type": "string", "default": "", "description": "前缀文案" },
+    { "name": "separator", "type": "string", "default": " / ", "description": "当前与总数之间的分隔符" }
+  ],
+  "example": "import { GalleryCore } from \"vane-lazy-image/gallery\";\nimport { createCounterPlugin } from \"vane-lazy-image/custom-plugins/CounterPlugin\";\n\n<GalleryCore images={images} plugins={[createCounterPlugin()]} />",
+  "examples": [
+    { "name": "基础计数", "description": "工具条显示「3 / 8」，随 activeIndex 刷新。", "config": {} }
+  ],
+  "features": ["当前/总数计数", "绑定 activeIndex", "tabular-nums 等宽数字"],
+  "useCases": ["电商商品图集", "相册", "多图轮播"],
+  "notes": ["与 ThumbSync / Indicator 共用同一 activeIndex 协调态。"]
+}
