@@ -29,7 +29,7 @@ plugin-component/
 │   │   ├── __NAME__Core.tsx      # 核心组件（刻意保持薄）
 │   │   └── plugins/types.ts      # 领域钩子类型
 │   └── custom-plugins/
-│       └── ExamplePlugin/        # 插件三件套：create.ts + doc.json + index.ts
+│       └── ExamplePlugin/        # 插件三件套：create.tsx + doc.json + index.ts
 ├── demo/                   # 演示站（不发布）
 └── docs/                   # 组件文档（会被同步成 npm README）
 ```

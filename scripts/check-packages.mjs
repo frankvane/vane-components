@@ -89,6 +89,39 @@ for (const dir of dirs) {
     }
   }
 
+  // 文档里的子路径引用必须是真实 exports（README 由 docs 生成，源头写错会一路带下去）。
+  // 只校验 custom-plugins/*：这里最容易把「插件名」和「目录名」写混（短名 vs *Plugin 后缀）。
+  // 占位符（XxxPlugin / X）跳过——它们是「自定义插件」示例的占位写法。
+  const docCandidates = [
+    readmePath,
+    ...(existsSync(path.join(root, "docs", "components", dir))
+      ? (await readdir(path.join(root, "docs", "components", dir)))
+          .filter((n) => n.endsWith(".md"))
+          .map((n) => path.join(root, "docs", "components", dir, n))
+      : []),
+  ];
+  const exportKeys = new Set(Object.keys(pkg.exports ?? {}));
+  const badRefs = new Set();
+  for (const file of docCandidates) {
+    if (!existsSync(file)) continue;
+    const text = await readFile(file, "utf-8");
+    const re = new RegExp(`["'\`]${pkg.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}/custom-plugins/([A-Za-z0-9]+)["'\`]`, "g");
+    for (const m of text.matchAll(re)) {
+      const name = m[1];
+      if (/^(X+|[A-Za-z]*Xxx[A-Za-z]*)$/.test(name)) continue;
+      if (!exportKeys.has(`./custom-plugins/${name}`)) badRefs.add(name);
+    }
+  }
+  if (badRefs.size > 0) {
+    record(
+      pkg.name,
+      "FAIL",
+      `文档引用了不存在的子路径：${[...badRefs]
+        .map((n) => `${pkg.name}/custom-plugins/${n}`)
+        .join("、")}（实际导出见 package.json exports）`
+    );
+  }
+
   // 体积预算：入口 + 其静态引入的 chunk（多入口构建下 rollup 会拆出共享 chunk，
   // 只量 index.js 会严重低估真实导入成本）
   const budgetKb = pkg.vane?.sizeBudgetKb ?? 12;

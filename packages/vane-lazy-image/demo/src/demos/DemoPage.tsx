@@ -8,7 +8,7 @@
  */
 import React, { Suspense } from "react";
 import { CodeBlock } from "../components/CodeBlock";
-import type { DemoEntry } from "./registry";
+import type { DemoEntry } from "./types";
 import { GROUP_META } from "./types";
 
 export function DemoPage({ entry, order }: { entry: DemoEntry; order: number }) {

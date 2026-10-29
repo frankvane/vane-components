@@ -8,9 +8,9 @@
 
 ```tsx
 import { createSkuSelector } from "vane-sku";
-import { createPriceLinkPlugin } from "vane-sku/custom-plugins/PriceLink";
-import { createQuotaPlugin } from "vane-sku/custom-plugins/Quota";
-import { createImageLinkPlugin } from "vane-sku/custom-plugins/ImageLink";
+import { createPriceLinkPlugin } from "vane-sku/custom-plugins/PriceLinkPlugin";
+import { createQuotaPlugin } from "vane-sku/custom-plugins/QuotaPlugin";
+import { createImageLinkPlugin } from "vane-sku/custom-plugins/ImageLinkPlugin";
 
 export const SkuFull = createSkuSelector([
   createPriceLinkPlugin({ currency: "¥", showOriginal: true, discountText: "限时8折" }),
@@ -61,7 +61,7 @@ const Sku = createSkuSelector([
 ## 动态引入（低频 / 重型插件）
 
 ```tsx
-const { createQuotaPlugin } = await import("vane-sku/custom-plugins/Quota");
+const { createQuotaPlugin } = await import("vane-sku/custom-plugins/QuotaPlugin");
 ```
 
 ## 推荐做法

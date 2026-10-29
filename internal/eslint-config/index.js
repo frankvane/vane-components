@@ -13,7 +13,19 @@ import tseslint from "typescript-eslint";
  */
 export default tseslint.config(
   // 注意：必须用 **/ 前缀——共享配置的 ignores 相对各消费包解析，裸目录名不生效
-  { ignores: ["**/dist/**", "**/node_modules/**", "**/.turbo/**", "**/coverage/**", "**/demo-dist/**", "**/demo/dist/**"] },
+  {
+    ignores: [
+      "**/dist/**",
+      "**/node_modules/**",
+      "**/.turbo/**",
+      "**/coverage/**",
+      "**/demo-dist/**",
+      "**/demo/dist/**",
+      // vitepress 构建产物（cache/deps 里是第三方打包结果，不是本仓源码）
+      "**/.vitepress/cache/**",
+      "**/.vitepress/.temp/**",
+    ],
+  },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],

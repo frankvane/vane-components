@@ -5,6 +5,7 @@ import {
   Route,
   Navigate,
   useLocation,
+  useParams,
 } from "react-router-dom";
 import { Sidebar } from "./components/Sidebar";
 import { PLUGINS_BY_CATEGORY } from "./data/plugin-catalog";

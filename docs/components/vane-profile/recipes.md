@@ -4,21 +4,21 @@
 
 ```tsx
 import { ProfileCore, withPlugins } from "vane-profile";
-import { createBannerSlotPlugin } from "vane-profile/custom-plugins/BannerSlot";
-import { createBioSlotPlugin } from "vane-profile/custom-plugins/BioSlot";
-import { createStatRowPlugin } from "vane-profile/custom-plugins/StatRow";
-import { createSocialLinksPlugin } from "vane-profile/custom-plugins/SocialLinks";
-import { createTagListPlugin } from "vane-profile/custom-plugins/TagList";
-import { createTabSyncPlugin } from "vane-profile/custom-plugins/TabSync";
-import { createVerifyBadgePlugin } from "vane-profile/custom-plugins/VerifyBadge";
-import { createFollowEchoPlugin } from "vane-profile/custom-plugins/FollowEcho";
-import { createWorksGridPlugin } from "vane-profile/custom-plugins/WorksGrid";
-import { createMembershipBadgePlugin } from "vane-profile/custom-plugins/MembershipBadge";
-import { createQRSharePlugin } from "vane-profile/custom-plugins/QRShare";
-import { createLiveStatusPlugin } from "vane-profile/custom-plugins/LiveStatus";
-import { createContactCardPlugin } from "vane-profile/custom-plugins/ContactCard";
-import { createMessageButtonPlugin } from "vane-profile/custom-plugins/MessageButton";
-import { createAchievementWallPlugin } from "vane-profile/custom-plugins/AchievementWall";
+import { createBannerSlotPlugin } from "vane-profile/custom-plugins/BannerSlotPlugin";
+import { createBioSlotPlugin } from "vane-profile/custom-plugins/BioSlotPlugin";
+import { createStatRowPlugin } from "vane-profile/custom-plugins/StatRowPlugin";
+import { createSocialLinksPlugin } from "vane-profile/custom-plugins/SocialLinksPlugin";
+import { createTagListPlugin } from "vane-profile/custom-plugins/TagListPlugin";
+import { createTabSyncPlugin } from "vane-profile/custom-plugins/TabSyncPlugin";
+import { createVerifyBadgePlugin } from "vane-profile/custom-plugins/VerifyBadgePlugin";
+import { createFollowEchoPlugin } from "vane-profile/custom-plugins/FollowEchoPlugin";
+import { createWorksGridPlugin } from "vane-profile/custom-plugins/WorksGridPlugin";
+import { createMembershipBadgePlugin } from "vane-profile/custom-plugins/MembershipBadgePlugin";
+import { createQRSharePlugin } from "vane-profile/custom-plugins/QRSharePlugin";
+import { createLiveStatusPlugin } from "vane-profile/custom-plugins/LiveStatusPlugin";
+import { createContactCardPlugin } from "vane-profile/custom-plugins/ContactCardPlugin";
+import { createMessageButtonPlugin } from "vane-profile/custom-plugins/MessageButtonPlugin";
+import { createAchievementWallPlugin } from "vane-profile/custom-plugins/AchievementWallPlugin";
 ```
 
 ## 1. 最简主页（Basic）
@@ -110,5 +110,5 @@ export const MinimalProfile = withPlugins(ProfileCore, [
 
 - 常用组合沉淀为配方导出在包内（建议 3-5 个起步，不设上限），让用户免于每次自己拼；
 - 配方是「快捷方式」不是「白名单」——任何插件都可以单独引入；
-- 低频 / 重型插件用动态导入：`const { createWorksGridPlugin } = await import("vane-profile/custom-plugins/WorksGrid")`；
+- 低频 / 重型插件用动态导入：`const { createWorksGridPlugin } = await import("vane-profile/custom-plugins/WorksGridPlugin")`；
 - 每个插件都可单独单测：在 happy-dom 里直接调工厂拿 `plugin.hooks.renderXxxArea(context)` 断言输出。
