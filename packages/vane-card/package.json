@@ -23,6 +23,14 @@
       "types": "./dist/plugins.d.ts",
       "import": "./dist/plugins.js"
     },
+    "./entries/core": {
+      "types": "./dist/entries/core.d.ts",
+      "import": "./dist/entries/core.js"
+    },
+    "./entries/plugins": {
+      "types": "./dist/entries/plugins.d.ts",
+      "import": "./dist/entries/plugins.js"
+    },
     "./custom-plugins/A11yPlugin": {
       "types": "./dist/custom-plugins/A11yPlugin/index.d.ts",
       "import": "./dist/custom-plugins/A11yPlugin/index.js"

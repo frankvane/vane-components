@@ -94,14 +94,16 @@ for (const dir of dirs) {
   const budgetKb = pkg.vane?.sizeBudgetKb ?? 12;
   const entry = path.join(packagesDir, dir, "dist", "index.js");
   if (existsSync(entry)) {
-    const files = [entry];
+    // 去重：入口可能用多条 import 语句引用同一个 chunk（rollup 把来自不同源文件的
+    // 同名导出拆成多条 import），运行时该 chunk 只加载一次，重复计入会高估真实体积。
+    const files = new Set([entry]);
     const source = await readFile(entry, "utf-8");
     for (const m of source.matchAll(/from\s*["'](\.\/chunks\/[^"']+\.js)["']/g)) {
       const chunk = path.join(packagesDir, dir, "dist", m[1].replace(/^\.\//, ""));
-      if (existsSync(chunk)) files.push(chunk);
+      if (existsSync(chunk)) files.add(chunk);
     }
     const gz =
-      files.reduce((sum, f) => sum + gzipSync(readFileSync(f)).length, 0) / 1024;
+      [...files].reduce((sum, f) => sum + gzipSync(readFileSync(f)).length, 0) / 1024;
     if (gz > budgetKb) {
       record(pkg.name, "FAIL", `入口导入图 gzip ${gz.toFixed(1)}KB 超过预算 ${budgetKb}KB`);
     } else {
@@ -114,13 +116,13 @@ for (const dir of dirs) {
   const coreBudgetKb = pkg.vane?.coreSizeBudgetKb;
   const coreEntry = path.join(packagesDir, dir, "dist", "core.js");
   if (typeof coreBudgetKb === "number" && existsSync(coreEntry)) {
-    const files = [coreEntry];
+    const files = new Set([coreEntry]);
     const source = await readFile(coreEntry, "utf-8");
     for (const m of source.matchAll(/from\s*["'](\.\/chunks\/[^"']+\.js|\.\/[A-Za-z0-9_.-]+\.js)["']/g)) {
       const chunk = path.join(packagesDir, dir, "dist", m[1].replace(/^\.\//, ""));
-      if (existsSync(chunk)) files.push(chunk);
+      if (existsSync(chunk)) files.add(chunk);
     }
-    const gz = files.reduce((sum, f) => sum + gzipSync(readFileSync(f)).length, 0) / 1024;
+    const gz = [...files].reduce((sum, f) => sum + gzipSync(readFileSync(f)).length, 0) / 1024;
     if (gz > coreBudgetKb) {
       record(pkg.name, "FAIL", `core 子路径 gzip ${gz.toFixed(1)}KB 超过预算 ${coreBudgetKb}KB`);
     } else {
