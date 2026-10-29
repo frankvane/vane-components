@@ -1,0 +1,9 @@
+{
+  // 让编辑器使用仓库内安装的 TypeScript（5.9.x），而不是编辑器自带的版本。
+  // 否则旧版 TS 无法解析 moduleResolution:"bundler" / allowImportingTsExtensions /
+  // moduleDetection:"force" 等选项，会导致每个包都“报红”。
+  // 生效方式：Ctrl/Cmd+Shift+P → "TypeScript: Select TypeScript Version" → "Use Workspace Version"，或重载窗口。
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"]
+}

@@ -116,8 +116,8 @@ export interface CommentCoreProps<T = CommentData> {
   onSortChange?: (mode: SortMode) => void;
   /** 加载更多回调 */
   onLoadMore?: () => void;
-  /** 举报回调 */
-  onReport?: (commentId: string) => void;
+  /** 举报回调（reason 由 ReportPlugin 传入，如「垃圾广告」；未装 ReportPlugin 时缺省） */
+  onReport?: (commentId: string, reason?: string) => void;
   /** @提及候选（RichComposer 下拉） */
   mentions?: { id: string; name: string; avatar?: string }[];
   /** 默认排序模式（SortPlugin 未命中时兜底） */

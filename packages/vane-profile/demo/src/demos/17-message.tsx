@@ -40,7 +40,7 @@ export default function Stage({ cfg }: DemoStageProps) {
   const Profile = useMemo(
     () =>
       withPlugins(ProfileCore, [
-        createFollowEchoPlugin({ size: "md", followState: "following" }),
+        createFollowEchoPlugin({ size: "md", state: "following" }),
         ...(cfg.showMsg
           ? [createMessageButtonPlugin({ label: "私信", onMessage: () => {} })]
           : []),
