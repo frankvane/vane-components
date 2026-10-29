@@ -20,7 +20,8 @@
     "docs:sync": "node scripts/sync-readme.mjs",
     "sync:exports": "node scripts/sync-exports.mjs",
     "check": "node scripts/check-packages.mjs",
-    "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm check",
+    "check:structure": "node scripts/check-structure.mjs",
+    "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm check && pnpm check:structure",
     "changeset": "changeset",
     "release:version": "changeset version && pnpm install --lockfile-only",
     "release:publish": "changeset publish"
