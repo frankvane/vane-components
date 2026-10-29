@@ -436,11 +436,11 @@
   "homepage": "https://github.com/frankvane/vane-components#readme",
   "scripts": {
     "dev": "vite --config demo/vite.config.ts",
-    "build": "vite build",
+    "build": "vite build --mode lib",
     "build:demo": "vite build --config demo/vite.config.ts",
     "preview": "vite preview --config demo/vite.config.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "vitest run --pool=threads",
+    "test": "vitest run",
     "lint": "eslint .",
     "sync:exports": "node ../../scripts/sync-exports.mjs",
     "serve:demo": "node scripts/serve-demo.cjs",

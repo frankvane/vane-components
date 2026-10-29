@@ -123,6 +123,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
     "lint": "eslint .",
+    "sync:exports": "node ../../scripts/sync-exports.mjs",
     "docs:plugins": "node scripts/generate-plugin-docs.mjs",
     "prepublishOnly": "npm run build"
   },

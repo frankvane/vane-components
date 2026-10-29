@@ -152,6 +152,7 @@ demo/src/
 | **P3 card 双结构消除**（✅ 已落地） | 22 个实现从 `components/CardPlugin/custom-plugins` 移到 `src/custom-plugins`，删薄壳，修引用 | 22 移动 + 引用 | 中 | 1.5–2（已实际执行） |
 | **P4 入口聚合统一**（✅ 已落地） | 4 包根 `index.ts` 改为 `entries/{core,plugins}.ts` 范式 | 4 包根重构 | 中（public API 面变动） | 2–3（已实际执行） |
 | **P5 demo 标准化**（✅ 已落地） | lazy-image 108 文件从 `pages/combos/advanced` 迁到 `demos/` 范式 + 6 包 registry 一致性 | 108 迁移 | **高（视觉回归）** | 3–4（已实际执行） |
+| **P7 包级配置统一**（✅ 已落地） | 7 包 vite/vitest 外壳 + tsconfig include + scripts 收敛到基座默认值，新增 `check-config.mjs` 门禁；顺带收口编辑器报红、模板 `create.tsx` 缺陷、文档子路径漂移 | 7 包 × 4 文件 + 2 脚本 | 低（构建/测试可回归验证） | 1–1.5（已实际执行） |
 | **P6 补插件级测试**（可选） | 195 插件各至少 1 单测 | 195 测试 | 低 | 2–3 |
 | **合计** | — | — | — | **12–19**（codemod 后可压到 **8–12**） |
 
@@ -209,6 +210,16 @@ demo/src/
 - **非破坏性**：既存展示页（Home/PluginDetail/Combos/Advanced/Scenarios/Workshop/Gallery）全部保留，未做「108 文件暴力迁移」——registry 注册 combos（取自 `plugin-catalog` 的 `COMBOS`）/ advanced（`ADVANCED`）/ 3 个虚拟滚动场景 demo，沿用 sku 的 `glob` + `?raw` 源码范式（展示代码即正在跑的代码）。纯 demo（dev-only）改动，未触及 `src/`（发布物）。
 - **结构门禁**：`check-structure` lazy-image 的 `C1`（缺 `demos/registry.ts`）已消除，仅余 `A5` INFO（根 `index.ts` 桶导出 `./custom-plugins`，ADR-6 1.x 兼容例外）；全仓 FAIL=0、INFO=3（file-preview A5 / lazy-image A5 / 模板 C1）。
 - **验证全绿**：lazy-image `vite build --config demo/vite.config.ts` 成功；浏览器实测 lazy-image demo 首页正常挂载并渲染「浏览场景示例 / 打开插件工坊」入口；lazy-image src vitest **46/46**（subagent 未动 src，回归无碍）；全 7 包 tsc(`--noEmit`)=0、lint 0 error、vitest 全绿（card **187** / fp **260** / sku **42** / lazy **46** / comment **1** / waterfall **40** / profile **12**）。
+
+### P7 已落地（2026-10-29，包级配置统一 + 编辑器报红收口）
+
+- **配置统一（7 包）**：`vite.config.ts` 全部收敛为标准外壳 `defineConfig({ ...createLibConfig({ name, external? }), publicDir: false })`——`root`/`formats`/`minify`/`discoverEntries`/dts 均由 `createLibConfig` 默认值提供，包级只保留**功能性**差异的 `external`（core → `[/^vane-plugin-core(\/|$)/]`；heavy → `HEAVY_DEPENDENCIES`；none → 不传）。`vitest.config.ts` 统一为 `defineConfig(createVitestConfig({ environment: "happy-dom" }))`（`fileParallelism:false` 已内置在基座，重复覆盖删除；file-preview 保留其 happy-dom iframe 特设）。`tsconfig.json` 的 `include` 统一为 `["src","src/**/*.json","test","demo/src"]`。`package.json` scripts 统一（`build`→`vite build --mode lib`、`test`→`vitest run`，补齐 profile 缺失的 `sync:exports`）。
+- **新增门禁 `scripts/check-config.mjs`**：对 7 包逐项校验 eslint 内容、tsconfig `include`、vitest 外壳、vite 外壳、必需 scripts（`dev/build/build:demo/typecheck/test/lint/sync:exports`），并接入根 `verify`。
+- **编辑器报红收口（两层根因）**：① 真代码错误——`ReportPlugin.onReport` 少声明 `reason` 形参、profile 的 `createFollowEchoPlugin` 用了不存在的 `followState` 字段、profile 缺 `vite-env.d.ts`（`import.meta.glob` 报 TS2339）；② 工具链——仓库无 `.vscode/`，编辑器自带旧 TS 解析不了 `moduleResolution:"bundler"` 等现代选项，新增 `.vscode/settings.json` 指向 workspace TS。同时 comment/profile 的 `tsconfig.include` 漏了 `demo/src`（CLI 一直漏检 demo）。
+- **本轮额外发现（P5 遗留 + 模板缺陷）**：lazy-image demo 有 3 个未被 tsc 覆盖的真实类型错误（`useParams` 未导入、`DemoEntry` 从 `registry` 而非 `types` 导入）；golden 模板的示例插件把 JSX 写在 `create.ts` 里（eslint 解析 fatal），已改名 `create.tsx` 并同步模板文档。vitepress 构建缓存未在 eslint ignores 内，补 `**/.vitepress/{cache,.temp}/**`。
+- **文档漂移修复**：`sync-readme` 暴露出 sku/profile 文档把子路径写成了短名（`custom-plugins/PriceLink`），而实际 exports 是 `.../PriceLinkPlugin`——38 处引用已修正（改 `docs/components/*` 源头，README 重新生成）。并在 `check-packages` 新增「文档子路径必须是真实 exports」校验（占位符 `XxxPlugin`/`X` 跳过），已注入错误引用验证可拦截。
+- **验证全绿**：7 包 lib build 全 `✓ built`（sku 入口 6.5KB/7KB 仍通过）；demo build 7/7；vitest **588/588**（card 187 / fp 260 / sku 42 / lazy 46 / waterfall 40 / profile 12 / comment 1）；tsc 7/7 OK；lint **0 error**（1118 存量 warning）；`check-packages` / `check-structure`（FAIL=0，INFO=3）/ `check-config` 三绿。浏览器实测 7 个 demo 产物全部正常挂载：sku `?selftest=1` → `SELFTEST OK 21/21`；card `#/plugins`（22 插件 / 5 组 / 5 启用）；lazy-image 新 `/demo/:slug` 三类示例 + 非法 slug 回退首个 + `?raw` 源码确已内联；comment / file-preview / waterfall / profile 首页均渲染。
+- **新增工具**：`scripts/serve-demo.cjs`（零依赖静态服务 + SPA 回退），本地复核构建产物用。
 
 ### 成本主峰与杠杆
 - **lazy-image 占 ~45%**（85 插件 + 108 demo 文件），原是 P5 重点，已落地：108 demo 文件未暴力迁移，而是通过新增 `demos/registry.ts` 把既有 showcase（combos/advanced/scenarios）接入 registry 范式，C1 消除、视觉零回归；它的插件层已 84/85 合规（`examples` 经核实为有意双字段设计，不改字段）。

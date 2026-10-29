@@ -170,10 +170,10 @@
   "homepage": "https://github.com/frankvane/vane-components/tree/main/packages/vane-waterfall#readme",
   "scripts": {
     "dev": "vite --config demo/vite.config.ts",
-    "build": "vite build",
+    "build": "vite build --mode lib",
     "build:demo": "vite build --config demo/vite.config.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "vitest run --pool=threads",
+    "test": "vitest run",
     "lint": "eslint .",
     "sync:exports": "node ../../scripts/sync-exports.mjs",
     "docs:plugins": "node ../../scripts/generate-plugin-docs.mjs",

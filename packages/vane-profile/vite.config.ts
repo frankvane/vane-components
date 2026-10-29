@@ -1,17 +1,16 @@
 import { defineConfig } from "vite";
-import { fileURLToPath } from "node:url";
 import { createLibConfig } from "@vane/build-config";
 
-const root = fileURLToPath(new URL(".", import.meta.url));
-
+/**
+ * VaneProfile 库构建配置（标准外壳，7 包一致）。
+ * 入口由 build-config 自动发现（源码相对路径 == 发布子路径），新增 src/entries/*.ts
+ * 或 src/custom-plugins/XxxPlugin/index.ts 后跑 `pnpm sync:exports` 即可。
+ * 差异仅 external：core 走外部（消费者自带 vane-plugin-core）。
+ */
 export default defineConfig({
   ...createLibConfig({
     name: "VaneProfile",
-    root,
-    formats: ["es"],
-    // 内核 peer 外部化（B1-A）：不把 vane-plugin-core 打进 dist，消费方提供一份共享内核
     external: [/^vane-plugin-core(\/|$)/],
   }),
-  // 演示资产一律走 demo/ 目录，绝不进 dist（与 vane-card 一致）
   publicDir: false,
 });
