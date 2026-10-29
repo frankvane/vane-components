@@ -73,13 +73,13 @@ export function createQuantityPlugin(config: QuantityConfig = {}): SkuPlugin {
             data-max={String(upper)}
             style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 6 }}
           >
-            <span style={{ fontSize: 12, opacity: 0.7 }}>数量</span>
+            <span style={{ fontSize: 12, color: "#4a5056" }}>数量</span>
             <button
               type="button"
               data-testid="sku-quantity-minus"
               disabled={current <= 1}
               onClick={() => commit(current - 1)}
-              style={{ ...btn, opacity: current <= 1 ? 0.45 : 1, cursor: current <= 1 ? "not-allowed" : "pointer" }}
+              style={{ ...btn, color: current <= 1 ? "#7d838a" : "#1f2328", cursor: current <= 1 ? "not-allowed" : "pointer" }}
             >
               −
             </button>
@@ -89,11 +89,11 @@ export function createQuantityPlugin(config: QuantityConfig = {}): SkuPlugin {
               data-testid="sku-quantity-plus"
               disabled={current >= upper}
               onClick={() => commit(current + 1)}
-              style={{ ...btn, opacity: current >= upper ? 0.45 : 1, cursor: current >= upper ? "not-allowed" : "pointer" }}
+              style={{ ...btn, color: current >= upper ? "#7d838a" : "#1f2328", cursor: current >= upper ? "not-allowed" : "pointer" }}
             >
               +
             </button>
-            <span style={{ fontSize: 11, opacity: 0.55 }}>上限 {upper}</span>
+            <span style={{ fontSize: 11, color: "#5b6064" }}>上限 {upper}</span>
           </div>
         );
       },

@@ -66,7 +66,7 @@ export default function Stage({ cfg, log }: DemoStageProps) {
   return (
     <div style={CARD}>
       <Sku attributes={ATTRIBUTES} variants={VARIANTS} />
-      <p style={{ margin: "10px 0 0", fontSize: 11, opacity: 0.6 }}>
+      <p style={{ margin: "10px 0 0", fontSize: 11, color: "#5b6064" }}>
         只选颜色（未选全）记「未命中」，选全记「命中」，进页面记「挂载」——三种事件都会进右栏。
       </p>
     </div>

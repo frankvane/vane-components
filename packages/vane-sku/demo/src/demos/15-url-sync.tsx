@@ -62,7 +62,7 @@ export default function Stage({ cfg, log }: DemoStageProps) {
     <div style={{ ...CARD, display: "grid", gap: 10 }}>
       <Sku attributes={ATTRIBUTES} variants={VARIANTS} onChange={sync} />
       <code style={CODE}>{q}</code>
-      <p style={{ margin: 0, fontSize: 11, opacity: 0.6 }}>
+      <p style={{ margin: 0, fontSize: 11, color: "#5b6064" }}>
         上方是实时查询串（只读快照）。关掉开关改用 pushState：每次选择都进历史栈，后退键能撤销选择。
       </p>
     </div>

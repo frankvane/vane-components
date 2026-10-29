@@ -66,7 +66,7 @@ export default function Stage({ cfg, log }: DemoStageProps) {
           log(v ? `命中 ${v.sku}` : `未命中 · ${JSON.stringify(sel)}`, v ? "event" : "warn")
         }
       />
-      <p style={{ margin: "10px 0 0", fontSize: 11, opacity: 0.6 }}>
+      <p style={{ margin: "10px 0 0", fontSize: 11, color: "#5b6064" }}>
         先选「蓝」再拖开关：红消失、选择保留，L 依旧置灰 —— blue-l 本就不存在，小矩阵下它成了永久死路。
       </p>
     </div>

@@ -61,7 +61,7 @@ export function createQuotaPlugin(config: QuotaConfig = {}): SkuPlugin {
               padding: "4px 8px",
               borderRadius: 4,
               background: canPurchase ? "#f6ffed" : "#fff1f0",
-              color: canPurchase ? "#389e0d" : "#d4380d",
+              color: canPurchase ? "#237a06" : "#b32d08",
               border: `1px solid ${canPurchase ? "#b7eb8f" : "#ffa39e"}`,
             }}
           >

@@ -57,7 +57,7 @@ export default function Stage({ cfg, log }: DemoStageProps) {
         defaultSelection={{ 颜色: "red", 尺码: "s" }}
         onChange={(_sel, v) => v && log(`命中 ${v.sku} · 库存 ${v.stock ?? "—"}`, "event")}
       />
-      <p style={{ margin: "10px 0 0", fontSize: 11, opacity: 0.6 }}>
+      <p style={{ margin: "10px 0 0", fontSize: 11, color: "#5b6064" }}>
         red/s 库存 5：阈值 ≥5 显「仅剩 5 件」，拖到 1 变「现货」；点「绿 L」看缺货红条。
       </p>
     </div>

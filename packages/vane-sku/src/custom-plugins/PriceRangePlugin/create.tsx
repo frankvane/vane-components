@@ -53,13 +53,13 @@ export function createPriceRangePlugin(config: PriceRangeConfig = {}): SkuPlugin
             data-testid="sku-price-range"
             style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 6 }}
           >
-            <span style={{ fontSize: 16, fontWeight: 700, color: "#d4380d" }}>
+            <span style={{ fontSize: 16, fontWeight: 700, color: "#b32d08" }}>
               {currency}
               {min}
               {min !== max ? `${separator}${currency}${max}` : ""}
             </span>
             {attrs.length && !context.isComplete ? (
-              <span style={{ fontSize: 11, opacity: 0.6 }}>（请先选择规格）</span>
+              <span style={{ fontSize: 11, color: "#5b6064" }}>（请先选择规格）</span>
             ) : null}
           </div>
         );

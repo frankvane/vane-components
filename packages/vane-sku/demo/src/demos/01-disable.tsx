@@ -67,7 +67,7 @@ export default function Stage({ cfg, log }: DemoStageProps) {
           )
         }
       />
-      <p style={{ margin: "10px 0 0", fontSize: 11, opacity: 0.6 }}>
+      <p style={{ margin: "10px 0 0", fontSize: 11, color: "#5b6064" }}>
         点「蓝」看主角戏：L 因缺 blue-l 被置灰；defaultSelection 只在挂载时生效一次，所以预选切换靠 key 重挂载。
       </p>
     </div>

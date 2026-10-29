@@ -63,7 +63,7 @@ export default function Stage({ cfg, log }: DemoStageProps) {
           )
         }
       />
-      <p style={{ margin: "10px 0 0", fontSize: 11, opacity: 0.6 }}>
+      <p style={{ margin: "10px 0 0", fontSize: 11, color: "#5b6064" }}>
         选好规格 → 拖「重挂载」：按钮组销毁重建，选择自动还原；把选择清空（再点同值取消）会删键。
       </p>
     </div>

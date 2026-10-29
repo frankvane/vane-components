@@ -116,7 +116,7 @@ export default function Stage({ cfg, log }: DemoStageProps) {
           variants={VARIANTS}
           defaultSelection={{ 颜色: "red", 尺码: "s" }}
         />
-        <p style={{ margin: "10px 0 0", fontSize: 11, opacity: 0.6 }}>
+        <p style={{ margin: "10px 0 0", fontSize: 11, color: "#5b6064" }}>
           预选了 red/s：价格删除线、库存提示、限购条、数量步进、货号一次全出；换「绿 M」看低库存态。
         </p>
       </div>

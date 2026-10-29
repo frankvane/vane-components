@@ -95,7 +95,7 @@ export const SkuSelectorCore = forwardRef<
             data-testid={`sku-attr-${attr.name}`}
             style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 8 }}
           >
-            <span style={{ fontSize: 12, opacity: 0.7, minWidth: 48 }}>
+            <span style={{ fontSize: 12, color: "#4a5056", minWidth: 48 }}>
               {attr.name}
             </span>
             {attr.options.map((opt) => {
@@ -118,9 +118,10 @@ export const SkuSelectorCore = forwardRef<
                     borderRadius: 6,
                     border: selected ? "2px solid #2b7de9" : "1px solid #d0d4da",
                     background: disabled ? "#f2f3f5" : selected ? "#e8f0fe" : "#fff",
-                    color: disabled ? "#9aa0a6" : "#1f2328",
+                    // 禁用态靠「灰底 + 灰字 + not-allowed」表达，不再叠 opacity：
+                    // #9aa0a6 再乘 0.6 落到 1.63:1，白卡上等于看不见（WCAG 要 ≥3:1）
+                    color: disabled ? "#6f757b" : "#1f2328",
                     cursor: disabled ? "not-allowed" : "pointer",
-                    opacity: disabled ? 0.6 : 1,
                     fontSize: 12,
                   }}
                 >
@@ -139,7 +140,7 @@ export const SkuSelectorCore = forwardRef<
         ))}
       </div>
 
-      <div data-testid="sku-summary" style={{ fontSize: 12, opacity: 0.85, marginTop: 4 }}>
+      <div data-testid="sku-summary" style={{ fontSize: 12, color: "#3c4147", marginTop: 4 }}>
         {selectedEntries.length ? (
           <span>
             已选：

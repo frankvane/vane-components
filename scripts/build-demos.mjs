@@ -5,6 +5,7 @@
  *   node scripts/build-demos.mjs            # 全量构建
  *   node scripts/build-demos.mjs --no-build # 复用已有 demo-dist，只做聚合（调试用）
  *   node scripts/build-demos.mjs --only vane-card,vane-sku
+ *   node scripts/build-demos.mjs --clean    # 先清空 demos/（旧 hash 资源堆积时才需要）
  *
  * 目录约定（产物，git 忽略）：
  *   demos/index.html        引导页
@@ -27,6 +28,7 @@ const PKG_DIR = path.join(ROOT, "packages");
 
 const argv = process.argv.slice(2);
 const noBuild = argv.includes("--no-build");
+const clean = argv.includes("--clean");
 const onlyArg = argv[argv.indexOf("--only") + 1];
 const only = argv.includes("--only") && onlyArg ? onlyArg.split(",").map((s) => s.trim()).filter(Boolean) : null;
 
@@ -90,22 +92,9 @@ function copyDemo(pkg) {
   const dest = path.join(OUT_DIR, pkg.name);
   fs.mkdirSync(dest, { recursive: true });
 
-  let html = 0;
-  for (const name of fs.readdirSync(src)) {
-    const from = path.join(src, name);
-    if (!fs.statSync(from).isFile()) continue;
-    if (!name.endsWith(".html")) {
-      fs.copyFileSync(from, path.join(dest, name));
-      continue;
-    }
-    // base 是 "./"，html 在 demo/ 子目录里，指向的是上一级的 assets
-    const text = fs.readFileSync(from, "utf8").replaceAll("../assets/", "./assets/");
-    fs.writeFileSync(path.join(dest, name), text);
-    html += 1;
-  }
-  if (!html) throw new Error(`${pkg.name}: 产物里没有 html`);
-
-  // 资源（js/css/图片）各自一份，包与包之间不共享，删包即删净
+  // 顺序很关键：先铺资源、最后写 html。
+  // 这样正在预览的页面永远指向「已经全部就位」的文件；反过来先写 html 再铺资源，
+  // 中间那一瞬就是白屏/无样式。资源名带 hash，新旧并存互不干扰。
   const assetsSrc = path.join(pkg.dist, "assets");
   let assets = 0;
   if (fs.existsSync(assetsSrc)) {
@@ -118,6 +107,22 @@ function copyDemo(pkg) {
     if (name === "demo" || name === "assets") continue;
     fs.cpSync(path.join(pkg.dist, name), path.join(dest, name), { recursive: true });
   }
+
+  let html = 0;
+  for (const name of fs.readdirSync(src)) {
+    const from = path.join(src, name);
+    if (!fs.statSync(from).isFile()) continue;
+    if (!name.endsWith(".html")) {
+      fs.copyFileSync(from, path.join(dest, name));
+      continue;
+    }
+    // 资源保持相对（../assets → ./assets）：demo 用 HashRouter，导航只改 hash、
+    // 文档路径恒为 /<pkg>/，相对路径不会随路由变深，反而能整包搬来搬去。
+    const text = fs.readFileSync(from, "utf8").replaceAll("../assets/", "./assets/");
+    fs.writeFileSync(path.join(dest, name), text);
+    html += 1;
+  }
+  if (!html) throw new Error(`${pkg.name}: 产物里没有 html`);
 
   return { html, assets, bytes: dirSize(dest) };
 }
@@ -491,7 +496,12 @@ function main() {
   }
 
   console.log(`→ 聚合 ${pkgs.length} 个包的 demo 到 ${path.relative(ROOT, OUT_DIR)}/`);
-  fs.rmSync(OUT_DIR, { recursive: true, force: true });
+  // 默认**不清空** demos/：预览时重建不会出现「整站被删再写」的空窗，
+  // 浏览器里开着的页面也就不会突然变成无样式的白页。旧 hash 资源留着无害。
+  if (clean) {
+    console.log("  （--clean：先清空 demos/，请先关掉正在预览的标签页）");
+    fs.rmSync(OUT_DIR, { recursive: true, force: true });
+  }
   fs.mkdirSync(OUT_DIR, { recursive: true });
 
   const rows = [];
@@ -505,10 +515,24 @@ function main() {
     console.log(`  ✓ demos/${pkg.name}  (${stat.html} html · ${stat.assets} assets · ${kb(stat.bytes)})`);
   }
 
-  fs.writeFileSync(path.join(OUT_DIR, "index.html"), landing(pkgs));
+  // 只构建部分包时不要重写引导页，否则会把没参与本次构建的包从入口上抹掉
+  if (!only) {
+    fs.writeFileSync(path.join(OUT_DIR, "index.html"), landing(pkgs));
+  }
+
+  // 对比度体检页：必须与 demo 同源才能在 iframe 里读 computed style，
+  // 所以复制进 demos/（每次构建都补一份，--clean 也删不掉）
+  const auditSrc = path.join(ROOT, "scripts", "contrast-audit.html");
+  if (fs.existsSync(auditSrc)) {
+    fs.copyFileSync(auditSrc, path.join(OUT_DIR, "_audit.html"));
+  }
 
   const total = rows.reduce((n, r) => n + r.stat.bytes, 0);
-  console.log(`\n✓ demos/index.html 已生成 · ${pkgs.length} 个演示台 · 合计 ${kb(total)}`);
+  console.log(
+    only
+      ? `\n✓ ${pkgs.length} 个演示台已更新（--only：引导页未改动）· 目录合计 ${kb(total)}`
+      : `\n✓ demos/index.html 已生成 · ${pkgs.length} 个演示台 · 目录合计 ${kb(total)}`
+  );
   console.log(`  本地预览：node scripts/serve-demo.cjs demos 3350  然后访问 http://127.0.0.1:3350/`);
 }
 

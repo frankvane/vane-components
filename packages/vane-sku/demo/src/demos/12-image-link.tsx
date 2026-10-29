@@ -53,7 +53,7 @@ export default function Stage({ log }: DemoStageProps) {
       />
       <div style={{ background: "#fff", borderRadius: 2, padding: 14, color: "#1f2328", flex: 1 }}>
         <Sku attributes={ATTRIBUTES} variants={VARIANTS} defaultSelection={{ 颜色: "red", 尺码: "s" }} />
-        <p style={{ margin: "10px 0 0", fontSize: 11, opacity: 0.6 }}>
+        <p style={{ margin: "10px 0 0", fontSize: 11, color: "#5b6064" }}>
           换颜色 / 尺码：左图跟着变体走；这就是「发事件的插件 + 接事件的外层」。
         </p>
       </div>

@@ -57,7 +57,7 @@ export default function Stage({ cfg }: DemoStageProps) {
   return (
     <div style={CARD}>
       <Sku attributes={ATTRIBUTES} variants={VARIANTS} defaultSelection={{ 颜色: "red", 尺码: "s" }} />
-      <p style={{ margin: "10px 0 0", fontSize: 11, opacity: 0.6 }}>
+      <p style={{ margin: "10px 0 0", fontSize: 11, color: "#5b6064" }}>
         换「蓝 S」看看：blue-s 没写 originalPrice，就只有现价、没有删除线。
       </p>
     </div>

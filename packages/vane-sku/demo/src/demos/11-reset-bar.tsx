@@ -75,7 +75,7 @@ export default function Stage({ cfg, log }: DemoStageProps) {
           )
         }
       />
-      <p style={{ margin: "10px 0 0", fontSize: 11, opacity: 0.6 }}>
+      <p style={{ margin: "10px 0 0", fontSize: 11, color: "#5b6064" }}>
         选两个规格 → 点「清空重选」：右栏记一次 onReset，按钮自己藏起来（没有选择可清了）。
       </p>
     </div>

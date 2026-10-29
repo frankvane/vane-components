@@ -1,0 +1,114 @@
+<!doctype html>
+<!--
+  对比度体检（demo 站专用，dev-only）
+
+  用法：先 node scripts/serve-demo.cjs demos 3350（build-demos 会把本文件复制成 demos/_audit.html）
+    http://127.0.0.1:3350/_audit.html?pkg=vane-sku&slugs=quickstart,full-combo,quantity
+  输出：逐页列出舞台内所有文本节点里对比度 < 4.5 的项（WCAG AA 正文线），按差序排。
+
+  为什么要在 iframe 里跑：要读 getComputedStyle 就必须同源；
+  为什么不截图判断：截图的观感受显示器/缩放影响，对比度必须算。
+  已知豁免：禁用态（WCAG 1.4.3）只需 ≥3:1，故 3.x 的禁用按钮不算失败。
+-->
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>contrast audit</title>
+    <style>
+      body { margin: 0; background: #111; color: #eee; font: 11px/1.5 monospace; }
+      #out { padding: 8px 10px; white-space: pre; }
+      iframe { width: 100%; height: 260px; border: 0; }
+      .bad { color: #ff8a7a; }
+    </style>
+  </head>
+  <body>
+    <div id="out">auditing...</div>
+    <iframe id="fr" style="width: 420px"></iframe>
+    <script type="module">
+      const q = new URLSearchParams(location.search);
+      const SLUGS = (q.get("slugs") ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+      const PKG = q.get("pkg") ?? "vane-sku";
+      const fr = document.getElementById("fr");
+      const out = [];
+
+      const rgb = (s) => (s.match(/\d+(\.\d+)?/g) || []).slice(0, 3).map(Number);
+      const lum = ([r, g, b]) => {
+        const f = (v) => (v / 255 <= 0.03928 ? v / 255 / 12.92 : ((v / 255 + 0.055) / 1.055) ** 2.4);
+        return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+      };
+      const contrast = (c1, c2) => {
+        const a = lum(c1), b = lum(c2);
+        return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+      };
+      const blend = (fg, bg, alpha) => fg.map((v, i) => v * alpha + bg[i] * (1 - alpha));
+
+      const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+
+      async function measure(slug) {
+        // 换 hash 不会触发 load，必须重建 iframe 才能拿到「新页面已就绪」的信号
+        const old = document.getElementById("fr");
+        const frame = document.createElement("iframe");
+        frame.id = "fr";
+        frame.style.cssText = "width:420px;height:260px;border:0";
+        old.replaceWith(frame);
+        const loaded = new Promise((r) => frame.addEventListener("load", r, { once: true }));
+        frame.src = "/" + PKG + "/#/demo/" + slug;
+        await loaded;
+        await wait(1200);
+        const d = frame.contentDocument, w = frame.contentWindow;
+        const root = d.querySelector(".plate-body") || d.body;
+        const bad = [];
+        // 遍历**文本节点**而不是元素：按钮里的文字是「img + 文本」，
+        // 按元素取会把这些（最常出问题的）标签整体漏掉。
+        const walker = d.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+        const seen = new Set();
+        for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+          const txt = n.nodeValue.replace(/\s+/g, " ").trim();
+          if (!txt) continue;
+          const el = n.parentElement;
+          if (!el || seen.has(el)) continue;
+          seen.add(el);
+          const cs = w.getComputedStyle(el);
+          if (cs.visibility === "hidden" || cs.display === "none") continue;
+          if (parseFloat(cs.opacity) === 0) continue;
+          let bgEl = el, bg = "rgba(0, 0, 0, 0)";
+          while (bgEl && (bg === "rgba(0, 0, 0, 0)" || bg === "transparent")) {
+            bg = w.getComputedStyle(bgEl).backgroundColor;
+            bgEl = bgEl.parentElement;
+          }
+          if (bg === "rgba(0, 0, 0, 0)") continue;
+          const fg = rgb(cs.color), bgc = rgb(bg);
+          const op = parseFloat(cs.opacity);
+          const c = contrast(blend(fg, bgc, op).map(Math.round), bgc);
+          if (c < 4.5) {
+            bad.push({ c: +c.toFixed(2), txt: txt.slice(0, 22), op, disabled: el.disabled === true });
+          }
+        }
+        bad.sort((a, b) => a.c - b.c);
+        return bad;
+      }
+
+      for (const slug of SLUGS) {
+        let bad;
+        try {
+          bad = await measure(slug);
+        } catch (e) {
+          out.push(slug.padEnd(14) + " ERROR " + e.message);
+          continue;
+        }
+        const head = slug.padEnd(14) + (bad.length ? " ✗ " + bad.length + " 处 <4.5" : " ✓ 全部 ≥4.5");
+        out.push(head);
+        for (const b of bad.slice(0, 5)) {
+          out.push(
+            "    " + String(b.c).padEnd(5) +
+            " op=" + String(b.op).padEnd(4) +
+            (b.disabled ? "禁用 " : "     ") + b.txt
+          );
+        }
+        document.getElementById("out").textContent = out.join("\n");
+      }
+      out.push("\n完成");
+      document.getElementById("out").textContent = out.join("\n");
+    </script>
+  </body>
+</html>

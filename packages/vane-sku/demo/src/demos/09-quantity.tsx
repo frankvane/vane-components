@@ -60,7 +60,7 @@ export default function Stage({ cfg, log }: DemoStageProps) {
         variants={VARIANTS}
         defaultSelection={{ 颜色: "red", 尺码: "s" }}
       />
-      <p style={{ margin: "10px 0 0", fontSize: 11, opacity: 0.6 }}>
+      <p style={{ margin: "10px 0 0", fontSize: 11, color: "#5b6064" }}>
         点 + 到封顶，再换「蓝 S」：上限跳到库存 5，步进器跟随新变体重算。
       </p>
     </div>

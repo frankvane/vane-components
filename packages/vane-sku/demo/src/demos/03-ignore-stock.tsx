@@ -48,7 +48,7 @@ export default function Stage({ cfg, log }: DemoStageProps) {
             : log(`未命中 · ${JSON.stringify(sel)}`, "warn")
         }
       />
-      <p style={{ margin: "10px 0 0", fontSize: 11, opacity: 0.6 }}>
+      <p style={{ margin: "10px 0 0", fontSize: 11, color: "#5b6064" }}>
         先选「绿」：L 置灰（缺货默认视为不存在）。关掉开关后 L 可选，点它会命中 stock=0 的 TEE-GREEN-L。
       </p>
     </div>

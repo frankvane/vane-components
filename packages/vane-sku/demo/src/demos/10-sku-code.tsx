@@ -60,7 +60,7 @@ export default function Stage({ cfg, log }: DemoStageProps) {
         defaultSelection={{ 颜色: "red", 尺码: "s" }}
         onChange={(_sel, v) => v && log(`命中 ${v.sku}`, "event")}
       />
-      <p style={{ margin: "10px 0 0", fontSize: 11, opacity: 0.6 }}>
+      <p style={{ margin: "10px 0 0", fontSize: 11, color: "#5b6064" }}>
         未选全时不占位——货号只在命中后出现，别让半选状态看到错误的编码。
       </p>
     </div>

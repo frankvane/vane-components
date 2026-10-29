@@ -54,7 +54,7 @@ export default function Stage({ cfg }: DemoStageProps) {
   return (
     <div style={CARD}>
       <Sku attributes={ATTRIBUTES} variants={VARIANTS} />
-      <p style={{ margin: "10px 0 0", fontSize: 11, opacity: 0.6 }}>
+      <p style={{ margin: "10px 0 0", fontSize: 11, color: "#5b6064" }}>
         两个开关都关就是裸 Core：选「蓝」后 L 置灰，摘要告诉你命中的变体。
       </p>
     </div>

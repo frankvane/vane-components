@@ -44,7 +44,7 @@ export default function Stage({ cfg }: DemoStageProps) {
   return (
     <div style={CARD}>
       <Sku attributes={ATTRIBUTES} variants={VARIANTS} />
-      <p style={{ margin: "10px 0 0", fontSize: 11, opacity: 0.6 }}>
+      <p style={{ margin: "10px 0 0", fontSize: 11, color: "#5b6064" }}>
         先只选「颜色」：区间立刻收窄到该色的 min–max；选全后区间退场（打开开关则保留）。
       </p>
     </div>

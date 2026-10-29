@@ -46,12 +46,12 @@ export function createPriceLinkPlugin(
             data-testid="sku-price"
             style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 6 }}
           >
-            <span style={{ fontSize: 18, fontWeight: 700, color: "#d4380d" }}>
+            <span style={{ fontSize: 18, fontWeight: 700, color: "#b32d08" }}>
               {currency}
               {v.price}
             </span>
             {hasOriginal ? (
-              <s data-testid="sku-price-original" style={{ fontSize: 12, opacity: 0.6 }}>
+              <s data-testid="sku-price-original" style={{ fontSize: 12, color: "#6b7076" }}>
                 {currency}
                 {v.originalPrice}
               </s>
@@ -64,7 +64,7 @@ export function createPriceLinkPlugin(
                   padding: "1px 6px",
                   borderRadius: 4,
                   background: "#fff1f0",
-                  color: "#d4380d",
+                  color: "#b32d08",
                 }}
               >
                 {config.discountText}

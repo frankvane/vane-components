@@ -40,7 +40,7 @@ export function createStockStatusPlugin(
 
         const soldOut = stock === 0;
         const low = !soldOut && stock <= threshold;
-        const color = soldOut ? "#d4380d" : low ? "#d46b08" : "#389e0d";
+        const color = soldOut ? "#b32d08" : low ? "#a54a00" : "#237a06";
         const bg = soldOut ? "#fff1f0" : low ? "#fff7e6" : "#f6ffed";
         const border = soldOut ? "#ffa39e" : low ? "#ffd591" : "#b7eb8f";
 

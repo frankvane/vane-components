@@ -28,7 +28,7 @@ export function createSkuCodePlugin(config: SkuCodeConfig = {}): SkuPlugin {
         return (
           <div
             data-testid="sku-code"
-            style={{ marginTop: 6, fontSize: 11, opacity: 0.6, fontFamily: "ui-monospace, monospace" }}
+            style={{ marginTop: 6, fontSize: 11, color: "#5b6064", fontFamily: "ui-monospace, monospace" }}
           >
             {config.label ?? "货号"}：{v.sku}
           </div>

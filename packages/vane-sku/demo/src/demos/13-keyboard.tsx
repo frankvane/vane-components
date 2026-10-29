@@ -48,7 +48,7 @@ export default function Stage({ cfg }: DemoStageProps) {
 
   return (
     <div style={CARD}>
-      <p style={{ margin: "0 0 8px", fontSize: 12, opacity: 0.7 }}>
+      <p style={{ margin: "0 0 8px", fontSize: 12, color: "#4a5056" }}>
         先点（或 Tab 聚焦）任一规格按钮，再用方向键走两圈：
       </p>
       <KeyHint
@@ -60,7 +60,7 @@ export default function Stage({ cfg }: DemoStageProps) {
       <div style={{ marginTop: 10 }}>
         <Sku attributes={ATTRIBUTES} variants={VARIANTS} defaultSelection={{ 颜色: "blue" }} />
       </div>
-      <p style={{ margin: "10px 0 0", fontSize: 11, opacity: 0.6 }}>
+      <p style={{ margin: "10px 0 0", fontSize: 11, color: "#5b6064" }}>
         在尺码行按 →：S → M → 回到 S，L 因缺 blue-l 被置灰，直接被跳过。
       </p>
     </div>

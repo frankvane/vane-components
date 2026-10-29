@@ -2760,7 +2760,8 @@ time {
   gap: 14px;
   flex-wrap: wrap;
   font-size: 11px;
-  color: var(--faint);
+  /* 只在 13-keyboard 的白卡里出现，用 --faint（深色底专用）会掉到 3.5:1 */
+  color: #5b6064;
 }
 
 .keyhint span {
