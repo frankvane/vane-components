@@ -70,7 +70,7 @@ function ReplyNode({
   const deleted = (reply.status ?? "normal") === "deleted";
 
   return (
-    <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+    <div style={{ display: "flex", gap: 8, marginTop: 10 }} data-testid="comment-item">
       <MiniAvatar author={reply.author} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 13 }}>

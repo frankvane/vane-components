@@ -103,12 +103,17 @@ export function withCommentPlugins<T = any>(
         }
       }, [props, execute]);
 
-      // 经排序后的评论列表透给 Core（Core 读 props.data）
+      // 经排序后的评论列表透给 Core。
+      // 关键：排序结果同时覆盖 `comments` 与 `data` —— CommentCore 的读取顺序是
+      // `comments ?? data`，若只填 data 而消费方传了 comments（演示站 / 真实项目都这么传），
+      // 排序就会被原始列表覆盖、静默失效。这里把两份都置成排序后的列表。
+      const sorted = ctxRef.current.comments as unknown as T;
       const enhancedProps: CommentCoreProps<T> = {
         ...transformedProps,
         containerRefExternal: containerRef,
         debug: transformedProps.debug ?? enableDebug,
-        data: ctxRef.current.comments as unknown as T,
+        data: sorted,
+        comments: sorted,
 
         onMount: () => {
           transformedProps.onMount?.();

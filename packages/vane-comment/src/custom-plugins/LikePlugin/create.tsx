@@ -39,6 +39,7 @@ function LikeButton({
       type="button"
       onClick={handle}
       aria-pressed={liked}
+      data-testid="comment-like"
       style={{
         display: "inline-flex",
         alignItems: "center",

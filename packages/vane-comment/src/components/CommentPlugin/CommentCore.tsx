@@ -145,6 +145,7 @@ function CommentItem({ comment, depth }: { comment: Comment; depth: number }) {
   return (
     <div
       className="vc-item"
+      data-testid="comment-item"
       style={{
         display: "flex",
         gap: 10,
