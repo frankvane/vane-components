@@ -20,11 +20,23 @@ export function auditSku(root: HTMLElement | null): AuditResult {
   const problems: string[] = [];
   if (!root) return { problems: ["体检根节点不存在"], checked: 0 };
 
-  const hostRect = root.getBoundingClientRect();
   const buttons = Array.from(
     root.querySelectorAll<HTMLElement>('[data-testid^="sku-opt-"]')
   );
   let checked = 0;
+
+  // 无布局引擎的 DOM 环境（happy-dom / jsdom）：getBoundingClientRect 恒返回全 0，
+  // 几何断言会无一例外地误报「零尺寸 / 负坐标 / 越界」。这类环境本就无法测量几何，
+  // 直接跳过，把判定权交还给真实浏览器（?selftest=1 跑的就是真布局）。
+  const hostRect = root.getBoundingClientRect();
+  const hasLayout =
+    hostRect.width !== 0 ||
+    hostRect.height !== 0 ||
+    buttons.some((b) => {
+      const r = b.getBoundingClientRect();
+      return r.width !== 0 || r.height !== 0;
+    });
+  if (!hasLayout) return { problems: [], checked: 0 };
 
   // 1) 零尺寸 + 2) 负坐标 + 3) 越界
   for (const btn of buttons) {

@@ -632,6 +632,16 @@ pre {
   line-height: 1.75;
   color: var(--text-2);
 }
+/* 行内代码（正文里提到的包名 / 标识符） */
+.inline-code {
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: var(--surface-2, #171513);
+  border: 1px solid var(--line, #2a2723);
+  color: #ffb86b;
+  font-family: var(--font-mono, "JetBrains Mono", monospace);
+  font-size: 0.85em;
+}
 .page-body {
   min-width: 0;
 }
