@@ -149,8 +149,8 @@ demo/src/
 | **P0 防护网** | 写 `scripts/check-structure.mjs`（骨架/命名/doc 字段校验）+ 接 CI；对齐 `templates/plugin-component` 为唯一真源 | 1 脚本 + 27 文件对齐 | 低 | 1–1.5 |
 | **P1 命名与元数据**（✅ 已落地） | sku(12)+profile(16) 破坏性重命名加 `Plugin` 后缀（npm 删除再上传、当全新项目、不加兼容层），含 exports/index/docs/demo 引用全量同步 | 28 重命名 + 引用同步 | 低（已验证 tsc/build/vitest 全绿） | 1.5–2.5（已实际执行） |
 | **P2 三件套提取**（✅ 已落地） | card(22)+file-preview(17) 内联工厂抽成 `create.tsx` | 39 目录三件套化 | 低（机械） | 2–3（已实际执行） |
-| **P3 card 双结构消除** | 22 个实现从 `components/CardPlugin/custom-plugins` 移到 `src/custom-plugins`，删薄壳，修引用 | 22 移动 + 引用 | 中 | 1.5–2 |
-| **P4 入口聚合统一** | 4 包根 `index.ts` 改为 `entries/{core,plugins}.ts` 范式 | 4 包根重构 | 中（public API 面变动） | 2–3 |
+| **P3 card 双结构消除**（✅ 已落地） | 22 个实现从 `components/CardPlugin/custom-plugins` 移到 `src/custom-plugins`，删薄壳，修引用 | 22 移动 + 引用 | 中 | 1.5–2（已实际执行） |
+| **P4 入口聚合统一**（✅ 已落地） | 4 包根 `index.ts` 改为 `entries/{core,plugins}.ts` 范式 | 4 包根重构 | 中（public API 面变动） | 2–3（已实际执行） |
 | **P5 demo 标准化** | lazy-image 108 文件从 `pages/combos/advanced` 迁到 `demos/` 范式 + 6 包 registry 一致性 | 108 迁移 | **高（视觉回归）** | 3–4 |
 | **P6 补插件级测试**（可选） | 195 插件各至少 1 单测 | 195 测试 | 低 | 2–3 |
 | **合计** | — | — | — | **12–19**（codemod 后可压到 **8–12**） |
@@ -186,6 +186,23 @@ demo/src/
 - **验证全绿**：card/fp tsc(`--noEmit`)=0 error；card/fp lib build=0；card vitest **187/187**、fp vitest **260/260**；card/fp demo build=0；`check-packages` EXIT=0（card 全量并集 47.9/52 通过，fp 各项达标）；lint 各 0 error（仅存量 `any`/react-refresh warning）；`check-structure` EXIT=0。
 - **A3 状态**：fp 17 个插件三件套齐全 → **0** A3 失败；card 真实 22 插件（`src/components/CardPlugin/custom-plugins/<Name>`）三件套齐全，A3 静默通过；剩余 22 个 A3 失败全指向顶层 `src/custom-plugins/<Name>` 薄壳转发目录（双结构，归 **P3**），P2 前即存在、非本次回归。
 
+### P3 已落地（2026-10-29，commit `d57288d`，已推双远端 gitee+github，HEAD 一致）
+
+- **双结构消除**：card 22 个插件实现从 `src/components/CardPlugin/custom-plugins/<Name>/{create.tsx,doc.json,index.ts}` `git mv` 到 `src/custom-plugins/<Name>/`（顶层转发薄壳 `src/custom-plugins/<Name>/index.ts` 被真实薄壳覆盖）。深目录与深桶 `src/components/CardPlugin/custom-plugins/index.ts` 删除。
+- **系统入口修正**：`src/components/CardPlugin/index.ts` 第 33 行 `export * from "./custom-plugins"` → `export * from "../../custom-plugins"`（CardPlugin 系统入口再导出 22 插件）。
+- **引用全量修正**：13 个外部文件批量替换 `components/CardPlugin/custom-plugins` → `custom-plugins`（共 38 处）：`demo/src/data/plugins.ts`、`scripts/verify-scenarios.mjs`、`src/presets/{checkout,product-card,sku-flow}/index.ts`、`test/{bus-protocol,hooks-safety,plugin-meta,plugin-runtime,plugins-a,plugins-b,plugins-c,snapshots.base}.tsx`。
+- **验证全绿**：card tsc(`--noEmit`)=0 error；lint 0 error（仅存量 `any`/react-refresh warning）；vitest **187/187**；lib build=0；demo build=0；`check-structure` card 仅余 A1（P4 解）；`check-packages` 47.5/52 通过。浏览器实测 card demo `#/`、`#/plugins`、`#/scenarios` 三路由正常渲染（验证 P2 的 `?raw` glob 改动运行期无碍）。
+- **A3 状态**：双结构薄壳目录已随迁移删除，A3 22 个失败项随之消除（card 真实 22 插件三件套齐全）。
+
+### P4 已落地（2026-10-29，commit `dec313a`，已推双远端 gitee+github，HEAD 一致）
+
+- **入口聚合统一（A1 门禁）**：card/file-preview/lazy-image/sku 4 包各新增 `src/entries/core.ts`（最小核心：仅 Core 组件 + props/ref 类型）与 `src/entries/plugins.ts`（插件系统 + `export * from "../custom-plugins"` 全量官方插件）。根 `index.ts` 保持独立全量聚合门面，不强制引用 entries（golden vane-comment 同款）。A1 现覆盖全部 7 个组件包（comment/waterfall/profile 为 golden 早已具备）。
+- **exports 刷新**：`node scripts/sync-exports.mjs` 刷新 4 包 `package.json` exports 子路径（card 34 / fp 24 / lazy 100 / sku 17）。
+- **结构门禁**：`check-structure` card/sku A1 ✅；file-preview/lazy-image 仅余 A5 INFO（根 `index.ts` 桶导出 `./custom-plugins`，ADR-6 1.x 兼容例外，可不改）。
+- **体积门修正（不静默调大）**：`scripts/check-packages.mjs` 入口测量对同源 chunk 的多条 `import` 按 chunk 文件去重——此前 sku 根 `dist/index.js` 用两条 `import` 语句引用同一 `withPlugins` chunk，被重复计入，虚高 6.5→11.2KB；运行时该 chunk 只加载一次。修正后 sku 根入口 **6.5KB / 预算 7KB** 通过；同步更新 `vane-sku` 的 `sizeBudgetNote` 说明口径修正（未静默调大）。其余 3 包测量值去重后只会更低，仍全绿。
+- **验证全绿**：4 包 tsc(`--noEmit`)=0 error；lint 0 error；vitest 全绿（card **187** / fp **260** / sku **42** / lazy **46**）；lib build 全 0；`check-packages` EXIT=0（全包通过）；`check-structure` FAIL=0。
+- **public API 面**：4 包根 `index.ts` 导出符号保持不变（facade 不变），仅内部新增 `entries/` 子路径，属非破坏性新增。
+
 ### 成本主峰与杠杆
 - **lazy-image 占 ~45%**（85 插件 + 108 demo 文件），是 P5 的重点；它的插件层已 84/85 合规，主要成本是 demo 重构（`examples` 经核实为有意双字段设计，不改字段）。
 - **P0 防护网性价比最高**：花 1–1.5 天，换来后续所有漂移可被 CI 阻断，且能反向证明改造完成度。
@@ -196,7 +213,7 @@ demo/src/
 ## 5. 实施验收清单（每条可机器校验）
 
 ### A. 骨架结构（check-structure.mjs 断言）
-- [ ] A1 每个组件包 `src/` 含 `entries/core.ts` 与 `entries/plugins.ts`（或根 `index.ts` 仅 re-export 二者）。
+- [x] A1 每个组件包 `src/` 含 `entries/core.ts` 与 `entries/plugins.ts`（P4 覆盖 card/fp/lazy/sku；comment/waterfall/profile 为 golden 早已具备；A5 INFO 的 fp/lazy 根桶导出为 ADR-6 1.x 兼容例外，不阻塞）。
 - [ ] A2 每个插件目录名为 `^[A-Z][A-Za-z0-9]*Plugin$`（PascalCase + `Plugin`）。
 - [ ] A3 每个插件目录含 `create.tsx` + `doc.json` + `index.ts` 三件套（card/file-preview 改造后达标）。
 - [ ] A4 `doc.json` 顶层含 9 标准字段（name/description/since/tags/config/features/useCases/notes/example）+ 允许 `examples` 额外字段（白名单，lazy-image 有意双字段）；无其它未知字段。
@@ -205,7 +222,7 @@ demo/src/
 ### B. 命名与引用
 - [x] B1 全仓无驼峰无后缀插件名（profile 16 + sku 12 共 28 个已破坏性重命名加 `Plugin` 后缀）。
 - [ ] B2 所有 `import ... from "@/custom-plugins/Xxx"` 与 `package.json` exports 键与目录名一致。
-- [ ] B3 card 无 `src/custom-plugins/<X>/` 薄壳再导出（实现已并入 `src/custom-plugins/`）。
+- [x] B3 card 无 `src/custom-plugins/<X>/` 薄壳再导出（P3 已将 22 个实现并入 `src/custom-plugins/`，顶层转发目录删除）。
 
 ### C. demo 结构
 - [ ] C1 每个组件包 `demo/src/demos/` 含 `registry.ts` + `types.ts` + `DemoPage.tsx`，且为路由唯一数据源。
