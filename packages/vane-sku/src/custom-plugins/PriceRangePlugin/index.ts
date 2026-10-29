@@ -1,5 +1,5 @@
 /**
- * PriceRangePlugin — 价格区间（子路径 vane-sku/custom-plugins/PriceRange）
+ * PriceRangePlugin — 价格区间（子路径 vane-sku/custom-plugins/PriceRangePlugin）
  */
 import { createPriceRangePlugin as create } from "./create";
 import type { PriceRangeConfig } from "./create";

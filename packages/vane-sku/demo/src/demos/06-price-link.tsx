@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { createSkuSelector } from "vane-sku";
-import { createPriceLinkPlugin } from "vane-sku/custom-plugins/PriceLink";
+import { createPriceLinkPlugin } from "vane-sku/custom-plugins/PriceLinkPlugin";
 import type { DemoMeta, DemoStageProps } from "./types";
 import { ATTRIBUTES, VARIANTS, DISCOUNT_TEXTS } from "../data/sample";
 

@@ -28,11 +28,11 @@ npm install vane-profile
 
 ```tsx
 import { ProfileCore, withPlugins, useProfileContext } from "vane-profile";
-import { createBannerSlotPlugin } from "vane-profile/custom-plugins/BannerSlot";
-import { createStatRowPlugin } from "vane-profile/custom-plugins/StatRow";
-import { createTabSyncPlugin } from "vane-profile/custom-plugins/TabSync";
-import { createVerifyBadgePlugin } from "vane-profile/custom-plugins/VerifyBadge";
-import { createFollowEchoPlugin } from "vane-profile/custom-plugins/FollowEcho";
+import { createBannerSlotPlugin } from "vane-profile/custom-plugins/BannerSlotPlugin";
+import { createStatRowPlugin } from "vane-profile/custom-plugins/StatRowPlugin";
+import { createTabSyncPlugin } from "vane-profile/custom-plugins/TabSyncPlugin";
+import { createVerifyBadgePlugin } from "vane-profile/custom-plugins/VerifyBadgePlugin";
+import { createFollowEchoPlugin } from "vane-profile/custom-plugins/FollowEchoPlugin";
 
 // 装配：一个组件类型，模块顶层调一次
 const Profile = withPlugins(ProfileCore, [
@@ -74,7 +74,7 @@ function ProfileContent() {
 | --- | --- | --- |
 | `vane-profile` | 核心 + 装配 + 领域槽 + 类型（不含任何插件） | **3.0 KB**（预算 3.5 KB）|
 | `vane-profile/entries/core` | 同上，只含 `ProfileCore` + 领域槽（无 `withPlugins`）| ~1.8 KB |
-| `vane-profile/custom-plugins/BannerSlot` | 单个插件（16 选 n）| 1.6–2.0 KB |
+| `vane-profile/custom-plugins/BannerSlotPlugin` | 单个插件（16 选 n）| 1.6–2.0 KB |
 | `vane-profile/custom-plugins/*` | 通配子路径，按需取 | 1.6–2.0 KB |
 | `vane-profile/custom-plugins` | 桶文件 + 16 个插件（逃生口，常规不推荐）| ~16 KB |
 

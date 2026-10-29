@@ -1,5 +1,5 @@
 /**
- * UrlSyncPlugin — URL 同步（子路径 vane-sku/custom-plugins/UrlSync）
+ * UrlSyncPlugin — URL 同步（子路径 vane-sku/custom-plugins/UrlSyncPlugin）
  */
 import { createUrlSyncPlugin as create } from "./create";
 import type { UrlSyncConfig } from "./create";

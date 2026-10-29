@@ -1,5 +1,5 @@
 /**
- * StatePersistencePlugin — 选择态持久化（子路径 vane-sku/custom-plugins/StatePersistence）
+ * StatePersistencePlugin — 选择态持久化（子路径 vane-sku/custom-plugins/StatePersistencePlugin）
  */
 import { createStatePersistencePlugin as create } from "./create";
 import type { StatePersistenceConfig } from "./create";

@@ -1,5 +1,5 @@
 /**
- * KeyboardNavPlugin — 键盘漫游（子路径 vane-sku/custom-plugins/KeyboardNav）
+ * KeyboardNavPlugin — 键盘漫游（子路径 vane-sku/custom-plugins/KeyboardNavPlugin）
  */
 import { createKeyboardNavPlugin as create } from "./create";
 import type { KeyboardNavConfig } from "./create";

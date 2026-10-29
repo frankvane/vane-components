@@ -1,5 +1,5 @@
 /**
- * PriceLinkPlugin — 价格联动（子路径 vane-sku/custom-plugins/PriceLink）
+ * PriceLinkPlugin — 价格联动（子路径 vane-sku/custom-plugins/PriceLinkPlugin）
  */
 import { createPriceLinkPlugin as create } from "./create";
 import type { PriceLinkConfig } from "./create";

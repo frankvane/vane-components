@@ -1,5 +1,5 @@
 /**
- * AnalyticsPlugin — 埋点上报（子路径 vane-sku/custom-plugins/Analytics）
+ * AnalyticsPlugin — 埋点上报（子路径 vane-sku/custom-plugins/AnalyticsPlugin）
  */
 import { createAnalyticsPlugin as create } from "./create";
 import type { AnalyticsConfig, AnalyticsEvent } from "./create";

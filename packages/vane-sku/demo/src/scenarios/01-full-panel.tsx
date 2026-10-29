@@ -1,14 +1,14 @@
 import React from "react";
 import { createSkuSelector } from "vane-sku";
-import { createImageLinkPlugin } from "vane-sku/custom-plugins/ImageLink";
-import { createKeyboardNavPlugin } from "vane-sku/custom-plugins/KeyboardNav";
-import { createPriceLinkPlugin } from "vane-sku/custom-plugins/PriceLink";
-import { createPriceRangePlugin } from "vane-sku/custom-plugins/PriceRange";
-import { createQuantityPlugin } from "vane-sku/custom-plugins/Quantity";
-import { createQuotaPlugin } from "vane-sku/custom-plugins/Quota";
-import { createResetBarPlugin } from "vane-sku/custom-plugins/ResetBar";
-import { createSkuCodePlugin } from "vane-sku/custom-plugins/SkuCode";
-import { createStockStatusPlugin } from "vane-sku/custom-plugins/StockStatus";
+import { createImageLinkPlugin } from "vane-sku/custom-plugins/ImageLinkPlugin";
+import { createKeyboardNavPlugin } from "vane-sku/custom-plugins/KeyboardNavPlugin";
+import { createPriceLinkPlugin } from "vane-sku/custom-plugins/PriceLinkPlugin";
+import { createPriceRangePlugin } from "vane-sku/custom-plugins/PriceRangePlugin";
+import { createQuantityPlugin } from "vane-sku/custom-plugins/QuantityPlugin";
+import { createQuotaPlugin } from "vane-sku/custom-plugins/QuotaPlugin";
+import { createResetBarPlugin } from "vane-sku/custom-plugins/ResetBarPlugin";
+import { createSkuCodePlugin } from "vane-sku/custom-plugins/SkuCodePlugin";
+import { createStockStatusPlugin } from "vane-sku/custom-plugins/StockStatusPlugin";
 import type { ScenarioMeta } from "./types";
 import { ATTRIBUTES, VARIANTS } from "../data/sample";
 

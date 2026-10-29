@@ -19,69 +19,69 @@
       "types": "./dist/entries/plugins.d.ts",
       "import": "./dist/entries/plugins.js"
     },
-    "./custom-plugins/AchievementWall": {
-      "types": "./dist/custom-plugins/AchievementWall/index.d.ts",
-      "import": "./dist/custom-plugins/AchievementWall/index.js"
+    "./custom-plugins/AchievementWallPlugin": {
+      "types": "./dist/custom-plugins/AchievementWallPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/AchievementWallPlugin/index.js"
     },
-    "./custom-plugins/ActivitySummary": {
-      "types": "./dist/custom-plugins/ActivitySummary/index.d.ts",
-      "import": "./dist/custom-plugins/ActivitySummary/index.js"
+    "./custom-plugins/ActivitySummaryPlugin": {
+      "types": "./dist/custom-plugins/ActivitySummaryPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ActivitySummaryPlugin/index.js"
     },
-    "./custom-plugins/BannerSlot": {
-      "types": "./dist/custom-plugins/BannerSlot/index.d.ts",
-      "import": "./dist/custom-plugins/BannerSlot/index.js"
+    "./custom-plugins/BannerSlotPlugin": {
+      "types": "./dist/custom-plugins/BannerSlotPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/BannerSlotPlugin/index.js"
     },
-    "./custom-plugins/BioSlot": {
-      "types": "./dist/custom-plugins/BioSlot/index.d.ts",
-      "import": "./dist/custom-plugins/BioSlot/index.js"
+    "./custom-plugins/BioSlotPlugin": {
+      "types": "./dist/custom-plugins/BioSlotPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/BioSlotPlugin/index.js"
     },
-    "./custom-plugins/ContactCard": {
-      "types": "./dist/custom-plugins/ContactCard/index.d.ts",
-      "import": "./dist/custom-plugins/ContactCard/index.js"
+    "./custom-plugins/ContactCardPlugin": {
+      "types": "./dist/custom-plugins/ContactCardPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ContactCardPlugin/index.js"
     },
-    "./custom-plugins/FollowEcho": {
-      "types": "./dist/custom-plugins/FollowEcho/index.d.ts",
-      "import": "./dist/custom-plugins/FollowEcho/index.js"
+    "./custom-plugins/FollowEchoPlugin": {
+      "types": "./dist/custom-plugins/FollowEchoPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/FollowEchoPlugin/index.js"
     },
-    "./custom-plugins/LiveStatus": {
-      "types": "./dist/custom-plugins/LiveStatus/index.d.ts",
-      "import": "./dist/custom-plugins/LiveStatus/index.js"
+    "./custom-plugins/LiveStatusPlugin": {
+      "types": "./dist/custom-plugins/LiveStatusPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/LiveStatusPlugin/index.js"
     },
-    "./custom-plugins/MembershipBadge": {
-      "types": "./dist/custom-plugins/MembershipBadge/index.d.ts",
-      "import": "./dist/custom-plugins/MembershipBadge/index.js"
+    "./custom-plugins/MembershipBadgePlugin": {
+      "types": "./dist/custom-plugins/MembershipBadgePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/MembershipBadgePlugin/index.js"
     },
-    "./custom-plugins/MessageButton": {
-      "types": "./dist/custom-plugins/MessageButton/index.d.ts",
-      "import": "./dist/custom-plugins/MessageButton/index.js"
+    "./custom-plugins/MessageButtonPlugin": {
+      "types": "./dist/custom-plugins/MessageButtonPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/MessageButtonPlugin/index.js"
     },
-    "./custom-plugins/QRShare": {
-      "types": "./dist/custom-plugins/QRShare/index.d.ts",
-      "import": "./dist/custom-plugins/QRShare/index.js"
+    "./custom-plugins/QRSharePlugin": {
+      "types": "./dist/custom-plugins/QRSharePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/QRSharePlugin/index.js"
     },
-    "./custom-plugins/SocialLinks": {
-      "types": "./dist/custom-plugins/SocialLinks/index.d.ts",
-      "import": "./dist/custom-plugins/SocialLinks/index.js"
+    "./custom-plugins/SocialLinksPlugin": {
+      "types": "./dist/custom-plugins/SocialLinksPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/SocialLinksPlugin/index.js"
     },
-    "./custom-plugins/StatRow": {
-      "types": "./dist/custom-plugins/StatRow/index.d.ts",
-      "import": "./dist/custom-plugins/StatRow/index.js"
+    "./custom-plugins/StatRowPlugin": {
+      "types": "./dist/custom-plugins/StatRowPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/StatRowPlugin/index.js"
     },
-    "./custom-plugins/TabSync": {
-      "types": "./dist/custom-plugins/TabSync/index.d.ts",
-      "import": "./dist/custom-plugins/TabSync/index.js"
+    "./custom-plugins/TabSyncPlugin": {
+      "types": "./dist/custom-plugins/TabSyncPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/TabSyncPlugin/index.js"
     },
-    "./custom-plugins/TagList": {
-      "types": "./dist/custom-plugins/TagList/index.d.ts",
-      "import": "./dist/custom-plugins/TagList/index.js"
+    "./custom-plugins/TagListPlugin": {
+      "types": "./dist/custom-plugins/TagListPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/TagListPlugin/index.js"
     },
-    "./custom-plugins/VerifyBadge": {
-      "types": "./dist/custom-plugins/VerifyBadge/index.d.ts",
-      "import": "./dist/custom-plugins/VerifyBadge/index.js"
+    "./custom-plugins/VerifyBadgePlugin": {
+      "types": "./dist/custom-plugins/VerifyBadgePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/VerifyBadgePlugin/index.js"
     },
-    "./custom-plugins/WorksGrid": {
-      "types": "./dist/custom-plugins/WorksGrid/index.d.ts",
-      "import": "./dist/custom-plugins/WorksGrid/index.js"
+    "./custom-plugins/WorksGridPlugin": {
+      "types": "./dist/custom-plugins/WorksGridPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/WorksGridPlugin/index.js"
     },
     "./custom-plugins": {
       "types": "./dist/custom-plugins/index.d.ts",

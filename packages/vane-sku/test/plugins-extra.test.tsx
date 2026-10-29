@@ -4,15 +4,15 @@ import { act } from "react-dom/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createSkuSelector } from "../src";
 import type { SkuAttribute, SkuVariant } from "../src";
-import { createPriceRangePlugin } from "../src/custom-plugins/PriceRange";
-import { createStockStatusPlugin } from "../src/custom-plugins/StockStatus";
-import { createQuantityPlugin } from "../src/custom-plugins/Quantity";
-import { createResetBarPlugin } from "../src/custom-plugins/ResetBar";
-import { createKeyboardNavPlugin } from "../src/custom-plugins/KeyboardNav";
-import { createAnalyticsPlugin } from "../src/custom-plugins/Analytics";
-import { createUrlSyncPlugin } from "../src/custom-plugins/UrlSync";
-import { createStatePersistencePlugin } from "../src/custom-plugins/StatePersistence";
-import { createSkuCodePlugin } from "../src/custom-plugins/SkuCode";
+import { createPriceRangePlugin } from "../src/custom-plugins/PriceRangePlugin";
+import { createStockStatusPlugin } from "../src/custom-plugins/StockStatusPlugin";
+import { createQuantityPlugin } from "../src/custom-plugins/QuantityPlugin";
+import { createResetBarPlugin } from "../src/custom-plugins/ResetBarPlugin";
+import { createKeyboardNavPlugin } from "../src/custom-plugins/KeyboardNavPlugin";
+import { createAnalyticsPlugin } from "../src/custom-plugins/AnalyticsPlugin";
+import { createUrlSyncPlugin } from "../src/custom-plugins/UrlSyncPlugin";
+import { createStatePersistencePlugin } from "../src/custom-plugins/StatePersistencePlugin";
+import { createSkuCodePlugin } from "../src/custom-plugins/SkuCodePlugin";
 
 (globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
 

@@ -11,53 +11,53 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./custom-plugins/Analytics": {
-      "types": "./dist/custom-plugins/Analytics/index.d.ts",
-      "import": "./dist/custom-plugins/Analytics/index.js"
+    "./custom-plugins/AnalyticsPlugin": {
+      "types": "./dist/custom-plugins/AnalyticsPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/AnalyticsPlugin/index.js"
     },
-    "./custom-plugins/ImageLink": {
-      "types": "./dist/custom-plugins/ImageLink/index.d.ts",
-      "import": "./dist/custom-plugins/ImageLink/index.js"
+    "./custom-plugins/ImageLinkPlugin": {
+      "types": "./dist/custom-plugins/ImageLinkPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ImageLinkPlugin/index.js"
     },
-    "./custom-plugins/KeyboardNav": {
-      "types": "./dist/custom-plugins/KeyboardNav/index.d.ts",
-      "import": "./dist/custom-plugins/KeyboardNav/index.js"
+    "./custom-plugins/KeyboardNavPlugin": {
+      "types": "./dist/custom-plugins/KeyboardNavPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/KeyboardNavPlugin/index.js"
     },
-    "./custom-plugins/PriceLink": {
-      "types": "./dist/custom-plugins/PriceLink/index.d.ts",
-      "import": "./dist/custom-plugins/PriceLink/index.js"
+    "./custom-plugins/PriceLinkPlugin": {
+      "types": "./dist/custom-plugins/PriceLinkPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/PriceLinkPlugin/index.js"
     },
-    "./custom-plugins/PriceRange": {
-      "types": "./dist/custom-plugins/PriceRange/index.d.ts",
-      "import": "./dist/custom-plugins/PriceRange/index.js"
+    "./custom-plugins/PriceRangePlugin": {
+      "types": "./dist/custom-plugins/PriceRangePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/PriceRangePlugin/index.js"
     },
-    "./custom-plugins/Quantity": {
-      "types": "./dist/custom-plugins/Quantity/index.d.ts",
-      "import": "./dist/custom-plugins/Quantity/index.js"
+    "./custom-plugins/QuantityPlugin": {
+      "types": "./dist/custom-plugins/QuantityPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/QuantityPlugin/index.js"
     },
-    "./custom-plugins/Quota": {
-      "types": "./dist/custom-plugins/Quota/index.d.ts",
-      "import": "./dist/custom-plugins/Quota/index.js"
+    "./custom-plugins/QuotaPlugin": {
+      "types": "./dist/custom-plugins/QuotaPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/QuotaPlugin/index.js"
     },
-    "./custom-plugins/ResetBar": {
-      "types": "./dist/custom-plugins/ResetBar/index.d.ts",
-      "import": "./dist/custom-plugins/ResetBar/index.js"
+    "./custom-plugins/ResetBarPlugin": {
+      "types": "./dist/custom-plugins/ResetBarPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ResetBarPlugin/index.js"
     },
-    "./custom-plugins/SkuCode": {
-      "types": "./dist/custom-plugins/SkuCode/index.d.ts",
-      "import": "./dist/custom-plugins/SkuCode/index.js"
+    "./custom-plugins/SkuCodePlugin": {
+      "types": "./dist/custom-plugins/SkuCodePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/SkuCodePlugin/index.js"
     },
-    "./custom-plugins/StatePersistence": {
-      "types": "./dist/custom-plugins/StatePersistence/index.d.ts",
-      "import": "./dist/custom-plugins/StatePersistence/index.js"
+    "./custom-plugins/StatePersistencePlugin": {
+      "types": "./dist/custom-plugins/StatePersistencePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/StatePersistencePlugin/index.js"
     },
-    "./custom-plugins/StockStatus": {
-      "types": "./dist/custom-plugins/StockStatus/index.d.ts",
-      "import": "./dist/custom-plugins/StockStatus/index.js"
+    "./custom-plugins/StockStatusPlugin": {
+      "types": "./dist/custom-plugins/StockStatusPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/StockStatusPlugin/index.js"
     },
-    "./custom-plugins/UrlSync": {
-      "types": "./dist/custom-plugins/UrlSync/index.d.ts",
-      "import": "./dist/custom-plugins/UrlSync/index.js"
+    "./custom-plugins/UrlSyncPlugin": {
+      "types": "./dist/custom-plugins/UrlSyncPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/UrlSyncPlugin/index.js"
     },
     "./custom-plugins": {
       "types": "./dist/custom-plugins/index.d.ts",
@@ -131,18 +131,18 @@
   "vane": {
     "sizeBudgetKb": 7,
     "subpathBudgets": {
-      "./custom-plugins/PriceLink": 2,
-      "./custom-plugins/Quota": 2,
-      "./custom-plugins/ImageLink": 2,
-      "./custom-plugins/PriceRange": 2,
-      "./custom-plugins/StockStatus": 2,
-      "./custom-plugins/Quantity": 2,
-      "./custom-plugins/ResetBar": 2,
-      "./custom-plugins/KeyboardNav": 2,
-      "./custom-plugins/Analytics": 2,
-      "./custom-plugins/UrlSync": 2,
-      "./custom-plugins/StatePersistence": 2,
-      "./custom-plugins/SkuCode": 2
+      "./custom-plugins/PriceLinkPlugin": 2,
+      "./custom-plugins/QuotaPlugin": 2,
+      "./custom-plugins/ImageLinkPlugin": 2,
+      "./custom-plugins/PriceRangePlugin": 2,
+      "./custom-plugins/StockStatusPlugin": 2,
+      "./custom-plugins/QuantityPlugin": 2,
+      "./custom-plugins/ResetBarPlugin": 2,
+      "./custom-plugins/KeyboardNavPlugin": 2,
+      "./custom-plugins/AnalyticsPlugin": 2,
+      "./custom-plugins/UrlSyncPlugin": 2,
+      "./custom-plugins/StatePersistencePlugin": 2,
+      "./custom-plugins/SkuCodePlugin": 2
     },
     "sizeBudgetNote": "根入口 = SkuSelectorCore（规格按钮组含禁用态 + 选中摘要）+ withPlugins 装配器（extendContext 注入选择态/禁用集/变体）+ 组合矩阵与禁用推导纯函数 + 类型；gzip 实测 6.08KB。规划里的 3.5KB 是「core 走 peer 外部化」前提下的估计（参照 vane-profile 3.09KB，其 peer 声明 core、构建期外部化）；而 vane-sku 按 B6 决策采用「core devDep 内联」策略（与 vane-card 6.77KB / vane-waterfall 11.06KB / vane-lazy-image 26.92KB 同一派），core 会被打进 dist，故隔离边界不同、实测值本就更高——6.08KB 与同策略的 vane-card（6.77KB）同量级。本预算据实上调到 7KB（留余量），非静默放大。三个插件（PriceLink/Quota/ImageLink）严格走子路径 vane-sku/custom-plugins/*（ADR-6），不进根入口。子路径预算 2KB（实测 1.0–1.5KB）：闭包含同目录 doc.json 元数据——meta 是家族约定（驱动 pnpm docs:plugins 与 demo 导航），必须与插件一同发布，故子路径天然比纯逻辑代码大。",
     "sizeBudgetAlternatives": "若希望根入口回到 3KB 量级，可改走 vane-profile 的 peer 外部化策略（peerDependencies 加 vane-plugin-core 并在 vite external 中声明），代价是消费者需自行安装内核。"

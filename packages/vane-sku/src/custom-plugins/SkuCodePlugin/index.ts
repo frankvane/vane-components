@@ -1,5 +1,5 @@
 /**
- * SkuCodePlugin — 货号展示（子路径 vane-sku/custom-plugins/SkuCode）
+ * SkuCodePlugin — 货号展示（子路径 vane-sku/custom-plugins/SkuCodePlugin）
  */
 import { createSkuCodePlugin as create } from "./create";
 import type { SkuCodeConfig } from "./create";

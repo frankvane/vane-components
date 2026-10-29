@@ -113,7 +113,7 @@ demo/src/
   "features": ["string"],  // 能力点
   "useCases": ["string"],  // 适用场景
   "notes": ["string"],     // 注意事项
-  "example": "string"      // 单数字段！84 个 lazy-image 插件误用复数 `examples`，需改回
+  "example": "string"      // 单个用法示例（字符串）；lazy-image 并用 `examples`（可视化示例数组），属有意双字段，不改
 }
 ```
 
@@ -121,7 +121,7 @@ demo/src/
 
 - 插件目录 / 导出名：**PascalCase + `Plugin` 后缀**（如 `LikePlugin` / `createLikePlugin`）。
 - 子路径导出键：`custom-plugins/<XxxPlugin>`（与目录名一致）。
-- 全仓除 sku 外已遵守；sku 的 12 个驼峰名需重命名。
+- ✅ **已完成（P1）**：全仓插件目录命名已统一为 `XxxPlugin`；profile(16)+sku(12) 经破坏性重命名补齐（用户确认 npm 删除再上传、当全新项目，不加兼容层）。
 
 ---
 
@@ -130,11 +130,11 @@ demo/src/
 | 维度 | 现状分歧 | 目标 | 影响包 | 影响面 |
 |---|---|---|---|---|
 | 插件文件范式 | 三件套 vs 工厂内联(`index`) | 统一三件套 | card(22) file-preview(17) | 39 插件 |
-| 插件目录命名 | profile/sku 无 `Plugin` 后缀 | PascalCase+Plugin | profile(16)+sku(12)=**28** | 28 插件目录 + 所有引用/导出键 |
+| 插件目录命名 | ~~profile/sku 无 `Plugin` 后缀~~ ✅ P1 已破坏性重命名补齐 | PascalCase+Plugin | profile(16)+sku(12)=**28** | 28 目录 + 全部引用/导出同步（P1 完成） |
 | card 双结构 | 薄壳再导出 + 核心组件内实现 | 单 `src/custom-plugins/` | card(22) | 22 插件移动 + 引用修正 |
 | 入口聚合 | `entries/` vs 顶层 `core.ts/plugins.ts` vs 核心组件内联 | 统一 `entries/` | card/fp/lazy/sku(4) | 4 包根重构 |
 | 根桶导出(A5) | lazy-image/file-preview 根 `index.ts` `export * from "./custom-plugins"` | 非兼容包禁止桶导出 | lazy-image/fp(2) | **INFO 级**：ADR-6 兼容例外，可不改；其余包若出现即违规 |
-| doc.json 字段 | `examples` vs `example` | 统一 `example` | lazy-image(84) | 84 文件 |
+| doc.json 字段 | lazy-image 并用 `examples`(可视化示例数组) 与 `example`(用法字符串)，其余包仅 `example` | 保留双字段；门禁白名单 `examples`（不强制统一） | lazy-image | 0（仅门禁白名单，不改字段） |
 | demo 结构 | `demos/` 范式 vs `pages/combos/advanced` | 统一 `demos/` 范式 | lazy-image | 108 文件迁移 |
 | 插件级测试 | 全仓 0 | 每插件至少 1 单测 | 全 7 包 | 195 插件（stretch） |
 
@@ -147,7 +147,7 @@ demo/src/
 | 阶段 | 内容 | 机械改动量 | 风险 | 估算人日 |
 |---|---|---|---|---:|
 | **P0 防护网** | 写 `scripts/check-structure.mjs`（骨架/命名/doc 字段校验）+ 接 CI；对齐 `templates/plugin-component` 为唯一真源 | 1 脚本 + 27 文件对齐 | 低 | 1–1.5 |
-| **P1 命名与元数据** | profile(16)+sku(12) 无后缀→`XxxPlugin`（含 exports/index/docs/demo 引用）；lazy-image `examples`→`example`(84) | 28 重命名 + 84 替换 | 中（重命名波及引用） | 1.5–2.5 |
+| **P1 命名与元数据**（✅ 已落地） | sku(12)+profile(16) 破坏性重命名加 `Plugin` 后缀（npm 删除再上传、当全新项目、不加兼容层），含 exports/index/docs/demo 引用全量同步 | 28 重命名 + 引用同步 | 低（已验证 tsc/build/vitest 全绿） | 1.5–2.5（已实际执行） |
 | **P2 三件套提取** | card(22)+file-preview(17) 内联工厂抽成 `create.tsx` | 39 文件拆分 | 低（机械） | 2–3 |
 | **P3 card 双结构消除** | 22 个实现从 `components/CardPlugin/custom-plugins` 移到 `src/custom-plugins`，删薄壳，修引用 | 22 移动 + 引用 | 中 | 1.5–2 |
 | **P4 入口聚合统一** | 4 包根 `index.ts` 改为 `entries/{core,plugins}.ts` 范式 | 4 包根重构 | 中（public API 面变动） | 2–3 |
@@ -163,8 +163,16 @@ demo/src/
 - 模板 `packages/templates/plugin-component` 经核验已是规范骨架（`entries/` + 三件套 + 单测），`pnpm new` 生成的新包自动合规——漂移只存在于 7 个老包未回迁。
 - 门禁运行即**纠正了本计划早期两处人工审计误判**：① 命名异常不止 sku，profile 16 个插件也无 `Plugin` 后缀（共 28）；② doc.json 真实 schema 为 9 字段（含 since/tags/features/useCases/notes），非初期提案的 8 字段。
 
+### P1 已落地（2026-10-29）
+
+- **破坏性重命名（用户决策）**：用户确认 profile/sku 可破坏性重命名，npm 发布时先删除旧版本再上传，当作全新项目看待——故未加 exports 兼容别名。
+- sku(12) + profile(16) = **28 个**插件目录加 `Plugin` 后缀；同步：根 `custom-plugins/index.ts` 桶导入、`package.json` exports（键+值）、demo 全部显式/相对子路径 import、`data/plugins.ts` 的 `dir` 字段 + `factory` 派生逻辑（`create${dir}Plugin` → 基于去 Plugin 主体名，避免双后缀）、`codegen.ts` 的 `subpathOf`、`scenarios/minimal.ts` 的 replace、以及 src 内部注释。
+- **门禁白名单**：A4 把 `examples` 列为允许额外字段（lazy-image 的 `example`=用法字符串 + `examples`=可视化示例数组是有意双字段设计，非误用），消除 84 个误判 FAIL（FAIL 178→66）。
+- **验证全绿**：sku/profile tsc(`--noEmit` 含 demo)=0 error；demo build=0；sku vitest 42/42、profile vitest 12/12；check-structure 后 profile ✅、sku 余 1 项 A1（缺 `entries/`，既有设计，归 P4）。
+- 残留：sku 的 A1（无 `src/entries/`，走核心组件内联聚合）属 P4 入口聚合统一范畴，不在 P1。
+
 ### 成本主峰与杠杆
-- **lazy-image 占 ~45%**（85 插件 + 108 demo 文件），是 P1/P5 的重点；它的插件层已 84/85 合规，主要成本是 demo 重构与 `examples` 字段。
+- **lazy-image 占 ~45%**（85 插件 + 108 demo 文件），是 P5 的重点；它的插件层已 84/85 合规，主要成本是 demo 重构（`examples` 经核实为有意双字段设计，不改字段）。
 - **P0 防护网性价比最高**：花 1–1.5 天，换来后续所有漂移可被 CI 阻断，且能反向证明改造完成度。
 - **建议执行顺序**：P0 → P1 → P2 → P3 → P4 → P5 →（P6 视资源）。P0 先行可让每一步都有红/绿信号。
 
@@ -176,11 +184,11 @@ demo/src/
 - [ ] A1 每个组件包 `src/` 含 `entries/core.ts` 与 `entries/plugins.ts`（或根 `index.ts` 仅 re-export 二者）。
 - [ ] A2 每个插件目录名为 `^[A-Z][A-Za-z0-9]*Plugin$`（PascalCase + `Plugin`）。
 - [ ] A3 每个插件目录含 `create.tsx` + `doc.json` + `index.ts` 三件套（card/file-preview 改造后达标）。
-- [ ] A4 `doc.json` 顶层恰好含 8 固定字段，且 `example` 为单数（无 `examples`）。
+- [ ] A4 `doc.json` 顶层含 9 标准字段（name/description/since/tags/config/features/useCases/notes/example）+ 允许 `examples` 额外字段（白名单，lazy-image 有意双字段）；无其它未知字段。
 - [ ] A5 根 `index.ts` 不桶导出官方插件（ADR-6）；官方插件仅经 `custom-plugins/<XxxPlugin>` 子路径可达。
 
 ### B. 命名与引用
-- [ ] B1 全仓无驼峰无后缀插件名（sku 的 `Analytics`/`ImageLink` 等已重命名）。
+- [x] B1 全仓无驼峰无后缀插件名（profile 16 + sku 12 共 28 个已破坏性重命名加 `Plugin` 后缀）。
 - [ ] B2 所有 `import ... from "@/custom-plugins/Xxx"` 与 `package.json` exports 键与目录名一致。
 - [ ] B3 card 无 `src/custom-plugins/<X>/` 薄壳再导出（实现已并入 `src/custom-plugins/`）。
 

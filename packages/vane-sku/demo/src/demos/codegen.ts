@@ -20,7 +20,7 @@ function fill(text: string, cfg: DemoCfg): string {
 
 /** 工厂名 → 插件目录名（createStockStatusPlugin → StockStatus），与包 exports 一致 */
 function subpathOf(fn: string): string {
-  return fn.replace(/^create/, "").replace(/Plugin$/, "");
+  return fn.replace(/^create/, "");
 }
 
 export function buildDemoCode(meta: DemoMeta, cfg: DemoCfg): string {

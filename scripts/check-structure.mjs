@@ -136,12 +136,15 @@ async function checkPackage(pkg, { golden = false } = {}) {
       record(pkg, "A3", `三件套不齐（${rel}）：create=${hasCreate} doc=${hasDoc} index=${hasIndex}`);
     }
 
-    // A4 doc.json
+    // A4 doc.json：examples 是有意双字段设计（example=单个用法字符串，examples=可视化示例数组，驱动 demo 预览卡片），
+    // 属合理扩展，不视为违规（P1 确认：lazy-image 不改字段）。仅当仅有 examples 而无 example 时温和提醒。
     if (hasDoc) {
       try {
         const doc = JSON.parse(await readFile(path.join(pd, "doc.json"), "utf-8"));
         for (const k of Object.keys(doc)) docKeyUniverse.set(k, (docKeyUniverse.get(k) ?? 0) + 1);
-        if ("examples" in doc) record(pkg, "A4", `doc.json 用了复数 examples（应 example）：${rel}`);
+        if ("examples" in doc && !("example" in doc)) {
+          record(pkg, "A4", `doc.json 仅有复数 examples 而无 example 用法示例（建议补 example）：${rel}`, "INFO");
+        }
       } catch (e) {
         record(pkg, "A4", `doc.json 解析失败：${rel} (${e.message})`);
       }

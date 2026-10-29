@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { createSkuSelector } from "vane-sku";
-import { createUrlSyncPlugin } from "vane-sku/custom-plugins/UrlSync";
+import { createUrlSyncPlugin } from "vane-sku/custom-plugins/UrlSyncPlugin";
 import type { DemoMeta, DemoStageProps } from "./types";
 import { ATTRIBUTES, VARIANTS } from "../data/sample";
 

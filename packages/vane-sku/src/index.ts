@@ -2,7 +2,7 @@
  * vane-sku 主入口（子路径 "."）
  *
  * 只导出「核心 + 装配 + 类型」，插件一律走子路径按需引入（ADR-6）：
- *   import { createPriceLinkPlugin } from "vane-sku/custom-plugins/PriceLink";
+ *   import { createPriceLinkPlugin } from "vane-sku/custom-plugins/PriceLinkPlugin";
  */
 export { SkuSelectorCore } from "./components/SkuPlugin/SkuSelectorCore";
 export { withPlugins } from "./components/SkuPlugin/withPlugins";

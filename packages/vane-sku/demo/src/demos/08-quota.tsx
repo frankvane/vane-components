@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { createSkuSelector } from "vane-sku";
-import { createQuotaPlugin } from "vane-sku/custom-plugins/Quota";
+import { createQuotaPlugin } from "vane-sku/custom-plugins/QuotaPlugin";
 import type { DemoMeta, DemoStageProps } from "./types";
 import { ATTRIBUTES, VARIANTS } from "../data/sample";
 

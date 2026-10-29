@@ -3,15 +3,15 @@ import { createRoot } from "react-dom/client";
 import { flushSync } from "react-dom";
 import { createSkuSelector } from "../../../src";
 import type { SkuAttribute, SkuVariant } from "../../../src";
-import { createPriceLinkPlugin } from "../../../src/custom-plugins/PriceLink";
-import { createQuotaPlugin } from "../../../src/custom-plugins/Quota";
-import { createImageLinkPlugin } from "../../../src/custom-plugins/ImageLink";
-import { createPriceRangePlugin } from "../../../src/custom-plugins/PriceRange";
-import { createStockStatusPlugin } from "../../../src/custom-plugins/StockStatus";
-import { createQuantityPlugin } from "../../../src/custom-plugins/Quantity";
-import { createSkuCodePlugin } from "../../../src/custom-plugins/SkuCode";
-import { createResetBarPlugin } from "../../../src/custom-plugins/ResetBar";
-import { createKeyboardNavPlugin } from "../../../src/custom-plugins/KeyboardNav";
+import { createPriceLinkPlugin } from "../../../src/custom-plugins/PriceLinkPlugin";
+import { createQuotaPlugin } from "../../../src/custom-plugins/QuotaPlugin";
+import { createImageLinkPlugin } from "../../../src/custom-plugins/ImageLinkPlugin";
+import { createPriceRangePlugin } from "../../../src/custom-plugins/PriceRangePlugin";
+import { createStockStatusPlugin } from "../../../src/custom-plugins/StockStatusPlugin";
+import { createQuantityPlugin } from "../../../src/custom-plugins/QuantityPlugin";
+import { createSkuCodePlugin } from "../../../src/custom-plugins/SkuCodePlugin";
+import { createResetBarPlugin } from "../../../src/custom-plugins/ResetBarPlugin";
+import { createKeyboardNavPlugin } from "../../../src/custom-plugins/KeyboardNavPlugin";
 import { auditSku } from "./audit-sku";
 
 /**

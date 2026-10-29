@@ -1,5 +1,5 @@
 /**
- * QuantityPlugin — 数量步进器（子路径 vane-sku/custom-plugins/Quantity）
+ * QuantityPlugin — 数量步进器（子路径 vane-sku/custom-plugins/QuantityPlugin）
  */
 import { createQuantityPlugin as create } from "./create";
 import type { QuantityConfig } from "./create";

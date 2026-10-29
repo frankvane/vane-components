@@ -12,7 +12,7 @@ const demo = createDemoConfig({
 });
 
 /**
- * 让 demo 里的代码写成「消费者视角」：`from "vane-sku"` / `from "vane-sku/custom-plugins/PriceLink"`。
+ * 让 demo 里的代码写成「消费者视角」：`from "vane-sku"` / `from "vane-sku/custom-plugins/PriceLinkPlugin"`。
  * 这里把包名指回源码，好处是场景卡右侧展示的源码可以**原样复制**到真实项目里，
  * 不用把 import 路径改写一遍。发布产物仍走 dist（构建时不受影响）。
  */

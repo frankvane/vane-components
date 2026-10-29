@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { createSkuSelector } from "vane-sku";
-import { createQuantityPlugin } from "vane-sku/custom-plugins/Quantity";
+import { createQuantityPlugin } from "vane-sku/custom-plugins/QuantityPlugin";
 import type { DemoMeta, DemoStageProps } from "./types";
 import { ATTRIBUTES, VARIANTS } from "../data/sample";
 

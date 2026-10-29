@@ -1,5 +1,5 @@
 /**
- * ImageLinkPlugin — 规格切主图（子路径 vane-sku/custom-plugins/ImageLink）
+ * ImageLinkPlugin — 规格切主图（子路径 vane-sku/custom-plugins/ImageLinkPlugin）
  */
 import { createImageLinkPlugin as create } from "./create";
 import type { ImageLinkConfig } from "./create";

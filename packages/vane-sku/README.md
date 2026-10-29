@@ -25,9 +25,9 @@ npm install vane-sku
 ```tsx
 import { createSkuSelector } from "vane-sku";
 import type { SkuAttribute, SkuVariant } from "vane-sku";
-import { createPriceLinkPlugin } from "vane-sku/custom-plugins/PriceLink";
-import { createQuotaPlugin } from "vane-sku/custom-plugins/Quota";
-import { createImageLinkPlugin } from "vane-sku/custom-plugins/ImageLink";
+import { createPriceLinkPlugin } from "vane-sku/custom-plugins/PriceLinkPlugin";
+import { createQuotaPlugin } from "vane-sku/custom-plugins/QuotaPlugin";
+import { createImageLinkPlugin } from "vane-sku/custom-plugins/ImageLinkPlugin";
 
 const attributes: SkuAttribute[] = [
   { name: "颜色", options: [{ id: "red", label: "红" }, { id: "blue", label: "蓝" }] },

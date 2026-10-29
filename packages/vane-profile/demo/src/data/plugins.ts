@@ -115,7 +115,7 @@ type Def = {
 const DEFS: Def[] = [
   // ---------- visual ----------
   {
-    dir: "BannerSlot",
+    dir: "BannerSlotPlugin",
     group: "visual",
     make: () =>
       createBannerSlotPlugin({
@@ -127,19 +127,19 @@ const DEFS: Def[] = [
       }),
   },
   {
-    dir: "VerifyBadge",
+    dir: "VerifyBadgePlugin",
     group: "visual",
     make: () => createVerifyBadgePlugin({ type: "personal" }),
   },
 
   // ---------- data ----------
   {
-    dir: "StatRow",
+    dir: "StatRowPlugin",
     group: "data",
     make: () => createStatRowPlugin({ items: SAMPLE_USER.stats }),
   },
   {
-    dir: "BioSlot",
+    dir: "BioSlotPlugin",
     group: "data",
     make: () =>
       createBioSlotPlugin({
@@ -151,48 +151,48 @@ const DEFS: Def[] = [
       }),
   },
   {
-    dir: "TagList",
+    dir: "TagListPlugin",
     group: "data",
     make: () => createTagListPlugin({ tags: SAMPLE_TAGS }),
   },
 
   // ---------- interaction ----------
   {
-    dir: "TabSync",
+    dir: "TabSyncPlugin",
     group: "interaction",
     make: () => createTabSyncPlugin({ tabs: TABS }),
   },
   {
-    dir: "FollowEcho",
+    dir: "FollowEchoPlugin",
     group: "interaction",
     make: () => createFollowEchoPlugin({ size: "md" }),
   },
 
   // ---------- visual (extra) ----------
   {
-    dir: "SocialLinks",
+    dir: "SocialLinksPlugin",
     group: "visual",
     make: () => createSocialLinksPlugin({ links: SAMPLE_LINKS }),
   },
   {
-    dir: "WorksGrid",
+    dir: "WorksGridPlugin",
     group: "visual",
     make: () => createWorksGridPlugin({ items: SAMPLE_WORKS, tab: "works" }),
   },
 
   // ---------- visual (extra) ----------
   {
-    dir: "MembershipBadge",
+    dir: "MembershipBadgePlugin",
     group: "visual",
     make: () => createMembershipBadgePlugin(SAMPLE_MEMBERSHIP),
   },
   {
-    dir: "QRShare",
+    dir: "QRSharePlugin",
     group: "visual",
     make: () => createQRSharePlugin({ url: "https://vane.dev/u/frankvane" }),
   },
   {
-    dir: "AchievementWall",
+    dir: "AchievementWallPlugin",
     group: "visual",
     make: () =>
       createAchievementWallPlugin({
@@ -204,24 +204,24 @@ const DEFS: Def[] = [
 
   // ---------- data (extra) ----------
   {
-    dir: "LiveStatus",
+    dir: "LiveStatusPlugin",
     group: "data",
     make: () => createLiveStatusPlugin(SAMPLE_LIVE),
   },
   {
-    dir: "ContactCard",
+    dir: "ContactCardPlugin",
     group: "data",
     make: () => createContactCardPlugin(SAMPLE_CONTACT),
   },
   {
-    dir: "ActivitySummary",
+    dir: "ActivitySummaryPlugin",
     group: "data",
     make: () => createActivitySummaryPlugin(SAMPLE_ACTIVITY),
   },
 
   // ---------- interaction (extra) ----------
   {
-    dir: "MessageButton",
+    dir: "MessageButtonPlugin",
     group: "interaction",
     make: () => createMessageButtonPlugin({}),
   },
@@ -231,7 +231,7 @@ export const PLUGINS: PluginInfo[] = DEFS.map((def) => {
   const doc = docOf(def.dir);
   return {
     dir: def.dir,
-    factory: `create${def.dir}Plugin`,
+    factory: `create${def.dir.replace(/Plugin$/, "")}Plugin`,
     group: def.group,
     priority: priorityOf(def.dir),
     summary: doc.description,

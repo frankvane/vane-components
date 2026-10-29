@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { createSkuSelector } from "vane-sku";
-import { createAnalyticsPlugin } from "vane-sku/custom-plugins/Analytics";
-import type { AnalyticsEvent } from "vane-sku/custom-plugins/Analytics";
+import { createAnalyticsPlugin } from "vane-sku/custom-plugins/AnalyticsPlugin";
+import type { AnalyticsEvent } from "vane-sku/custom-plugins/AnalyticsPlugin";
 import type { DemoMeta, DemoStageProps } from "./types";
 import { ATTRIBUTES, VARIANTS } from "../data/sample";
 

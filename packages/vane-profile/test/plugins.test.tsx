@@ -2,9 +2,9 @@ import { describe, it, expect } from "vitest";
 import { act } from "react";
 import { renderProfile, flush } from "./helpers";
 import { useProfileContext } from "../src/index";
-import { createTabSyncPlugin } from "../src/custom-plugins/TabSync";
-import { createFollowEchoPlugin } from "../src/custom-plugins/FollowEcho";
-import { createBannerSlotPlugin } from "../src/custom-plugins/BannerSlot";
+import { createTabSyncPlugin } from "../src/custom-plugins/TabSyncPlugin";
+import { createFollowEchoPlugin } from "../src/custom-plugins/FollowEchoPlugin";
+import { createBannerSlotPlugin } from "../src/custom-plugins/BannerSlotPlugin";
 
 /** 内容区子组件：经 useProfileContext 订阅 activeTab */
 function Content() {

@@ -1,5 +1,5 @@
 /**
- * QuotaPlugin — 限购校验（子路径 vane-sku/custom-plugins/Quota）
+ * QuotaPlugin — 限购校验（子路径 vane-sku/custom-plugins/QuotaPlugin）
  */
 import { createQuotaPlugin as create } from "./create";
 import type { QuotaConfig } from "./create";

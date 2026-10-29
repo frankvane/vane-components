@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { renderProfile, flush } from "./helpers";
-import { createBannerSlotPlugin } from "../src/custom-plugins/BannerSlot";
-import { createStatRowPlugin } from "../src/custom-plugins/StatRow";
-import { createVerifyBadgePlugin } from "../src/custom-plugins/VerifyBadge";
-import { createFollowEchoPlugin } from "../src/custom-plugins/FollowEcho";
+import { createBannerSlotPlugin } from "../src/custom-plugins/BannerSlotPlugin";
+import { createStatRowPlugin } from "../src/custom-plugins/StatRowPlugin";
+import { createVerifyBadgePlugin } from "../src/custom-plugins/VerifyBadgePlugin";
+import { createFollowEchoPlugin } from "../src/custom-plugins/FollowEchoPlugin";
 
 describe("ProfileCore 三段式布局壳", () => {
   it("无插件时渲染骨架且不崩溃（头图区/数据行区/内容区齐备）", async () => {

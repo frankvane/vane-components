@@ -4,9 +4,9 @@ import { act } from "react-dom/test-utils";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createSkuSelector } from "../src";
 import type { SkuAttribute, SkuVariant } from "../src";
-import { createPriceLinkPlugin } from "../src/custom-plugins/PriceLink";
-import { createQuotaPlugin } from "../src/custom-plugins/Quota";
-import { createImageLinkPlugin } from "../src/custom-plugins/ImageLink";
+import { createPriceLinkPlugin } from "../src/custom-plugins/PriceLinkPlugin";
+import { createQuotaPlugin } from "../src/custom-plugins/QuotaPlugin";
+import { createImageLinkPlugin } from "../src/custom-plugins/ImageLinkPlugin";
 
 (globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
 

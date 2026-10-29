@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { createSkuSelector } from "vane-sku";
-import { createPriceRangePlugin } from "vane-sku/custom-plugins/PriceRange";
+import { createPriceRangePlugin } from "vane-sku/custom-plugins/PriceRangePlugin";
 import type { DemoMeta, DemoStageProps } from "./types";
 import { ATTRIBUTES, VARIANTS } from "../data/sample";
 

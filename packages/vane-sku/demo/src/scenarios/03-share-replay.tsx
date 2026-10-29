@@ -1,7 +1,7 @@
 import React from "react";
 import { createSkuSelector } from "vane-sku";
-import { createStatePersistencePlugin } from "vane-sku/custom-plugins/StatePersistence";
-import { createUrlSyncPlugin } from "vane-sku/custom-plugins/UrlSync";
+import { createStatePersistencePlugin } from "vane-sku/custom-plugins/StatePersistencePlugin";
+import { createUrlSyncPlugin } from "vane-sku/custom-plugins/UrlSyncPlugin";
 import type { ScenarioMeta } from "./types";
 import { ATTRIBUTES, VARIANTS } from "../data/sample";
 

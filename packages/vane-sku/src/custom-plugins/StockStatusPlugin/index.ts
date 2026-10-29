@@ -1,5 +1,5 @@
 /**
- * StockStatusPlugin — 库存状态（子路径 vane-sku/custom-plugins/StockStatus）
+ * StockStatusPlugin — 库存状态（子路径 vane-sku/custom-plugins/StockStatusPlugin）
  */
 import { createStockStatusPlugin as create } from "./create";
 import type { StockStatusConfig } from "./create";

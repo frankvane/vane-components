@@ -1,15 +1,15 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { createSkuSelector } from "vane-sku";
-import { createImageLinkPlugin } from "vane-sku/custom-plugins/ImageLink";
-import { createKeyboardNavPlugin } from "vane-sku/custom-plugins/KeyboardNav";
-import { createPriceLinkPlugin } from "vane-sku/custom-plugins/PriceLink";
-import { createPriceRangePlugin } from "vane-sku/custom-plugins/PriceRange";
-import { createQuantityPlugin } from "vane-sku/custom-plugins/Quantity";
-import { createQuotaPlugin } from "vane-sku/custom-plugins/Quota";
-import { createResetBarPlugin } from "vane-sku/custom-plugins/ResetBar";
-import { createSkuCodePlugin } from "vane-sku/custom-plugins/SkuCode";
-import { createStockStatusPlugin } from "vane-sku/custom-plugins/StockStatus";
+import { createImageLinkPlugin } from "vane-sku/custom-plugins/ImageLinkPlugin";
+import { createKeyboardNavPlugin } from "vane-sku/custom-plugins/KeyboardNavPlugin";
+import { createPriceLinkPlugin } from "vane-sku/custom-plugins/PriceLinkPlugin";
+import { createPriceRangePlugin } from "vane-sku/custom-plugins/PriceRangePlugin";
+import { createQuantityPlugin } from "vane-sku/custom-plugins/QuantityPlugin";
+import { createQuotaPlugin } from "vane-sku/custom-plugins/QuotaPlugin";
+import { createResetBarPlugin } from "vane-sku/custom-plugins/ResetBarPlugin";
+import { createSkuCodePlugin } from "vane-sku/custom-plugins/SkuCodePlugin";
+import { createStockStatusPlugin } from "vane-sku/custom-plugins/StockStatusPlugin";
 import { CodeBlock } from "../components/CodeBlock";
 import { ATTRIBUTES, VARIANTS } from "../data/sample";
 import { SCENARIOS } from "../scenarios/catalog";
@@ -30,10 +30,10 @@ const HeroSku = createSkuSelector([
 ]);
 
 const QUICK_START = `import { createSkuSelector } from "vane-sku";
-import { createPriceLinkPlugin } from "vane-sku/custom-plugins/PriceLink";
-import { createPriceRangePlugin } from "vane-sku/custom-plugins/PriceRange";
-import { createQuotaPlugin } from "vane-sku/custom-plugins/Quota";
-import { createStockStatusPlugin } from "vane-sku/custom-plugins/StockStatus";
+import { createPriceLinkPlugin } from "vane-sku/custom-plugins/PriceLinkPlugin";
+import { createPriceRangePlugin } from "vane-sku/custom-plugins/PriceRangePlugin";
+import { createQuotaPlugin } from "vane-sku/custom-plugins/QuotaPlugin";
+import { createStockStatusPlugin } from "vane-sku/custom-plugins/StockStatusPlugin";
 import type { SkuAttribute, SkuVariant } from "vane-sku";
 
 // 1. 装配：一个组件类型，模块顶层调一次

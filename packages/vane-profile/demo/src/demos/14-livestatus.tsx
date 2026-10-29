@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { ProfileCore, withPlugins } from "vane-profile";
 import { createLiveStatusPlugin } from "vane-profile/custom-plugins";
 import type { DemoMeta, DemoStageProps } from "./types";
-import type { LiveStatusKind } from "vane-profile/custom-plugins/LiveStatus";
+import type { LiveStatusKind } from "vane-profile/custom-plugins/LiveStatusPlugin";
 
 /**
  * 14 · 在线状态 LiveStatus

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo } from "react";
 import { createSkuSelector } from "vane-sku";
-import { createStatePersistencePlugin } from "vane-sku/custom-plugins/StatePersistence";
+import { createStatePersistencePlugin } from "vane-sku/custom-plugins/StatePersistencePlugin";
 import type { DemoMeta, DemoStageProps } from "./types";
 import { ATTRIBUTES, VARIANTS } from "../data/sample";
 

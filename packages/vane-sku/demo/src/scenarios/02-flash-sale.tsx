@@ -1,9 +1,9 @@
 import React from "react";
 import { createSkuSelector } from "vane-sku";
-import { createPriceLinkPlugin } from "vane-sku/custom-plugins/PriceLink";
-import { createQuantityPlugin } from "vane-sku/custom-plugins/Quantity";
-import { createQuotaPlugin } from "vane-sku/custom-plugins/Quota";
-import { createStockStatusPlugin } from "vane-sku/custom-plugins/StockStatus";
+import { createPriceLinkPlugin } from "vane-sku/custom-plugins/PriceLinkPlugin";
+import { createQuantityPlugin } from "vane-sku/custom-plugins/QuantityPlugin";
+import { createQuotaPlugin } from "vane-sku/custom-plugins/QuotaPlugin";
+import { createStockStatusPlugin } from "vane-sku/custom-plugins/StockStatusPlugin";
 import type { SkuAttribute, SkuVariant } from "vane-sku";
 import type { ScenarioMeta } from "./types";
 

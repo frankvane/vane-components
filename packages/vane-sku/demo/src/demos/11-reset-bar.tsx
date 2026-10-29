@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { createSkuSelector } from "vane-sku";
-import { createResetBarPlugin } from "vane-sku/custom-plugins/ResetBar";
+import { createResetBarPlugin } from "vane-sku/custom-plugins/ResetBarPlugin";
 import type { DemoMeta, DemoStageProps } from "./types";
 import { ATTRIBUTES, VARIANTS } from "../data/sample";
 

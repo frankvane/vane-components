@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { createSkuSelector } from "vane-sku";
-import { createKeyboardNavPlugin } from "vane-sku/custom-plugins/KeyboardNav";
+import { createKeyboardNavPlugin } from "vane-sku/custom-plugins/KeyboardNavPlugin";
 import type { DemoMeta, DemoStageProps } from "./types";
 import { KeyHint } from "./panels";
 import { ATTRIBUTES, VARIANTS } from "../data/sample";

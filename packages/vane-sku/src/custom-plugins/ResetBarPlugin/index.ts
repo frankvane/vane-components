@@ -1,5 +1,5 @@
 /**
- * ResetBarPlugin — 清空重选（子路径 vane-sku/custom-plugins/ResetBar）
+ * ResetBarPlugin — 清空重选（子路径 vane-sku/custom-plugins/ResetBarPlugin）
  */
 import { createResetBarPlugin as create } from "./create";
 import type { ResetBarConfig } from "./create";

@@ -9,18 +9,18 @@
 // 注意：SkuPlugin 是非泛型接口（本身即 Plugin<SkuSelectorCoreProps, unknown>），
 // 规格里写的 SkuPlugin<unknown> 在真实类型上不成立，这里用裸 SkuPlugin
 import type { SkuPlugin } from "vane-sku";
-import { createAnalyticsPlugin } from "vane-sku/custom-plugins/Analytics";
-import { createImageLinkPlugin } from "vane-sku/custom-plugins/ImageLink";
-import { createKeyboardNavPlugin } from "vane-sku/custom-plugins/KeyboardNav";
-import { createPriceLinkPlugin } from "vane-sku/custom-plugins/PriceLink";
-import { createPriceRangePlugin } from "vane-sku/custom-plugins/PriceRange";
-import { createQuantityPlugin } from "vane-sku/custom-plugins/Quantity";
-import { createQuotaPlugin } from "vane-sku/custom-plugins/Quota";
-import { createResetBarPlugin } from "vane-sku/custom-plugins/ResetBar";
-import { createSkuCodePlugin } from "vane-sku/custom-plugins/SkuCode";
-import { createStatePersistencePlugin } from "vane-sku/custom-plugins/StatePersistence";
-import { createStockStatusPlugin } from "vane-sku/custom-plugins/StockStatus";
-import { createUrlSyncPlugin } from "vane-sku/custom-plugins/UrlSync";
+import { createAnalyticsPlugin } from "vane-sku/custom-plugins/AnalyticsPlugin";
+import { createImageLinkPlugin } from "vane-sku/custom-plugins/ImageLinkPlugin";
+import { createKeyboardNavPlugin } from "vane-sku/custom-plugins/KeyboardNavPlugin";
+import { createPriceLinkPlugin } from "vane-sku/custom-plugins/PriceLinkPlugin";
+import { createPriceRangePlugin } from "vane-sku/custom-plugins/PriceRangePlugin";
+import { createQuantityPlugin } from "vane-sku/custom-plugins/QuantityPlugin";
+import { createQuotaPlugin } from "vane-sku/custom-plugins/QuotaPlugin";
+import { createResetBarPlugin } from "vane-sku/custom-plugins/ResetBarPlugin";
+import { createSkuCodePlugin } from "vane-sku/custom-plugins/SkuCodePlugin";
+import { createStatePersistencePlugin } from "vane-sku/custom-plugins/StatePersistencePlugin";
+import { createStockStatusPlugin } from "vane-sku/custom-plugins/StockStatusPlugin";
+import { createUrlSyncPlugin } from "vane-sku/custom-plugins/UrlSyncPlugin";
 
 export type PluginGroup = "price" | "info" | "interaction";
 
@@ -93,45 +93,45 @@ type Def = {
 const DEFS: Def[] = [
   // ---------- price：价格与库存 ----------
   {
-    dir: "PriceLink",
+    dir: "PriceLinkPlugin",
     group: "price",
     make: () => createPriceLinkPlugin({ discountText: "限时8折" }),
   },
   {
-    dir: "PriceRange",
+    dir: "PriceRangePlugin",
     group: "price",
     make: () => createPriceRangePlugin(),
   },
   {
-    dir: "StockStatus",
+    dir: "StockStatusPlugin",
     group: "price",
     make: () => createStockStatusPlugin({ lowStockThreshold: 5 }),
   },
   {
-    dir: "Quota",
+    dir: "QuotaPlugin",
     group: "price",
     make: () => createQuotaPlugin({ purchasedCount: 1 }),
   },
   {
-    dir: "Quantity",
+    dir: "QuantityPlugin",
     group: "price",
     make: () => createQuantityPlugin(),
   },
 
   // ---------- info：信息与联动 ----------
   {
-    dir: "ImageLink",
+    dir: "ImageLinkPlugin",
     group: "info",
     make: () =>
       createImageLinkPlugin({ onImageChange: (img) => console.log("[sku] 主图 →", img) }),
   },
   {
-    dir: "SkuCode",
+    dir: "SkuCodePlugin",
     group: "info",
     make: () => createSkuCodePlugin(),
   },
   {
-    dir: "Analytics",
+    dir: "AnalyticsPlugin",
     group: "info",
     make: () =>
       createAnalyticsPlugin({ onEvent: (e) => console.log("[sku] 埋点", e.name) }),
@@ -139,23 +139,23 @@ const DEFS: Def[] = [
 
   // ---------- interaction：选择与交互 ----------
   {
-    dir: "ResetBar",
+    dir: "ResetBarPlugin",
     group: "interaction",
     make: () => createResetBarPlugin(),
   },
   {
-    dir: "KeyboardNav",
+    dir: "KeyboardNavPlugin",
     group: "interaction",
     make: () => createKeyboardNavPlugin(),
   },
   {
-    dir: "StatePersistence",
+    dir: "StatePersistencePlugin",
     group: "interaction",
     // 独立存储键：别和场景卡的默认键（vane-sku:selection）互相踩
     make: () => createStatePersistencePlugin({ key: "vane-sku:demo" }),
   },
   {
-    dir: "UrlSync",
+    dir: "UrlSyncPlugin",
     group: "interaction",
     make: () => createUrlSyncPlugin(),
   },
@@ -165,7 +165,7 @@ export const PLUGINS: PluginInfo[] = DEFS.map((def) => {
   const doc = docOf(def.dir);
   return {
     dir: def.dir,
-    factory: `create${def.dir}Plugin`,
+    factory: `create${def.dir.replace(/Plugin$/, "")}Plugin`,
     group: def.group,
     priority: priorityOf(def.dir),
     summary: doc.description,

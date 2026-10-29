@@ -14,7 +14,7 @@ export function buildMinimal(meta: ScenarioMeta): string {
 
   // 深层子路径一行一个（消费者视角，vite 别名指回源码，发布后指 dist）
   const importLines = factories
-    .map((f) => `import { ${f} } from "vane-sku/custom-plugins/${f.replace(/^create|Plugin$/g, "")}";`)
+    .map((f) => `import { ${f} } from "vane-sku/custom-plugins/${f.replace(/^create/, "")}";`)
     .join("\n");
 
   const pluginLines = meta.plugs
