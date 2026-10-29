@@ -202,8 +202,8 @@
 | P1 包骨架 | ✅ | `packages/vane-sku` 可构建；exports/预算/依赖策略就位；`pnpm check` 通过 |
 | P2 core 引擎 | ✅ | `matrix.ts`（组合矩阵+禁用推导）+ `withPlugins.tsx`（extendContext）+ `SkuSelectorCore.tsx`；单测 8+6 |
 | P3 渲染与插槽 | ✅ | 逐段插槽（before/overlay/after/footer）映射内核三槽，零改内核 |
-| P4 三个插件 | ✅ | PriceLink / Quota / ImageLink + doc.json + 子路径；单测 7 |
-| P5 demo | ✅ | 工坊（插件开关+实时状态+几何体检）/ 场景集（6 个）/ 浏览器内自测 12/12 |
+| P4 三个插件 | ✅ | 插件扩到 **12 个**：PriceLink / PriceRange / StockStatus / Quota / Quantity / ImageLink / SkuCode / ResetBar / KeyboardNav / Analytics / UrlSync / StatePersistence；单测 7+20 |
+| P5 demo | ✅ | **样式对齐 vane-lazy-image**（同一套 App.css 视觉系统 + 自托管字体 + Sidebar/TopBar 外壳 + HashRouter）；工坊 / 场景集(8) / 插件清单页 / 浏览器内自测 21/21 |
 | P6 文档与发布前置 | ✅ | index/api/plugins/recipes 写实、README 由 docs:sync 生成、changeset 就位 |
 
 **实现期对分析的修正（已同步回 `tasks/19`）**：

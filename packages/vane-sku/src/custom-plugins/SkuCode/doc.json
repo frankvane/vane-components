@@ -1,0 +1,19 @@
+{
+  "name": "SkuCode",
+  "description": "货号展示：命中变体后显示 SKU 编码，便于客服对单、用户报修与订单核对。",
+  "since": "0.1.0",
+  "tags": ["sku", "code", "meta"],
+  "config": [
+    { "name": "label", "type": "string", "default": "\"货号\"", "description": "前缀文案" }
+  ],
+  "example": "const Sku = createSkuSelector([createSkuCodePlugin({ label: \"SKU\" })]);",
+  "features": [
+    "命中变体才显示，未选全时不占位",
+    "等宽字体呈现编码，便于复制核对"
+  ],
+  "useCases": ["商品详情页货号展示", "客服对单 / 售后核对"],
+  "notes": [
+    "走 renderHeader 的 after 段（order 50），排在最末尾。",
+    "core 的「选中摘要」里也含 SKU 编码；本插件用于需要单独突出编码的场景。"
+  ]
+}

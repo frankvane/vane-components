@@ -1,0 +1,21 @@
+{
+  "name": "StatePersistence",
+  "description": "选择态持久化：把上次选的规格存进 localStorage / sessionStorage，挂载时自动还原；清空选择时删除键。",
+  "since": "0.1.0",
+  "tags": ["sku", "persistence", "storage"],
+  "config": [
+    { "name": "key", "type": "string", "default": "\"vane-sku:selection\"", "description": "存储键" },
+    { "name": "scope", "type": "\"local\" | \"session\"", "default": "\"local\"", "description": "local=localStorage，session=sessionStorage" }
+  ],
+  "example": "const Sku = createSkuSelector([createStatePersistencePlugin({ scope: \"session\" })]);",
+  "features": [
+    "挂载读回、变化写入，清空即删键",
+    "隐私模式 / 存储禁用 / 配额超限均静默降级，不影响主流程",
+    "脏数据（解析失败）直接忽略"
+  ],
+  "useCases": ["回访时保持上次规格", "多步下单流程中途返回"],
+  "notes": [
+    "不占用渲染插槽，是纯行为插件。",
+    "与 UrlSync 可共存：UrlSync 负责可分享，本插件负责本机记忆。"
+  ]
+}

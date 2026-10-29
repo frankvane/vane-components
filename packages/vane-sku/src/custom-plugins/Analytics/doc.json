@@ -1,0 +1,21 @@
+{
+  "name": "Analytics",
+  "description": "规格选择埋点：sku:mount / sku:change / sku:invalid 三类事件，回调（onEvent）与总线（sku:analytics）双通道，自身不渲染 UI。",
+  "since": "0.1.0",
+  "tags": ["sku", "analytics", "event"],
+  "config": [
+    { "name": "onEvent", "type": "(event) => void", "default": "-", "description": "统一事件出口，推荐接自己的埋点 SDK" },
+    { "name": "onlyMatched", "type": "boolean", "default": "false", "description": "只在命中变体时上报；关闭时未命中也上报，便于发现「选不出来」的组合" }
+  ],
+  "example": "const Sku = createSkuSelector([createAnalyticsPlugin({ onEvent: (e) => track(e.name, e) })]);",
+  "features": [
+    "三类事件：挂载 / 命中变更 / 无效组合",
+    "未命中也上报（默认），能发现「用户点得到但选不出」的坏组合",
+    "回调与总线双通道，不绑定任何 SDK"
+  ],
+  "useCases": ["转化漏斗埋点", "选品与库存分析"],
+  "notes": [
+    "不占用渲染插槽，是纯事件插件。",
+    "priority 10，事件钩子按 priority 从大到小执行（会晚于 Quota 等）。"
+  ]
+}

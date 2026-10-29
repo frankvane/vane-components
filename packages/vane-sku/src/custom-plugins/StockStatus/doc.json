@@ -1,0 +1,22 @@
+{
+  "name": "StockStatus",
+  "description": "库存状态：命中变体后展示「现货 / 仅剩 N 件 / 缺货」，低库存阈值可配。",
+  "since": "0.1.0",
+  "tags": ["sku", "stock", "inventory"],
+  "config": [
+    { "name": "lowStockThreshold", "type": "number", "default": "5", "description": "低库存预警阈值：库存 ≤ 该值时显示「仅剩 N 件」" },
+    { "name": "soldOutText", "type": "string", "default": "\"暂时缺货\"", "description": "缺货文案" },
+    { "name": "showCount", "type": "boolean", "default": "true", "description": "是否展示具体库存数字" }
+  ],
+  "example": "const Sku = createSkuSelector([createStockStatusPlugin({ lowStockThreshold: 3 })]);",
+  "features": [
+    "三态：现货 / 低库存（仅剩 N 件）/ 缺货",
+    "阈值可配，用来制造紧迫感",
+    "带 data-stock / data-sold-out 便于测试与自动化断言"
+  ],
+  "useCases": ["商品详情页库存提示", "低库存紧迫感营销"],
+  "notes": [
+    "走 renderHeader 的 after 段（order 10），排在价格之后。",
+    "变体未声明 stock 时不渲染（不做无依据的库存承诺）。"
+  ]
+}

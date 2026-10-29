@@ -72,15 +72,36 @@ interface SkuVariant  { sku: string; attrValues: Record<string, string>;   // �
 
 `ignoreOutOfStock`（默认 `true`）决定缺货变体（`stock === 0`）是否参与推导：开启时，通往「只有缺货变体」的选项同样被置灰。
 
-## 插件
+## 插件（12 个，全部按需子路径）
+
+### 价格与库存
 
 | 插件 | 子路径 | 作用 |
 | --- | --- | --- |
-| `PriceLink` | `vane-sku/custom-plugins/PriceLink` | 价格联动：变体价 / 原价删除线 / 折扣文案 |
-| `Quota` | `vane-sku/custom-plugins/Quota` | 限购校验：提示条 + `canPurchase` 门控 |
-| `ImageLink` | `vane-sku/custom-plugins/ImageLink` | 规格切主图：只发事件（`onImageChange` / `sku:image`），不渲染 UI |
+| `PriceRange` | `.../custom-plugins/PriceRange` | 未选全时展示价格区间（¥199–¥269） |
+| `PriceLink` | `.../custom-plugins/PriceLink` | 命中变体后展示单价 + 原价删除线 + 折扣文案 |
+| `StockStatus` | `.../custom-plugins/StockStatus` | 现货 / 仅剩 N 件 / 缺货 |
+| `Quota` | `.../custom-plugins/Quota` | 限购校验：提示条 + `canPurchase` 门控 |
+| `Quantity` | `.../custom-plugins/Quantity` | 数量步进，上限取 min(库存, 限购) |
 
-插件一律走子路径按需引入（ADR-6），不进根入口。桶文件 `vane-sku/custom-plugins` 可一次引入全部（体积会变大，非推荐用法）。
+### 信息与联动
+
+| 插件 | 子路径 | 作用 |
+| --- | --- | --- |
+| `ImageLink` | `.../custom-plugins/ImageLink` | 规格切主图，只发事件（`onImageChange` / `sku:image`），不渲染 UI |
+| `SkuCode` | `.../custom-plugins/SkuCode` | 货号 / SKU 编码展示 |
+| `Analytics` | `.../custom-plugins/Analytics` | 埋点上报（`sku:mount` / `sku:change` / `sku:invalid`），不渲染 UI |
+
+### 选择与交互
+
+| 插件 | 子路径 | 作用 |
+| --- | --- | --- |
+| `ResetBar` | `.../custom-plugins/ResetBar` | 清空重选 |
+| `KeyboardNav` | `.../custom-plugins/KeyboardNav` | 键盘漫游：←→ 同行、↑↓ 跨行，跳过置灰项 |
+| `StatePersistence` | `.../custom-plugins/StatePersistence` | 选择态存 localStorage / sessionStorage |
+| `UrlSync` | `.../custom-plugins/UrlSync` | 选择同步到 URL 查询串，可分享/刷新还原 |
+
+插件一律走子路径按需引入（ADR-6），不进根入口。桶文件 `vane-sku/custom-plugins` 可一次引入全部（体积会变大，非推荐用法）。标注「不渲染 UI」的是事件型插件。
 
 ## 包体积
 

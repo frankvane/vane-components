@@ -137,6 +137,8 @@ export interface SkuPluginContext
   isComplete: boolean;
   /** 选择某个选项（写入内核 state，触发 context 重建） */
   selectOption: (attrName: string, optionId: string) => void;
+  /** 清空全部选择（ResetBar / StatePersistence 等需要整段重置时用） */
+  clearSelection: () => void;
 }
 
 // ============ 插件钩子 ============

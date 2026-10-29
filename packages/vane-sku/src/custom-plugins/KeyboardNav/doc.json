@@ -1,0 +1,21 @@
+{
+  "name": "KeyboardNav",
+  "description": "键盘漫游：方向键在规格按钮间移动并选择，←→ 同属性切换、↑↓ 跨属性跳转，自动跳过被禁用推导置灰的选项。",
+  "since": "0.1.0",
+  "tags": ["sku", "a11y", "keyboard"],
+  "config": [
+    { "name": "preventDefault", "type": "boolean", "default": "true", "description": "是否阻止方向键的默认滚动行为" }
+  ],
+  "example": "const Sku = createSkuSelector([createKeyboardNavPlugin()]);",
+  "features": [
+    "←→ 同属性切换、↑↓ 跨属性跳转，移动后同时聚焦并选中",
+    "自动跳过 disabled 选项，不会「跳到死路上」",
+    "纯 DOM 查询实现，不侵入 core 渲染"
+  ],
+  "useCases": ["无障碍 / 键盘用户", "电视端 / 大屏选购"],
+  "notes": [
+    "不占用渲染插槽，是纯行为插件。",
+    "依赖 core 按钮的 data-testid 约定（sku-attr-* / sku-opt-*）。",
+    "onMount 返回清理函数，卸载时自动摘除监听。"
+  ]
+}

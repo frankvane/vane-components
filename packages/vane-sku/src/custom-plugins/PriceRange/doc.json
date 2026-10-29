@@ -1,0 +1,22 @@
+{
+  "name": "PriceRange",
+  "description": "价格区间：未选全或组合无货时，按当前选择过滤变体后取 min/max 展示价格区间（如 ¥199–¥269）；命中变体后默认退场，把价格区让给 PriceLink。",
+  "since": "0.1.0",
+  "tags": ["sku", "price", "range"],
+  "config": [
+    { "name": "currency", "type": "string", "default": "\"¥\"", "description": "货币符号" },
+    { "name": "separator", "type": "string", "default": "\"–\"", "description": "区间连接符" },
+    { "name": "showWhenMatched", "type": "boolean", "default": "false", "description": "命中变体时是否仍显示区间（默认让位给 PriceLink）" }
+  ],
+  "example": "const Sku = createSkuSelector([createPriceRangePlugin(), createPriceLinkPlugin()]);",
+  "features": [
+    "按当前选择过滤变体，区间随选择动态收窄",
+    "最低价=最高价时只显示一个价格，不画成 \"¥199–¥199\"",
+    "与 PriceLink 互斥接力：未命中显区间、命中显单价"
+  ],
+  "useCases": ["多规格商品的价格引导", "未选规格时的价格预览"],
+  "notes": [
+    "与 PriceLink 同走 renderOverlay 段，靠 config.order（PriceRange=5）排在前面。",
+    "两者可同时装载而不重影：命中变体时 PriceRange 自动返回 null。"
+  ]
+}

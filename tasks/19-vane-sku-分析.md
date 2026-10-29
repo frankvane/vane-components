@@ -18,7 +18,7 @@
 
 4. **数据模型在 vane-card 形状上扩展（B3）。** `SKUAttribute{ name; options:{id,label,image?}[] }`（option 加稳定 id + 可选色块图）、`SKUVariant{ sku; attrValues:Record<name,optionId>; price?; stock?; image?; quota? }`（用 id 关联 + 加 `quota` 限购）。稳定 id 是禁用推导与 i18n 的刚需。
 
-5. **禁用推导进 core，不是插件（B4，修正规划措辞）。** 规划把"DisableRule 禁用推导"列为「建议首发插件」，但禁用推导是最稳的算法、漏装就不置灰，故定为 **core 内置能力**；插件清单只列 PriceLink / Quota / ImageLink（ThumbPreview 降级为候选，可能并入 core 渲染，见第四章）。
+5. **禁用推导进 core，不是插件（B4，修正规划措辞）。** 规划把"DisableRule 禁用推导"列为「建议首发插件」，但禁用推导是最稳的算法、漏装就不置灰，故定为 **core 内置能力**；插件则按 SOP② 长尾发散扩到 **12 个**（价格与库存 5 / 信息与联动 3 / 选择与交互 4，其中 5 个事件型）。原候选 `ThumbPreview` 不单独成插件——core 在 `option.image` 存在时已直接渲染色块图（见第四章）。
 
 6. **体积门口径按实测据实调整（B6，实现后修正）。** 规划给 `≤2.5KB`；grill 阶段估 `≤3.5KB`，但那是以「core 走 peer 外部化」为前提（参照 vane-profile 3.09KB）。实现确认 vane-sku 采用 **core devDep 内联**策略（与 vane-card 6.77KB 同派），core 会被打进 dist，实测根入口 gzip **6.08KB**，故预算据实上调到 **`≤7KB`**；三个插件子路径走 `./custom-plugins/*`，闭包含 doc.json 元数据，实测 1.0–1.5KB，预算各 **`≤2KB`**。仍远低于 36KB 红线，子路径保住 SOP⑤ 按需省体积。
 
@@ -38,7 +38,7 @@
 | --- | --- | --- |
 | 批次 | 第 1 批 · 商品页三件 | 同（与 gallery / coupon 同批） |
 | 定位 | 规格选择引擎（组合矩阵 / 禁用推导 / 价格联动 / 限购校验） | 同，但**新建独立包**（非"复用 card 范式"的从属） |
-| 首发插件 | Combination / DisableRule / PriceLink / Quota（4 chips） | **修正**：Combination+DisableRule=core 内置；插件仅 PriceLink / Quota / ImageLink（ThumbPreview 候选） |
+| 首发插件 | Combination / DisableRule / PriceLink / Quota（4 chips） | **修正**：Combination+DisableRule=core 内置；插件扩到 **12 个**（用户要求"更多插件"） |
 | 复用资产 | vane-card 电商插件范式与样式令牌 | **不依赖 vane-card**（硬约束 + 避免重叠）；沿用其数据模型词汇与 core 范式 |
 | 体积预算 | ≤ 2.5KB（独立包根 gzip） | 推翻 → 根 `≤7KB`（实测 6.08KB，core 内联）+ 子路径各 `≤2KB`（B6，见第一章结论 6） |
 | 工作量 | 3–4 天 | 见 `tasks/20`：P0–P6，M–L 量级 |
@@ -86,17 +86,25 @@
 | --- | --- | --- | --- | --- | --- |
 | 1 | **组合矩阵 + 禁用推导** | Combination + DisableRule | 🔧 | 由 variants 派生有效组合全集；当前选择下计算每个 option 是否"死路"（选它后无任何有效变体）并置灰；支持 `ignoreOutOfStock` 配置 | core 内部纯函数 + 驱动 option 的 `disabled` 渲染态 |
 | 2 | **选规格状态机** | —（引擎本质） | 🔧 | 单值/维选择、初始化默认规格、完整选择→匹配变体→emit `sku:change` | `onMount`/`onSelect`/`transformProps` + `context.bus.emit("sku:change")` |
-| 3 | **`PriceLinkPlugin`** | PriceLink | 🆕 | 价格联动：订阅变体，渲染价格浮层（变体价 / 原价 / 折扣文案 / 币种） | `renderOverlay`（或 `renderHeader(after)`） |
-| 4 | **`QuotaPlugin`** | Quota | 🆕 | 限购校验：读 `variant.quota` + 已购数，渲染"每人限购 N（已购 M）"提示条；经 bus/context 暴露 `canPurchase` 门控 | `renderHeader(after)` + `extendContext(canPurchase)` |
-| 5 | **`ImageLinkPlugin`** | —（规格切主图） | 🆕 | 规格切主图：有效变体带 `image` 时 **emit 事件**（不渲染 UI）让外层 gallery/card 切主图 | 事件钩子 `onValidSkuChange` → `bus.emit("sku:image")` 或回调 `onImageChange` |
-| — | `ThumbPreviewPlugin` | — | 🟡 | 规格缩略图：option 带 image 时在按钮内渲染色块图 | **可能并入 core 渲染**（option.image 有则直接渲染 swatch），不单独成插件 |
+| 3 | **`PriceLinkPlugin`** | PriceLink | 🆕 | 命中变体后渲染单价 + 原价删除线 + 折扣文案 | `renderOverlay` |
+| 4 | **`PriceRangePlugin`** | —（价格区间） | 🆕 | 未选全时按当前选择过滤变体展示区间（¥199–¥229）；命中后让位给 PriceLink | `renderOverlay`（order 5） |
+| 5 | **`StockStatusPlugin`** | —（库存） | 🆕 | 现货 / 仅剩 N 件 / 缺货（低库存阈值可配） | `renderHeader(after)` order 10 |
+| 6 | **`QuotaPlugin`** | Quota | 🆕 | 限购校验：读 `variant.quota` + 已购数渲染提示条，`canPurchase` 写 state | `renderHeader(after)` order 15 + 事件钩子 |
+| 7 | **`QuantityPlugin`** | —（数量） | 🆕 | 数量步进，上限 = min(库存, 限购, config.max)，数量写 state | `renderHeader(after)` order 20 |
+| 8 | **`ImageLinkPlugin`** | —（规格切主图） | 🆕（事件型） | 命中变体带 `image` 时抛事件（回调 + 总线 `sku:image`），**不渲染 UI** | 事件钩子 |
+| 9 | **`SkuCodePlugin`** | —（货号） | 🆕 | 命中变体后展示 SKU 编码，便于对单 / 报修 | `renderHeader(after)` order 50 |
+| 10 | **`ResetBarPlugin`** | —（清空） | 🆕 | 一键清空重选，走 `context.clearSelection()` | `renderHeader(after)` order 40 |
+| 11 | **`KeyboardNavPlugin`** | —（键盘漫游） | 🆕（事件型） | ←→ 同行切换、↑↓ 跨行跳转，自动跳过置灰项 | `onMount` 挂 keydown + 返回清理函数 |
+| 12 | **`StatePersistencePlugin`** | —（本地记忆） | 🆕（事件型） | 选择存 localStorage/sessionStorage，挂载还原、清空删键 | 事件钩子 |
+| 13 | **`UrlSyncPlugin`** | —（URL 同步） | 🆕（事件型） | 选择 ↔ 查询串（`?sku_颜色=red`）双向同步，可分享与刷新还原 | 事件钩子 |
+| 14 | **`AnalyticsPlugin`** | —（埋点） | 🆕（事件型） | `sku:mount` / `sku:change` / `sku:invalid` 三类事件，回调 + 总线双通道 | 事件钩子 |
 
-> **说明**：规划"4 chips"中 Combination/DisableRule 被合并为 core 内置能力（最稳算法，不可漏装），故插件清单收窄为 PriceLink / Quota / ImageLink（3 个承诺）+ ThumbPreview（候选）。这与"core 薄且稳定、长尾外置"的 SOP① 一致。
+> **说明**：规划"4 chips"中 Combination/DisableRule 被合并为 core 内置能力（最稳算法，不可漏装）。插件按 SOP②「长尾发散」扩到 **12 个**：价格与库存 5 个、信息与联动 3 个、选择与交互 4 个；其中 5 个是**事件型**（不占渲染插槽）。原候选 `ThumbPreview` 不单独成插件 —— core 在 `option.image` 存在时已直接渲染色块图，没有插入点。
 >
 > **子路径命名（实现修正）**：原拟 `/pricing` `/quota` `/image`，但 `internal/build-config/discover-entries.mjs` 的入口自动发现只认
 > `src/index.ts`（→`.`）、`src/<name>.ts`（→`./<name>`）、`src/custom-plugins/<Name>/index.ts`（→`./custom-plugins/<Name>`），
 > 且 `components/` 属内部目录不发布。为与家族（vane-card / vane-lazy-image / vane-profile）及 `pnpm sync:exports` 保持一致，
-> 最终采用 **`vane-sku/custom-plugins/PriceLink|Quota|ImageLink`**；另有桶文件 `vane-sku/custom-plugins`。
+> 最终采用 **`vane-sku/custom-plugins/<Name>`**（12 个）；另有桶文件 `vane-sku/custom-plugins`。
 
 ### 4.1 内核可提供的能力（复用 vane-plugin-core，零改动）
 

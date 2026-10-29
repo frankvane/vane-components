@@ -6,6 +6,12 @@ import type { SkuAttribute, SkuVariant } from "../../../src";
 import { createPriceLinkPlugin } from "../../../src/custom-plugins/PriceLink";
 import { createQuotaPlugin } from "../../../src/custom-plugins/Quota";
 import { createImageLinkPlugin } from "../../../src/custom-plugins/ImageLink";
+import { createPriceRangePlugin } from "../../../src/custom-plugins/PriceRange";
+import { createStockStatusPlugin } from "../../../src/custom-plugins/StockStatus";
+import { createQuantityPlugin } from "../../../src/custom-plugins/Quantity";
+import { createSkuCodePlugin } from "../../../src/custom-plugins/SkuCode";
+import { createResetBarPlugin } from "../../../src/custom-plugins/ResetBar";
+import { createKeyboardNavPlugin } from "../../../src/custom-plugins/KeyboardNav";
 import { auditSku } from "./audit-sku";
 
 /**
@@ -77,6 +83,8 @@ export async function runSelfTest(): Promise<SelfTestResult> {
   let total = 0;
   const ok = (name: string, cond: boolean) => {
     total += 1;
+    // 同步写入计数：卡住时能看出停在第几项
+    document.title = `SELFTEST RUNNING ${total}`;
     if (!cond) failed.push(name);
   };
 
@@ -162,11 +170,74 @@ export async function runSelfTest(): Promise<SelfTestResult> {
     t.host.remove();
   }
 
+  // ---- 5. 新增插件：价格区间 / 库存 / 数量 / 清空 / 货号 ----
+  {
+    const Sku = createSkuSelector([
+      createPriceRangePlugin(),
+      createStockStatusPlugin({ lowStockThreshold: 5 }),
+      createQuantityPlugin(),
+      createSkuCodePlugin(),
+      createResetBarPlugin(),
+    ]);
+    const t = await mount(<Sku attributes={[COLOR_ATTR, SIZE_ATTR]} variants={variants} />);
+
+    // 未选全 → 价格区间（本组样例最低 199 / 最高 229）
+    const range = t.q('[data-testid="sku-price-range"]');
+    ok("价格区间：未选全时展示区间", !!range);
+    ok(
+      "价格区间：含最低价 199 与最高价 229",
+      !!range && range.textContent!.includes("199") && range.textContent!.includes("229")
+    );
+
+    await t.click('[data-testid="sku-opt-颜色-red"]');
+    await t.click('[data-testid="sku-opt-尺码-s"]');
+
+    // 命中 red-s：库存 5 / 限购 2
+    const stock = t.q('[data-testid="sku-stock"]');
+    ok("库存状态：命中变体后渲染", !!stock);
+    ok("库存状态：库存 5 命中低库存阈值", stock?.getAttribute("data-stock") === "5");
+
+    const qty = t.q('[data-testid="sku-quantity"]');
+    ok("数量步进：上限取 min(库存5, 限购2)=2", qty?.getAttribute("data-max") === "2");
+
+    ok("货号：显示命中变体编码", t.q('[data-testid="sku-code"]')?.textContent?.includes("red-s") === true);
+
+    // 清空重选
+    ok("清空重选：有选择时出现", !!t.q('[data-testid="sku-reset"]'));
+    await t.click('[data-testid="sku-reset"]');
+    ok(
+      "清空重选：点击后取消该属性选择",
+      (t.q('[data-testid="sku-opt-颜色-red"]') as HTMLButtonElement)?.dataset.selected === "false"
+    );
+
+    flushSync(() => t.root.unmount());
+    t.host.remove();
+  }
+
+  // ---- 6. 键盘漫游 ----
+  {
+    const Sku = createSkuSelector([createKeyboardNavPlugin()]);
+    const t = await mount(<Sku attributes={[COLOR_ATTR, SIZE_ATTR]} variants={variants} />);
+    const red = t.q('[data-testid="sku-opt-颜色-red"]') as HTMLButtonElement;
+    // 注意：这里不能用 act() —— 生产构建里 React.act 直接抛错。
+    // 派发原生事件后等一轮 tick，React 的批处理更新自会提交。
+    red.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+    await tick();
+    ok(
+      "键盘漫游：→ 键切到同属性下一个选项",
+      (t.q('[data-testid="sku-opt-颜色-blue"]') as HTMLButtonElement)?.dataset.selected === "true"
+    );
+    flushSync(() => t.root.unmount());
+    t.host.remove();
+  }
+
   return { total, passed: total - failed.length, failed };
 }
 
 /** 供 main.tsx 调用：跑完把结论写进 document.title，便于外部（无截图时）读取 */
 export async function runSelfTestToTitle(): Promise<void> {
+  // 先落一个「已启动」标记：便于区分「根本没跑」与「跑了一半卡住」
+  document.title = "SELFTEST RUNNING";
   try {
     const r = await runSelfTest();
     document.title =

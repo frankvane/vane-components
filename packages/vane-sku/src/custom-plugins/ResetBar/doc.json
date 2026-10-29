@@ -1,0 +1,20 @@
+{
+  "name": "ResetBar",
+  "description": "清空重选：一键重置全部规格选择，走 context.clearSelection()。未选任何规格时不渲染。",
+  "since": "0.1.0",
+  "tags": ["sku", "reset", "ux"],
+  "config": [
+    { "name": "text", "type": "string", "default": "\"清空重选\"", "description": "按钮文案" },
+    { "name": "onReset", "type": "() => void", "default": "-", "description": "清空后回调" }
+  ],
+  "example": "const Sku = createSkuSelector([createResetBarPlugin({ text: \"重新选择\" })]);",
+  "features": [
+    "整段重置，不用逐个取消",
+    "无选择时自动隐藏，不占版面"
+  ],
+  "useCases": ["选错规格后重来", "移动端小屏的快速重置"],
+  "notes": [
+    "走 renderHeader 的 after 段（order 40），排在数量之后。",
+    "依赖核心 context.clearSelection()（vane-sku 0.1.0 起提供）。"
+  ]
+}

@@ -1,45 +1,105 @@
-import React from "react";
-import { BasicDemo } from "./pages/BasicDemo";
-import { Workshop } from "./pages/Workshop";
-import { Scenarios } from "./pages/Scenarios";
+import React, { Suspense, lazy, useEffect, useState } from "react";
+import {
+  HashRouter,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+} from "react-router-dom";
+import { Sidebar, currentLabel } from "./components/Sidebar";
+import { PLUGIN_COUNT } from "./data/plugin-catalog";
 
-const TABS = [
-  { key: "basic", label: "快速上手", node: <BasicDemo /> },
-  { key: "workshop", label: "工坊（含几何体检）", node: <Workshop /> },
-  { key: "scenarios", label: "场景集", node: <Scenarios /> },
-] as const;
+const HomePage = lazy(() =>
+  import("./pages/HomePage").then((m) => ({ default: m.HomePage }))
+);
+const PluginsPage = lazy(() =>
+  import("./pages/PluginsPage").then((m) => ({ default: m.PluginsPage }))
+);
+const Workshop = lazy(() =>
+  import("./pages/Workshop").then((m) => ({ default: m.Workshop }))
+);
+const Scenarios = lazy(() =>
+  import("./pages/Scenarios").then((m) => ({ default: m.Scenarios }))
+);
 
-export function App() {
-  const [tab, setTab] = React.useState<string>("basic");
+const Loading: React.FC = () => <div className="loading">loading modules…</div>;
 
+function TopBar({ onMenu }: { onMenu: () => void }) {
+  const { pathname } = useLocation();
   return (
-    <div style={{ padding: 24, fontFamily: "system-ui, sans-serif", maxWidth: 1180, margin: "0 auto" }}>
-      <h1 style={{ fontSize: 20, fontWeight: 600, marginBottom: 4 }}>vane-sku · 规格选择引擎</h1>
-      <p style={{ color: "#6b7280", fontSize: 13, marginTop: 0 }}>
-        组合矩阵 + 禁用推导为内核，价格联动 / 限购校验 / 规格切主图为按需插件
-      </p>
-
-      <nav style={{ display: "flex", gap: 8, margin: "14px 0 18px" }}>
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            data-testid={`tab-${t.key}`}
-            onClick={() => setTab(t.key)}
-            style={{
-              padding: "6px 12px",
-              borderRadius: 6,
-              border: tab === t.key ? "2px solid #2b7de9" : "1px solid #d0d4da",
-              background: tab === t.key ? "#e8f0fe" : "#fff",
-              cursor: "pointer",
-              fontSize: 13,
-            }}
-          >
-            {t.label}
-          </button>
-        ))}
-      </nav>
-
-      <div data-testid="app-body">{TABS.find((t) => t.key === tab)?.node}</div>
-    </div>
+    <header className="topbar">
+      <button
+        type="button"
+        className="icon-btn"
+        onClick={onMenu}
+        aria-label="打开导航菜单"
+      >
+        <span aria-hidden="true" />
+      </button>
+      <span className="topbar-title">{currentLabel(pathname)}</span>
+      <span className="topbar-spacer" />
+      <div className="topbar-actions">
+        <span className="topbar-stat" title="官方插件总数">
+          <b>{PLUGIN_COUNT}</b> plugins
+        </span>
+        <span className="topbar-stat" title="演示运行时">
+          <i className="pulse" aria-hidden="true" />
+          live
+        </span>
+      </div>
+    </header>
   );
 }
+
+const Shell: React.FC = () => {
+  const [navOpen, setNavOpen] = useState(false);
+  const { pathname } = useLocation();
+
+  useEffect(() => setNavOpen(false), [pathname]);
+
+  useEffect(() => {
+    if (!navOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setNavOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [navOpen]);
+
+  return (
+    <div className="app">
+      <a className="skip-link" href="#main">
+        跳到主内容
+      </a>
+      <Sidebar open={navOpen} onClose={() => setNavOpen(false)} />
+      <div className="app-body">
+        <TopBar onMenu={() => setNavOpen(true)} />
+        <main className="main" id="main">
+          <Suspense fallback={<Loading />}>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/plugins" element={<PluginsPage />} />
+              <Route path="/workshop" element={<Workshop />} />
+              <Route path="/scenarios" element={<Scenarios />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Suspense>
+        </main>
+      </div>
+      <div
+        className="nav-scrim"
+        data-open={navOpen}
+        aria-hidden="true"
+        onClick={() => setNavOpen(false)}
+      />
+    </div>
+  );
+};
+
+const App: React.FC = () => (
+  <HashRouter>
+    <Shell />
+  </HashRouter>
+);
+
+export default App;

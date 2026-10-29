@@ -66,6 +66,8 @@ export function withPlugins(
                   : { ...selection, [attrName]: optionId };
               base.setState({ selection: next });
             },
+            // 整段重置：不逐个 toggle，直接写空 selection
+            clearSelection: () => base.setState({ selection: {} }),
           };
           return ctx;
         },

@@ -1,0 +1,22 @@
+{
+  "name": "Quantity",
+  "description": "数量步进器：上限取「库存」与「限购」的较小值，数量写入内核 state（key: quantity）供宿主加购按钮读取。",
+  "since": "0.1.0",
+  "tags": ["sku", "quantity", "stepper"],
+  "config": [
+    { "name": "defaultValue", "type": "number", "default": "1", "description": "初始数量" },
+    { "name": "max", "type": "number", "default": "-", "description": "硬上限（不传则取 库存/限购 的较小值）" },
+    { "name": "onChange", "type": "(quantity: number) => void", "default": "-", "description": "数量变化回调" }
+  ],
+  "example": "const Sku = createSkuSelector([createQuantityPlugin({ defaultValue: 1 })]);",
+  "features": [
+    "上限 = min(库存, 限购, config.max)，到边界时按钮自动禁用",
+    "切换变体后数量自动收敛到新上限内",
+    "数量写 state，宿主读 context.state.quantity 即可"
+  ],
+  "useCases": ["商品详情页选数量", "限购商品的步进约束"],
+  "notes": [
+    "走 renderHeader 的 after 段（order 20），排在库存提示之后。",
+    "未命中变体时不渲染（数量依附于具体 SKU）。"
+  ]
+}

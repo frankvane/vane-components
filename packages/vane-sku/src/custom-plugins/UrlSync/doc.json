@@ -1,0 +1,21 @@
+{
+  "name": "UrlSync",
+  "description": "URL 同步：把规格选择写进查询串（?sku_颜色=red&sku_尺码=s），挂载时反向解析还原，刷新与分享都能保持选择。",
+  "since": "0.1.0",
+  "tags": ["sku", "url", "share"],
+  "config": [
+    { "name": "paramPrefix", "type": "string", "default": "\"sku_\"", "description": "查询参数前缀，避免与页面其它参数冲突" },
+    { "name": "useReplace", "type": "boolean", "default": "true", "description": "true=replaceState（不污染前进后退），false=pushState" }
+  ],
+  "example": "const Sku = createSkuSelector([createUrlSyncPlugin({ paramPrefix: \"sku_\" })]);",
+  "features": [
+    "选择 → URL、URL → 选择 双向同步",
+    "前缀隔离，不覆盖页面其它查询参数",
+    "默认 replaceState，不把每次点击都塞进历史栈"
+  ],
+  "useCases": ["客服带规格的链接", "分享已选规格的商品页", "刷新后保持选择"],
+  "notes": [
+    "不占用渲染插槽，是纯行为插件。",
+    "SSR 下 window 不存在时自动降级为空操作。"
+  ]
+}
