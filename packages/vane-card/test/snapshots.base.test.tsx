@@ -31,9 +31,11 @@ function scanBusProtocol() {
   for (const name of names) protocol[BusKeys[name]] = { writers: [], readers: [] };
 
   for (const dirName of readdirSync(CUSTOM_DIR)) {
-    const f1 = path.join(CUSTOM_DIR, dirName, "index.ts");
+    // 真实源码在 create.tsx（P2 从 index.tsx 抽出）；薄壳 index.ts 无 BusKeys 引用
+    const f1 = path.join(CUSTOM_DIR, dirName, "create.tsx");
     const f2 = path.join(CUSTOM_DIR, dirName, "index.tsx");
-    const fp = existsSync(f1) ? f1 : existsSync(f2) ? f2 : null;
+    const f3 = path.join(CUSTOM_DIR, dirName, "index.ts");
+    const fp = existsSync(f1) ? f1 : existsSync(f2) ? f2 : existsSync(f3) ? f3 : null;
     if (!fp) continue;
     const src = readFileSync(fp, "utf-8");
     for (const name of names) {

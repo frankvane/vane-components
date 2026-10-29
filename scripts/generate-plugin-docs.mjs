@@ -46,7 +46,7 @@ function escapeHtml(s) {
  * 这里直接读源码字面量：所有插件的 config 都是 `{ priority: N, ... }` 的形式。
  */
 async function readPriority(dir) {
-  for (const name of ["index.ts", "index.tsx"]) {
+  for (const name of ["create.tsx", "create.ts", "index.tsx", "index.ts"]) {
     const file = path.join(dir, name);
     if (!existsSync(file)) continue;
     const code = await readFile(file, "utf-8");

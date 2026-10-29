@@ -12,7 +12,7 @@
  *    那会让「没装依赖」重新变成整页崩溃。
  */
 
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -134,8 +134,11 @@ describe("B 批插件 · 工厂契约", () => {
 
 describe("B 批插件 · 重依赖是动态 import", () => {
   it.each(CASES)("$dir 用 import() 而不是顶层 import", ({ dir, heavyDeps }) => {
-    // 源码可能在 index.tsx（B 批全部如此）；读不到就明确失败，不要静默跳过
-    const source = readFileSync(path.join(pluginsRoot, dir, "index.tsx"), "utf-8");
+    // 工厂源码在 create.tsx（P2 从 index.tsx 抽出）；读不到就明确失败，不要静默跳过
+    const srcFile = existsSync(path.join(pluginsRoot, dir, "create.tsx"))
+      ? "create.tsx"
+      : "index.tsx";
+    const source = readFileSync(path.join(pluginsRoot, dir, srcFile), "utf-8");
 
     for (const dep of heavyDeps) {
       expect(

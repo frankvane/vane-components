@@ -40,10 +40,10 @@ export default {
       { find: /^@\//, replacement: path.resolve(root, "src") + "/" },
       {
         find: /^vane-file-preview\/custom-plugins\/(.+)$/,
-        // 插件入口是 .tsx（每个插件都渲染 React 节点）。
+        // 插件入口是 index.ts（薄壳 re-export create.tsx 的工厂 + 挂 meta）；工厂源码在 create.tsx。
         // 写死扩展名而不是靠目录 index 探测：`$1` 里若带斜杠（未来出现
         // custom-plugins/X/sub）时，目录探测会绕过单文件入口，两种行为不一样。
-        replacement: path.resolve(root, "src/custom-plugins/$1/index.tsx"),
+        replacement: path.resolve(root, "src/custom-plugins/$1/index.ts"),
       },
       {
         find: "vane-file-preview/custom-plugins",

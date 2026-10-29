@@ -120,15 +120,22 @@ describe("dist 闸门 · 重依赖不得内联", () => {
       const file = path.join(distDir, entry);
       expect(existsSync(file), `${entry} 不存在`).toBe(true);
       const code = readFileSync(file, "utf-8");
+      // P2：入口改为 re-export 桩后，工厂被 rollup 抽到 chunk，import() 落在 chunk 而非入口本身
+      const found =
+        code.includes(`import("${dep}")`) ||
+        chunkSources.includes(`import("${dep}")`);
       expect(
-        code.includes(`import("${dep}")`),
-        `${entry} 里没有 import("${dep}") —— 依赖被内联了（external 大概率写成了包名而不是正则）`
+        found,
+        `${entry}（或其 chunk）里没有 import("${dep}") —— 依赖被内联了（external 大概率写成了包名而不是正则）`
       ).toBe(true);
     }
   });
 
   it.skipIf(!hasDist)("dist 里没有各重依赖的体积特征串", () => {
     for (const file of collectJs(distDir)) {
+      // P2：doc.json 经 meta 打进小 chunk，会携带 "SheetJS"/"JSZip" 等品牌词（文档文本），属误报；
+      // 只有真正整库内联才会产生 ≥ MAX_FILE_BYTES 的大 chunk，故小文件跳过（真实内联必被体积闸门抓到）。
+      if (statSync(file).size < MAX_FILE_BYTES) continue;
       const code = readFileSync(file, "utf-8");
       for (const sig of FORBIDDEN_SIGNATURES) {
         expect(
