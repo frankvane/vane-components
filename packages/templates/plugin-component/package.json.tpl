@@ -36,6 +36,16 @@
     "lint": "eslint .",
     "prepublishOnly": "npm run build"
   },
+  "vane": {
+    "demo": {
+      "brand": "__BRAND__",
+      "subtitle": "__TITLE__ / plugin index",
+      "title": "__TITLE__ 演示台",
+      "accent": "#ff7a29",
+      "bg": "#0b0a09"
+    },
+    "sizeBudgetKb": 30
+  },
   "peerDependencies": {
     "react": ">=16.8.0",
     "react-dom": ">=16.8.0",

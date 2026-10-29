@@ -200,8 +200,10 @@ const PluginPage: React.FC<{ id: string }> = ({ id }) => {
  * 不这么做的话，从 /demos/pdf 切到 /demos/image 时日志会带着上一页的记录
  * （组件实例被 React 复用，state 不会自己清）。
  */
-export const DemoDetailPage: React.FC = () => {
-  const { id = "" } = useParams<{ id: string }>();
+export const DemoDetailPage: React.FC<{ id?: string }> = ({ id: idProp }) => {
+  // id 既可以从路由 /demos/:id 拿，也可以由标准外壳的 /demo/:slug 直接传进来
+  const { id: idParam = "" } = useParams<{ id: string }>();
+  const id = idProp ?? idParam;
   const plugin = getPlugin(id);
   const demo = plugin ? findDemo(id) : undefined;
 
@@ -211,7 +213,7 @@ export const DemoDetailPage: React.FC = () => {
         <div className="page-header">
           <h1 className="page-title">没有这个示例</h1>
           <p className="page-desc">
-            <code>{id}</code> 不在示例目录里。<Link to="/demos">回到逐项示例</Link>
+            <code>{id}</code> 不在示例目录里。<Link to="/demo/image">回到逐项示例</Link>
           </p>
         </div>
       </div>

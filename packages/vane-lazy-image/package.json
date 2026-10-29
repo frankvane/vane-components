@@ -477,6 +477,13 @@
     "vitest": "^2.1.9"
   },
   "vane": {
+    "demo": {
+      "brand": "V",
+      "subtitle": "图片懒加载 / plugin index",
+      "title": "图片懒加载演示台",
+      "accent": "#ff7a29",
+      "bg": "#0b0a09"
+    },
     "sizeBudgetKb": 28,
     "coreSizeBudgetKb": 12,
     "gallerySizeBudgetKb": 20,

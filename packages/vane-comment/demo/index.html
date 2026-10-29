@@ -3,7 +3,26 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>评论区引擎 · vane-comment demo</title>
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#0b0a09" />
+    <meta name="description" content="vane-comment 的实时演示台：插件式通用评论区引擎：点赞 / 排序 / 楼中楼 / 富编辑，视频·社交·电商评论区同一内核按需装配全部页面可调可选、源码可复制。" />
+    <title>vane-comment · 评论区引擎</title>
+    <!-- 统一 favicon：品牌字 + 各包主题色（由 scripts/sync-demo-shell.mjs 生成，禁止手改） -->
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23ff7a29'/%3E%3Ctext x='16' y='22.5' text-anchor='middle' font-family='system-ui,-apple-system,sans-serif' font-size='17' font-weight='700' fill='%230b0a09'%3Ev%3C/text%3E%3C/svg%3E"
+    />
+    <!-- 首屏底色内联，避免暗色站点在 CSS 到达前闪白 -->
+    <style>
+      html {
+        color-scheme: dark;
+        background: #0b0a09;
+      }
+      body {
+        margin: 0;
+        background: #0b0a09;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>

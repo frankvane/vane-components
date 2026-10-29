@@ -137,6 +137,13 @@
     "vitest": "^2.1.8"
   },
   "vane": {
+    "demo": {
+      "brand": "S",
+      "subtitle": "规格选择 / plugin index",
+      "title": "规格选择引擎",
+      "accent": "#ff7a29",
+      "bg": "#0b0a09"
+    },
     "sizeBudgetKb": 7,
     "subpathBudgets": {
       "./custom-plugins/PriceLinkPlugin": 2,

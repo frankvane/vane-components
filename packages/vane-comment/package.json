@@ -125,6 +125,13 @@
   "author": "Frank Vane",
   "license": "MIT",
   "vane": {
+    "demo": {
+      "brand": "v",
+      "subtitle": "评论区 / plugin index",
+      "title": "评论区引擎",
+      "accent": "#ff7a29",
+      "bg": "#0b0a09"
+    },
     "sizeBudgetKb": 4,
     "subpathBudgets": {
       "./custom-plugins/LikePlugin": 2,

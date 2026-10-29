@@ -145,6 +145,35 @@
   --page-max: 1180px;
 }
 
+/* ---------------- 标准外壳令牌桥接 ----------------
+   shell.css（templates/demo-shell）用 --ink-0 / --rule / --s4 / --side-w 这套令牌名，
+   本包历史上用的是 --bg / --surface / --line / --sp-4 / --sidebar-w。这里只做别名，
+   页面级样式不必改写；配色仍是本包自己的主题色。 */
+:root {
+  --ink-0: var(--bg);
+  --ink-1: var(--surface);
+  --ink-2: var(--surface-2);
+  --ink-3: var(--surface-3);
+  --dim: var(--text-2);
+  --faint: var(--text-3);
+  --rule: var(--line);
+  --rule-2: var(--line-strong);
+  --rule-soft: var(--line-soft);
+  --accent-ink: var(--text-inv);
+  --r: var(--radius);
+  --s4: var(--sp-4);
+  --s5: var(--sp-5);
+  --s6: var(--sp-6);
+  --s8: var(--sp-8);
+  --dur: var(--dur-2);
+  --dur-fast: var(--dur-1);
+  --fs-micro: 10.5px;
+  /* 外壳宽度/顶栏高度按标准值，不跟随本包旧值，保证 7 个 demo 站一致 */
+  --side-w: 238px;
+  --top-h: 54px;
+}
+
+
 /* ---------- 2. 基础 ---------- */
 *,
 *::before,
@@ -268,345 +297,7 @@ h4 {
   background-clip: content-box;
 }
 
-/* ---------- 3. 应用布局 ---------- */
-.app {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  min-height: 100%;
-}
-
-.app-body {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.topbar {
-  position: sticky;
-  top: 0;
-  z-index: 30;
-  display: flex;
-  align-items: center;
-  gap: var(--sp-3);
-  height: var(--topbar-h);
-  padding: 0 var(--sp-5);
-  border-bottom: 1px solid var(--line);
-  background: rgba(11, 10, 9, 0.82);
-  backdrop-filter: blur(14px) saturate(1.2);
-}
-
-.topbar-title {
-  font-family: var(--ff-mono);
-  font-size: var(--fs-sm);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--text-2);
-  white-space: nowrap;
-}
-
-.topbar-spacer {
-  flex: 1;
-}
-
-.topbar-actions {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-4);
-}
-
-.topbar-stat {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-family: var(--ff-mono);
-  font-size: var(--fs-xs);
-  letter-spacing: 0.08em;
-  color: var(--text-3);
-  text-transform: uppercase;
-}
-.topbar-stat b {
-  color: var(--text);
-  font-weight: 700;
-}
-
-.pulse {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--ok);
-  box-shadow: 0 0 0 0 rgba(127, 208, 140, 0.5);
-  animation: pulse 2.4s var(--ease) infinite;
-}
-
-@keyframes pulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(127, 208, 140, 0.45);
-  }
-  70% {
-    box-shadow: 0 0 0 7px rgba(127, 208, 140, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(127, 208, 140, 0);
-  }
-}
-
-.icon-btn {
-  display: none;
-  width: 34px;
-  height: 34px;
-  padding: 0;
-  border: 1px solid var(--line);
-  background: var(--surface);
-  border-radius: var(--radius);
-  cursor: pointer;
-}
-.icon-btn span,
-.icon-btn span::before,
-.icon-btn span::after {
-  display: block;
-  width: 14px;
-  height: 1px;
-  background: var(--text-2);
-  content: "";
-  position: relative;
-  margin: 0 auto;
-}
-.icon-btn span::before {
-  top: -5px;
-}
-.icon-btn span::after {
-  top: 4px;
-}
-
-.main {
-  flex: 1;
-  min-width: 0;
-  padding: var(--sp-7) var(--sp-6) var(--sp-8);
-}
-
-.page {
-  max-width: var(--page-max);
-  margin: 0 auto;
-}
-
-/* ---------- 4. 侧栏 ---------- */
-.sidebar {
-  position: sticky;
-  top: 0;
-  z-index: 40;
-  display: flex;
-  flex-direction: column;
-  width: var(--sidebar-w);
-  height: 100vh;
-  flex: 0 0 var(--sidebar-w);
-  border-right: 1px solid var(--line);
-  background: linear-gradient(180deg, var(--surface) 0%, var(--bg) 62%);
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-3);
-  padding: var(--sp-4) var(--sp-4) var(--sp-4) var(--sp-5);
-  border-bottom: 1px solid var(--line);
-  min-height: var(--topbar-h);
-}
-
-.brand-mark {
-  display: grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  flex: 0 0 30px;
-  border: 1px solid var(--accent-line);
-  background: var(--accent-wash);
-  color: var(--accent);
-  font-family: var(--ff-display);
-  font-weight: 700;
-  font-size: 15px;
-  letter-spacing: -0.02em;
-}
-
-.brand-text {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  line-height: 1.25;
-}
-
-.brand-name {
-  font-family: var(--ff-display);
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  white-space: nowrap;
-}
-
-.brand-meta {
-  font-family: var(--ff-mono);
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  color: var(--text-3);
-  text-transform: uppercase;
-}
-
-.sidebar-close {
-  display: none;
-  margin-left: auto;
-  border: 0;
-  background: none;
-  color: var(--text-3);
-  font-size: 14px;
-  cursor: pointer;
-  padding: 4px 6px;
-}
-
-.nav-search {
-  padding: var(--sp-3) var(--sp-4);
-  border-bottom: 1px solid var(--line-soft);
-}
-
-.nav-search-input {
-  width: 100%;
-  height: 32px;
-  padding: 0 10px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--surface-2);
-  color: var(--text);
-  font-family: var(--ff-mono);
-  font-size: var(--fs-sm);
-}
-.nav-search-input::placeholder {
-  color: var(--text-3);
-}
-.nav-search-input:focus {
-  outline: none;
-  border-color: var(--accent-line);
-  background: var(--surface-3);
-}
-
-.nav {
-  flex: 1;
-  overflow-y: auto;
-  padding: var(--sp-3) 0 var(--sp-6);
-}
-
-.nav-app {
-  display: block;
-  margin: 2px var(--sp-3);
-  padding: 7px 12px;
-  border: 1px solid transparent;
-  border-radius: var(--radius);
-  font-size: 13.5px;
-  color: var(--text-2);
-  transition:
-    color var(--dur-1),
-    background var(--dur-1);
-}
-.nav-app:hover {
-  color: var(--text);
-  background: var(--surface-2);
-}
-.nav-app.active {
-  color: var(--text);
-  background: var(--surface-3);
-  border-color: var(--line);
-}
-
-.nav-group {
-  margin-top: var(--sp-4);
-}
-
-.nav-group-title {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 0 var(--sp-4) 6px var(--sp-5);
-  font-family: var(--ff-mono);
-  font-size: 10px;
-  font-weight: 400;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--text-3);
-}
-.nav-group-title .idx {
-  color: var(--accent);
-  opacity: 0.85;
-}
-.nav-group-title .sub {
-  color: var(--text-2);
-  letter-spacing: 0.06em;
-}
-.nav-group-title .count {
-  margin-left: auto;
-  padding: 0 5px;
-  border: 1px solid var(--line);
-  border-radius: 2px;
-  font-size: 9.5px;
-  color: var(--text-3);
-}
-
-.nav-group.is-hot .nav-group-title .idx {
-  color: var(--accent-2);
-}
-
-.nav-group-items {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  padding: 0 var(--sp-3);
-}
-
-.nav-link {
-  position: relative;
-  display: block;
-  padding: 5px 12px 5px 20px;
-  border-radius: var(--radius);
-  font-size: 13px;
-  color: var(--text-2);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  transition:
-    color var(--dur-1),
-    background var(--dur-1);
-}
-.nav-link::before {
-  content: "";
-  position: absolute;
-  left: 6px;
-  top: 50%;
-  width: 4px;
-  height: 1px;
-  background: var(--line-strong);
-  transition: all var(--dur-1);
-}
-.nav-link:hover {
-  color: var(--text);
-  background: var(--surface-2);
-}
-.nav-link.active {
-  color: var(--accent);
-  background: var(--accent-wash);
-}
-.nav-link.active::before {
-  width: 8px;
-  background: var(--accent);
-}
-
-.nav-empty {
-  margin: var(--sp-4) var(--sp-5);
-  font-size: var(--fs-sm);
-  color: var(--text-3);
-}
-
-.nav-scrim {
-  display: none;
-}
-
+/* ---------- 外壳（侧栏/顶栏/主区）已迁到 shell.css —— 本文件只留页面级样式 ---------- */
 /* ---------- 5. 通用排版 ---------- */
 .page-header {
   margin-bottom: var(--sp-6);

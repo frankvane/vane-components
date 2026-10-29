@@ -1,6 +1,8 @@
 node_modules/
 dist/
 demo-dist/
+# 根 build:demo 的聚合产物（各包 demo 构建后聚合到这里，见 scripts/build-demos.mjs）
+demos/
 *.tsbuildinfo
 .turbo/
 docs/.vitepress/cache/

@@ -210,6 +210,13 @@
     "vitest": "^2.1.9"
   },
   "vane": {
+    "demo": {
+      "brand": "V",
+      "subtitle": "排版台 / plugin index",
+      "title": "瀑布流排版台",
+      "accent": "#ccf24b",
+      "bg": "#080a09"
+    },
     "sizeBudgetKb": 14,
     "coreSizeBudgetKb": 12
   },

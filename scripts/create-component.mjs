@@ -6,9 +6,11 @@
  *  1. 复制 packages/templates/plugin-component → packages/<pkg>
  *  2. 替换占位符（含目录名 __NAME__Plugin → XxxPlugin）
  *  3. 生成 docs/components/<pkg>/ 文档骨架
+ *  4. 跑 sync-demo-shell.mjs 生成标准 demo 外壳（模板里不存副本）
  */
 import { cp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
+import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -60,6 +62,7 @@ const replacements = {
   __NAME_KEBAB__: kebab,
   __NAME__: pascal,
   __UMD_NAME__: umd,
+  __BRAND__: pascal.charAt(0),
   __TITLE__: title,
   __DESC__: desc,
 };
@@ -110,6 +113,17 @@ const tplFile = path.join(target, "package.json.tpl");
 if (existsSync(tplFile)) {
   await cp(tplFile, path.join(target, "package.json"));
   await rm(tplFile);
+}
+
+// demo 外壳（骨架 / 顶栏 / 侧栏 / 示例导航 / 兜底）不随模板复制，
+// 一律由唯一真源 packages/templates/demo-shell 生成，避免第 N 份副本漂移。
+console.log("生成标准 demo 外壳 ...");
+const sync = spawnSync(process.execPath, [path.join(root, "scripts", "sync-demo-shell.mjs")], {
+  cwd: root,
+  stdio: "inherit",
+});
+if (sync.status !== 0) {
+  console.warn("  ⚠ demo 外壳生成失败，请手动运行 node scripts/sync-demo-shell.mjs");
 }
 
 // 文档骨架

@@ -3,16 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
     <meta name="theme-color" content="#0b0a09" />
-    <meta
-      name="description"
-      content="vane-lazy-image 插件化 React 图片懒加载组件库的实时演示台：参数调优、运行时观测与组合装配。"
-    />
-    <title>vane-lazy-image · 插件演示台</title>
-    <!-- 内联 SVG 图标：与侧栏品牌方块同色，顺带消掉 /favicon.ico 的 404 -->
+    <meta name="description" content="vane-lazy-image 的实时演示台：高性能 React 图片懒加载组件：插件化架构、领域插件、商品图集引擎（gallery 子路径）、ObserverPool/GlobalContext 性能工程全部页面可调可选、源码可复制。" />
+    <title>vane-lazy-image · 图片懒加载演示台</title>
+    <!-- 统一 favicon：品牌字 + 各包主题色（由 scripts/sync-demo-shell.mjs 生成，禁止手改） -->
     <link
       rel="icon"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23ff7a29'/%3E%3Cpath d='M8 9h4.6l3.4 9.2L19.4 9H24l-6.2 15h-3.6L8 9Z' fill='%230b0a09'/%3E%3C/svg%3E"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23ff7a29'/%3E%3Ctext x='16' y='22.5' text-anchor='middle' font-family='system-ui,-apple-system,sans-serif' font-size='17' font-weight='700' fill='%230b0a09'%3EV%3C/text%3E%3C/svg%3E"
     />
     <!-- 首屏底色内联，避免暗色站点在 CSS 到达前闪白 -->
     <style>
@@ -23,12 +21,11 @@
       body {
         margin: 0;
         background: #0b0a09;
-        color: #f2ede4;
       }
     </style>
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/demo/src/main.tsx"></script>
+    <script type="module" src="./src/main.tsx"></script>
   </body>
 </html>

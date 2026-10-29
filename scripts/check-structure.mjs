@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * 结构标准化校验门禁（P0 落地，配合 STRUCTURE-STANDARDIZATION-PLAN.md）。
+ * 结构标准化校验门禁（P0 落地，配合 tasks/24-结构标准化实施计划.md）。
  *
  * 检查维度（与计划文档第 5 节验收清单 A/B/C 对应）：
  *   A1 入口聚合：src/entries/{core,plugins}.ts 存在（canonical 聚合范式）

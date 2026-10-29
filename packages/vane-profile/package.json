@@ -108,6 +108,13 @@
   "author": "Frank Vane",
   "license": "MIT",
   "vane": {
+    "demo": {
+      "brand": "V",
+      "subtitle": "个人主页 / plugin index",
+      "title": "个人主页引擎",
+      "accent": "#ccf24b",
+      "bg": "#080a09"
+    },
     "sizeBudgetKb": 3.5,
     "sizeBudgetNote": "根入口含个人主页引擎三件套：ProfileCore + withPlugins 装配器 + 领域槽 slots。withPlugins 必须包 ProfileSlotProvider，ProfileCore 又消费 slots，故 slots 无法从根导入图剥离，根 gzip 实测约 3.0KB。规划文档的 2.5KB 为组件实现前的乐观估计。与家族其他根入口对齐（vane-card 6.8/12KB、vane-waterfall 11.1/14KB），装配器均置于根入口。9 个官方插件仍严格走子路径 ./custom-plugins/*（ADR-6 严格），不进根入口；其中 BannerSlot/StatRow/TabSync/VerifyBadge/FollowEcho 走首发 5 槽，BioSlot/SocialLinks/TagList 走新增 renderBioArea 槽，WorksGrid 走新增 renderContentArea 槽。"
   },

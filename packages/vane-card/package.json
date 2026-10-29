@@ -210,6 +210,13 @@
     "vitest": "^2.1.9"
   },
   "vane": {
+    "demo": {
+      "brand": "C",
+      "subtitle": "卡片排版台 / plugin index",
+      "title": "卡片排版台",
+      "accent": "#ccf24b",
+      "bg": "#080a09"
+    },
     "sizeBudgetKb": 12,
     "coreSizeBudgetKb": 5,
     "fullSizeBudgetKb": 52,
