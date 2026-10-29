@@ -40,16 +40,16 @@ export default function BottomImageLayout() {
       containerStyle={{ background: "#fff", borderRadius: 12, overflow: "hidden" }}
     >
       <div style={{ padding: "14px 14px 10px", display: "grid", gap: 6 }}>
-        <div style={{ fontSize: 11, letterSpacing: "0.08em", color: "#9aa08c" }}>
+        <div style={{ fontSize: 11, letterSpacing: "0.08em", color: "#5f6553" }}>
           {TEE.brand}
         </div>
         <div style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.35 }}>{TEE.title}</div>
-        <div style={{ fontSize: 12, color: "#8a8a8a", lineHeight: 1.5 }}>{TEE.subtitle}</div>
+        <div style={{ fontSize: 12, color: "#6b6b6b", lineHeight: 1.5 }}>{TEE.subtitle}</div>
         <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginTop: 2 }}>
           <b style={{ fontSize: 20, color: "#d0021b", fontVariantNumeric: "tabular-nums" }}>
             ¥{TEE.price}
           </b>
-          <span style={{ fontSize: 11, color: "#9aa08c" }}>起</span>
+          <span style={{ fontSize: 11, color: "#5f6553" }}>起</span>
         </div>
       </div>
       <img

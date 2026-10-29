@@ -3,12 +3,15 @@
   对比度体检（demo 站专用，dev-only）
 
   用法：先 node scripts/serve-demo.cjs demos 3350（build-demos 会把本文件复制成 demos/_audit.html）
-    http://127.0.0.1:3350/_audit.html?pkg=vane-sku&slugs=quickstart,full-combo,quantity
-  输出：逐页列出舞台内所有文本节点里对比度 < 4.5 的项（WCAG AA 正文线），按差序排。
+    http://127.0.0.1:3350/_audit.html?pkg=vane-card              # 自动发现该包全部页面
+    http://127.0.0.1:3350/_audit.html?pkg=vane-sku&paths=/demo/full-combo,/demo/quantity
 
-  为什么要在 iframe 里跑：要读 getComputedStyle 就必须同源；
-  为什么不截图判断：截图的观感受显示器/缩放影响，对比度必须算。
-  已知豁免：禁用态（WCAG 1.4.3）只需 ≥3:1，故 3.x 的禁用按钮不算失败。
+  输出：逐页列出「主内容区」里所有文本节点中对比度 < 4.5 的项（WCAG AA 正文线）。
+
+  为什么必须在 iframe 里跑：要读 getComputedStyle 就得同源。
+  为什么遍历文本节点而不是元素：按钮常是「img + 文本」或「多段子元素」，
+  按元素取会把最常出问题的标签整体漏掉（这一条曾让 sku 的 1.63:1 漏检）。
+  已知豁免：禁用态（WCAG 1.4.3）只需 ≥3:1，报告里单独标出 "禁用"。
 -->
 <html lang="zh-CN">
   <head>
@@ -17,21 +20,59 @@
     <style>
       body { margin: 0; background: #111; color: #eee; font: 11px/1.5 monospace; }
       #out { padding: 8px 10px; white-space: pre; }
-      iframe { width: 100%; height: 260px; border: 0; }
+      iframe { width: 420px; height: 240px; border: 0; opacity: 0.35; }
+      .ok { color: #7fffa0; }
       .bad { color: #ff8a7a; }
     </style>
   </head>
   <body>
     <div id="out">auditing...</div>
-    <iframe id="fr" style="width: 420px"></iframe>
+    <iframe id="fr"></iframe>
     <script type="module">
       const q = new URLSearchParams(location.search);
-      const SLUGS = (q.get("slugs") ?? "").split(",").map((s) => s.trim()).filter(Boolean);
       const PKG = q.get("pkg") ?? "vane-sku";
-      const fr = document.getElementById("fr");
+      const FIXED = q.get("paths");
       const out = [];
+      const log = () => (document.getElementById("out").textContent = out.join("\n"));
 
       const rgb = (s) => (s.match(/\d+(\.\d+)?/g) || []).slice(0, 3).map(Number);
+      /** 解析成 [r,g,b,a]；computedStyle 里 backgroundColor/color 可能是 rgba 带 alpha */
+      const rgba = (s) => {
+        const m = s.match(/[\d.]+/g);
+        if (!m || m.length < 3) return null;
+        const [r, g, b, a = 1] = m.map(Number);
+        return [r, g, b, a];
+      };
+      const hex = ([r, g, b]) =>
+        "#" + [r, g, b].map((v) => Math.round(v).toString(16).padStart(2, "0")).join("");
+
+      /**
+       * 从元素向上把背景**逐层合成**成实际颜色。
+       * 只取「最近的、非透明的那一层」是不够的：半透明底色（rgba(...,.12)）会被
+       * 当成不透明色，于是 accent 色文字 vs accent 色淡底被判成 1:1 假阳性。
+       *
+       * 背景一旦涉及 background-image（照片、渐变遮罩），计算样式就给不出真实
+       * 底色 —— 这时候判对比度只能靠猜，所以直接标 unknown 跳过。
+       */
+      function resolveBg(el, w) {
+        const layers = [];
+        let image = false;
+        for (let n = el; n; n = n.parentElement) {
+          const cs = w.getComputedStyle(n);
+          if (cs.backgroundImage && cs.backgroundImage !== "none") image = true;
+          const c = rgba(cs.backgroundColor);
+          if (c && c[3] > 0) {
+            layers.push(c);
+            if (c[3] >= 1) break;
+          }
+        }
+        let out = [255, 255, 255];
+        for (let i = layers.length - 1; i >= 0; i--) {
+          const [r, g, b, a] = layers[i];
+          out = [r * a + out[0] * (1 - a), g * a + out[1] * (1 - a), b * a + out[2] * (1 - a)];
+        }
+        return { color: out, image };
+      }
       const lum = ([r, g, b]) => {
         const f = (v) => (v / 255 <= 0.03928 ? v / 255 / 12.92 : ((v / 255 + 0.055) / 1.055) ** 2.4);
         return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
@@ -41,25 +82,79 @@
         return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
       };
       const blend = (fg, bg, alpha) => fg.map((v, i) => v * alpha + bg[i] * (1 - alpha));
-
       const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
-      async function measure(slug) {
-        // 换 hash 不会触发 load，必须重建 iframe 才能拿到「新页面已就绪」的信号
+      /**
+       * 给出「最近的达标色」：亮底往上压深、暗底往上提亮，按 2% 步进找到第一个合格值。
+       * 只是为了给出可执行的替换建议，不会自动改代码。
+       */
+      function suggest(fg, bg, need) {
+        if (need > 21) return null;
+        const target = lum(bg) > 0.18 ? 0 : 255;
+        for (let t = 0; t <= 1.0001; t += 0.02) {
+          const c = fg.map((v) => v + (target - v) * t);
+          if (contrast(c, bg) >= need) return hex(c);
+        }
+        return null;
+      }
+
+      /** 每次都用全新的 iframe：换 hash 不会触发 load，旧 frame 拿不到「已就绪」信号 */
+      async function open(hash) {
         const old = document.getElementById("fr");
         const frame = document.createElement("iframe");
         frame.id = "fr";
-        frame.style.cssText = "width:420px;height:260px;border:0";
         old.replaceWith(frame);
         const loaded = new Promise((r) => frame.addEventListener("load", r, { once: true }));
-        frame.src = "/" + PKG + "/#/demo/" + slug;
+        frame.src = "/" + PKG + "/" + hash;
         await loaded;
-        await wait(1200);
+        await wait(1100);
+        return frame;
+      }
+
+      /** 展开所有折叠的示例分组，再把页面里所有内部路由链接收出来 */
+      async function discover() {
+        if (FIXED) return FIXED.split(",").map((s) => s.trim()).filter(Boolean);
+        const frame = await open("");
+        const d = frame.contentDocument;
+        for (const btn of d.querySelectorAll("button.nav-group-head[aria-expanded=false]")) btn.click();
+        await wait(400);
+        const paths = new Set();
+        for (const a of d.querySelectorAll('a[href*="#"]')) {
+          const href = a.getAttribute("href") || "";
+          if (href.startsWith("#/")) paths.add(href.slice(1));
+        }
+        return [...paths].sort();
+      }
+
+      /** 给元素拼一个够定位的短路径：tag.class.class */
+      function brief(el) {
+        const cls = [...el.classList].slice(0, 2).join(".");
+        return el.tagName.toLowerCase() + (cls ? "." + cls : "");
+      }
+
+      function measure(frame) {
         const d = frame.contentDocument, w = frame.contentWindow;
-        const root = d.querySelector(".plate-body") || d.body;
+        /*
+         * 先把动画/过渡钉到终态再量。
+         * 入场动画（opacity 0 → 1）会让采样落在中间某一帧：同一次扫描里
+         * 有的 token 是 0.57、有的是 0.98，得出一堆根本不存在的「低对比度」。
+         * 无限动画（呼吸灯那种）finish() 会抛错，逐条吞掉即可。
+         */
+        try {
+          for (const a of d.getAnimations({ subtree: true })) {
+            try {
+              a.finish();
+            } catch {
+              /* 无限循环动画放弃 */
+            }
+          }
+        } catch {
+          /* 老浏览器没有 getAnimations */
+        }
+        const root = d.querySelector("main") || d.getElementById("root") || d.body;
         const bad = [];
-        // 遍历**文本节点**而不是元素：按钮里的文字是「img + 文本」，
-        // 按元素取会把这些（最常出问题的）标签整体漏掉。
+        let deco = 0;
+        let unknown = 0;
         const walker = d.createTreeWalker(root, NodeFilter.SHOW_TEXT);
         const seen = new Set();
         for (let n = walker.nextNode(); n; n = walker.nextNode()) {
@@ -68,47 +163,114 @@
           const el = n.parentElement;
           if (!el || seen.has(el)) continue;
           seen.add(el);
+          // aria-hidden 的子树是装饰：WCAG 1.4.3 只约束「传达信息的文字」，
+          // 星级这类纯装饰不做对比度要求（评分值另有文字与 aria-label 承担）
+          if (el.closest('[aria-hidden="true"]')) {
+            deco += 1;
+            continue;
+          }
           const cs = w.getComputedStyle(el);
           if (cs.visibility === "hidden" || cs.display === "none") continue;
           if (parseFloat(cs.opacity) === 0) continue;
-          let bgEl = el, bg = "rgba(0, 0, 0, 0)";
-          while (bgEl && (bg === "rgba(0, 0, 0, 0)" || bg === "transparent")) {
-            bg = w.getComputedStyle(bgEl).backgroundColor;
-            bgEl = bgEl.parentElement;
+          // sr-only（屏幕阅读器专用）用的是 1px + clip 的写法：视觉上不存在，不该量
+          const rect = el.getBoundingClientRect();
+          if (rect.width <= 1 && rect.height <= 1) continue;
+          const fgC = rgba(cs.color);
+          if (!fgC) continue;
+          const { color: bgc, image } = resolveBg(el, w);
+          // 背景是照片/渐变：底色不可判定，跳过并计数（不猜）
+          if (image) {
+            unknown += 1;
+            continue;
           }
-          if (bg === "rgba(0, 0, 0, 0)") continue;
-          const fg = rgb(cs.color), bgc = rgb(bg);
           const op = parseFloat(cs.opacity);
-          const c = contrast(blend(fg, bgc, op).map(Math.round), bgc);
-          if (c < 4.5) {
-            bad.push({ c: +c.toFixed(2), txt: txt.slice(0, 22), op, disabled: el.disabled === true });
+          // 祖先链上的 opacity 要乘进来：常见写法是「整卡 opacity:.6」，
+          // 单看文本元素自己是 1，漏掉就把低对比度放过去了。
+          let opChain = 1;
+          for (let p = el; p && p !== root.parentElement; p = p.parentElement) {
+            opChain *= parseFloat(w.getComputedStyle(p).opacity);
+          }
+          // 文字自身 alpha 也要乘（color: rgba(...,.6) 同样压对比度）
+          const alpha = fgC[3] * opChain;
+          const fg = fgC.slice(0, 3);
+          const c = contrast(blend(fg, bgc, alpha).map(Math.round), bgc);
+          const disabled = el.disabled === true || el.closest("[disabled]") !== null;
+          // 禁用态按 3:1 判；正文按 4.5:1 判
+          if (c < (disabled ? 3 : 4.5)) {
+            const need = disabled ? 3 : 4.5;
+            bad.push({
+              c: +c.toFixed(2),
+              txt: txt.slice(0, 28),
+              op,
+              opChain: +opChain.toFixed(2),
+              disabled,
+              fg: hex(fg),
+              // 只报 fg 会丢掉 alpha，看起来就成了「#1c1a17 压 #fbfaf7 怎么会 4.48」
+              // —— 实际是 rgba(...,0.6)。把算进对比度的真实 alpha 一起落盘。
+              fgAlpha: +alpha.toFixed(2),
+              bg: hex(bgc),
+              fix: suggest(fg, bgc, need),
+              sel: brief(el),
+              // 就近 4 层祖先链 —— 定位「哪一个祖先带了 opacity」只能靠它
+              chain: (() => {
+                const s = [];
+                for (let p = el, i = 0; p && i < 8; p = p.parentElement, i++) s.push(brief(p));
+                return s.join(" < ");
+              })(),
+            });
           }
         }
         bad.sort((a, b) => a.c - b.c);
-        return bad;
+        return { bad, deco, unknown };
       }
 
-      for (const slug of SLUGS) {
-        let bad;
+      const paths = await discover();
+      out.push(`${PKG} · 发现 ${paths.length} 个页面`);
+      log();
+      const report = { pkg: PKG, pages: [] };
+      let badPages = 0, badCount = 0, decoTotal = 0, unknownTotal = 0;
+      for (const p of paths) {
+        let bad, deco = 0, unknown = 0;
         try {
-          bad = await measure(slug);
+          ({ bad, deco, unknown } = measure(await open("#" + p)));
         } catch (e) {
-          out.push(slug.padEnd(14) + " ERROR " + e.message);
+          out.push(`  ! ${p}  ${e.message}`);
+          log();
           continue;
         }
-        const head = slug.padEnd(14) + (bad.length ? " ✗ " + bad.length + " 处 <4.5" : " ✓ 全部 ≥4.5");
-        out.push(head);
-        for (const b of bad.slice(0, 5)) {
-          out.push(
-            "    " + String(b.c).padEnd(5) +
-            " op=" + String(b.op).padEnd(4) +
-            (b.disabled ? "禁用 " : "     ") + b.txt
-          );
+        decoTotal += deco;
+        unknownTotal += unknown;
+        report.pages.push({ path: p, items: bad, deco, unknown });
+        if (bad.length) {
+          badPages += 1;
+          badCount += bad.length;
+          out.push(`  ✗ ${p}  ${bad.length} 处`);
+          for (const b of bad.slice(0, 4)) {
+            out.push(
+              "      " + String(b.c).padEnd(5) +
+              " op=" + String(b.opChain).padEnd(4) +
+              (b.disabled ? "禁用 " : "     ") +
+              b.fg + "/" + b.bg + "  " + b.sel + "  " + b.txt
+            );
+          }
         }
-        document.getElementById("out").textContent = out.join("\n");
+        log();
       }
-      out.push("\n完成");
-      document.getElementById("out").textContent = out.join("\n");
+      out.push(`\n${PKG}: ${paths.length} 页 · ${badPages} 页有问题 · 共 ${badCount} 处` +
+        (decoTotal ? ` · 装饰性 ${decoTotal} 处已跳过（aria-hidden）` : "") +
+        (unknownTotal ? ` · 背景为图片/渐变 ${unknownTotal} 处未判定` : ""));
+      log();
+      try {
+        await fetch("/_audit-report", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(report),
+        });
+        out.push("（已回传 _audit-report.json）");
+      } catch (e) {
+        out.push("回传失败：" + e.message);
+      }
+      log();
     </script>
   </body>
 </html>

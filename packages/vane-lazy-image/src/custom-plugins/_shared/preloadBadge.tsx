@@ -26,7 +26,7 @@ export function createPreloadBadge(prefix: string, label: string): React.FC {
           position: "absolute",
           top: 8,
           left: 8,
-          background: "rgba(33,150,243,0.92)",
+          background: "#1565c0",
           color: "#fff",
           fontSize: 12,
           padding: "4px 8px",

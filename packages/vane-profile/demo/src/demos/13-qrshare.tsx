@@ -38,7 +38,7 @@ export default function Stage({ cfg }: DemoStageProps) {
     () =>
       withPlugins(ProfileCore, [
         createBannerSlotPlugin({
-          gradient: ["#6a11cb", "#2575fc"],
+          gradient: ["#6a11cb", "#1a5fd0"],
           avatar: AVATAR,
           overlay: SAMPLE_USER.name,
         }),

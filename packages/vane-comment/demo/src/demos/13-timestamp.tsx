@@ -48,7 +48,7 @@ export default function Stage({ log }: DemoStageProps) {
         onLike={(_id) => log("点赞")}
         mentions={MENTIONS}
       />
-      <p style={{ margin: "10px 0 0", fontSize: 11, opacity: 0.6 }}>
+      <p style={{ margin: "10px 0 0", fontSize: 11, color: "#5b6064" }}>
         只有绝对时间被装上：每条评论操作行多出一串 YYYY-MM-DD HH:mm 精确时间。
       </p>
     </div>

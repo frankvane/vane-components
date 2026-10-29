@@ -122,9 +122,13 @@ const PluginSandboxDemo: React.FC = () => {
             disabled={scenario === "unsafe"}
             style={{
               padding: "10px 20px",
-              background: scenario === "unsafe" ? "var(--text-3)" : "var(--danger)",
-              color: "white",
-              border: "none",
+              /*
+               * 语义色底一律配深墨字：--danger 是 #f2685e，白字 3.04:1；
+               * 选中/未选中都要成对给色，不能只顾底色。--text-inv 上是 6.5:1。
+               */
+              background: scenario === "unsafe" ? "var(--surface-3)" : "var(--danger)",
+              color: scenario === "unsafe" ? "var(--text)" : "var(--text-inv)",
+              border: scenario === "unsafe" ? "1px solid var(--line-strong)" : "1px solid transparent",
               borderRadius: "6px",
               cursor: scenario === "unsafe" ? "not-allowed" : "pointer",
               fontSize: "0.95em",
@@ -137,9 +141,10 @@ const PluginSandboxDemo: React.FC = () => {
             disabled={scenario === "safe"}
             style={{
               padding: "10px 20px",
-              background: scenario === "safe" ? "var(--text-3)" : "var(--ok)",
-              color: "white",
-              border: "none",
+              /* 同上：--ok #7fd08c 上的白字只有 1.86:1，深墨字是 10.6:1 */
+              background: scenario === "safe" ? "var(--surface-3)" : "var(--ok)",
+              color: scenario === "safe" ? "var(--text)" : "var(--text-inv)",
+              border: scenario === "safe" ? "1px solid var(--line-strong)" : "1px solid transparent",
               borderRadius: "6px",
               cursor: scenario === "safe" ? "not-allowed" : "pointer",
               fontSize: "0.95em",
@@ -151,9 +156,10 @@ const PluginSandboxDemo: React.FC = () => {
             onClick={handleReset}
             style={{
               padding: "10px 20px",
-              background: "var(--text-3)",
-              color: "white",
-              border: "none",
+              /* 次级按钮：面 + 字成对，别拿 --text-2（文字令牌）当底色 */
+              background: "var(--surface-3)",
+              color: "var(--text)",
+              border: "1px solid var(--line-strong)",
               borderRadius: "6px",
               cursor: "pointer",
               fontSize: "0.95em",
@@ -245,7 +251,7 @@ const PluginSandboxDemo: React.FC = () => {
             padding: 16,
             background: "var(--text)",
             borderRadius: "8px",
-            color: "var(--line-strong)",
+            color: "var(--text-inv)",
             fontFamily: "monospace",
             fontSize: "0.85em",
             maxHeight: 200,
@@ -253,7 +259,9 @@ const PluginSandboxDemo: React.FC = () => {
           }}
         >
           {logs.length === 0 ? (
-            <div style={{ color: "var(--text-3)" }}>等待操作...</div>
+            /* 面板是反色的（底 var(--text) / 字 var(--text-inv)）；
+               空态也必须按反色给字，写 var(--text-2) 就是奶油压奶油（1.76:1） */
+            <div style={{ color: "#6e6861" }}>等待操作...</div>
           ) : (
             logs.map((log, i) => (
               <div key={i} style={{ marginBottom: 4 }}>

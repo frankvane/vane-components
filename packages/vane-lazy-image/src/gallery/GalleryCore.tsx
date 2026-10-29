@@ -136,6 +136,8 @@ export const GalleryCore = forwardRef<GalleryCoreRef, GalleryCoreProps>(
       minWidth: 0,
       height: mainHeight,
       background: "#f5f5f5",
+      /* 浅色画布自带深色文字：否则深色宿主下继承来的浅字在 #f5f5f5 上等于隐形 */
+      color: "#4a4a4a",
       overflow: "hidden",
     };
 

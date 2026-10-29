@@ -76,7 +76,7 @@ export const createInventoryPlugin: PluginCreator<any, InventoryPluginConfig> = 
                   position: "absolute",
                   top: 8,
                   left: 8,
-                  background: "#FF9800",
+                  background: "#b35c00",
                   color: "#fff",
                   padding: "4px 8px",
                   fontSize: 12,

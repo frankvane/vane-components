@@ -66,7 +66,7 @@ export default function BannerLayout() {
             fontSize: 10,
             letterSpacing: "0.18em",
             textTransform: "uppercase",
-            color: "#7c8368",
+            color: "#565c48",
             border: "1px solid rgba(124, 131, 104, 0.4)",
             borderRadius: 999,
             padding: "3px 10px",
@@ -76,9 +76,9 @@ export default function BannerLayout() {
         </span>
         <div style={{ fontSize: 26, fontWeight: 700, lineHeight: 1.2, letterSpacing: "-0.01em" }}>
           轻装出发
-          <span style={{ color: "#7c8368" }}> · 满 399 减 60</span>
+          <span style={{ color: "#565c48" }}> · 满 399 减 60</span>
         </div>
-        <div style={{ fontSize: 13, color: "#6f7563", lineHeight: 1.6 }}>
+        <div style={{ fontSize: 13, color: "#545a48", lineHeight: 1.6 }}>
           1.9kg 铝合金折叠椅，收起来 38cm。活动到 8 月 31 日。
         </div>
         <div style={{ display: "flex", gap: 10, marginTop: 6 }}>

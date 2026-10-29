@@ -5,6 +5,8 @@
  *   node scripts/serve-demo.cjs packages/vane-card/demo-dist 3305
  *
  * 只做三件事：SPA 回退到 index.html、按扩展名给 Content-Type、禁缓存（改完刷新即生效）。
+ * 额外提供一个 POST /_audit-report：对比度体检页（_audit.html）把结果回传落盘成
+ * _audit-report.json，供逐项判读。
  */
 const http = require("node:http");
 const fs = require("node:fs");
@@ -35,9 +37,40 @@ if (!fs.existsSync(root)) {
   process.exit(1);
 }
 
+const REPORT = path.join(root, "_audit-report.json");
+
 http
   .createServer((req, res) => {
     const urlPath = decodeURIComponent((req.url || "/").split("?")[0]);
+
+    // 体检回传：contrast-audit.html 跑完把结构化结果 POST 回来，落盘成 JSON。
+    // 浏览器里读不全（结果区是 pre 文本），落盘后才能逐项判读。dev-only。
+    if (req.method === "POST" && urlPath === "/_audit-report") {
+      let body = "";
+      req.on("data", (c) => (body += c));
+      req.on("end", () => {
+        let next;
+        try {
+          next = JSON.parse(body);
+        } catch {
+          res.writeHead(400).end("bad json");
+          return;
+        }
+        let all = {};
+        if (fs.existsSync(REPORT)) {
+          try {
+            all = JSON.parse(fs.readFileSync(REPORT, "utf8"));
+          } catch {
+            all = {};
+          }
+        }
+        all[next.pkg] = next;
+        fs.writeFileSync(REPORT, JSON.stringify(all, null, 2));
+        res.writeHead(200, { "Content-Type": "application/json" }).end('{"ok":true}');
+      });
+      return;
+    }
+
     let file = path.join(root, urlPath);
     // 目录穿越防护：解析后必须仍在 root 内
     if (!file.startsWith(root)) {

@@ -24,7 +24,7 @@ const chip = (active: boolean): React.CSSProperties => ({
   fontSize: 13,
   cursor: "pointer",
   background: active ? "rgba(29,161,242,0.16)" : "transparent",
-  color: active ? "#1da1f2" : "inherit",
+  color: active ? "#1565c0" : "inherit",
   opacity: active ? 1 : 0.7,
 });
 

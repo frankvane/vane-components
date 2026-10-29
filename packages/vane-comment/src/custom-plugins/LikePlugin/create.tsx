@@ -46,7 +46,7 @@ function LikeButton({
         gap: 4,
         border: "none",
         background: "transparent",
-        color: liked ? "#ff4d4f" : "inherit",
+        color: liked ? "#c62828" : "inherit",
         opacity: liked ? 1 : 0.7,
         cursor: "pointer",
         fontSize: 13,

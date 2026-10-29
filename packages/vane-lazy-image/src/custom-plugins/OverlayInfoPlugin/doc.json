@@ -9,7 +9,7 @@
   "config": [
     { "name": "content", "type": "string | ((context: LazyImageContext) => string)", "default": "\"\"", "description": "覆盖层文本；可传函数按 context 派生" },
     { "name": "position", "type": "\"top\" | \"bottom\" | \"center\"", "default": "\"bottom\"", "description": "文本位置" },
-    { "name": "background", "type": "string", "default": "transparent", "description": "背景色" },
+    { "name": "background", "type": "string", "default": "rgba(0,0,0,0.62)", "description": "背景色" },
     { "name": "color", "type": "string", "default": "#fff", "description": "文字颜色" },
     { "name": "fontSize", "type": "number", "default": "12", "description": "字号 px" },
     { "name": "padding", "type": "string", "default": "6px 10px", "description": "内边距" },
@@ -18,19 +18,19 @@
     { "name": "showWhen", "type": "\"always\" | \"loading\" | \"loaded\" | \"error\"", "default": "\"always\"", "description": "何时显示" },
     { "name": "trigger", "type": "\"always\" | \"hover\"", "default": "\"always\"", "description": "触发方式" }
   ],
-  "example": "// 底部信息条（常显）\nconst InfoImage = withPlugins(LazyLoadImageCore, [\n  createOverlayInfoPlugin({\n    content: \"来源：picsum.photos\",\n    position: \"bottom\",\n    background: \"rgba(0,0,0,0.45)\",\n    color: \"#fff\",\n  }),\n]);\n\n// 按加载状态动态文本\ncreateOverlayInfoPlugin({\n  content: (ctx) => ctx.imageState === \"loading\" ? \"加载中…\" : \"已加载\",\n  position: \"center\",\n});",
+  "example": "// 底部信息条（常显）\nconst InfoImage = withPlugins(LazyLoadImageCore, [\n  createOverlayInfoPlugin({\n    content: \"来源：picsum.photos\",\n    position: \"bottom\",\n    background: \"rgba(0,0,0,0.62)\",\n    color: \"#fff\",\n  }),\n]);\n\n// 按加载状态动态文本\ncreateOverlayInfoPlugin({\n  content: (ctx) => ctx.imageState === \"loading\" ? \"加载中…\" : \"已加载\",\n  position: \"center\",\n});",
   "examples": [
     {
       "name": "底部信息条（常显）",
       "description": "半透明黑底白字信息条，常显于底部。",
       "src": "https://picsum.photos/seed/overlay-bottom/600/400",
-      "config": { "content": "来源：picsum.photos", "position": "bottom", "background": "rgba(0,0,0,0.45)", "color": "#fff", "showWhen": "always", "trigger": "always" }
+      "config": { "content": "来源：picsum.photos", "position": "bottom", "background": "rgba(0,0,0,0.62)", "color": "#fff", "showWhen": "always", "trigger": "always" }
     },
     {
       "name": "悬停显示信息",
       "description": "平时干净，鼠标悬停时居中浮出提示文字。",
       "src": "https://picsum.photos/seed/overlay-hover/600/400",
-      "config": { "content": "悬停查看详情", "position": "center", "background": "rgba(0,0,0,0.5)", "color": "#fff", "showWhen": "always", "trigger": "hover" }
+      "config": { "content": "悬停查看详情", "position": "center", "background": "rgba(0,0,0,0.62)", "color": "#fff", "showWhen": "always", "trigger": "hover" }
     }
   ],
   "features": [

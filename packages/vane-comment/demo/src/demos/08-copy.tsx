@@ -48,7 +48,7 @@ export default function Stage({ log }: DemoStageProps) {
         onLike={(_id) => log("点赞")}
         mentions={MENTIONS}
       />
-      <p style={{ margin: "10px 0 0", fontSize: 11, opacity: 0.6 }}>
+      <p style={{ margin: "10px 0 0", fontSize: 11, color: "#5b6064" }}>
         只有复制被装上：点操作行的 📋复制，整条评论纯文本写入剪贴板（含 @提及）。
       </p>
     </div>

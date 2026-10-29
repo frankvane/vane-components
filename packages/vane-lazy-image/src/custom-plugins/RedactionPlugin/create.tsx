@@ -47,7 +47,7 @@ export function createRedactionPlugin(
                   top: `${b.y * 100}%`,
                   width: `${b.w * 100}%`,
                   height: `${b.h * 100}%`,
-                  background: b.color ?? "rgba(0,0,0,0.35)",
+                  background: b.color ?? "rgba(0,0,0,0.55)",
                   backdropFilter: b.blur ? `blur(${b.blur}px)` : undefined,
                   borderRadius: 6,
                 }}

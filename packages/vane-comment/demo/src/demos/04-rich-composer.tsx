@@ -98,7 +98,7 @@ export default function Stage({ cfg, log }: DemoStageProps) {
         onReport={(id) => log(`举报 ${id}`)}
         mentions={MENTIONS}
       />
-      <p style={{ margin: "10px 0 0", fontSize: 11, opacity: 0.6 }}>
+      <p style={{ margin: "10px 0 0", fontSize: 11, color: "#5b6064" }}>
         底部评论框：点 😊 选表情、🖼️ 传图、@ 提及好友，下方实时预览，发布后新评论置顶。
       </p>
     </div>

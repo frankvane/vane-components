@@ -48,7 +48,7 @@ export default function Stage({ log }: DemoStageProps) {
         onLike={(_id) => log("点赞")}
         mentions={MENTIONS}
       />
-      <p style={{ margin: "10px 0 0", fontSize: 11, opacity: 0.6 }}>
+      <p style={{ margin: "10px 0 0", fontSize: 11, color: "#5b6064" }}>
         只有计数被装上：顶栏出现「N 条评论」+ 热议标，数字等于当前可见评论数。
       </p>
     </div>

@@ -26,7 +26,6 @@ export function createLoginPromptPlugin<T = any>(): CommentPlugin<T> {
             gap: 8,
             padding: "10px 0",
             fontSize: 13,
-            opacity: 0.8,
           }}
         >
           <span>登录后参与评论，发表你的看法</span>
@@ -40,7 +39,7 @@ export function createLoginPromptPlugin<T = any>(): CommentPlugin<T> {
               borderRadius: 999,
               padding: "4px 14px",
               background: "transparent",
-              color: "#1da1f2",
+              color: "#1565c0",
               cursor: "pointer",
             }}
           >

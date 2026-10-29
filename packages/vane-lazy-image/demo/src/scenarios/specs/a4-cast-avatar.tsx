@@ -77,4 +77,4 @@ const RING: CSSProperties = {
   boxShadow: "0 6px 16px rgba(0,0,0,.45)",
 };
 const NAME: CSSProperties = { margin: 0, color: "#e9e4dc", fontSize: 12 };
-const ROLE: CSSProperties = { margin: "2px 0 0", color: "#807a70", fontSize: 10.5 };
+const ROLE: CSSProperties = { margin: "2px 0 0", color: "#8b9080", fontSize: 10.5 };

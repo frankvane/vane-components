@@ -55,7 +55,8 @@ function PriceTagOverlay({
     showSavings = false,
     style = {},
     animate = true,
-    backgroundColor = "#ff4757",
+    // 默认字色是白，所以底色要扛住 4.5:1：原来的 #ff4757 白字只有 3.34:1
+    backgroundColor = "#c62828",
     textColor = "#fff",
     fetchPrice,
     loadingText = "加载中...",

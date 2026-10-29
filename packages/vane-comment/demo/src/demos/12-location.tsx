@@ -50,7 +50,7 @@ export default function Stage({ log }: DemoStageProps) {
         onLike={(_id) => log("点赞")}
         mentions={MENTIONS}
       />
-      <p style={{ margin: "10px 0 0", fontSize: 11, opacity: 0.6 }}>
+      <p style={{ margin: "10px 0 0", fontSize: 11, color: "#5b6064" }}>
         只有地理位置被装上：第二条评论带了 location，操作行出现 📍上海·静安；其余不显示。
       </p>
     </div>

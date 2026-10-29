@@ -98,7 +98,7 @@ export function createSocialLinksPlugin<T = any>(
                       width: 18,
                       height: 18,
                       borderRadius: "50%",
-                      background: "#2575fc",
+                      background: "#1a5fd0",
                       color: "#fff",
                       fontSize: 10,
                       display: "inline-flex",

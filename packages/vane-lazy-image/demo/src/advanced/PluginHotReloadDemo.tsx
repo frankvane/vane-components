@@ -166,7 +166,7 @@ const PluginHotReloadDemo: React.FC = () => {
             </div>
           ))}
           {currentPlugins.length === 0 && (
-            <div style={{ color: "var(--text-3)", fontSize: "0.9em" }}>
+            <div style={{ color: "var(--text-2)", fontSize: "0.9em" }}>
               无激活插件
             </div>
           )}
@@ -182,7 +182,7 @@ const PluginHotReloadDemo: React.FC = () => {
             style={{
               padding: "10px 16px",
               background: "var(--ok)",
-              color: "white",
+              color: "var(--text-inv)",
               border: "none",
               borderRadius: "6px",
               cursor: "pointer",
@@ -196,7 +196,7 @@ const PluginHotReloadDemo: React.FC = () => {
             style={{
               padding: "10px 16px",
               background: "var(--danger)",
-              color: "white",
+              color: "var(--text-inv)",
               border: "none",
               borderRadius: "6px",
               cursor: "pointer",
@@ -210,7 +210,7 @@ const PluginHotReloadDemo: React.FC = () => {
             style={{
               padding: "10px 16px",
               background: "var(--warn)",
-              color: "white",
+              color: "var(--text-inv)",
               border: "none",
               borderRadius: "6px",
               cursor: "pointer",
@@ -223,9 +223,13 @@ const PluginHotReloadDemo: React.FC = () => {
             onClick={handleResetPlugins}
             style={{
               padding: "10px 16px",
-              background: "var(--text-3)",
-              color: "white",
-              border: "none",
+              /*
+               * 次级按钮用「深一档的面 + 浅字」，不要拿 --text-2 当底色：
+               * 那是文字令牌（#bdb4a8），白字压上去只有 2.05:1。
+               */
+              background: "var(--surface-3)",
+              color: "var(--text)",
+              border: "1px solid var(--line-strong)",
               borderRadius: "6px",
               cursor: "pointer",
               fontSize: "0.9em",
@@ -277,7 +281,7 @@ const PluginHotReloadDemo: React.FC = () => {
             padding: 16,
             background: "var(--text)",
             borderRadius: "8px",
-            color: "var(--line-strong)",
+            color: "var(--text-inv)",
             fontFamily: "monospace",
             fontSize: "0.85em",
             maxHeight: 250,
@@ -285,7 +289,9 @@ const PluginHotReloadDemo: React.FC = () => {
           }}
         >
           {logs.length === 0 ? (
-            <div style={{ color: "var(--text-3)" }}>等待操作...</div>
+            /* 面板是反色的（底 var(--text) / 字 var(--text-inv)）；
+               空态也必须按反色给字，写 var(--text-2) 就是奶油压奶油（1.76:1） */
+            <div style={{ color: "#6e6861" }}>等待操作...</div>
           ) : (
             logs.map((log, i) => (
               <div key={i} style={{ marginBottom: 4 }}>

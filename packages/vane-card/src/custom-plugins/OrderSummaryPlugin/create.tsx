@@ -80,7 +80,7 @@ export const createOrderSummaryPlugin: PluginCreator<any, OrderSummaryPluginConf
                   {appliedCoupon?.code && (
                     <>
                       <span>优惠券（{appliedCoupon.code}）</span>
-                      <span style={{ textAlign: "right", color: "#e53935" }}>- {formatCurrency(couponCut, cfg.currency, cfg.locale)}</span>
+                      <span style={{ textAlign: "right", color: "#c62828" }}>- {formatCurrency(couponCut, cfg.currency, cfg.locale)}</span>
                     </>
                   )}
                   {cfg.showTax && (
@@ -100,8 +100,8 @@ export const createOrderSummaryPlugin: PluginCreator<any, OrderSummaryPluginConf
             </div>
 
             <div style={{ marginTop: 8, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontSize: 12, color: "#888" }}>合计</span>
-              <span style={{ fontSize: 16, fontWeight: 800, color: "#1e88e5" }}>{formatCurrency(total, cfg.currency, cfg.locale)}</span>
+              <span style={{ fontSize: 12, color: "#6b6b6b" }}>合计</span>
+              <span style={{ fontSize: 16, fontWeight: 800, color: "#1565c0" }}>{formatCurrency(total, cfg.currency, cfg.locale)}</span>
             </div>
           </div>
         );
@@ -122,7 +122,7 @@ export const createOrderSummaryPlugin: PluginCreator<any, OrderSummaryPluginConf
           <div style={{ position: "absolute", bottom: 8, left: 8, right: 8, background: "rgba(255,255,255,0.95)", borderRadius: 8, padding: 8, zIndex: 10 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <span style={{ fontSize: 12, color: "#666" }}>合计</span>
-              <span style={{ fontSize: 16, fontWeight: 800, color: "#1e88e5" }}>{formatCurrency(total, cfg.currency, cfg.locale)}</span>
+              <span style={{ fontSize: 16, fontWeight: 800, color: "#1565c0" }}>{formatCurrency(total, cfg.currency, cfg.locale)}</span>
             </div>
           </div>
         );

@@ -51,7 +51,7 @@ export default function Stage({ log }: DemoStageProps) {
         onLike={(_id, n) => log(`点赞 ${n ? "取消" : "已点"}`)}
         mentions={MENTIONS}
       />
-      <p style={{ margin: "10px 0 0", fontSize: 11, opacity: 0.6 }}>
+      <p style={{ margin: "10px 0 0", fontSize: 11, color: "#5b6064" }}>
         只有举报被装上：点操作行的 🚩举报，选理由提交，事件写进右侧日志。
       </p>
     </div>

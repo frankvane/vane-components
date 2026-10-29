@@ -447,6 +447,19 @@ export const LazyLoadImageCore = forwardRef<
       overflow: "hidden",
       // Issue #1: 使用新的状态格式
       background: state.status === "error" ? "#fee" : "#f5f5f5",
+      /*
+       * 占位底色是浅色，就必须自带深色文字（ADR-13 第 5 条）。
+       * 不写的话，宿主是深色页面时占位区里的文字会继承浅色：
+       * #f2ede4 压在 #f5f5f5 上只有 1.07:1，「图片未加载」等于没写。
+       *
+       * 但这个墨色只在「我们自己定底色」时成立。宿主一旦通过 containerStyle
+       * 换掉了底色（深色卡片很常见），锁死的 #4a4a4a 会压到他们的深色面上
+       * （#4a4a4a / #171513 = 2.05:1）。此时交给宿主按同一条规则补 color，
+       * 缺省就继承页面文字色 —— 深底浅字也能读。
+       */
+      ...(containerStyle && (containerStyle.background || containerStyle.backgroundColor)
+        ? null
+        : { color: "#4a4a4a" }),
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
@@ -480,7 +493,11 @@ export const LazyLoadImageCore = forwardRef<
             zIndex: 2,
           }}
         >
-          <span style={{ color: "#999", fontSize: 12 }}>Loading...</span>
+          {/*
+           * 跟随容器色，不要写死 #6b6b6b：宿主把占位区改成深色面时
+           * （combo 页面的深色卡片就是），写死的深灰只有 3.42:1。
+           */}
+          <span style={{ color: "inherit", fontSize: 12 }}>Loading...</span>
         </div>
       )}
 

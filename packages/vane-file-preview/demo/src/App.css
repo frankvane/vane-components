@@ -996,7 +996,8 @@ h4 {
   gap: 2px;
   padding: 5px 6px;
   border-bottom: 1px solid rgba(28, 26, 23, 0.14);
-  background: rgba(255, 255, 255, 0.72);
+  /* 实底而不是半透明白：半透明叠在深色舞台上会变成灰底，深墨字就糊了 */
+  background: #fbfaf7;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -1010,7 +1011,7 @@ h4 {
   font-size: 9.5px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(28, 26, 23, 0.4);
+  color: #6f6d69;
   white-space: nowrap;
 }
 
@@ -1022,7 +1023,7 @@ h4 {
   border: 1px solid transparent;
   border-radius: 2px;
   background: transparent;
-  color: rgba(28, 26, 23, 0.62);
+  color: #5f5d58;
   font-family: var(--ff-mono);
   font-size: 11.5px;
   white-space: nowrap;
@@ -1051,7 +1052,8 @@ h4 {
   font-size: 9px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  opacity: 0.55;
+  /* 不叠 opacity：0.55 会把扩展名压成 2.4:1；这条也显式给色，不靠继承 */
+  color: #6f6d69;
 }
 
 /* 舞台脚注：字节数 / MIME / 状态 */
@@ -1067,7 +1069,7 @@ h4 {
   background: rgba(255, 255, 255, 0.72);
   font-family: var(--ff-mono);
   font-size: 10px;
-  color: rgba(28, 26, 23, 0.5);
+  color: #67655f;
 }
 .stage-foot b {
   color: var(--paper-ink);
@@ -1247,8 +1249,8 @@ h4 {
   color: var(--text-2);
 }
 .log-line time {
+  /* 时间戳是正文，不叠 opacity */
   color: var(--text-3);
-  opacity: 0.7;
 }
 .log-line span {
   word-break: break-word;
@@ -1535,7 +1537,7 @@ h4 {
   background: rgba(255, 255, 255, 0.72);
   font-family: var(--ff-mono);
   font-size: 9.5px;
-  color: rgba(28, 26, 23, 0.5);
+  color: #67655f;
 }
 .ws-tagline span:first-child {
   overflow: hidden;
@@ -1555,7 +1557,7 @@ h4 {
   font-family: var(--ff-mono);
   font-size: 10px;
   letter-spacing: 0.1em;
-  color: rgba(28, 26, 23, 0.35);
+  color: #74726d;
   background:
     repeating-linear-gradient(
       45deg,
@@ -1564,12 +1566,19 @@ h4 {
     );
 }
 
+/* 样本切换条自带浅底：它读起来是「工具条」而不是卡片的一部分。
+   不这么写的话，这条会落进深色卡片（--surface #121110），
+   而 .filebar-btn 的墨色是配浅底的 —— 上一版就是深底上压 #5f5d58（1.09:1）。 */
 .ws-files {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
   padding: 8px var(--sp-4);
   border-top: 1px solid var(--line-soft);
+  background: #fbfaf7;
+}
+.ws-files .filebar-btn {
+  color: #5f5d58;
 }
 
 .ws-config {
@@ -1639,8 +1648,8 @@ h4 {
   font-family: var(--ff-mono);
   font-size: 10px;
   font-weight: 400;
-  color: var(--text-3);
-  opacity: 0.7;
+  color: var(--text-2);
+  /* 不叠 opacity：--text-3 再乘 0.7 只有 3.9:1 */
 }
 .scn-tab:hover {
   color: var(--text);
@@ -1934,7 +1943,7 @@ h4 {
   font-family: var(--ff-mono);
   font-size: 8.5px;
   letter-spacing: 0.02em;
-  color: rgba(28, 26, 23, 0.6);
+  color: #5f5d58;
   text-transform: uppercase;
 }
 .attach-name {
@@ -1949,7 +1958,7 @@ h4 {
   display: block;
   font-family: var(--ff-mono);
   font-size: 10px;
-  color: rgba(28, 26, 23, 0.45);
+  color: #6f6d69;
   /* 长 MIME 是单个 token，不给省略就会顶出附件行（行是 grid，列已被 minmax(0,1fr) 收住） */
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1958,7 +1967,7 @@ h4 {
 .attach-plug {
   font-family: var(--ff-mono);
   font-size: 9.5px;
-  color: rgba(28, 26, 23, 0.4);
+  color: #6f6d69;
   white-space: nowrap;
 }
 
@@ -1977,7 +1986,7 @@ h4 {
   transition: border-color var(--dur-1);
 }
 .tile:hover {
-  border-color: rgba(28, 26, 23, 0.4);
+  border-color: #6f6d69;
 }
 .tile[aria-pressed="true"] {
   border-color: var(--accent);
@@ -2027,23 +2036,25 @@ h4 {
   align-items: center;
   gap: 8px;
   padding: 5px 0;
-  border-bottom: 1px solid rgba(28, 26, 23, 0.08);
+  /* 这一组是「暗面板里的映射表」，不是纸面表单：原配色是照纸面写的
+     （#4a4843 / --paper-ink 都是深墨），落进 --surface #121110 就只剩 1.09:1 */
+  border-bottom: 1px solid var(--line-soft);
   font-family: var(--ff-mono);
   font-size: 11px;
-  color: rgba(28, 26, 23, 0.7);
+  color: #bdb4a8;
 }
 .map-row b {
-  color: var(--paper-ink);
+  color: #f2ede4;
   font-weight: 400;
 }
 .map-row select {
   height: 24px;
-  border: 1px solid rgba(28, 26, 23, 0.2);
+  border: 1px solid var(--line-strong);
   border-radius: 2px;
-  background: #fff;
+  background: #1f1c18;
   font-family: var(--ff-mono);
   font-size: 11px;
-  color: var(--paper-ink);
+  color: #f2ede4;
 }
 
 .diff-grid {
@@ -2062,7 +2073,7 @@ h4 {
   background: var(--paper);
   font-family: var(--ff-mono);
   font-size: 10px;
-  color: rgba(28, 26, 23, 0.6);
+  color: #5f5d58;
 }
 
 .version-row {
@@ -2074,7 +2085,12 @@ h4 {
   background: #fff;
   font-family: var(--ff-mono);
   font-size: 11px;
-  color: rgba(28, 26, 23, 0.6);
+  color: #5f5d58;
+}
+/* 白底行里的按钮必须换深墨：.btn 的默认字色是 --text（暖白），压在白底只有 1.17:1 */
+.version-row .btn {
+  color: var(--paper-ink);
+  border-color: rgba(28, 26, 23, 0.2);
 }
 .version-row[aria-pressed="true"] {
   border-color: var(--accent);
@@ -2197,4 +2213,15 @@ h4 {
     animation-duration: 0.001ms !important;
     transition-duration: 0.001ms !important;
   }
+}
+
+/* ============================================================
+   原生下拉列表
+   ------------------------------------------------------------
+   <select> 的展开列表由系统渲染（白底），而站内是深色主题、select 本身
+   常带白字 —— 不显式给 option 配色，列表就是「白字压白底」（实测 1:1，190 处）。
+   ============================================================ */
+select option {
+  color: #1c1a17;
+  background: #fff;
 }

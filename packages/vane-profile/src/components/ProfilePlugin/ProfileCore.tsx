@@ -71,6 +71,13 @@ const ProfileCore = forwardRef<ProfileCoreRef, ProfileCoreProps>(
           // position/box-sizing 是功能性的（领域槽浮层靠它定位），不引 style.css 也保留内联
           position: "relative",
           boxSizing: "border-box",
+          /*
+           * 根节点自带底色和文字色（ADR-13 第 5 条：内联了背景就得内联字色，容器同理）。
+           * 组件里的次级文字是按浅色底写的（#555 / #888），宿主是深色页面时若不给底色，
+           * tab 栏会变成「#080a09 上的 #555」—— 2.66:1，等于看不见。
+           */
+          background: "#fff",
+          color: "#1f2328",
           ...containerStyle,
         }}
       >

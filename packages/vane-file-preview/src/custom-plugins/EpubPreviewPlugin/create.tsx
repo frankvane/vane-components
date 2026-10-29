@@ -442,7 +442,7 @@ function EpubToolbar({
         下载
       </ToolbarButton>
       {config.showToc && (
-        <span style={{ fontSize: 11, color: "#c0c4cc" }}>左上角 ☰ 打开目录</span>
+        <span style={{ fontSize: 11, color: "#6b6b6b" }}>左上角 ☰ 打开目录</span>
       )}
     </ToolbarContainer>
   );

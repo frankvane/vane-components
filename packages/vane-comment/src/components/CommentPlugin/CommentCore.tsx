@@ -67,7 +67,13 @@ const CommentCore = forwardRef<CommentCoreRef, CommentCoreProps>(
         style={{
           position: "relative",
           boxSizing: "border-box",
-          color: "inherit",
+          /*
+           * 根节点自带浅底 + 深字（ADR-13 第 5 条）。
+           * 组件里的次级文字是按浅色底配的（时间戳 #6b6b6b、链接 #1565c0），
+           * 原来写 color:"inherit"：宿主深色页面上这套配色直接跌到 2.8–3.7:1。
+           */
+          background: "#fff",
+          color: "#1f2328",
           fontFamily: "inherit",
           ...containerStyle,
         }}
@@ -81,7 +87,7 @@ const CommentCore = forwardRef<CommentCoreRef, CommentCoreProps>(
         {list.length === 0 && !loading ? (
           <div
             className="vc-empty"
-            style={{ padding: "24px 0", textAlign: "center", opacity: 0.55 }}
+            style={{ padding: "24px 0", textAlign: "center", color: "#6b6b6b" }}
           >
             {emptyText}
           </div>
@@ -96,7 +102,7 @@ const CommentCore = forwardRef<CommentCoreRef, CommentCoreProps>(
         {loading && (
           <div
             className="vc-loading"
-            style={{ padding: "12px 0", textAlign: "center", opacity: 0.55 }}
+            style={{ padding: "12px 0", textAlign: "center", color: "#6b6b6b" }}
           >
             加载中…
           </div>
@@ -160,7 +166,7 @@ function CommentItem({ comment, depth }: { comment: Comment; depth: number }) {
           {comment.author.verified && (
             <span
               title="认证用户"
-              style={{ color: "#1da1f2", fontSize: 12 }}
+              style={{ color: "#1565c0", fontSize: 12 }}
             >
               ✓
             </span>
@@ -172,7 +178,6 @@ function CommentItem({ comment, depth }: { comment: Comment; depth: number }) {
                 padding: "1px 6px",
                 borderRadius: 4,
                 background: "rgba(128,128,128,0.18)",
-                opacity: 0.85,
               }}
             >
               {comment.author.badge}
@@ -184,24 +189,24 @@ function CommentItem({ comment, depth }: { comment: Comment; depth: number }) {
                 fontSize: 11,
                 padding: "1px 6px",
                 borderRadius: 4,
-                color: "#ff8f00",
+                color: "#b35c00",
                 border: "1px solid rgba(255,143,0,0.4)",
               }}
             >
               置顶
             </span>
           )}
-          <span style={{ opacity: 0.5, marginLeft: "auto", fontSize: 12 }}>
+          <span style={{ color: "#6b6b6b", marginLeft: "auto", fontSize: 12 }}>
             {formatRelativeTime(comment.createdAt)}
           </span>
         </div>
 
         {deleted ? (
-          <div style={{ opacity: 0.45, fontSize: 13, fontStyle: "italic", marginTop: 2 }}>
+          <div style={{ color: "#6b6b6b", fontSize: 13, fontStyle: "italic", marginTop: 2 }}>
             该评论已删除
           </div>
         ) : pending ? (
-          <div style={{ opacity: 0.45, fontSize: 13, fontStyle: "italic", marginTop: 2 }}>
+          <div style={{ color: "#6b6b6b", fontSize: 13, fontStyle: "italic", marginTop: 2 }}>
             评论审核中
           </div>
         ) : (

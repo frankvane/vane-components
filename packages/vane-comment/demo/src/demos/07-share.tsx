@@ -48,7 +48,7 @@ export default function Stage({ log }: DemoStageProps) {
         onLike={(_id) => log("点赞")}
         mentions={MENTIONS}
       />
-      <p style={{ margin: "10px 0 0", fontSize: 11, opacity: 0.6 }}>
+      <p style={{ margin: "10px 0 0", fontSize: 11, color: "#5b6064" }}>
         只有分享被装上：点操作行的 🔗分享，链接写入剪贴板并提示「已复制链接」。
       </p>
     </div>

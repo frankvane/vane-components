@@ -68,4 +68,4 @@ const NAME: CSSProperties = {
   textOverflow: "ellipsis",
   whiteSpace: "nowrap",
 };
-const META: CSSProperties = { margin: "3px 0 0", color: "#807a70", fontSize: 11 };
+const META: CSSProperties = { margin: "3px 0 0", color: "#8b9080", fontSize: 11 };

@@ -55,4 +55,4 @@ export default function TieredQuality() {
 const STAGE: CSSProperties = { background: "#111014", padding: 16, borderRadius: 6 };
 const FIG: CSSProperties = { margin: "0 0 12px" };
 const CAP: CSSProperties = { color: "#8d857a", fontSize: 11, marginTop: 5 };
-const HINT: CSSProperties = { color: "#807a70", fontSize: 11.5, lineHeight: 1.7, margin: 0 };
+const HINT: CSSProperties = { color: "#8b9080", fontSize: 11.5, lineHeight: 1.7, margin: 0 };

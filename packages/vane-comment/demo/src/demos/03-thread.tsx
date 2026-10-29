@@ -102,7 +102,7 @@ export default function Stage({ cfg, log }: DemoStageProps) {
         onReport={(id) => log(`举报 ${id}`)}
         mentions={MENTIONS}
       />
-      <p style={{ margin: "10px 0 0", fontSize: 11, opacity: 0.6 }}>
+      <p style={{ margin: "10px 0 0", fontSize: 11, color: "#5b6064" }}>
         点任意评论的「回复」会弹出内联框；嵌套回复点开可看，深度由控件控制。
       </p>
     </div>

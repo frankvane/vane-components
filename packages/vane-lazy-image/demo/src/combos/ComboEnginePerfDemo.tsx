@@ -124,7 +124,7 @@ const Stat: React.FC<{ label: string; value: string }> = ({ label, value }) => (
     }}
   >
     <div style={{ fontSize: "1.5em", fontWeight: 700, color: "var(--signal)" }}>{value}</div>
-    <div style={{ fontSize: "0.8em", color: "var(--text-3)" }}>{label}</div>
+    <div style={{ fontSize: "0.8em", color: "var(--text-2)" }}>{label}</div>
   </div>
 );
 

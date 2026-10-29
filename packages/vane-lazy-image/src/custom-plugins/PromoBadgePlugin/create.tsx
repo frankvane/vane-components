@@ -16,16 +16,21 @@ export interface PromoBadgePluginConfig {
   style?: React.CSSProperties;
 }
 
+/*
+ * 每个预设都是「底 + 字」成对定死的（ADR-13 第 5 条）：
+ * 角标的字永远是白，所以底色必须自己扛住 4.5:1，不能拿品牌亮色直接上。
+ * 原先的 #4CAF50 / #FF5722 / #F44336 / #FF9800 / #2196F3 白字只有 2.2–3.7:1。
+ */
 const PRESETS: Record<
   string,
   { text: string; bg: string; color: string }
 > = {
-  new: { text: "NEW", bg: "#4CAF50", color: "#fff" },
-  hot: { text: "HOT", bg: "#FF5722", color: "#fff" },
-  sale: { text: "SALE", bg: "#F44336", color: "#fff" },
-  limited: { text: "LIMITED", bg: "#9C27B0", color: "#fff" },
-  bestseller: { text: "BEST", bg: "#FF9800", color: "#fff" },
-  custom: { text: "NEW", bg: "#2196F3", color: "#fff" },
+  new: { text: "NEW", bg: "#2e7d32", color: "#fff" },
+  hot: { text: "HOT", bg: "#c4390f", color: "#fff" },
+  sale: { text: "SALE", bg: "#c62828", color: "#fff" },
+  limited: { text: "LIMITED", bg: "#6a1b9a", color: "#fff" },
+  bestseller: { text: "BEST", bg: "#b35c00", color: "#fff" },
+  custom: { text: "NEW", bg: "#1565c0", color: "#fff" },
 };
 
 const POSITIONS: Record<string, React.CSSProperties> = {

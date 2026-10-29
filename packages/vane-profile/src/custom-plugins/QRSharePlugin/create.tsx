@@ -56,7 +56,8 @@ function QRSharePanel({
           borderRadius: 999,
           fontSize: 12,
           border: "1px solid rgba(255,255,255,0.7)",
-          background: "rgba(0,0,0,0.35)",
+          /* 0.35 压在白底上只有 #a6a6a6（白字 2.44:1）—— 提到 0.55 才有 4.6:1 */
+          background: "rgba(0,0,0,0.55)",
           color: "#fff",
           cursor: "pointer",
           lineHeight: 1.6,
@@ -118,7 +119,7 @@ function QRSharePanel({
               padding: "4px 0",
               borderRadius: 6,
               border: "none",
-              background: "#2575fc",
+              background: "#1a5fd0",
               color: "#fff",
               fontSize: 12,
               cursor: "pointer",

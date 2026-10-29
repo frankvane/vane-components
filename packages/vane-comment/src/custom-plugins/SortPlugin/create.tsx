@@ -44,7 +44,7 @@ function SortBar({
               fontSize: 13,
               cursor: "pointer",
               background: isActive ? "rgba(29,161,242,0.16)" : "transparent",
-              color: isActive ? "#1da1f2" : "inherit",
+              color: isActive ? "#1565c0" : "inherit",
               opacity: isActive ? 1 : 0.7,
             }}
           >

@@ -80,13 +80,13 @@ function ReplyNode({
               {reply.author.badge}
             </span>
           )}
-          <span style={{ opacity: 0.45, marginLeft: 6, fontSize: 12 }}>
+          <span style={{ color: "#6b6b6b", marginLeft: 6, fontSize: 12 }}>
             {formatRelativeTime(reply.createdAt)}
           </span>
         </div>
         <div style={{ fontSize: 13, lineHeight: 1.5, marginTop: 1 }}>
           {deleted ? (
-            <span style={{ opacity: 0.45, fontStyle: "italic" }}>该评论已删除</span>
+            <span style={{ color: "#6b6b6b", fontStyle: "italic" }}>该评论已删除</span>
           ) : reply.content?.length ? (
             renderCommentContent(reply.content)
           ) : (
@@ -146,7 +146,7 @@ function ThreadView({
           style={{
             border: "none",
             background: "transparent",
-            color: "#1da1f2",
+            color: "#1565c0",
             cursor: "pointer",
             fontSize: 13,
             padding: 0,
@@ -236,7 +236,7 @@ function btnStyle(primary: boolean): React.CSSProperties {
     padding: "4px 14px",
     fontSize: 13,
     cursor: "pointer",
-    background: primary ? "#1da1f2" : "rgba(128,128,128,0.18)",
+    background: primary ? "#1565c0" : "rgba(128,128,128,0.18)",
     color: primary ? "#fff" : "inherit",
   };
 }

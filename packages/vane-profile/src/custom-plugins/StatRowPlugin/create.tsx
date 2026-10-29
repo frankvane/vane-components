@@ -69,7 +69,7 @@ export function createStatRowPlugin<T = any>(
                 <span
                   style={{
                     fontSize: 12,
-                    color: "#888",
+                    color: "#6b6b6b",
                     borderRight:
                       divider && direction === "row" && i < items.length - 1
                         ? "1px solid #eee"

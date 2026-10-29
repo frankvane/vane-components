@@ -119,7 +119,7 @@ const DEFS: Def[] = [
     group: "visual",
     make: () =>
       createBannerSlotPlugin({
-        gradient: ["#6a11cb", "#2575fc"],
+        gradient: ["#6a11cb", "#1a5fd0"],
         avatar: AVATAR,
         avatarRound: true,
         height: 160,

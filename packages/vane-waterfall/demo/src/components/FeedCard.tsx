@@ -87,13 +87,13 @@ export function FeedCard({
           {variant === "product" ? (
             <>
               <b className="wf-price">¥{card.price}</b>
-              <span className="wf-sep">·</span>
+              <span className="wf-sep" aria-hidden>·</span>
               {card.likes} 人收藏
             </>
           ) : (
             <>
               {card.author}
-              <span className="wf-sep">·</span>
+              <span className="wf-sep" aria-hidden>·</span>
               {timeAgo(card.minutesAgo)}
             </>
           )}

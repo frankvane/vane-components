@@ -353,7 +353,8 @@ function PagerButton({
         background: "#fff",
         fontSize: 12,
         cursor: disabled ? "not-allowed" : "pointer",
-        opacity: disabled ? 0.45 : 1,
+        /* 禁用态走 1.4.3 豁免（门槛 3:1）。.45 会把 #374151 压到 2.34:1，.6 是 3.55 */
+        opacity: disabled ? 0.6 : 1,
         color: "#374151",
       }}
     >

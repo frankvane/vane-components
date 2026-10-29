@@ -58,4 +58,4 @@ const LOCK: CSSProperties = {
   background: "rgba(0,0,0,.62)",
   border: "1px solid rgba(255,122,41,.4)",
 };
-const HINT: CSSProperties = { color: "#807a70", fontSize: 11.5, lineHeight: 1.7, marginTop: 10 };
+const HINT: CSSProperties = { color: "#8b9080", fontSize: 11.5, lineHeight: 1.7, marginTop: 10 };

@@ -296,6 +296,19 @@ function XmlBody({
           borderTop: "none",
         }}
       >
+        {/*
+         * 折叠指示符「...」的颜色是 react-xml-viewer 写死的内联 #777
+         * （dist 里唯一一处 777），theme 里没有对应开关。
+         * 深色主题下它压在 #0d1117 上只有 4.23:1，于是只能盖：
+         * 内联样式改不动，只能用属性选择器 + !important；只匹配这一个色值，
+         * 语法高亮（#79c0ff / #ffa657 / #a5d6ff）不会被波及。
+         */}
+        <style>{`
+          .rxv-container span[style*="rgb(119, 119, 119)"],
+          .rxv-container span[style*="#777"] {
+            color: #8b93a1 !important;
+          }
+        `}</style>
         <XmlViewer
           xml={state.xml}
           collapsible

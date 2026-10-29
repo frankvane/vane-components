@@ -62,7 +62,7 @@ export const createComparePricePlugin: PluginCreator<any, ComparePricePluginConf
           : undefined;
         return (
           <div style={{ padding: 12, borderTop: "1px dashed #eee" }}>
-            <div style={{ fontSize: 12, color: "#999", marginBottom: 6 }}>平台价格对比</div>
+            <div style={{ fontSize: 12, color: "#6b6b6b", marginBottom: 6 }}>平台价格对比</div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 6 }}>
               {list.map((c) => {
                 const isLowest = lowest?.name === c.name;
@@ -72,17 +72,17 @@ export const createComparePricePlugin: PluginCreator<any, ComparePricePluginConf
                 return (
                 <React.Fragment key={c.name}>
                   <div style={{ fontSize: 13, color: "#555" }}>{c.name}</div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: highlight ? "#388e3c" : "#333" }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: highlight ? "#2e7d32" : "#333" }}>
                     ¥{c.price}
                     {lowerThanOur && (
-                      <span title="低于当前价" style={{ marginLeft: 6, fontSize: 11, color: "#388e3c" }}>↓{Math.max(0, diff)}</span>
+                      <span title="低于当前价" style={{ marginLeft: 6, fontSize: 11, color: "#2e7d32" }}>↓{Math.max(0, diff)}</span>
                     )}
                   </div>
                 </React.Fragment>
               );})}
             </div>
             {lowest && (
-              <div style={{ marginTop: 6, fontSize: 12, color: "#388e3c" }}>
+              <div style={{ marginTop: 6, fontSize: 12, color: "#2e7d32" }}>
                 当前最低：{lowest.name}（¥{lowest.price}）
               </div>
             )}

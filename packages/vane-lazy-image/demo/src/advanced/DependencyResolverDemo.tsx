@@ -255,7 +255,7 @@ const DependencyResolverDemo: React.FC = () => {
             style={{
               padding: "10px 16px",
               background: "var(--ok)",
-              color: "white",
+              color: "var(--text-inv)",
               border: "none",
               borderRadius: "6px",
               cursor: "pointer",
@@ -269,7 +269,7 @@ const DependencyResolverDemo: React.FC = () => {
             style={{
               padding: "10px 16px",
               background: "var(--signal)",
-              color: "white",
+              color: "var(--text-inv)",
               border: "none",
               borderRadius: "6px",
               cursor: "pointer",
@@ -283,7 +283,7 @@ const DependencyResolverDemo: React.FC = () => {
             style={{
               padding: "10px 16px",
               background: "var(--warn)",
-              color: "white",
+              color: "var(--text-inv)",
               border: "none",
               borderRadius: "6px",
               cursor: "pointer",
@@ -297,7 +297,7 @@ const DependencyResolverDemo: React.FC = () => {
             style={{
               padding: "10px 16px",
               background: "var(--danger)",
-              color: "white",
+              color: "var(--text-inv)",
               border: "none",
               borderRadius: "6px",
               cursor: "pointer",
@@ -326,11 +326,11 @@ const DependencyResolverDemo: React.FC = () => {
                 }}
               >
                 <div style={{ fontWeight: "bold" }}>{plugin.name}</div>
-                <div style={{ color: "var(--text-3)", fontSize: "0.9em" }}>
+                <div style={{ color: "var(--text-2)", fontSize: "0.9em" }}>
                   v{plugin.version}
                 </div>
                 {plugin.dependencies && (
-                  <div style={{ color: "var(--text-3)", fontSize: "0.85em", marginTop: 4 }}>
+                  <div style={{ color: "var(--text-2)", fontSize: "0.85em", marginTop: 4 }}>
                     依赖: {Object.keys(plugin.dependencies).join(", ")}
                   </div>
                 )}
@@ -384,7 +384,7 @@ const DependencyResolverDemo: React.FC = () => {
             padding: 16,
             background: "var(--text)",
             borderRadius: "8px",
-            color: "var(--line-strong)",
+            color: "var(--text-inv)",
             fontFamily: "monospace",
             fontSize: "0.85em",
             maxHeight: 200,
@@ -392,7 +392,9 @@ const DependencyResolverDemo: React.FC = () => {
           }}
         >
           {resolveLog.length === 0 ? (
-            <div style={{ color: "var(--text-3)" }}>点击上方按钮开始测试...</div>
+            /* 面板是反色的（底 var(--text) / 字 var(--text-inv)）；
+               空态也必须按反色给字，写 var(--text-2) 就是奶油压奶油（1.76:1） */
+            <div style={{ color: "#6e6861" }}>点击上方按钮开始测试...</div>
           ) : (
             resolveLog.map((log, i) => (
               <div key={i} style={{ marginBottom: 4 }}>

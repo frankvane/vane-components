@@ -36,7 +36,7 @@ export function createCountPlugin<T = any>(): CommentPlugin<T> {
                   fontSize: 11,
                   padding: "1px 6px",
                   borderRadius: 4,
-                  color: "#ff8f00",
+                  color: "#b35c00",
                   border: "1px solid rgba(255,143,0,0.4)",
                 }}
               >

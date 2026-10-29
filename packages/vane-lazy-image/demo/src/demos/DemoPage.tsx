@@ -28,7 +28,7 @@ export function DemoPage({ entry, order }: { entry: DemoEntry; order: number }) 
             style={{
               fontFamily: "var(--ff-mono, monospace)",
               fontSize: "0.8em",
-              color: "var(--text-3)",
+              color: "var(--text-2)",
               border: "1px solid var(--accent-line)",
               borderRadius: 6,
               padding: "1px 8px",

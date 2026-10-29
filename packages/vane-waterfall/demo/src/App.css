@@ -1127,7 +1127,6 @@ time {
 
 .scn-tab.is-active .n {
   color: var(--accent);
-  opacity: 0.7;
 }
 
 .scn-tab-audit {
@@ -1502,11 +1501,16 @@ time {
   color: var(--accent-ink);
 }
 
+/* 选中态底色是 accent（亮色），里面的计数必须换成 accent-ink，否则 --dim 压亮底只有 1.8:1 */
+.scn-seg button.is-on em {
+  color: var(--accent-ink);
+}
+
 .scn-seg em {
   font-style: normal;
   margin-left: 4px;
   font-size: 9.5px;
-  opacity: 0.65;
+  color: var(--dim);
 }
 
 .scn-input {
@@ -1558,7 +1562,8 @@ time {
 }
 
 .scn-pager button:disabled {
-  opacity: 0.4;
+  /* 禁用态只要 3:1，但 0.4 只剩 2.29 —— 压到「看得出有字」为止 */
+  opacity: 0.55;
   cursor: not-allowed;
 }
 
@@ -1775,7 +1780,8 @@ time {
 
 .wf-sep {
   margin: 0 5px;
-  opacity: 0.5;
+  /* 分隔点是装饰标点，已标 aria-hidden；不再用 opacity 压暗（压到 2.1 就成了灰点） */
+  color: var(--faint);
 }
 
 .wf-price {
@@ -2544,7 +2550,7 @@ time {
 }
 
 .stage-pager button:disabled {
-  opacity: 0.42;
+  opacity: 0.55;
   cursor: not-allowed;
 }
 
@@ -2702,8 +2708,8 @@ time {
 
 .log-line time {
   flex: none;
+  /* 时间戳是正文，不叠 opacity：--faint 乘 0.8 只剩 4.11，低于 AA 4.5 */
   color: var(--faint);
-  opacity: 0.8;
 }
 
 .log-line.is-info {

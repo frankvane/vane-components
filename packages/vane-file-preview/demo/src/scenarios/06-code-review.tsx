@@ -52,8 +52,8 @@ const ReviewScenario: React.FC = () => {
   return (
     <div style={{ display: "grid", gap: 10 }}>
       <div className="diff-grid">
-        {pane(BEFORE, "− 修改前", "#cf3f33")}
-        {pane(AFTER, "+ 修改后", "#2f9e57")}
+        {pane(BEFORE, "− 修改前", "#a92f24")}
+        {pane(AFTER, "+ 修改后", "#186b39")}
       </div>
 
       <div className="demo-side-block" style={{ background: "var(--surface)" }}>

@@ -5,7 +5,7 @@ import type { DemoMeta, DemoStageProps } from "./types";
 import { AVATAR, SAMPLE_USER } from "../data/sample";
 
 const GRADIENTS: Record<string, [string, string]> = {
-  violet: ["#6a11cb", "#2575fc"],
+  violet: ["#6a11cb", "#1a5fd0"],
   sunset: ["#ff7e5f", "#feb47b"],
   mint: ["#11998e", "#38ef7d"],
   ink: ["#232526", "#414345"],
@@ -25,7 +25,7 @@ export const meta: DemoMeta = {
   plugs: [
     {
       fn: "createBannerSlotPlugin",
-      cfg: "gradient: ['#6a11cb','#2575fc'], avatar: user.avatar, height: 160, overlay: <strong>{user.name}</strong>",
+      cfg: "gradient: ['#6a11cb','#1a5fd0'], avatar: user.avatar, height: 160, overlay: <strong>{user.name}</strong>",
       why: "负责头图区渲染：渐变/封面背景 + 头像浮层 + 文案叠加",
     },
   ],

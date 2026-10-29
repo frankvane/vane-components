@@ -97,7 +97,7 @@ export function createAchievementWallPlugin<T = any>(
                       width: 40,
                       height: 40,
                       borderRadius: "50%",
-                      background: it.color ?? "#2575fc",
+                      background: it.color ?? "#1a5fd0",
                       color: "#fff",
                       display: "inline-flex",
                       alignItems: "center",

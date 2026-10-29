@@ -41,7 +41,7 @@ export const createCouponPlugin: PluginCreator<any, CouponPluginConfig> = (
 
         return (
           <div style={{ padding: 12, borderTop: "1px dashed #eee" }}>
-            <div style={{ fontSize: 12, color: "#999", marginBottom: 6 }}>可用优惠券</div>
+            <div style={{ fontSize: 12, color: "#6b6b6b", marginBottom: 6 }}>可用优惠券</div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
               {coupons.map((c) => {
                 const isApplied = applied?.code === c.code;
@@ -53,7 +53,7 @@ export const createCouponPlugin: PluginCreator<any, CouponPluginConfig> = (
                     style={{
                       padding: "6px 10px",
                       borderRadius: 6,
-                      border: isApplied ? "2px solid #4CAF50" : "1px solid #ddd",
+                      border: isApplied ? "2px solid #2e7d32" : "1px solid #ddd",
                       background: isApplied ? "#E8F5E9" : "#fff",
                       color: "#333",
                       cursor: "pointer",
@@ -66,7 +66,7 @@ export const createCouponPlugin: PluginCreator<any, CouponPluginConfig> = (
               })}
             </div>
             {applied && (
-              <div style={{ marginTop: 8, fontSize: 12, color: "#388e3c" }}>
+              <div style={{ marginTop: 8, fontSize: 12, color: "#2e7d32" }}>
                 已应用优惠券：{applied.code}（立减 ¥{applied.discount}）
               </div>
             )}

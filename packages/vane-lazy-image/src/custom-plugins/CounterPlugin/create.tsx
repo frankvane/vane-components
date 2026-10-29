@@ -27,7 +27,12 @@ export function createCounterPlugin(config: CounterConfig = {}): GalleryPlugin {
           <span
             style={{
               fontVariantNumeric: "tabular-nums",
-              color: "#333",
+              /*
+               * 不要写死 #333（ADR-13 第 5 条）：计数器是纯文字，没有自己的底色，
+               * 落在深色舞台上就是 #333 / #171513 = 1.44:1 —— 数字直接看不见。
+               * 跟随宿主文字色，浅底深字、深底浅字都自动成立。
+               */
+              color: "inherit",
               fontSize: 13,
               padding: "2px 6px",
               userSelect: "none",

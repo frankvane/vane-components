@@ -89,10 +89,10 @@ export const CouponBar: React.FC<CouponBarProps> = ({
   // 获取主题颜色
   const getThemeColors = () => {
     const themes = {
-      default: { bg: "#f8f9fa", border: "#dee2e6", text: "#495057", accent: "#007bff" },
-      primary: { bg: "#e3f2fd", border: "#2196f3", text: "#1976d2", accent: "#1976d2" },
-      success: { bg: "#e8f5e8", border: "#4caf50", text: "#2e7d32", accent: "#2e7d32" },
-      warning: { bg: "#fff3e0", border: "#ff9800", text: "#f57c00", accent: "#f57c00" },
+      default: { bg: "#f8f9fa", border: "#dee2e6", text: "#495057", accent: "#0056b3" },
+      primary: { bg: "#e3f2fd", border: "#2196f3", text: "#1565c0", accent: "#1565c0" },
+      success: { bg: "#e8f5e8", border: "#2e7d32", text: "#2e7d32", accent: "#2e7d32" },
+      warning: { bg: "#fff3e0", border: "#b35c00", text: "#b35c00", accent: "#b35c00" },
     };
     return themes[theme];
   };

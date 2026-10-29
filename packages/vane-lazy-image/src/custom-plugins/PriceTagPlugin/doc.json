@@ -46,7 +46,7 @@
     {
       "name": "backgroundColor",
       "type": "string",
-      "default": "\"#ff4757\"",
+      "default": "\"#c62828\"",
       "description": "标签背景色"
     },
     {

@@ -68,7 +68,8 @@ export function CodeBlock({ code, title = "tsx", collapseAfter = 24, maxHeight }
       <div className="code-head">
         <span>{title}</span>
         <span style={{ display: "flex", gap: 6, alignItems: "center" }}>
-          <span style={{ opacity: 0.7 }}>{lines.length} 行</span>
+          {/* 别用 opacity 压字：--faint 再乘 0.7 只剩 3.49:1，AA 正文线是 4.5 */}
+          <span>{lines.length} 行</span>
           <button
             type="button"
             className={`code-copy${state === "ok" ? " is-ok" : state === "fail" ? " is-fail" : ""}`}

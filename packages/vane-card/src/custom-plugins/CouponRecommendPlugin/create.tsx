@@ -87,7 +87,7 @@ export const createCouponRecommendPlugin: PluginCreator<any, CouponRecommendPlug
         return (
           <div style={{ padding: 12, borderTop: "1px dashed #eee", background: "#f9fff6" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 12, color: "#388e3c", fontWeight: 700 }}>有更优优惠券可用</span>
+              <span style={{ fontSize: 12, color: "#2e7d32", fontWeight: 700 }}>有更优优惠券可用</span>
               <span style={{ fontSize: 12, color: "#666" }}>可再省 {formatCurrency(delta, cfg.currency, cfg.locale)}</span>
               <button onClick={applyBest} style={{ marginLeft: "auto", padding: "4px 10px", borderRadius: 6, border: "1px solid #c8e6c9", background: "#e8f5e9", color: "#2e7d32" }}>一键使用</button>
             </div>

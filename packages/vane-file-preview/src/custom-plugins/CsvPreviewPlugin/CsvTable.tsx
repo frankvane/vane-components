@@ -72,7 +72,7 @@ export function CsvTable({
               width: 44,
               minWidth: 44,
               textAlign: "right",
-              color: "#9ca3af",
+              color: "#6b6b6b",
               cursor: "default",
             }}
           >
@@ -134,7 +134,7 @@ export function CsvTable({
               style={{
                 ...bodyCellStyle,
                 textAlign: "right",
-                color: "#c0c4cc",
+                color: "#6b6b6b",
                 fontSize: 11,
               }}
             >

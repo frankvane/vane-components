@@ -112,7 +112,7 @@ export default function Stage({ log }: DemoStageProps) {
         onReport={(id) => log(`举报 ${id}`)}
         mentions={MENTIONS}
       />
-      <p style={{ margin: "10px 0 0", fontSize: 11, opacity: 0.6 }}>
+      <p style={{ margin: "10px 0 0", fontSize: 11, color: "#5b6064" }}>
         四个能力全开：点赞、排序、楼中楼、富编辑框都在。试试点赞、回复、发图评。
       </p>
     </div>

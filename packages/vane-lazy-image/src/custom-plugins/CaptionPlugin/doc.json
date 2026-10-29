@@ -9,7 +9,7 @@
   "config": [
     { "name": "text", "type": "string | ((src?: string) => string)", "default": "\"\"", "description": "说明文字；可传函数按 src 派生" },
     { "name": "position", "type": "\"top\" | \"bottom\"", "default": "\"bottom\"", "description": "文字位置" },
-    { "name": "bg", "type": "string", "default": "rgba(0,0,0,0.55)", "description": "背景色" },
+    { "name": "bg", "type": "string", "default": "rgba(0,0,0,0.62)", "description": "背景色" },
     { "name": "color", "type": "string", "default": "#fff", "description": "文字颜色" }
   ],
   "example": "// 底部说明文字\nconst CaptionImage = withPlugins(LazyLoadImageCore, [\n  createCaptionPlugin({\n    text: \"日落海岸线\",\n    position: \"bottom\",\n  }),\n]);\n\n// 按图片地址动态生成说明\ncreateCaptionPlugin({\n  text: (src) => `Photo • ${src.split(\"/\").pop()}`,\n  position: \"bottom\",\n});",
@@ -30,7 +30,7 @@
       "name": "暖色图注",
       "description": "自定义暖色背景与文字色，贴合活动主题。",
       "src": "https://picsum.photos/seed/cap-warm/600/400",
-      "config": { "text": "限时特惠", "position": "bottom", "bg": "rgba(255,90,40,0.7)", "color": "#fff" }
+      "config": { "text": "限时特惠", "position": "bottom", "bg": "rgba(160,48,16,0.88)", "color": "#fff" }
     }
   ],
   "features": [

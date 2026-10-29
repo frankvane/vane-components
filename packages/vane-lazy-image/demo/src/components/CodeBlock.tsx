@@ -40,6 +40,15 @@ export async function copyText(text: string): Promise<boolean> {
 
 // 代码块统一成「编辑器面板」：等宽字体、发丝边框、顶部一条语言标签 + 复制按钮，
 // 与整站暗场语言保持一致（oneDark 的 token 配色本身可读，只换容器）。
+//
+// 唯一需要改的是注释色：oneDark 的 #5c6370 压在 #0a0908 上只有 3.29:1，
+// 而注释占了源码块里相当大的篇幅 —— 提到 #8b93a1（5.6:1），观感仍是"灰的"。
+const CODE_THEME = {
+  ...oneDark,
+  comment: { ...(oneDark as Record<string, React.CSSProperties>)["comment"], color: "#8b93a1" },
+  prolog: { ...(oneDark as Record<string, React.CSSProperties>)["prolog"], color: "#8b93a1" },
+};
+
 export const CodeBlock: React.FC<{
   code: string;
   language?: string;
@@ -85,7 +94,7 @@ export const CodeBlock: React.FC<{
       </div>
       <SyntaxHighlighter
         language={language}
-        style={oneDark}
+        style={CODE_THEME}
         customStyle={{
           margin: 0,
           padding: "14px 16px",

@@ -46,7 +46,7 @@ export default function MinimalLayout() {
             fontSize: 10,
             letterSpacing: "0.2em",
             textTransform: "uppercase",
-            color: "#a3a89a",
+            color: "#5f6553",
           }}
         >
           <span>{TEE.brand}</span>
@@ -57,13 +57,13 @@ export default function MinimalLayout() {
           {TEE.title}
         </div>
 
-        <div style={{ fontSize: 12, color: "#8a8a8a", lineHeight: 1.7 }}>{TEE.description}</div>
+        <div style={{ fontSize: 12, color: "#6b6b6b", lineHeight: 1.7 }}>{TEE.description}</div>
 
         <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
           <b style={{ fontSize: 22, color: "#1c1f18", fontVariantNumeric: "tabular-nums" }}>
             ¥{TEE.price}
           </b>
-          <span style={{ fontSize: 11, color: "#a3a89a" }}>含税 · 免运费</span>
+          <span style={{ fontSize: 11, color: "#5f6553" }}>含税 · 免运费</span>
         </div>
       </div>
     </CardCore>

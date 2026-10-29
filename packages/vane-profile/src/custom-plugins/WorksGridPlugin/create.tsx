@@ -38,7 +38,7 @@ export interface WorksGridConfig {
 
 const FALLBACK_COLORS = [
   "#6a11cb",
-  "#2575fc",
+  "#1a5fd0",
   "#11998e",
   "#ff7e5f",
   "#fc466b",
@@ -102,7 +102,7 @@ export function createWorksGridPlugin<T = any>(
                   <figcaption style={{ padding: "8px 10px" }}>
                     <div style={{ fontSize: 13, fontWeight: 600, lineHeight: 1.4 }}>{w.title}</div>
                     {w.meta ? (
-                      <div style={{ fontSize: 11, color: "#888", marginTop: 2 }}>{w.meta}</div>
+                      <div style={{ fontSize: 11, color: "#6b6b6b", marginTop: 2 }}>{w.meta}</div>
                     ) : null}
                   </figcaption>
                 </figure>

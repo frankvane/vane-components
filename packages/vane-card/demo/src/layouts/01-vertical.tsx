@@ -49,13 +49,13 @@ export default function VerticalLayout() {
       />
       <div style={{ padding: 14, display: "grid", gap: 6 }}>
         <div style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.35 }}>{TEE.title}</div>
-        <div style={{ fontSize: 12, color: "#8a8a8a" }}>{TEE.subtitle}</div>
+        <div style={{ fontSize: 12, color: "#6b6b6b" }}>{TEE.subtitle}</div>
         <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginTop: 2 }}>
           <b style={{ fontSize: 20, color: "#d0021b", fontVariantNumeric: "tabular-nums" }}>
             ¥{TEE.price}
           </b>
           {TEE.oldPrice ? (
-            <s style={{ fontSize: 12, color: "#bbb" }}>¥{TEE.oldPrice}</s>
+            <s style={{ fontSize: 12, color: "#6b6b6b" }}>¥{TEE.oldPrice}</s>
           ) : null}
         </div>
       </div>

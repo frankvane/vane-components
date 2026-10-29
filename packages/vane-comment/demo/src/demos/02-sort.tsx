@@ -77,7 +77,7 @@ export default function Stage({ cfg, log }: DemoStageProps) {
         onReport={(id) => log(`举报 ${id}`)}
         mentions={MENTIONS}
       />
-      <p style={{ margin: "10px 0 0", fontSize: 11, opacity: 0.6 }}>
+      <p style={{ margin: "10px 0 0", fontSize: 11, color: "#5b6064" }}>
         顶栏多了排序条：点「最热」后点赞多的评论会浮上来。初始排序由控件决定。
       </p>
     </div>

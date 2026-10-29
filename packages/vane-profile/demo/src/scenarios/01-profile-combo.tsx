@@ -59,7 +59,7 @@ export const meta: ScenarioMeta = {
   ref: { label: "微博", url: "https://weibo.com/" },
   pain: "头图、简介、数据行、社交、标签、页签、认证、关注、作品要一起出现，还互不打架",
   plugs: [
-    { fn: "createBannerSlotPlugin", cfg: "gradient: ['#6a11cb','#2575fc'], avatar: user.avatar", why: "头图区：渐变 + 头像浮层 + 昵称" },
+    { fn: "createBannerSlotPlugin", cfg: "gradient: ['#6a11cb','#1a5fd0'], avatar: user.avatar", why: "头图区：渐变 + 头像浮层 + 昵称" },
     { fn: "createBioSlotPlugin", cfg: "name, bio, location, joinDate", why: "简介区：昵称/签名/地点/时间" },
     { fn: "createStatRowPlugin", cfg: "items: user.stats", why: "数据行：关注/粉丝/获赞/作品" },
     { fn: "createSocialLinksPlugin", cfg: "links: [...]", why: "社交外链行" },
@@ -95,7 +95,7 @@ const TABS = [
 
 const Profile = withPlugins(ProfileCore, [
   createBannerSlotPlugin({
-    gradient: ["#6a11cb", "#2575fc"],
+    gradient: ["#6a11cb", "#1a5fd0"],
     avatar: AVATAR,
     avatarRound: true,
     height: 150,

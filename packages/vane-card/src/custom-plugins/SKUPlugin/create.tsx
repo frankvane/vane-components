@@ -51,7 +51,7 @@ const Selector: React.FC<{
                   style={{
                     padding: "6px 10px",
                     borderRadius: 6,
-                    border: active ? "2px solid #4CAF50" : "1px solid #ddd",
+                    border: active ? "2px solid #2e7d32" : "1px solid #ddd",
                     background: active ? "#E8F5E9" : "#fff",
                     color: "#333",
                     cursor: "pointer",
@@ -135,7 +135,7 @@ export const createSKUPlugin: PluginCreator<any, SKUPluginConfig> = (config) => 
         const variant = context.bus?.getData?.<SKUVariant>(BusKeys.skuVariant);
         return (
           <div style={{ padding: 12, borderTop: "1px dashed #eee" }}>
-            <div style={{ fontSize: 12, color: "#999", marginBottom: 6 }}>选择规格</div>
+            <div style={{ fontSize: 12, color: "#6b6b6b", marginBottom: 6 }}>选择规格</div>
             <Selector attributes={attributes} selection={sel} onChange={setSel} />
             {variant && (
               <div style={{ marginTop: 8, fontSize: 12, color: "#555" }}>

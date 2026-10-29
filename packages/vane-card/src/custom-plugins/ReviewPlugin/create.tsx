@@ -15,7 +15,10 @@ const Star: React.FC<{ filled: boolean; onClick?: () => void }> = ({
   <span
     onClick={onClick}
     style={{
-      color: filled ? "#FFC107" : "#ddd",
+      // 未点亮用 #767676 而不是 #ddd：星星是可点控件，顺带满足 AA 正文线（4.54:1）。
+      // 点亮的金色也从 #FFC107（白底 1.63:1）压到 #947004（4.59:1），
+      // 顺带把「金色星星在白底上糊成一片」一起解决。
+      color: filled ? "#947004" : "#767676",
       cursor: onClick ? "pointer" : "default",
       fontSize: 16,
     }}
@@ -65,7 +68,7 @@ const ReviewFooter: React.FC<ReviewFooterProps> = ({
           </div>
           <span style={{ color: "#666", fontSize: 12 }}>{rating.toFixed(1)}</span>
           {showReviewCount && (
-            <span style={{ color: "#999", fontSize: 12 }}>（{reviewCount} 评价）</span>
+            <span style={{ color: "#6b6b6b", fontSize: 12 }}>（{reviewCount} 评价）</span>
           )}
         </div>
       )}

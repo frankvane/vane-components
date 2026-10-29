@@ -208,7 +208,7 @@ const PerformanceMonitoringDemo: React.FC = () => {
               background: "var(--surface-2)",
               borderRadius: "8px",
               textAlign: "center",
-              color: "var(--text-3)",
+              color: "var(--text-2)",
             }}
           >
             等待性能数据收集中...（滚动页面以加载图片）

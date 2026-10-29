@@ -87,7 +87,7 @@ export default function HorizontalLayout() {
         <div
           style={{
             fontSize: 12,
-            color: "#8a8a8a",
+            color: "#6b6b6b",
             whiteSpace: "nowrap",
             overflow: "hidden",
             textOverflow: "ellipsis",
@@ -106,8 +106,8 @@ export default function HorizontalLayout() {
           <b style={{ fontSize: 18, color: "#d0021b", fontVariantNumeric: "tabular-nums" }}>
             ¥{MUG.price}
           </b>
-          {MUG.oldPrice ? <s style={{ fontSize: 12, color: "#bbb" }}>¥{MUG.oldPrice}</s> : null}
-          <span style={{ marginLeft: "auto", fontSize: 11, color: "#9aa08c" }}>
+          {MUG.oldPrice ? <s style={{ fontSize: 12, color: "#6b6b6b" }}>¥{MUG.oldPrice}</s> : null}
+          <span style={{ marginLeft: "auto", fontSize: 11, color: "#5f6553" }}>
             库存 {MUG.inventory}
           </span>
         </div>

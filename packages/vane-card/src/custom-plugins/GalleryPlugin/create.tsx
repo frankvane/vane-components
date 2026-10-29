@@ -100,13 +100,13 @@ const GalleryHeaderComp: React.FC<GalleryHeaderProps> = ({
         <>
           <button
             onClick={() => go(-1)}
-            style={{ position: "absolute", top: "50%", left: 8, transform: "translateY(-50%)", background: "rgba(0,0,0,0.4)", color: "#fff", border: "none", borderRadius: 4, padding: "4px 8px", cursor: "pointer" }}
+            style={{ position: "absolute", top: "50%", left: 8, transform: "translateY(-50%)", background: "rgba(0,0,0,0.58)", color: "#fff", border: "none", borderRadius: 4, padding: "4px 8px", cursor: "pointer" }}
           >
             ‹
           </button>
           <button
             onClick={() => go(1)}
-            style={{ position: "absolute", top: "50%", right: 8, transform: "translateY(-50%)", background: "rgba(0,0,0,0.4)", color: "#fff", border: "none", borderRadius: 4, padding: "4px 8px", cursor: "pointer" }}
+            style={{ position: "absolute", top: "50%", right: 8, transform: "translateY(-50%)", background: "rgba(0,0,0,0.58)", color: "#fff", border: "none", borderRadius: 4, padding: "4px 8px", cursor: "pointer" }}
           >
             ›
           </button>

@@ -138,7 +138,7 @@ const AudioCard: React.FC<AudioCardProps> = ({
         overflow: "auto",
         boxSizing: "border-box",
         // 音频没有画面，用一层渐变让空卡片看起来不像坏了
-        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+        background: "linear-gradient(135deg, #4a5bd0 0%, #5b3a7e 100%)",
       }}
     >
       <div

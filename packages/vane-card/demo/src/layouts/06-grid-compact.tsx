@@ -66,7 +66,7 @@ export default function GridLayout() {
           <b style={{ fontSize: 14, color: "#d0021b", fontVariantNumeric: "tabular-nums" }}>
             ¥{MUG.price}
           </b>
-          <span style={{ fontSize: 10.5, color: "#b5b5b5" }}>{MUG.ratingCount} 人买过</span>
+          <span style={{ fontSize: 10.5, color: "#6b6b6b" }}>{MUG.ratingCount} 人买过</span>
         </div>
       </div>
     </Card>

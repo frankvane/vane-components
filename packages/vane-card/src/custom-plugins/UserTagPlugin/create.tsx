@@ -34,6 +34,23 @@ function normalizeTags(list: unknown): UserTag[] {
     .filter((t): t is UserTag => Boolean(t?.label));
 }
 
+/**
+ * 标签底色是数据侧给的（`{ label, color }`），字色只能按底色亮度选：
+ * 统一写死 `#222` 时，深色标签（会员红、橄榄绿）上的深字只有 3.1:1。
+ */
+function readableOn(bg: string): string {
+  const m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(bg.trim());
+  if (!m) return "#222";
+  let hex = m[1];
+  if (hex.length === 3) hex = hex.split("").map((c) => c + c).join("");
+  const lin = (v: number) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4);
+  const [r, g, b] = [0, 2, 4].map((i) => lin(parseInt(hex.slice(i, i + 2), 16) / 255));
+  const L = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  const onWhite = 1.05 / (L + 0.05);
+  const onInk = (L + 0.05) / (0.0144 + 0.05);
+  return onWhite >= onInk ? "#fff" : "#222";
+}
+
 export const createUserTagPlugin: PluginCreator<any, UserTagPluginConfig> = (
   config = {}
 ) => {
@@ -66,7 +83,7 @@ export const createUserTagPlugin: PluginCreator<any, UserTagPluginConfig> = (
                   fontSize: 12,
                   fontWeight: 700,
                   background: t.color || "#eee",
-                  color: "#222",
+                  color: readableOn(t.color || "#eee"),
                 }}
               >
                 {t.label}

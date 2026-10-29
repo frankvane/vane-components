@@ -84,7 +84,13 @@ export const SkuSelectorCore = forwardRef<
       // 这里 containerRef 恒为 RefObject<HTMLDivElement | null>，与 DOM ref 兼容。
       ref={containerRef as React.Ref<HTMLDivElement>}
       className={containerClassName}
-      style={{ position: "relative", ...containerStyle }}
+      /*
+       * 根节点必须自带文字色（ADR-13 第 5 条：内联了背景就得内联字色，容器同理）。
+       * 不写的话，宿主是深色页面时未显式给色的文字会继承浅色 —— demo 首页给这个面板
+       * 垫了 background:#fff，里面一个「1」就成了白底米字（1.17:1，等于消失）。
+       * 需要深色面板的宿主用 containerStyle 覆盖即可。
+       */
+      style={{ position: "relative", color: "#1f2328", ...containerStyle }}
     >
       {slots?.before}
 

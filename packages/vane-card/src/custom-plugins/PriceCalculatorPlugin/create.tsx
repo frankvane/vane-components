@@ -114,16 +114,16 @@ export const createPriceCalculatorPlugin: PluginCreator<any, PriceCalculatorPlug
         return (
           <div style={{ padding: 12 }}>
             <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-              <span style={{ fontSize: 20, fontWeight: 800, color: "#e53935" }}>
+              <span style={{ fontSize: 20, fontWeight: 800, color: "#c62828" }}>
                 {formatCurrency(price, cfg.currency, cfg.locale)}
               </span>
               {hasOriginal && (
-                <span style={{ fontSize: 14, color: "#999", textDecoration: "line-through" }}>
+                <span style={{ fontSize: 14, color: "#6b6b6b", textDecoration: "line-through" }}>
                   {formatCurrency(originalPrice, cfg.currency, cfg.locale)}
                 </span>
               )}
               {hasOriginal && cfg.showDiscount && (
-                <span style={{ fontSize: 12, color: "#388e3c", fontWeight: 700 }}>-{discount}%</span>
+                <span style={{ fontSize: 12, color: "#2e7d32", fontWeight: 700 }}>-{discount}%</span>
               )}
             </div>
 
@@ -136,7 +136,7 @@ export const createPriceCalculatorPlugin: PluginCreator<any, PriceCalculatorPlug
             {cfg.showTotalPrice && (
               <div style={{ marginTop: 6, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span style={{ fontSize: 12, color: "#666" }}>数量：{quantity}{appliedCoupon?.code ? `（已用券：${appliedCoupon.code}）` : ""}</span>
-                <span style={{ fontSize: 14, fontWeight: 700, color: "#1e88e5" }}>
+                <span style={{ fontSize: 14, fontWeight: 700, color: "#1565c0" }}>
                   合计 {formatCurrency(total, cfg.currency, cfg.locale)}
                 </span>
               </div>
@@ -157,7 +157,7 @@ export const createPriceCalculatorPlugin: PluginCreator<any, PriceCalculatorPlug
         const nodes: React.ReactNode[] = [];
         if (cfg.showDiscount && discount > 0) {
           nodes.push(
-            <span key="discount" style={{ fontSize: 12, color: "#388e3c", fontWeight: 700 }} title="折扣">
+            <span key="discount" style={{ fontSize: 12, color: "#2e7d32", fontWeight: 700 }} title="折扣">
               -{discount}%
             </span>
           );

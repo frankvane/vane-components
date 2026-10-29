@@ -66,13 +66,13 @@ export default function RightImageLayout() {
           gap: 4,
         }}
       >
-        <div style={{ fontSize: 12, color: "#8a8a8a" }}>{CHAIR.brand}</div>
+        <div style={{ fontSize: 12, color: "#6b6b6b" }}>{CHAIR.brand}</div>
         <div style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.35 }}>{CHAIR.title}</div>
         <div
           style={{
             marginTop: "auto",
             fontSize: 12,
-            color: "#8a8a8a",
+            color: "#6b6b6b",
           }}
         >
           {CHAIR.subtitle}
@@ -81,7 +81,7 @@ export default function RightImageLayout() {
           <b style={{ fontSize: 18, color: "#d0021b", fontVariantNumeric: "tabular-nums" }}>
             ¥{CHAIR.price}
           </b>
-          {CHAIR.oldPrice ? <s style={{ fontSize: 12, color: "#bbb" }}>¥{CHAIR.oldPrice}</s> : null}
+          {CHAIR.oldPrice ? <s style={{ fontSize: 12, color: "#6b6b6b" }}>¥{CHAIR.oldPrice}</s> : null}
         </div>
       </div>
     </Card>

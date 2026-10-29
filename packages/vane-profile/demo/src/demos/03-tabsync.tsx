@@ -9,9 +9,9 @@ function ProfileContent() {
   const ctx = useProfileContext();
   const tab = ctx?.activeTab ?? "works";
   return (
-    <div style={{ minHeight: 120, fontSize: 14, lineHeight: 1.8, color: "#cfd3c4" }}>
-      <b style={{ color: "#e9ecdf" }}>{tab}</b> —— {TAB_CONTENT[tab] ?? "（空）"}
-      <p style={{ marginTop: 12, color: "#8b9080", fontSize: 12 }}>
+    <div style={{ minHeight: 120, fontSize: 14, lineHeight: 1.8, color: "#4a5056" }}>
+      <b style={{ color: "#1f2328" }}>{tab}</b> —— {TAB_CONTENT[tab] ?? "（空）"}
+      <p style={{ marginTop: 12, color: "#6b6b6b", fontSize: 12 }}>
         当前 activeTab 经 <code>useProfileContext()</code> 读取：{String(tab)}
       </p>
     </div>

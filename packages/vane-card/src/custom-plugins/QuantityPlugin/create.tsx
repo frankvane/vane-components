@@ -89,7 +89,7 @@ const Stepper: React.FC<{
           background: "#fff",
           // 按钮自己内联了白底，就必须自己给字色：只靠继承的话，宿主是深色
           // 页面时 -/+ 会变成浅字压在白底上（demo 里就这么丢过一次）。
-          color: q <= minActive ? "#c8c8c8" : "#333",
+          color: q <= minActive ? "#8f8f8f" : "#333",
           cursor: q <= minActive ? "not-allowed" : "pointer",
         }}
       >
@@ -127,22 +127,22 @@ const Stepper: React.FC<{
           border: "1px solid #ddd",
           borderRadius: 6,
           background: "#fff",
-          color: q >= max || max === 0 ? "#c8c8c8" : "#333",
+          color: q >= max || max === 0 ? "#8f8f8f" : "#333",
           cursor: q >= max || max === 0 ? "not-allowed" : "pointer",
         }}
       >
         +
       </button>
       {max === 0 ? (
-        <span style={{ marginLeft: "auto", fontSize: 12, color: "#e53935", fontWeight: 700 }}>缺货</span>
+        <span style={{ marginLeft: "auto", fontSize: 12, color: "#c62828", fontWeight: 700 }}>缺货</span>
       ) : (
-        <span style={{ marginLeft: "auto", fontSize: 12, color: "#999" }}>最大 {max}</span>
+        <span style={{ marginLeft: "auto", fontSize: 12, color: "#6b6b6b" }}>最大 {max}</span>
       )}
       {(() => {
         const n = Number(inputVal);
         const invalid = !Number.isFinite(n) || n < minActive || n > max;
         return invalid ? (
-          <span style={{ marginLeft: 8, fontSize: 12, color: "#e53935" }}>请输入 {minActive} 至 {max} 的整数</span>
+          <span style={{ marginLeft: 8, fontSize: 12, color: "#c62828" }}>请输入 {minActive} 至 {max} 的整数</span>
         ) : null;
       })()}
     </div>

@@ -98,7 +98,7 @@ const LibraryScenario: React.FC = () => {
       <div className="stage-shell" style={{ height: 400 }}>
         <div className="filebar">
           <span className="filebar-label">asset</span>
-          <span style={{ fontFamily: "var(--ff-mono)", fontSize: 11, color: "rgba(28,26,23,0.6)" }}>
+          <span style={{ fontFamily: "var(--ff-mono)", fontSize: 11, color: "#5f5d58" }}>
             {file.name}
           </span>
         </div>

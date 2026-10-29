@@ -17,7 +17,6 @@ const actionBtn: React.CSSProperties = {
   border: "none",
   background: "transparent",
   color: "inherit",
-  opacity: 0.7,
   cursor: "pointer",
   fontSize: 13,
   padding: 0,
@@ -46,7 +45,7 @@ function ReactionBar({
             onClick={() => onReact?.(comment.id, e)}
             style={{
               ...actionBtn,
-              color: n > 0 ? "#1da1f2" : "inherit",
+              color: n > 0 ? "#1565c0" : "inherit",
               opacity: n > 0 ? 1 : 0.7,
             }}
           >

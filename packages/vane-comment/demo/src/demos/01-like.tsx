@@ -71,7 +71,7 @@ export default function Stage({ cfg, log }: DemoStageProps) {
         onReport={(id) => log(`举报 ${id}`)}
         mentions={MENTIONS}
       />
-      <p style={{ margin: "10px 0 0", fontSize: 11, opacity: 0.6 }}>
+      <p style={{ margin: "10px 0 0", fontSize: 11, color: "#5b6064" }}>
         只有点赞被装上：试试点操作行的 ♥，计数和动效都会变，事件写进右侧日志。
       </p>
     </div>

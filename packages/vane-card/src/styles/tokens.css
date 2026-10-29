@@ -18,7 +18,12 @@
   /* ---- 前景 / 背景 ---- */
   --vc-fg: #1f2329;
   --vc-fg-dim: #666;
-  --vc-fg-muted: #999;
+  /*
+   * 浅色底的次级文字。原来取 #999：白底上只有 2.85:1，旧价、合计、说明这类
+   * 「次要但仍然是正文」的信息全都读不清（AA 要 4.5）。#6b6b6b 是 5.33:1，
+   * 观感上仍然是灰的。
+   */
+  --vc-fg-muted: #6b6b6b;
   --vc-bg: #fff;
   --vc-bg-subtle: #fafafa;
   --vc-bg-muted: #f2f2f2;
@@ -46,12 +51,17 @@
   --vc-danger-bg: #ffecec;
   --vc-success: #0a7f2e;
   --vc-success-bg: #e8f7e8;
-  --vc-warning: #ff9800;
+  --vc-warning: #b35c00;
   --vc-warning-fg: #856404;
   --vc-warning-bg: #fff3cd;
   --vc-price: var(--vc-danger);
   --vc-highlight: #ffe08a;
-  --vc-highlight-fg: #a15c00;
+  /* 浅黄底上的棕字：#a15c00 只有 4.02，压深到 #8a4d00 → 5.18 */
+  --vc-highlight-fg: #8a4d00;
+  /*
+   * 星级本身是装饰：评分值以文字形式紧挨在旁边（Rating 组件把星星整个
+   * 标成 aria-hidden），所以金色不必为了 4.5:1 压成橄榄色。
+   */
   --vc-star: #f5a623;
   --vc-star-off: #ddd;
 

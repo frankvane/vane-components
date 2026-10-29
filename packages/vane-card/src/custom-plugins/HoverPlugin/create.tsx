@@ -60,7 +60,7 @@ export const createHoverPlugin: PluginCreator<any, HoverPluginConfig> = (
             container.style.transform = `scale(${scaleRatio})`;
           }
           if (enableBorder) {
-            container.style.border = "2px solid #4CAF50";
+            container.style.border = "2px solid #2e7d32";
           }
         } else {
           container.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";

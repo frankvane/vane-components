@@ -105,7 +105,7 @@ const EngineInfraDemo: React.FC = () => {
             <strong style={{ fontSize: "1.1em" }}>
               {net?.online ? "在线" : "离线"}
             </strong>
-            <span style={{ fontSize: "0.78em", color: "var(--text-3)" }}>
+            <span style={{ fontSize: "0.78em", color: "var(--text-2)" }}>
               （在 DevTools → Network 勾选 Offline 可实时切换本状态）
             </span>
           </div>
@@ -148,7 +148,7 @@ const EngineInfraDemo: React.FC = () => {
           <p style={{ margin: "0 0 6px", fontSize: "0.8em", color: "var(--signal)" }}>
             内存估算：<strong>{pool.memoryEstimate}</strong>
           </p>
-          <p style={{ margin: 0, fontSize: "0.78em", color: "var(--text-3)", lineHeight: 1.5 }}>
+          <p style={{ margin: 0, fontSize: "0.78em", color: "var(--text-2)", lineHeight: 1.5 }}>
             下方 {images.length} 张图若各自创建 Observer 需 {images.length} 个实例；
             共享池把它们收敛到 <strong>{pool.observerCount}</strong> 个（root 身份经 WeakMap 稳定化，
             不同滚动根同 class 也不会碰撞到错-root observer）。
@@ -192,7 +192,7 @@ const EngineInfraDemo: React.FC = () => {
 const rowStyle: React.CSSProperties = {
   borderBottom: "1px solid var(--accent-wash)",
 };
-const k: React.CSSProperties = { padding: "6px 0", color: "var(--text-3)" };
+const k: React.CSSProperties = { padding: "6px 0", color: "var(--text-2)" };
 const v: React.CSSProperties = {
   padding: "6px 0",
   textAlign: "right",
@@ -215,7 +215,7 @@ const StatCard: React.FC<{ label: string; value: string; accent: string }> = ({
     }}
   >
     <div style={{ fontSize: "1.6em", fontWeight: 700, color: accent }}>{value}</div>
-    <div style={{ fontSize: "0.78em", color: "var(--text-3)" }}>{label}</div>
+    <div style={{ fontSize: "0.78em", color: "var(--text-2)" }}>{label}</div>
   </div>
 );
 

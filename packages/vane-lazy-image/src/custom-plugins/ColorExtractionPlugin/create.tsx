@@ -101,7 +101,7 @@ export function createColorExtractionPlugin(config: ColorExtractionConfig = {}):
             position: "absolute",
             top: 8,
             right: 8,
-            background: "rgba(0,0,0,0.35)",
+            background: "rgba(0,0,0,0.55)",
             color: "#fff",
             fontSize: 12,
             padding: "6px 8px",

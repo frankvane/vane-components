@@ -10,7 +10,6 @@ const actionBtn: React.CSSProperties = {
   border: "none",
   background: "transparent",
   color: "inherit",
-  opacity: 0.7,
   cursor: "pointer",
   fontSize: 13,
   padding: 0,
@@ -37,7 +36,7 @@ function PinButton({
       data-testid="comment-pin"
       onClick={handle}
       aria-pressed={pinned}
-      style={{ ...actionBtn, color: pinned ? "#ff8f00" : "inherit" }}
+      style={{ ...actionBtn, color: pinned ? "#b35c00" : "inherit" }}
     >
       {pinned ? "📌取消置顶" : "📌置顶"}
     </button>

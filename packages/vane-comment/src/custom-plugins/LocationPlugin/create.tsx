@@ -30,7 +30,7 @@ export function createLocationPlugin<T = any>(): CommentPlugin<T> {
               alignItems: "center",
               gap: 2,
               fontSize: 12,
-              opacity: 0.6,
+              color: "#5b6064",
               flexShrink: 0,
             }}
           >

@@ -108,8 +108,8 @@
   font-size: 9.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
+  /* 不要再叠 opacity：--faint 在深底上本来只有 6:1，乘 0.8 就掉到 4.2（低于 AA 4.5） */
   color: var(--faint);
-  opacity: 0.8;
 }
 
 .nav-item:hover {
@@ -545,8 +545,8 @@ button {
 }
 
 .nav-sub.is-active em {
+  /* 同上：accent 已经足够醒目，叠 opacity 只会把对比度打下来 */
   color: var(--accent);
-  opacity: 0.8;
 }
 /* ---------------- 14. 兜底 ---------------- */
 

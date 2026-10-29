@@ -36,7 +36,7 @@ export default function Stage({ cfg, log }: DemoStageProps) {
     () =>
       withPlugins(ProfileCore, [
         createBannerSlotPlugin({
-          gradient: ["#2575fc", "#6a11cb"],
+          gradient: ["#1a5fd0", "#6a11cb"],
           avatar: AVATAR,
           avatarRound: true,
           height: 140,
@@ -70,7 +70,7 @@ export default function Stage({ cfg, log }: DemoStageProps) {
               padding: "6px 12px",
               borderRadius: 8,
               border: "1px solid rgba(125,130,140,0.4)",
-              background: state === s ? "#2575fc" : "transparent",
+              background: state === s ? "#1a5fd0" : "transparent",
               color: state === s ? "#fff" : "inherit",
               cursor: "pointer",
             }}

@@ -180,7 +180,7 @@ export function createUserBehaviorPlugin(config: UserBehaviorConfig = {}): LazyI
             position: "absolute",
             top: 8,
             right: 8,
-            background: "rgba(30,144,255,0.85)",
+            background: "#1565c0",
             color: "#fff",
             fontSize: 12,
             padding: "6px 8px",

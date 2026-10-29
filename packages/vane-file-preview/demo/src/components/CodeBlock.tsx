@@ -20,6 +20,13 @@ import markup from "react-syntax-highlighter/dist/esm/languages/prism/markup";
 import markdown from "react-syntax-highlighter/dist/esm/languages/prism/markdown";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 
+// oneDark 的注释色 #5c6370 压在 #100f0e 上只有 3.17:1，注释又占源码块很大篇幅 —— 提到 #8b93a1
+const CODE_THEME = {
+  ...oneDark,
+  comment: { ...(oneDark as Record<string, React.CSSProperties>)["comment"], color: "#8b93a1" },
+  prolog: { ...(oneDark as Record<string, React.CSSProperties>)["prolog"], color: "#8b93a1" },
+};
+
 SyntaxHighlighter.registerLanguage("tsx", tsx);
 SyntaxHighlighter.registerLanguage("typescript", typescript);
 SyntaxHighlighter.registerLanguage("javascript", javascript);
@@ -92,7 +99,8 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
       <div className="code-head">
         <span title={title}>{title ?? language}</span>
         <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ opacity: 0.65 }}>{lines.length} 行</span>
+          {/* 不用 opacity 压字：压到 0.65 后只剩 2.9:1 */}
+          <span>{lines.length} 行</span>
           <button
             type="button"
             className={`code-copy${state === "ok" ? " is-ok" : state === "fail" ? " is-fail" : ""}`}
@@ -106,7 +114,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
       <pre style={maxHeight ? { maxHeight } : undefined}>
         <SyntaxHighlighter
           language={language}
-          style={oneDark}
+          style={CODE_THEME}
           customStyle={{
             margin: 0,
             padding: 0,

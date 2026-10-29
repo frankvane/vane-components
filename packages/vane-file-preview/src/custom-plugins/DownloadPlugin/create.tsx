@@ -91,7 +91,7 @@ function DownloadBody({
         gap: 20,
         padding: 24,
         boxSizing: "border-box",
-        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+        background: "linear-gradient(135deg, #4a5bd0 0%, #5b3a7e 100%)",
         color: "#fff",
       }}
     >
@@ -135,7 +135,7 @@ function DownloadBody({
           padding: "10px 28px",
           fontSize: 15,
           fontWeight: 500,
-          color: "#667eea",
+          color: "#4a5bd0",
           background: "#fff",
           border: "none",
           borderRadius: 8,

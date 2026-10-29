@@ -90,7 +90,7 @@ export function createOfflinePlugin(config: OfflineConfig = {}): LazyImagePlugin
               position: "absolute",
               top: 8,
               left: 8,
-              background: "rgba(244,67,54,0.9)",
+              background: "#c62828",
               color: "#fff",
               fontSize: 12,
               padding: "4px 8px",

@@ -17,7 +17,6 @@ const actionBtn: React.CSSProperties = {
   border: "none",
   background: "transparent",
   color: "inherit",
-  opacity: 0.7,
   cursor: "pointer",
   fontSize: 13,
   padding: 0,
@@ -99,7 +98,7 @@ function ReportButton({
               border: "none",
               borderRadius: 6,
               padding: "6px 0",
-              background: "#ff4d4f",
+              background: "#c62828",
               color: "#fff",
               cursor: "pointer",
             }}

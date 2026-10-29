@@ -61,9 +61,9 @@ export default function TwoColumnLayout() {
           gap: 6,
         }}
       >
-        <div style={{ fontSize: 11, letterSpacing: "0.08em", color: "#9aa08c" }}>{TEE.brand}</div>
+        <div style={{ fontSize: 11, letterSpacing: "0.08em", color: "#5f6553" }}>{TEE.brand}</div>
         <div style={{ fontSize: 16, fontWeight: 600, lineHeight: 1.35 }}>{TEE.title}</div>
-        <div style={{ fontSize: 12, color: "#8a8a8a", lineHeight: 1.6 }}>{TEE.subtitle}</div>
+        <div style={{ fontSize: 12, color: "#6b6b6b", lineHeight: 1.6 }}>{TEE.subtitle}</div>
 
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 2 }}>
           {TEE.tags?.slice(0, 3).map((t) => (
@@ -71,7 +71,7 @@ export default function TwoColumnLayout() {
               key={t}
               style={{
                 fontSize: 10.5,
-                color: "#6f7563",
+                color: "#545a48",
                 border: "1px solid #e4e6dd",
                 borderRadius: 999,
                 padding: "2px 8px",
@@ -86,7 +86,7 @@ export default function TwoColumnLayout() {
           <b style={{ fontSize: 20, color: "#d0021b", fontVariantNumeric: "tabular-nums" }}>
             ¥{TEE.price}
           </b>
-          {TEE.oldPrice ? <s style={{ fontSize: 12, color: "#bbb" }}>¥{TEE.oldPrice}</s> : null}
+          {TEE.oldPrice ? <s style={{ fontSize: 12, color: "#6b6b6b" }}>¥{TEE.oldPrice}</s> : null}
         </div>
 
         <button

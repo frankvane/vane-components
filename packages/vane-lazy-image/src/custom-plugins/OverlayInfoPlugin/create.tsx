@@ -24,7 +24,9 @@ function OverlayInfoView({
 }) {
   const {
     position = "bottom",
-    background = "rgba(0,0,0,0.45)",
+    // 白字压在 rgba(0,0,0,.45) 上，浅色底图透出来会稀释成 #878787（3.6:1）；
+    // .62 才能让白字在任意浅底上稳过 4.5 —— 深色照片上观感几乎无差。
+    background = "rgba(0,0,0,0.62)",
     color = "#fff",
     fontSize = 12,
     padding = "6px 8px",

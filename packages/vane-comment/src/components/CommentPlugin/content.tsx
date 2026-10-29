@@ -41,7 +41,7 @@ export function renderCommentContent(nodes: CommentNode[]): React.ReactNode {
         return (
           <span
             key={i}
-            style={{ color: "#1da1f2", fontWeight: 500 }}
+            style={{ color: "#1565c0", fontWeight: 500 }}
           >{`@${node.name}`}</span>
         );
       default:

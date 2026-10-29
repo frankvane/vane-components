@@ -59,7 +59,7 @@ export function createTabSyncPlugin<T = any>(
         padding: "6px 0",
         borderRadius: 6,
         background: active ? "#fff" : "transparent",
-        color: active ? "#2575fc" : "#555",
+        color: active ? "#1a5fd0" : "#555",
         fontWeight: active ? 700 : 400,
       };
     }
@@ -67,7 +67,7 @@ export function createTabSyncPlugin<T = any>(
       return {
         padding: "4px 14px",
         borderRadius: 999,
-        background: active ? "#2575fc" : "transparent",
+        background: active ? "#1a5fd0" : "transparent",
         color: active ? "#fff" : "#555",
         border: active ? "none" : "1px solid #ddd",
       };
@@ -75,8 +75,8 @@ export function createTabSyncPlugin<T = any>(
     // underline
     return {
       padding: "8px 12px",
-      borderBottom: active ? "2px solid #2575fc" : "2px solid transparent",
-      color: active ? "#2575fc" : "#555",
+      borderBottom: active ? "2px solid #1a5fd0" : "2px solid transparent",
+      color: active ? "#1a5fd0" : "#555",
       fontWeight: active ? 700 : 400,
     };
   };

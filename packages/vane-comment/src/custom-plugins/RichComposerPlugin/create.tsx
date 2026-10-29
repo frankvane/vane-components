@@ -205,7 +205,7 @@ function Composer({
                 borderRadius: 999,
                 padding: "2px 10px",
                 background: "transparent",
-                color: "#1da1f2",
+                color: "#1565c0",
                 cursor: "pointer",
                 fontSize: 12,
               }}
@@ -256,7 +256,7 @@ function Composer({
             padding: "6px 18px",
             fontSize: 13,
             cursor: canSubmit ? "pointer" : "not-allowed",
-            background: canSubmit ? "#1da1f2" : "rgba(128,128,128,0.2)",
+            background: canSubmit ? "#1565c0" : "rgba(128,128,128,0.2)",
             color: canSubmit ? "#fff" : "inherit",
           }}
         >

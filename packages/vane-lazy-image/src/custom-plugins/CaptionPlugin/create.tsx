@@ -12,7 +12,8 @@ export const createCaptionPlugin = (
   config?: CaptionPluginConfig
 ): LazyImagePlugin => {
   const position = config?.position ?? "bottom";
-  const bg = config?.bg ?? "rgba(0,0,0,0.55)";
+  // 白字压在 55% 黑上，遇到浅色图会被稀释到 4.4:1；.62 才能保证任意底图都过线
+  const bg = config?.bg ?? "rgba(0,0,0,0.62)";
   const color = config?.color ?? "#fff";
 
   return {

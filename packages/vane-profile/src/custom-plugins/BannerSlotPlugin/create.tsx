@@ -34,7 +34,7 @@ export function createBannerSlotPlugin<T = any>(
 ): ProfilePlugin<T> {
   const {
     cover,
-    gradient = ["#6a11cb", "#2575fc"],
+    gradient = ["#6a11cb", "#1a5fd0"],
     avatar,
     avatarSize = 64,
     avatarRound = true,

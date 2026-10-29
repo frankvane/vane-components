@@ -62,7 +62,7 @@ function FollowButton({
         fontSize,
         borderRadius: 999,
         border: following ? "1px solid #ddd" : "none",
-        background: following ? "#fff" : "#2575fc",
+        background: following ? "#fff" : "#1a5fd0",
         color: following ? "#555" : "#fff",
         cursor: "pointer",
       }}

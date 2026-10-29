@@ -10,7 +10,6 @@ const actionBtn: React.CSSProperties = {
   border: "none",
   background: "transparent",
   color: "inherit",
-  opacity: 0.7,
   cursor: "pointer",
   fontSize: 13,
   padding: 0,

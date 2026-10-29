@@ -13,7 +13,7 @@ const svg = (bg: string, letter: string) =>
       `</svg>`
   );
 
-export const AVATAR = svg("#2575fc", "F");
+export const AVATAR = svg("#1a5fd0", "F");
 
 export const SAMPLE_USER = {
   id: "u_1",
@@ -57,7 +57,7 @@ export const SAMPLE_TAGS = [
 /** 作品网格（WorksGrid 演示用；coverColor 纯色占位，离线可跑） */
 export const SAMPLE_WORKS = [
   { id: "w1", title: "vane-waterfall 重构笔记", coverColor: "#6a11cb", meta: "2.4w 阅读" },
-  { id: "w2", title: "插件化架构实战", coverColor: "#2575fc", meta: "1.1w 点赞" },
+  { id: "w2", title: "插件化架构实战", coverColor: "#1a5fd0", meta: "1.1w 点赞" },
   { id: "w3", title: "从 0 写一个组件库", coverColor: "#11998e", meta: "8.6k 收藏" },
   { id: "w4", title: "拖拽排序的 7 种实现", coverColor: "#ff7e5f", meta: "3 周前" },
   { id: "w5", title: "可视化排版台", coverColor: "#fc466b", meta: "团队协作" },
@@ -88,7 +88,7 @@ export const SAMPLE_ACTIVITY = {
 /** 成就 / 勋章墙（AchievementWall 演示用；glyph 单/双字占位，离线可跑） */
 export const SAMPLE_ACHIEVEMENTS = [
   { id: "a1", title: "年度创作者", desc: "2025", glyph: "年", color: "#e0b34a" },
-  { id: "a2", title: "万粉", desc: "粉丝破万", glyph: "万", color: "#2575fc" },
+  { id: "a2", title: "万粉", desc: "粉丝破万", glyph: "万", color: "#1a5fd0" },
   { id: "a3", title: "开源之星", desc: "50+ repo", glyph: "星", color: "#11998e" },
   { id: "a4", title: "优质教程", desc: "官方推荐", glyph: "优", color: "#fc466b" },
   { id: "a5", title: "连续打卡", desc: "365 天", glyph: "勤", color: "#ff7e5f" },

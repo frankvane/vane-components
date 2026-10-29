@@ -15,12 +15,12 @@
     { "name": "showWhen", "type": "\"always\" | \"loading\" | \"loaded\" | \"error\"", "default": "\"loaded\"", "description": "显示时机" },
     { "name": "enabled", "type": "boolean", "default": "true", "description": "是否启用" }
   ],
-  "example": "const BadgeImage = withPlugins(LazyLoadImageCore, [\n  createBadgePlugin({ text: \"NEW\", position: \"top-left\", bgColor: \"#ff4757\", showWhen: \"always\" }),\n]);\n\n<BadgeImage src=\"https://picsum.photos/id/1015/500/300\" alt=\"角标示例\" />;",
+  "example": "const BadgeImage = withPlugins(LazyLoadImageCore, [\n  createBadgePlugin({ text: \"NEW\", position: \"top-left\", bgColor: \"#c62828\", showWhen: \"always\" }),\n]);\n\n<BadgeImage src=\"https://picsum.photos/id/1015/500/300\" alt=\"角标示例\" />;",
   "examples": [
-    { "name": "常驻徽标", "description": "左上角红色 NEW 徽标，始终显示。", "src": "https://picsum.photos/id/1015/500/300", "config": { "text": "NEW", "position": "top-left", "bgColor": "#ff4757", "showWhen": "always" } },
+    { "name": "常驻徽标", "description": "左上角红色 NEW 徽标，始终显示。", "src": "https://picsum.photos/id/1015/500/300", "config": { "text": "NEW", "position": "top-left", "bgColor": "#c62828", "showWhen": "always" } },
     { "name": "加载时显示", "description": "加载中显示 Loading 徽标，加载完成隐藏。", "src": "https://picsum.photos/id/1021/500/300", "config": { "text": "Loading", "position": "top-right", "bgColor": "rgba(0,0,0,0.6)", "showWhen": "loading" } },
-    { "name": "加载成功后显示", "description": "加载完成后显示 Done 徽标。", "src": "https://picsum.photos/id/1026/500/300", "config": { "text": "Done", "position": "bottom-right", "bgColor": "#28a745", "showWhen": "loaded" } },
-    { "name": "自定义样式", "description": "橙色大字号圆角徽标，居中。", "src": "https://picsum.photos/id/1031/500/300", "config": { "text": "HOT", "position": "center", "bgColor": "#ff9f43", "color": "#fff", "fontSize": 16, "borderRadius": 20 } }
+    { "name": "加载成功后显示", "description": "加载完成后显示 Done 徽标。", "src": "https://picsum.photos/id/1026/500/300", "config": { "text": "Done", "position": "bottom-right", "bgColor": "#2e7d32", "showWhen": "loaded" } },
+    { "name": "自定义样式", "description": "橙色大字号圆角徽标，居中。", "src": "https://picsum.photos/id/1031/500/300", "config": { "text": "HOT", "position": "center", "bgColor": "#b35c00", "color": "#fff", "fontSize": 16, "borderRadius": 20 } }
   ],
   "features": [
     "角标 / 中心两种布局",

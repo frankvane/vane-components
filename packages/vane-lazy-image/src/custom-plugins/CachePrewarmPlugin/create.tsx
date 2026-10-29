@@ -93,7 +93,7 @@ const CacheBadge: React.FC<{ src: string }> = ({ src }) => {
         position: "absolute",
         top: 8,
         left: 8,
-        background: done ? "rgba(76,175,80,0.92)" : "rgba(255,152,0,0.92)",
+        background: done ? "#2e7d32" : "#b35c00",
         color: "#fff",
         fontSize: 12,
         padding: "4px 8px",
