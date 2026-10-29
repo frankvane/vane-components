@@ -1,0 +1,42 @@
+{
+  "name": "RichComposerPlugin",
+  "description": "富编辑：底部评论框，支持 emoji 选择器 / 图片（DataURL）/ @提及（候选下拉），实时预览，提交时输出结构化 CommentNode[] 回调 onSubmit。各能力经 features 配置按平台开关。",
+  "since": "0.1.0",
+  "tags": ["ui", "富文本", "编辑器", "评论框"],
+  "config": [
+    {
+      "name": "features",
+      "type": "{ emoji?: boolean; image?: boolean; mention?: boolean }",
+      "default": "{ emoji: true, image: true, mention: true }",
+      "description": "启用哪些富编辑能力，按平台开关"
+    },
+    {
+      "name": "placeholder",
+      "type": "string",
+      "default": "说点什么吧…",
+      "description": "文本框占位符"
+    },
+    {
+      "name": "submitText",
+      "type": "string",
+      "default": "发布",
+      "description": "提交按钮文案"
+    }
+  ],
+  "example": "const Comment = withCommentPlugins(CommentCore, [\n  createRichComposerPlugin({ features: { emoji: true, image: true } }),\n]);",
+  "features": [
+    "emoji 选择器（内置常用表情，零依赖）",
+    "图片（本地文件 → DataURL，离线可用）",
+    "@提及（候选下拉，输出 mention 节点）",
+    "实时富内容预览（复用核心渲染）",
+    "结构化输出 CommentNode[]"
+  ],
+  "useCases": [
+    "视频评论区（emoji + 图片）",
+    "社交评论区（emoji + 图片 + @提及）",
+    "电商评论区（emoji + 图片晒单）"
+  ],
+  "notes": [
+    "组件不缓存草稿；提交后清空。@提及按候选 name 精确匹配，多个同名取首个。"
+  ]
+}

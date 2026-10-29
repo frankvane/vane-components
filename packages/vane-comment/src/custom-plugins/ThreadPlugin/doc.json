@@ -1,0 +1,40 @@
+{
+  "name": "ThreadPlugin",
+  "description": "楼中楼：顶评论的 renderNested 槽递归渲染嵌套回复，maxDepth 限深折叠 + 展开/收起；操作行的「回复」经 renderCommentActions 唤起内联回复框。嵌套回复同样走同一组槽，子回复也能点赞与继续回复。",
+  "since": "0.1.0",
+  "tags": ["ui", "楼中楼", "回复", "嵌套"],
+  "config": [
+    {
+      "name": "maxDepth",
+      "type": "number",
+      "default": "3",
+      "description": "最大嵌套深度，超过则不再渲染更深的楼中楼"
+    },
+    {
+      "name": "defaultExpanded",
+      "type": "boolean",
+      "default": "true",
+      "description": "是否默认展开楼中楼"
+    },
+    {
+      "name": "showReply",
+      "type": "boolean",
+      "default": "true",
+      "description": "是否在操作行渲染内联回复框触发"
+    }
+  ],
+  "example": "const Comment = withCommentPlugins(CommentCore, [\n  createThreadPlugin({ maxDepth: 3 }),\n]);",
+  "features": [
+    "递归楼中楼（限深折叠 + 展开/收起）",
+    "内联回复框，提交回调 onReply(parentId, content)",
+    "嵌套回复复用同一 actions/nested 槽（子回复可点赞 / 继续回复）",
+    "replyCount 与 replies 不一致时提示「展开 N 条回复」（懒加载场景）"
+  ],
+  "useCases": [
+    "社交评论区楼中楼",
+    "视频 / 电商评论区的多级互动"
+  ],
+  "notes": [
+    "限制深度的渲染交由 ThreadView 递归完成，maxDepth 控制总层级。"
+  ]
+}

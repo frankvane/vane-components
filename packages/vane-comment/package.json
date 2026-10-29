@@ -1,0 +1,125 @@
+{
+  "name": "vane-comment",
+  "version": "0.1.0",
+  "description": "插件式通用评论区引擎：点赞 / 排序 / 楼中楼 / 富编辑，视频·社交·电商评论区同一内核按需装配",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./entries/core": {
+      "types": "./dist/entries/core.d.ts",
+      "import": "./dist/entries/core.js"
+    },
+    "./entries/plugins": {
+      "types": "./dist/entries/plugins.d.ts",
+      "import": "./dist/entries/plugins.js"
+    },
+    "./custom-plugins/LikePlugin": {
+      "types": "./dist/custom-plugins/LikePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/LikePlugin/index.js"
+    },
+    "./custom-plugins/RichComposerPlugin": {
+      "types": "./dist/custom-plugins/RichComposerPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/RichComposerPlugin/index.js"
+    },
+    "./custom-plugins/SortPlugin": {
+      "types": "./dist/custom-plugins/SortPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/SortPlugin/index.js"
+    },
+    "./custom-plugins/ThreadPlugin": {
+      "types": "./dist/custom-plugins/ThreadPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ThreadPlugin/index.js"
+    },
+    "./custom-plugins": {
+      "types": "./dist/custom-plugins/index.d.ts",
+      "import": "./dist/custom-plugins/index.js"
+    },
+    "./presets/ecommerce": {
+      "types": "./dist/presets/ecommerce/index.d.ts",
+      "import": "./dist/presets/ecommerce/index.js"
+    },
+    "./presets/social": {
+      "types": "./dist/presets/social/index.d.ts",
+      "import": "./dist/presets/social/index.js"
+    },
+    "./presets/video": {
+      "types": "./dist/presets/video/index.d.ts",
+      "import": "./dist/presets/video/index.js"
+    },
+    "./custom-plugins/*": {
+      "types": "./dist/custom-plugins/*/index.d.ts",
+      "import": "./dist/custom-plugins/*/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "react",
+    "plugin",
+    "comment",
+    "评论",
+    "typescript"
+  ],
+  "author": "Frank Vane",
+  "license": "MIT",
+  "vane": {
+    "sizeBudgetKb": 4,
+    "subpathBudgets": {
+      "./custom-plugins/LikePlugin": 2,
+      "./custom-plugins/SortPlugin": 2,
+      "./custom-plugins/ThreadPlugin": 4.5,
+      "./custom-plugins/RichComposerPlugin": 4.5
+    },
+    "sizeBudgetNote": "根入口 = CommentCore（数据驱动列表壳）+ withCommentPlugins 装配器 + 领域槽 + 类型；vane-plugin-core 按 B1-A 走 peer 外部化（构建期外置，不进 dist），根 gzip 实测 3.7KB，预算 4KB 留余量（ADR-6 守住了：插件绝不进根入口）。四个官方插件严格走子路径 vane-comment/custom-plugins/*（ADR-6）。子路径闭包量的是「入口 + 共享内核(slots+content ~1.35KB) + 自身代码」——LikePlugin/SortPlugin 只是薄壳（1.5/1.9KB），但 ThreadPlugin（4.1KB）与 RichComposerPlugin（3.9KB）各自背着真实 UI：前者是递归楼中楼 + 内联回复框，后者是 emoji 选择器 + 图片 + @提及 + 实时预览的富编辑框，自身代码约 2.6/2.5KB。初版拍的 2KB 扁平预算对这两个重插件不成立（要压到 2KB 只能砍功能），故按「改口径必须写理由」的硬约束把二者调到 4.5KB，而非静默调大。三平台预设走 ./presets/* 整装逃生口，不单列预算（根入口不受影响）。"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/frankvane/vane-components.git",
+    "directory": "packages/vane-comment"
+  },
+  "scripts": {
+    "dev": "vite --config demo/vite.config.ts",
+    "build": "vite build --mode lib",
+    "build:demo": "vite build --config demo/vite.config.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "lint": "eslint .",
+    "docs:plugins": "node scripts/generate-plugin-docs.mjs",
+    "sync:exports": "node ../../scripts/sync-exports.mjs",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "react": ">=16.8.0",
+    "react-dom": ">=16.8.0",
+    "vane-plugin-core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vane/build-config": "workspace:*",
+    "@vane/eslint-config": "workspace:*",
+    "@vane/tsconfig": "workspace:*",
+    "@vane/vitest-config": "workspace:*",
+    "@vitejs/plugin-react": "^4.3.1",
+    "happy-dom": "^15.11.7",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.26.2",
+    "typescript": "^5.6.3",
+    "vane-plugin-core": "workspace:*",
+    "vite": "^5.4.1",
+    "vite-plugin-dts": "^4.5.4",
+    "vitest": "^2.1.8"
+  }
+}

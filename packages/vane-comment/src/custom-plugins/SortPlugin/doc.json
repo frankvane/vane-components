@@ -1,0 +1,35 @@
+{
+  "name": "SortPlugin",
+  "description": "排序：顶栏渲染排序栏（最新/最早/最热/最赞），切换 sortMode 经内核 state 驱动列表重排。实际重排由内核 extendContext 的 sortComments 完成。",
+  "since": "0.1.0",
+  "tags": ["ui", "排序", "列表"],
+  "config": [
+    {
+      "name": "modes",
+      "type": "\"newest\" | \"oldest\" | \"hottest\" | \"mostLiked\"[]",
+      "default": "[\"newest\",\"hottest\",\"mostLiked\"]",
+      "description": "排序栏展示的模式按钮"
+    },
+    {
+      "name": "defaultMode",
+      "type": "SortMode",
+      "default": "\"newest\"",
+      "description": "默认排序（仅在消费方未传 defaultSortMode 时播种）"
+    }
+  ],
+  "example": "const Comment = withCommentPlugins(CommentCore, [\n  createSortPlugin({ modes: [\"hottest\",\"newest\"] }),\n]);",
+  "features": [
+    "最新 / 最早 / 最热 / 最赞 四种模式",
+    "点击切换即时重排（经内核 state，非本地数组）",
+    "默认模式播种（尊重消费方 defaultSortMode）",
+    "切 mode 同时回调 onSortChange"
+  ],
+  "useCases": [
+    "视频评论区（默认最热）",
+    "社交评论区（全排序）",
+    "电商评论区（最新 / 最赞）"
+  ],
+  "notes": [
+    "排序是纯视图变换，由内核 sortComments 幂等完成，对已排数据再排不抖动。"
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "name": "LikePlugin",
+  "description": "点赞：每条评论操作行渲染点赞按钮与计数，点击回调 onLike；乐观更新由消费方完成。本地爆裂动画（不依赖全局 overlay 槽）。",
+  "since": "0.1.0",
+  "tags": ["ui", "互动", "点赞"],
+  "config": [
+    {
+      "name": "showCount",
+      "type": "boolean",
+      "default": "true",
+      "description": "是否展示点赞数，false 时只显示爱心图标"
+    }
+  ],
+  "example": "const Comment = withCommentPlugins(CommentCore, [\n  createLikePlugin(),\n]);",
+  "features": [
+    "爱心图标 + 数字计数",
+    "点击局部缩放爆裂动画",
+    "回调 onLike(id, nextLiked)，状态真相在消费方数据",
+    "楼中楼嵌套回复同样经同一槽获得点赞按钮"
+  ],
+  "useCases": [
+    "视频 / 社交 / 电商评论区点赞",
+    "任意需要「赞」互动的评论场景"
+  ],
+  "notes": [
+    "点赞态不做组件内缓存，消费方更新 comments 数据回流后即时反映。"
+  ]
+}
