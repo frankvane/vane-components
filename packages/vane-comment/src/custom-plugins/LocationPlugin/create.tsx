@@ -31,6 +31,7 @@ export function createLocationPlugin<T = any>(): CommentPlugin<T> {
               gap: 2,
               fontSize: 12,
               opacity: 0.6,
+              flexShrink: 0,
             }}
           >
             📍{comment.location}

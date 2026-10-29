@@ -94,7 +94,16 @@ function ReplyNode({
           )}
         </div>
         {actions.length > 0 && showReply && (
-          <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 4 }}>
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "center",
+              columnGap: 14,
+              rowGap: 4,
+              marginTop: 4,
+            }}
+          >
             {actions}
           </div>
         )}
@@ -245,7 +254,14 @@ function ReplyTrigger({
   const [open, setOpen] = useState(false);
   if (!showReply) return null;
   return (
-    <span style={{ display: "inline-flex", flexDirection: "column" }}>
+    <span
+      style={{
+        display: "inline-flex",
+        flexDirection: "column",
+        flexShrink: 0,
+        ...(open ? { flexBasis: "100%", maxWidth: "100%" } : {}),
+      }}
+    >
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -257,6 +273,7 @@ function ReplyTrigger({
           cursor: "pointer",
           fontSize: 13,
           padding: 0,
+          flexShrink: 0,
         }}
       >
         回复

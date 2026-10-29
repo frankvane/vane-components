@@ -51,6 +51,7 @@ function LikeButton({
         cursor: "pointer",
         fontSize: 13,
         padding: 0,
+        flexShrink: 0,
       }}
     >
       <span

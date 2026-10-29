@@ -21,6 +21,7 @@ const actionBtn: React.CSSProperties = {
   cursor: "pointer",
   fontSize: 13,
   padding: 0,
+  flexShrink: 0,
 };
 
 /** 多表情反应条：点击累加对应表情计数，回调 onReact(id, emoji) */
@@ -35,7 +36,7 @@ function ReactionBar({
 }) {
   const reactions = comment.reactions ?? {};
   return (
-    <span data-testid="comment-reaction" style={{ display: "inline-flex", gap: 6 }}>
+    <span data-testid="comment-reaction" style={{ display: "inline-flex", gap: 6, flexShrink: 0 }}>
       {emojis.map((e) => {
         const n = reactions[e] ?? 0;
         return (

@@ -31,7 +31,7 @@ export function createTimestampPlugin<T = any>(): CommentPlugin<T> {
       ) => (
         <span
           data-testid="comment-timestamp"
-          style={{ fontSize: 12, opacity: 0.5 }}
+          style={{ fontSize: 12, opacity: 0.5, flexShrink: 0, whiteSpace: "nowrap" }}
           title="绝对时间"
         >
           {formatAbs(comment.createdAt)}

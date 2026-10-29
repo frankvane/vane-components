@@ -258,6 +258,30 @@ export async function runSelfTest(): Promise<SelfTestResult> {
     t2.host.remove();
   }
 
+  // ---- 6. 操作行布局：不再把按钮压成竖排（flex-wrap + 子项 flex-shrink:0） ----
+  {
+    const t = await mount(<Harness sortMode="newest" />);
+    const actions = t.qa(".vc-actions");
+    ok("布局：存在操作行容器 .vc-actions", actions.length > 0);
+    ok(
+      "布局：操作行开启 flex-wrap（避免按钮挤成竖排）",
+      actions.every((el) => (el.style.flexWrap || "").toLowerCase() === "wrap")
+    );
+    // 每个操作行里的直接子节点都应显式 flex-shrink:0，否则 CJK 文字会被压成逐字竖排
+    const allKids = actions.reduce((n, el) => n + el.children.length, 0);
+    const shrunkKids = actions.reduce(
+      (n, el) =>
+        n +
+        Array.from(el.children).filter(
+          (c) => (c as HTMLElement).style.flexShrink === "0"
+        ).length,
+      0
+    );
+    ok("布局：操作行子项均 flex-shrink:0（不挤压）", allKids > 0 && shrunkKids === allKids);
+    flushSync(() => t.root.unmount());
+    t.host.remove();
+  }
+
   return { total, passed: total - failed.length, failed };
 }
 

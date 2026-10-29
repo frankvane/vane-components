@@ -231,7 +231,17 @@ function CommentItem({ comment, depth }: { comment: Comment; depth: number }) {
             )}
 
             {actions.length > 0 && (
-              <div className="vc-actions" style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 6 }}>
+              <div
+                className="vc-actions"
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  alignItems: "center",
+                  columnGap: 14,
+                  rowGap: 6,
+                  marginTop: 6,
+                }}
+              >
                 {actions}
               </div>
             )}

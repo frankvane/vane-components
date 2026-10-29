@@ -14,6 +14,7 @@ const actionBtn: React.CSSProperties = {
   cursor: "pointer",
   fontSize: 13,
   padding: 0,
+  flexShrink: 0,
 };
 
 /** 置顶按钮：本地高亮 + 回调 onPin(id, next)；Core 已读 comment.pinned 渲染置顶标 */

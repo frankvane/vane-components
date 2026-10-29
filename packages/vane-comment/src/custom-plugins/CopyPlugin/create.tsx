@@ -14,6 +14,7 @@ const actionBtn: React.CSSProperties = {
   cursor: "pointer",
   fontSize: 13,
   padding: 0,
+  flexShrink: 0,
 };
 
 /** 把结构化富内容转纯文本（供复制） */

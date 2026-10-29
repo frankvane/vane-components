@@ -14,6 +14,7 @@ const actionBtn: React.CSSProperties = {
   cursor: "pointer",
   fontSize: 13,
   padding: 0,
+  flexShrink: 0,
 };
 
 /** 收藏按钮：本地高亮 + 回调 onFavorite(id, next) */

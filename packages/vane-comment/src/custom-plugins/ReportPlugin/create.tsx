@@ -21,6 +21,7 @@ const actionBtn: React.CSSProperties = {
   cursor: "pointer",
   fontSize: 13,
   padding: 0,
+  flexShrink: 0,
 };
 
 /** 举报按钮：点击弹出理由浮层，提交回调 onReport(id, reason) */
@@ -43,7 +44,7 @@ function ReportButton({
   };
 
   return (
-    <span style={{ position: "relative", display: "inline-block" }}>
+    <span style={{ position: "relative", display: "inline-block", flexShrink: 0 }}>
       <button
         type="button"
         data-testid="comment-report"
