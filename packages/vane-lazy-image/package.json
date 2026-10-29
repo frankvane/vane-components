@@ -27,10 +27,6 @@
       "types": "./dist/plugins.d.ts",
       "import": "./dist/plugins.js"
     },
-    "./gallery": {
-      "types": "./dist/gallery/index.d.ts",
-      "import": "./dist/gallery/index.js"
-    },
     "./custom-plugins/A11yPlugin": {
       "types": "./dist/custom-plugins/A11yPlugin/index.d.ts",
       "import": "./dist/custom-plugins/A11yPlugin/index.js"
@@ -95,6 +91,10 @@
       "types": "./dist/custom-plugins/CaptionPlugin/index.d.ts",
       "import": "./dist/custom-plugins/CaptionPlugin/index.js"
     },
+    "./custom-plugins/CarouselPlugin": {
+      "types": "./dist/custom-plugins/CarouselPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/CarouselPlugin/index.js"
+    },
     "./custom-plugins/ColorExtractionPlugin": {
       "types": "./dist/custom-plugins/ColorExtractionPlugin/index.d.ts",
       "import": "./dist/custom-plugins/ColorExtractionPlugin/index.js"
@@ -110,6 +110,10 @@
     "./custom-plugins/ConcurrencyControlPlugin": {
       "types": "./dist/custom-plugins/ConcurrencyControlPlugin/index.d.ts",
       "import": "./dist/custom-plugins/ConcurrencyControlPlugin/index.js"
+    },
+    "./custom-plugins/CounterPlugin": {
+      "types": "./dist/custom-plugins/CounterPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/CounterPlugin/index.js"
     },
     "./custom-plugins/CropPlugin": {
       "types": "./dist/custom-plugins/CropPlugin/index.d.ts",
@@ -167,6 +171,10 @@
       "types": "./dist/custom-plugins/FallbackImagePlugin/index.d.ts",
       "import": "./dist/custom-plugins/FallbackImagePlugin/index.js"
     },
+    "./custom-plugins/FavoritePlugin": {
+      "types": "./dist/custom-plugins/FavoritePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/FavoritePlugin/index.js"
+    },
     "./custom-plugins/FetchLoaderPlugin": {
       "types": "./dist/custom-plugins/FetchLoaderPlugin/index.d.ts",
       "import": "./dist/custom-plugins/FetchLoaderPlugin/index.js"
@@ -175,6 +183,10 @@
       "types": "./dist/custom-plugins/FilterPlugin/index.d.ts",
       "import": "./dist/custom-plugins/FilterPlugin/index.js"
     },
+    "./custom-plugins/FullscreenPlugin": {
+      "types": "./dist/custom-plugins/FullscreenPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/FullscreenPlugin/index.js"
+    },
     "./custom-plugins/GalleryPlugin": {
       "types": "./dist/custom-plugins/GalleryPlugin/index.d.ts",
       "import": "./dist/custom-plugins/GalleryPlugin/index.js"
@@ -182,6 +194,10 @@
     "./custom-plugins/GlitchEffectPlugin": {
       "types": "./dist/custom-plugins/GlitchEffectPlugin/index.d.ts",
       "import": "./dist/custom-plugins/GlitchEffectPlugin/index.js"
+    },
+    "./custom-plugins/HotspotPlugin": {
+      "types": "./dist/custom-plugins/HotspotPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/HotspotPlugin/index.js"
     },
     "./custom-plugins/HoverPrefetchPlugin": {
       "types": "./dist/custom-plugins/HoverPrefetchPlugin/index.d.ts",
@@ -194,6 +210,10 @@
     "./custom-plugins/ImageOptimizationPlugin": {
       "types": "./dist/custom-plugins/ImageOptimizationPlugin/index.d.ts",
       "import": "./dist/custom-plugins/ImageOptimizationPlugin/index.js"
+    },
+    "./custom-plugins/IndicatorPlugin": {
+      "types": "./dist/custom-plugins/IndicatorPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/IndicatorPlugin/index.js"
     },
     "./custom-plugins/InventoryStatusPlugin": {
       "types": "./dist/custom-plugins/InventoryStatusPlugin/index.d.ts",
@@ -291,9 +311,21 @@
       "types": "./dist/custom-plugins/SocialSharePlugin/index.d.ts",
       "import": "./dist/custom-plugins/SocialSharePlugin/index.js"
     },
+    "./custom-plugins/Spin360Plugin": {
+      "types": "./dist/custom-plugins/Spin360Plugin/index.d.ts",
+      "import": "./dist/custom-plugins/Spin360Plugin/index.js"
+    },
     "./custom-plugins/SvgPlaceholderPlugin": {
       "types": "./dist/custom-plugins/SvgPlaceholderPlugin/index.d.ts",
       "import": "./dist/custom-plugins/SvgPlaceholderPlugin/index.js"
+    },
+    "./custom-plugins/ThumbPreloadPlugin": {
+      "types": "./dist/custom-plugins/ThumbPreloadPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ThumbPreloadPlugin/index.js"
+    },
+    "./custom-plugins/ThumbSyncPlugin": {
+      "types": "./dist/custom-plugins/ThumbSyncPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ThumbSyncPlugin/index.js"
     },
     "./custom-plugins/TransitionPlugin": {
       "types": "./dist/custom-plugins/TransitionPlugin/index.d.ts",
@@ -327,6 +359,10 @@
       "types": "./dist/custom-plugins/WebPPlugin/index.d.ts",
       "import": "./dist/custom-plugins/WebPPlugin/index.js"
     },
+    "./custom-plugins/ZoomControlPlugin": {
+      "types": "./dist/custom-plugins/ZoomControlPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ZoomControlPlugin/index.js"
+    },
     "./custom-plugins": {
       "types": "./dist/custom-plugins/index.d.ts",
       "import": "./dist/custom-plugins/index.js"
@@ -354,6 +390,10 @@
     "./presets/social-feed": {
       "types": "./dist/presets/social-feed/index.d.ts",
       "import": "./dist/presets/social-feed/index.js"
+    },
+    "./gallery": {
+      "types": "./dist/gallery/index.d.ts",
+      "import": "./dist/gallery/index.js"
     },
     "./custom-plugins/*": {
       "types": "./dist/custom-plugins/*/index.d.ts",

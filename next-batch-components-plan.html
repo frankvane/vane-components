@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>下一批组件规划 · 跨平台 20 候选 · vane-components</title>
+<style>
+  :root {
+    --bg: #f4f5f7;
+    --surface: #ffffff;
+    --ink: #0f172a;
+    --muted: #5b6472;
+    --faint: #8a93a3;
+    --border: #e3e6eb;
+    --border-strong: #d3d8df;
+    --accent: #3f3fd8;
+    --accent-soft: #eef0fe;
+    --t1: #0e9f6e; --t1-soft: #e5f6ef;
+    --t2: #2563eb; --t2-soft: #e8f0fe;
+    --t3: #c2740a; --t3-soft: #fbf1e2;
+    --fl: #7c3aed; --fl-soft: #f1ebfd;
+    --p0: #dc2626; --p0-soft: #fdeaea;
+    --p1: #c2740a; --p1-soft: #fbf1e2;
+    --p2: #2563eb; --p2-soft: #e8f0fe;
+    --sans: -apple-system, "SF Pro SC", "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+    --mono: "JetBrains Mono", "Cascadia Code", Consolas, "Courier New", monospace;
+    --radius: 10px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 14px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page { max-width: 1100px; margin: 0 auto; padding: 48px 28px 72px; }
+
+  /* ---------- header ---------- */
+  .brandrow { display: flex; align-items: baseline; gap: 12px; margin-bottom: 26px; }
+  .brand {
+    font-family: var(--mono); font-size: 13px; font-weight: 600;
+    color: var(--accent); letter-spacing: .02em;
+  }
+  .brand span { color: var(--faint); font-weight: 400; }
+  h1 {
+    font-size: 30px; font-weight: 700; letter-spacing: -0.02em;
+    line-height: 1.25; margin-bottom: 14px;
+  }
+  .lede { max-width: 820px; color: var(--muted); font-size: 15px; margin-bottom: 22px; }
+  .lede strong { color: var(--ink); font-weight: 600; }
+  .metarow { display: flex; flex-wrap: wrap; gap: 10px 26px; padding: 14px 0 0; border-top: 1px solid var(--border-strong); font-size: 12.5px; color: var(--muted); }
+  .metarow b { font-family: var(--mono); font-weight: 600; color: var(--ink); }
+  .metarow .k { color: var(--faint); margin-right: 6px; }
+
+  /* ---------- stat chips ---------- */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin: 30px 0 8px; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px 14px; }
+  .stat .num { font-family: var(--mono); font-size: 24px; font-weight: 700; letter-spacing: -0.02em; }
+  .stat .num small { font-size: 13px; font-weight: 500; color: var(--faint); margin-left: 2px; }
+  .stat .lab { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .stat.acc .num { color: var(--accent); }
+
+  /* ---------- sections ---------- */
+  section { margin-top: 54px; }
+  .sechead { display: flex; align-items: baseline; gap: 14px; margin-bottom: 8px; }
+  .secno { font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--accent); }
+  h2 { font-size: 19px; font-weight: 700; letter-spacing: -0.01em; }
+  .secsub { color: var(--muted); font-size: 13.5px; max-width: 830px; margin-bottom: 18px; }
+  .secsub code { font-family: var(--mono); font-size: 12px; background: var(--accent-soft); color: var(--accent); padding: 1px 6px; border-radius: 5px; }
+
+  /* ---------- grid rows (mini) ---------- */
+  .mini { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--surface); }
+  .mini-head, .mini-row {
+    display: grid; grid-template-columns: 220px 1fr 260px;
+  }
+  .mini-head { background: #fafbfc; border-bottom: 1px solid var(--border-strong); }
+  .mini-head > div {
+    font-size: 11.5px; font-weight: 600; color: var(--faint); text-transform: uppercase;
+    letter-spacing: .08em; padding: 10px 16px;
+  }
+  .mini-row { border-bottom: 1px solid var(--border); }
+  .mini-row:last-child { border-bottom: none; }
+  .mini-row:hover { background: #fafbff; }
+  .mini-row > div { padding: 12px 16px; font-size: 13px; }
+  .mini-row .pkg { font-family: var(--mono); font-weight: 600; font-size: 12.5px; }
+  .mini-row .pkg small { display: block; font-family: var(--sans); font-weight: 400; color: var(--faint); font-size: 11.5px; margin-top: 1px; }
+  .mini-row .desc { color: var(--muted); }
+  .mini-row .desc b { color: var(--ink); font-weight: 600; }
+  .mini-row .meta { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+  .mini-row .meta em { font-style: normal; color: var(--accent); }
+
+  /* ---------- SOP cards ---------- */
+  .sop { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+  .sopcard { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 15px 14px; position: relative; }
+  .sopcard .n { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--accent); }
+  .sopcard .t { font-weight: 600; font-size: 13.5px; margin: 4px 0 4px; }
+  .sopcard .d { font-size: 12px; color: var(--muted); line-height: 1.55; }
+  .soprule {
+    margin-top: 12px; background: var(--accent-soft); border-radius: 8px;
+    padding: 10px 14px; font-size: 13px; color: var(--ink);
+  }
+  .soprule b { color: var(--accent); }
+  .soprule.red {
+    margin-top: 8px; background: var(--p0-soft); border-radius: 8px;
+    padding: 10px 14px; font-size: 13px; color: var(--ink); line-height: 1.7;
+  }
+  .soprule.red b, .soprule.red strong { color: var(--p0); }
+
+  /* ---------- main plan grid ---------- */
+  .plan { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--surface); }
+  .plan-head, .plan-row {
+    display: grid;
+    grid-template-columns: 186px 1.12fr 1.5fr 1fr 92px 122px;
+  }
+  .plan-head { background: #fafbfc; border-bottom: 1px solid var(--border-strong); }
+  .plan-head > div {
+    font-size: 11.5px; font-weight: 600; color: var(--faint); text-transform: uppercase;
+    letter-spacing: .07em; padding: 10px 14px;
+  }
+  .plan-row { border-bottom: 1px solid var(--border); align-items: stretch; }
+  .plan-row:last-child { border-bottom: none; }
+  .plan-row:hover { background: #fafbff; }
+  .plan-row > div { padding: 13px 14px; font-size: 13px; }
+  .tier { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; padding: 9px 16px; font-size: 12.5px; font-weight: 700; }
+  .tier small { font-weight: 400; font-size: 11.5px; }
+  .tier.ok { background: #d8f3ee; color: #0d8f7e; }
+  .tier.t1 { background: var(--t1-soft); color: var(--t1); }
+  .tier.t2 { background: var(--t2-soft); color: var(--t2); }
+  .tier.t3 { background: var(--t3-soft); color: var(--t3); }
+  .tier.g5 { background: #fce7f3; color: #be185d; }
+  .tier.gs { background: #eef1f6; color: #47546a; }
+  .tier.fl { background: var(--fl-soft); color: var(--fl); }
+
+  .cname { font-family: var(--mono); font-weight: 700; font-size: 13px; color: var(--ink); }
+  .cname .v { display: inline-block; font-family: var(--sans); font-weight: 600; font-size: 11px; border-radius: 999px; padding: 0 8px; margin-left: 6px; vertical-align: 1px; }
+  .v.ok { background: #d8f3ee; color: #0d8f7e; }
+  .v.v1 { background: var(--t1-soft); color: var(--t1); }
+  .v.v2 { background: var(--t2-soft); color: var(--t2); }
+  .v.v3 { background: var(--t3-soft); color: var(--t3); }
+  .v.g5 { background: #fce7f3; color: #be185d; }
+  .v.gs { background: #eef1f6; color: #47546a; }
+  .v.vf { background: var(--fl-soft); color: var(--fl); }
+  .ctitle { display: block; font-size: 12px; color: var(--faint); margin-top: 2px; }
+  .cdesc { color: var(--muted); font-size: 12.5px; }
+  .plug { display: flex; flex-wrap: wrap; gap: 4px; align-content: flex-start; }
+  .chip {
+    font-family: var(--mono); font-size: 10.5px; background: #f2f4f7; color: #3c4557;
+    border: 1px solid var(--border); border-radius: 5px; padding: 2px 7px; line-height: 1.5;
+  }
+  .chip b { font-weight: 400; color: var(--accent); }
+  .reuse { color: var(--muted); font-size: 12.5px; }
+  .size { font-family: var(--mono); font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .eff { font-size: 12.5px; color: var(--ink); white-space: nowrap; }
+  .eff .hit { font-family: var(--mono); font-size: 11.5px; margin-left: 6px; }
+  .hit.h5 { color: var(--t1); font-weight: 700; }
+  .hit.h4 { color: var(--t2); font-weight: 700; }
+  .hit.h3 { color: var(--faint); font-weight: 700; }
+
+  /* ---------- batches ---------- */
+  .batches { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .batch { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 17px 14px; display: flex; flex-direction: column; }
+  .batch .tag { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .04em; border-radius: 999px; padding: 1px 9px; margin-bottom: 9px; }
+  .tag.bt1 { background: var(--t1-soft); color: var(--t1); }
+  .tag.bt2 { background: var(--t2-soft); color: var(--t2); }
+  .tag.bt3 { background: var(--t3-soft); color: var(--t3); }
+  .tag.btf { background: var(--fl-soft); color: var(--fl); }
+  .batch .items { font-weight: 600; font-size: 13.5px; line-height: 1.6; font-family: var(--mono); }
+  .batch .goal { font-size: 12.5px; color: var(--muted); margin-top: 7px; }
+  .batch .goal code { font-family: var(--mono); font-size: 11.5px; background: #f2f4f7; padding: 1px 5px; border-radius: 4px; }
+  .batch .ok { margin-top: auto; padding-top: 10px; font-size: 12px; color: var(--ink); border-top: 1px dashed var(--border-strong); }
+  .batch .ok .k { color: var(--faint); }
+
+  /* ---------- risks ---------- */
+  .risks { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .risk { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--border-strong); border-radius: var(--radius); padding: 15px 17px 13px; }
+  .risk.r0 { border-left-color: var(--p0); }
+  .risk.r1 { border-left-color: var(--p1); }
+  .risk.r2 { border-left-color: var(--p2); }
+  .risk.rg { border-left-color: var(--t1); }
+  .risk .lv { font-family: var(--mono); font-size: 11.5px; font-weight: 700; }
+  .r0 .lv { color: var(--p0); } .r1 .lv { color: var(--p1); } .r2 .lv { color: var(--p2); } .rg .lv { color: var(--t1); }
+  .risk .rt { font-weight: 700; font-size: 13.5px; margin: 2px 0 4px; }
+  .risk .rd { font-size: 12.5px; color: var(--muted); }
+  .risk .rd code { font-family: var(--mono); font-size: 11.5px; background: #f2f4f7; padding: 1px 5px; border-radius: 4px; }
+
+  /* ---------- footer ---------- */
+  footer { margin-top: 60px; padding-top: 18px; border-top: 1px solid var(--border-strong); display: flex; flex-wrap: wrap; gap: 8px 24px; font-size: 12px; color: var(--faint); }
+  footer code { font-family: var(--mono); color: var(--muted); }
+
+  /* ---------- responsive ---------- */
+  @media (max-width: 1020px) {
+    .sop { grid-template-columns: repeat(2, 1fr); }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .batches { grid-template-columns: repeat(2, 1fr); }
+    .risks { grid-template-columns: 1fr; }
+    .mini-head { display: none; }
+    .mini-row { grid-template-columns: 1fr; }
+    .mini-row > div { border-bottom: 1px dashed var(--border); }
+    .mini-row > div:last-child { border-bottom: none; }
+    .mini-row .pkg, .mini-row .meta { padding-bottom: 4px; }
+    .plan-head { display: none; }
+    .plan-row { grid-template-columns: 1fr; }
+    .plan-row > div { border-bottom: 1px dashed var(--border); }
+    .plan-row > div:last-child { border-bottom: none; }
+    .plan-row .cname { font-size: 14px; }
+  }
+  @media (max-width: 620px) {
+    .page { padding: 34px 16px 56px; }
+    h1 { font-size: 24px; }
+    .stats, .sop, .batches { grid-template-columns: 1fr; }
+  }
+  @media print {
+    body { background: #fff; }
+    .page { max-width: none; padding: 0; }
+    section { margin-top: 34px; }
+    .plan-row:hover { background: transparent; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ================= header ================= -->
+  <div class="brandrow">
+    <div class="brand">vane-components <span>/ 组件家族规划</span></div>
+  </div>
+  <h1>下一批组件规划：跨平台 20 个候选</h1>
+  <p class="lede">
+    基于创建工作的 <strong>2.0 基线</strong>（内核 <strong>vane-plugin-core 0.1.0</strong> + 四个物料包 2.0.0）。
+    目标模式 = 五条 SOP 判定 + <strong>三条一票否决红线</strong>。选题不限于电商——按平台形态扩展到
+    <strong>社交、视频、直播、内容</strong>等场景，做跨平台通用的领域引擎。
+    本轮列 <strong>20 个新候选</strong>，连同已确认的 <strong>vane-sku / vane-gallery / vane-coupon</strong> 共 23 件，
+    按平台场景分五组、7 批落地。
+  </p>
+  <div class="metarow">
+    <div><span class="k">仓库</span><b>e:\react-plugin-component</b></div>
+    <div><span class="k">基线</span><b>2.0.0 @ 4c393b7</b></div>
+    <div><span class="k">模板 SOP</span><b>pnpm new → verify → changeset</b></div>
+    <div><span class="k">日期</span><b>2026-10-28</b></div>
+  </div>
+
+  <div class="stats">
+    <div class="stat acc"><div class="num">23<small>件规划</small></div><div class="lab">3 件已确认 + 20 个新候选</div></div>
+    <div class="stat"><div class="num">5<small>类场景</small></div><div class="lab">电商 · 社交 · 视频 · 内容 · 消息</div></div>
+    <div class="stat"><div class="num">36<small>KB 红线</small></div><div class="lab">全量体积预算上限（gzip）</div></div>
+    <div class="stat"><div class="num">30<small>分钟</small></div><div class="lab">模板起步一个新组件的 SOP 承诺</div></div>
+  </div>
+
+  <!-- ================= 01 assets ================= -->
+  <section>
+    <div class="sechead"><div class="secno">01</div><h2>现有资产盘点</h2></div>
+    <p class="secsub">新组件的“易实现”来自可复用资产：内核钩子、视口/滚动工具、插件范式与脚手架链路。先盘清楚每个包能反哺什么。</p>
+    <div class="mini">
+      <div class="mini-head"><div>包</div><div>定位与规模</div><div>对下一批组件的反哺</div></div>
+      <div class="mini-row">
+        <div class="pkg">vane-plugin-core<small>0.1.0 · 内核</small></div>
+        <div class="desc"><b>共用插件内核</b>：PluginBus / PluginManager / usePluginRuntime / composeSlots / 错误边界，gzip 实测 <b>1.6 KB</b>（红线 5 KB）</div>
+        <div class="meta">生命周期钩子与插槽装配，<em>所有新组件的地基</em></div>
+      </div>
+      <div class="mini-row">
+        <div class="pkg">vane-card<small>2.0.0 · 电商卡片</small></div>
+        <div class="desc"><b>22 插件 · 38 复合组件</b>：根入口实测 6.3 KB（红线 12 KB）</div>
+        <div class="meta">卡片类插件范式与样式令牌；<em>Badge / Tag 等原子件内嵌为积木，不单独成包</em></div>
+      </div>
+      <div class="mini-row">
+        <div class="pkg">vane-lazy-image<small>2.0.0 · 图片懒加载</small></div>
+        <div class="desc"><b>59 插件</b> · 8 大领域分组，ObserverPool / GlobalContext 性能工程</div>
+        <div class="meta">视口监听、onError 回退、<em>懒渲染策略（gallery / 视频封面 / 聊天图片通用）</em></div>
+      </div>
+      <div class="mini-row">
+        <div class="pkg">vane-waterfall<small>2.0.0 · 瀑布流</small></div>
+        <div class="desc"><b>26 插件</b>：Recycle / InfiniteScroll / URLSync / A11y，虚拟滚动 computeVisibleRange</div>
+        <div class="meta">滚动监听、RAF 节流，<em>虚拟滚动资产供 vane-table 内部复用</em></div>
+      </div>
+      <div class="mini-row">
+        <div class="pkg">vane-file-preview<small>2.0.0 · 文件预览</small></div>
+        <div class="desc"><b>17 个按文件类型路由的预览插件</b>，重依赖全部 optional peer + 动态 import</div>
+        <div class="meta">按类型路由 + 可选重依赖装配思路，<em>可平移到新领域包</em></div>
+      </div>
+      <div class="mini-row">
+        <div class="pkg">templates + scripts<small>脚手架</small></div>
+        <div class="desc"><b>plugin-component 模板 + pnpm new</b>：复制模板 → 改名 → 测试 → 发布，30 分钟 SOP</div>
+        <div class="meta"><em>每个新组件的产线入口</em>，docs 骨架自动生成</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 02 sop ================= -->
+  <section>
+    <div class="sechead"><div class="secno">02</div><h2>目标模式：SOP 过筛 + 三条红线</h2></div>
+    <p class="secsub">五条判定来自 <code>docs/guide/new-component.md</code>。三条一票否决红线之上，选题视野扩到<strong>全平台形态</strong>——电商、社交、视频、直播、内容平台皆可立项，组件按<strong>通用业务引擎</strong>设计，不绑定单一行业。</p>
+    <div class="sop">
+      <div class="sopcard"><div class="n">1</div><div class="t">核心职责薄且稳定</div><div class="d">Core 只做渲染与生命周期转发，能力全部外置给插件，核心不膨胀。</div></div>
+      <div class="sopcard"><div class="n">2</div><div class="t">需求长尾发散</div><div class="d">能力点分散、可自由组合，适合插件化长尾生长，永不淘汰。</div></div>
+      <div class="sopcard"><div class="n">3</div><div class="t">有清晰生命周期 / 事件</div><div class="d">挂载、卸载、输入输出事件有明确时序，能映射到内核钩子。</div></div>
+      <div class="sopcard"><div class="n">4</div><div class="t">有天然渲染插槽</div><div class="d">存在 before / after / overlay 等插件可注入的渲染位。</div></div>
+      <div class="sopcard"><div class="n">5</div><div class="t">按需加载能省体积</div><div class="d">ESM 子路径导出 + tree-shaking，按需引入才有体积收益。</div></div>
+    </div>
+    <div class="soprule red">三条红线（逐条过筛，命中任一条即否决）：<b>① 框架原子件不立项</b>——Badge / Tag / Skeleton / Progress 等 UI 框架标配，内嵌为领域包积木；<b>② 生态成熟专库不立项</b>——react-window（虚拟化）、swiper（轮播）、emoji-mart（表情）、driver.js（引导）等已覆盖的引擎，直接选型接入；<b>③ 架构不匹配不立项</b>——核心价值在逻辑编排而非渲染插槽的 headless 引擎，插件内核收益低。</div>
+    <div class="soprule">判定规则：<b>红线先行，SOP 命中 ≥ 4 条即开工</b>；下文 23 件候选全部命中 4–5 条、红线零命中。</div>
+  </section>
+
+  <!-- ================= 03 plan ================= -->
+  <section>
+    <div class="sechead"><div class="secno">03</div><h2>候选清单：已确认 3 件 + 跨平台 20 件</h2></div>
+    <p class="secsub">20 个新候选按平台场景分五组：社交与关系、视频与直播、内容与阅读、消息与互动、通用运营——覆盖社区、长短视频、直播间、资讯等内容形态，均为框架与生态专库双零覆盖的通用领域引擎。体积预算为根入口 gzip 上限。</p>
+    <div class="plan">
+      <div class="plan-head">
+        <div>组件</div><div>一句话定位</div><div>建议首发插件</div><div>复用现有资产</div><div>体积预算</div><div>工作量 · SOP</div>
+      </div>
+
+      <div class="tier ok">已确认 · 上一轮拍板 <small>3 件 · 先行开工，首件全走模板 SOP 验证链路</small></div>
+
+      <div class="plan-row">
+        <div><span class="cname">vane-sku<span class="v ok">已确认</span></span><span class="ctitle">规格选择引擎</span></div>
+        <div class="cdesc">SKU 规格选择：组合矩阵 / 禁用推导 / 价格联动，antd 等通用框架零覆盖</div>
+        <div class="plug"><span class="chip"><b>Combination</b> 组合矩阵</span><span class="chip"><b>DisableRule</b> 禁用推导</span><span class="chip"><b>PriceLink</b> 价格联动</span><span class="chip"><b>Quota</b> 限购校验</span></div>
+        <div class="reuse">vane-card 电商插件范式与样式令牌</div>
+        <div class="size">≤ 2.5 KB</div>
+        <div class="eff">3–4 天<span class="hit h5">5/5</span></div>
+      </div>
+
+      <div class="plan-row">
+        <div><span class="cname">vane-gallery<span class="v ok">已确认</span></span><span class="ctitle">商品图库</span></div>
+        <div class="cdesc">商品图集引擎：缩略联动 / 放大镜 / 视频位 / 360° 环物</div>
+        <div class="plug"><span class="chip"><b>Magnifier</b> 放大镜</span><span class="chip"><b>ThumbSync</b> 缩略联动</span><span class="chip"><b>VideoSlot</b> 视频位</span><span class="chip"><b>Spin360</b> 环物旋转</span></div>
+        <div class="reuse">lazy-image 加载策略与 onError 回退</div>
+        <div class="size">≤ 2.5 KB</div>
+        <div class="eff">3–5 天<span class="hit h5">5/5</span></div>
+      </div>
+
+      <div class="plan-row">
+        <div><span class="cname">vane-coupon<span class="v ok">已确认</span></span><span class="ctitle">优惠券</span></div>
+        <div class="cdesc">券展示与领取：领取态 / 有效期 / 规则展开，业务状态机远超静态卡片</div>
+        <div class="plug"><span class="chip"><b>ClaimState</b> 领取状态机</span><span class="chip"><b>Validity</b> 有效期</span><span class="chip"><b>RuleExpand</b> 规则展开</span><span class="chip"><b>Stack</b> 叠加态</span></div>
+        <div class="reuse">vane-card 卡片与价格积木作内嵌</div>
+        <div class="size">≤ 1.5 KB</div>
+        <div class="eff">2–3 天<span class="hit h4">4/5</span></div>
+      </div>
+
+      <div class="tier t1">A · 社交与关系引擎 <small>6 件 · 动态流 / 关注关系 / 个人主页，社区与内容平台地基</small></div>
+
+      <div class="plan-row">
+        <div><span class="cname">vane-feed<span class="v v1">社交</span></span><span class="ctitle">动态流引擎</span></div>
+        <div class="cdesc">Feed 卡片：图文 / 视频 / 转发内容类型路由 + 统一操作栏，社交内容区地基</div>
+        <div class="plug"><span class="chip"><b>MediaRouter</b> 内容类型路由</span><span class="chip"><b>ActionBar</b> 赞评转</span><span class="chip"><b>FollowEcho</b> 关注回显</span><span class="chip"><b>QuoteSlot</b> 转发引用卡</span><span class="chip"><b>SourceBadge</b> 来源标识</span></div>
+        <div class="reuse">vane-card 卡片积木 + lazy-image 视频封面懒加载</div>
+        <div class="size">≤ 2.5 KB</div>
+        <div class="eff">4–5 天<span class="hit h5">5/5</span></div>
+      </div>
+
+      <div class="plan-row">
+        <div><span class="cname">vane-user-card<span class="v v1">社交</span></span><span class="ctitle">悬浮用户卡</span></div>
+        <div class="cdesc">Hover 用户卡：头像 / 数据 / 关注态 / 互关徽标，评论区与直播间通用</div>
+        <div class="plug"><span class="chip"><b>HoverTrigger</b> 悬停触发</span><span class="chip"><b>FollowState</b> 关注态</span><span class="chip"><b>StatRow</b> 粉丝数据</span><span class="chip"><b>MutualEcho</b> 互关徽标</span><span class="chip"><b>BioSlot</b> 简介位</span></div>
+        <div class="reuse">vane-card 弹层范式 + lazy-image 头像回退</div>
+        <div class="size">≤ 1.5 KB</div>
+        <div class="eff">2–3 天<span class="hit h4">4/5</span></div>
+      </div>
+
+      <div class="plan-row">
+        <div><span class="cname">vane-follow<span class="v v1">社交</span></span><span class="ctitle">关注关系引擎</span></div>
+        <div class="cdesc">关注按钮状态机：未关注 / 已关注 / 互相关注 / 分组可见，全站复用</div>
+        <div class="plug"><span class="chip"><b>MutualEcho</b> 互相关注态</span><span class="chip"><b>GroupSelect</b> 分组可见</span><span class="chip"><b>BatchFollow</b> 批量关注</span><span class="chip"><b>QuietFollow</b> 悄悄关注</span><span class="chip"><b>ConfirmLayer</b> 取关确认</span></div>
+        <div class="reuse">内核事件钩子 + vane-card 交互范式</div>
+        <div class="size">≤ 1.5 KB</div>
+        <div class="eff">2–3 天<span class="hit h5">5/5</span></div>
+      </div>
+
+      <div class="plan-row">
+        <div><span class="cname">vane-profile<span class="v v1">社交</span></span><span class="ctitle">个人主页引擎</span></div>
+        <div class="cdesc">主页头图引擎：Banner / 数据行 / 内容页签联动，社交主页标配</div>
+        <div class="plug"><span class="chip"><b>BannerSlot</b> 头图位</span><span class="chip"><b>StatRow</b> 数据行</span><span class="chip"><b>TabSync</b> 内容区联动</span><span class="chip"><b>VerifyBadge</b> 认证徽标</span><span class="chip"><b>FollowEcho</b> 关注回显</span></div>
+        <div class="reuse">vane-card Banner / Stats 积木</div>
+        <div class="size">≤ 2.5 KB</div>
+        <div class="eff">3–4 天<span class="hit h4">4/5</span></div>
+      </div>
+
+      <div class="plan-row">
+        <div><span class="cname">vane-topic<span class="v v1">社交</span></span><span class="ctitle">话题聚合引擎</span></div>
+        <div class="cdesc">话题页：热度排序 + 参与发布位 + 相关话题，微博 / 社区形态通用</div>
+        <div class="plug"><span class="chip"><b>HotSort</b> 热度排序</span><span class="chip"><b>TimeRange</b> 时间范围</span><span class="chip"><b>ParticipateSlot</b> 参与发布位</span><span class="chip"><b>RelatedTopics</b> 相关话题</span><span class="chip"><b>WatchState</b> 话题关注</span></div>
+        <div class="reuse">vane-card 标签积木 + waterfall URLSync（话题参数）</div>
+        <div class="size">≤ 2 KB</div>
+        <div class="eff">3–4 天<span class="hit h5">5/5</span></div>
+      </div>
+
+      <div class="plan-row">
+        <div><span class="cname">vane-reaction<span class="v v1">社交</span></span><span class="ctitle">多表态引擎</span></div>
+        <div class="cdesc">赞同 / 收藏 / 点赞多表态并存：数字滚动 / 我的表态回显 / 防刷</div>
+        <div class="plug"><span class="chip"><b>MultiReaction</b> 多表态</span><span class="chip"><b>CounterFx</b> 数字滚动</span><span class="chip"><b>MyEcho</b> 我的表态</span><span class="chip"><b>AntiSpam</b> 防刷</span><span class="chip"><b>BurstFx</b> 表态动效</span></div>
+        <div class="reuse">vane-card 动效插件范式</div>
+        <div class="size">≤ 1.5 KB</div>
+        <div class="eff">2–3 天<span class="hit h4">4/5</span></div>
+      </div>
+
+      <div class="tier t2">B · 视频与直播引擎 <small>5 件 · 视频卡 / 选集 / 弹幕 / 礼物 / 连麦，长短视频与直播间标配</small></div>
+
+      <div class="plan-row">
+        <div><span class="cname">vane-video-card<span class="v v2">视频</span></span><span class="ctitle">视频卡片引擎</span></div>
+        <div class="cdesc">视频卡：封面 / 时长角标 / 续播标记 / 悬停预览 / 已看态，视频流地基</div>
+        <div class="plug"><span class="chip"><b>ResumeMark</b> 续播标记</span><span class="chip"><b>HoverPreview</b> 悬停预览</span><span class="chip"><b>DurationBadge</b> 时长角标</span><span class="chip"><b>WatchedState</b> 已看态</span><span class="chip"><b>CoverSlot</b> 封面插槽</span></div>
+        <div class="reuse">lazy-image 封面加载 + vane-card 角标积木</div>
+        <div class="size">≤ 2 KB</div>
+        <div class="eff">3–4 天<span class="hit h5">5/5</span></div>
+      </div>
+
+      <div class="plan-row">
+        <div><span class="cname">vane-episode<span class="v v2">视频</span></span><span class="ctitle">选集引擎</span></div>
+        <div class="cdesc">剧集网格 / 已看标记 / 自动连播 / 换季，长视频站标配</div>
+        <div class="plug"><span class="chip"><b>EpisodeGrid</b> 选集网格</span><span class="chip"><b>WatchedMark</b> 已看标记</span><span class="chip"><b>AutoNext</b> 自动下一集</span><span class="chip"><b>SeasonSwitch</b> 季切换</span><span class="chip"><b>ResumeMark</b> 续播标记</span></div>
+        <div class="reuse">vane-card 网格积木，与 video-card 共享已看状态</div>
+        <div class="size">≤ 2 KB</div>
+        <div class="eff">3–4 天<span class="hit h5">5/5</span></div>
+      </div>
+
+      <div class="plan-row">
+        <div><span class="cname">vane-danmaku<span class="v v2">视频</span></span><span class="ctitle">弹幕业务引擎</span></div>
+        <div class="cdesc">轨道渲染之上做业务语义：敏感词过滤 / 粉丝牌 / 高赞置顶 / 互动指令</div>
+        <div class="plug"><span class="chip"><b>TrackRender</b> 轨道渲染</span><span class="chip"><b>SensitiveFilter</b> 敏感词过滤</span><span class="chip"><b>FanBadge</b> 粉丝牌</span><span class="chip"><b>PinnedTop</b> 高赞置顶</span><span class="chip"><b>CmdParse</b> 互动指令</span></div>
+        <div class="reuse">waterfall RAF 节流；轨道层基于成熟库 optional peer 装配</div>
+        <div class="size">≤ 2.5 KB</div>
+        <div class="eff">4–5 天<span class="hit h5">5/5</span></div>
+      </div>
+
+      <div class="plan-row">
+        <div><span class="cname">vane-gift-panel<span class="v v2">视频</span></span><span class="ctitle">礼物面板引擎</span></div>
+        <div class="cdesc">礼格网格 / 余额联动 / 连击动画 / 全屏横幅，直播打赏标配</div>
+        <div class="plug"><span class="chip"><b>GiftGrid</b> 礼物网格</span><span class="chip"><b>BalanceLink</b> 余额联动</span><span class="chip"><b>ComboFx</b> 连击动画</span><span class="chip"><b>BannerSlot</b> 全屏横幅位</span><span class="chip"><b>DailyLimit</b> 每日限额</span></div>
+        <div class="reuse">vane-card 动效范式 + 内核事件总线</div>
+        <div class="size">≤ 2.5 KB</div>
+        <div class="eff">4–5 天<span class="hit h5">5/5</span></div>
+      </div>
+
+      <div class="plan-row">
+        <div><span class="cname">vane-seat<span class="v v2">视频</span></span><span class="ctitle">连麦位引擎</span></div>
+        <div class="cdesc">九宫格麦位 / 开闭麦态 / 申请队列 / 主持人控制，语音房与连麦通用</div>
+        <div class="plug"><span class="chip"><b>SeatGrid</b> 麦位网格</span><span class="chip"><b>MicState</b> 开闭麦态</span><span class="chip"><b>ApplyQueue</b> 申请队列</span><span class="chip"><b>HostControl</b> 主持人控制</span><span class="chip"><b>InviteSlot</b> 邀请位</span></div>
+        <div class="reuse">vane-card 头像网格积木 + 内核状态钩子</div>
+        <div class="size">≤ 2 KB</div>
+        <div class="eff">3–4 天<span class="hit h4">4/5</span></div>
+      </div>
+
+      <div class="tier t3">C · 内容与阅读引擎 <small>4 件 · 阅读器 / 收藏 / 历史 / 评论，内容消费闭环</small></div>
+
+      <div class="plan-row">
+        <div><span class="cname">vane-reader<span class="v v3">内容</span></span><span class="ctitle">长文阅读器</span></div>
+        <div class="cdesc">夜间 / 护眼主题 / 字号字距 / 续读进度 / 沉浸态，资讯与专栏通用</div>
+        <div class="plug"><span class="chip"><b>ThemePalette</b> 夜间/护眼</span><span class="chip"><b>FontStep</b> 字号字距</span><span class="chip"><b>ProgressSave</b> 续读进度</span><span class="chip"><b>TocSlot</b> 目录位</span><span class="chip"><b>ImmersiveBar</b> 沉浸态</span></div>
+        <div class="reuse">vane-card 排版令牌 + waterfall 滚动监听（进度）</div>
+        <div class="size">≤ 2 KB</div>
+        <div class="eff">3–4 天<span class="hit h5">5/5</span></div>
+      </div>
+
+      <div class="plan-row">
+        <div><span class="cname">vane-collection<span class="v v3">内容</span></span><span class="ctitle">收藏夹引擎</span></div>
+        <div class="cdesc">多夹管理 / 收藏态同步 / 批量整理 / 备注，全平台通用</div>
+        <div class="plug"><span class="chip"><b>FolderPicker</b> 收藏夹选择</span><span class="chip"><b>CollectState</b> 收藏态</span><span class="chip"><b>BatchManage</b> 批量管理</span><span class="chip"><b>QuickNote</b> 备注</span><span class="chip"><b>MoveBetween</b> 跨夹移动</span></div>
+        <div class="reuse">vane-card 弹层 / 表单范式</div>
+        <div class="size">≤ 1.5 KB</div>
+        <div class="eff">2–3 天<span class="hit h5">5/5</span></div>
+      </div>
+
+      <div class="plan-row">
+        <div><span class="cname">vane-history<span class="v v3">内容</span></span><span class="ctitle">浏览历史引擎</span></div>
+        <div class="cdesc">按日分组 / 续看直达 / 批量清理 / 多端同步态，全平台通用</div>
+        <div class="plug"><span class="chip"><b>DateGroup</b> 按日分组</span><span class="chip"><b>ResumeLink</b> 续看直达</span><span class="chip"><b>BatchClear</b> 批量清理</span><span class="chip"><b>SyncState</b> 多端同步</span><span class="chip"><b>Incognito</b> 无痕开关</span></div>
+        <div class="reuse">waterfall 分组渲染 + lazy-image 缩略懒加载</div>
+        <div class="size">≤ 1.5 KB</div>
+        <div class="eff">2–3 天<span class="hit h4">4/5</span></div>
+      </div>
+
+      <div class="plan-row">
+        <div><span class="cname">vane-comment<span class="v v3">内容</span></span><span class="ctitle">评论区引擎</span></div>
+        <div class="cdesc">楼中楼 / 富编辑 / 排序 / 点赞，视频 / 社交 / 电商评论区通用</div>
+        <div class="plug"><span class="chip"><b>NestedReply</b> 楼中楼</span><span class="chip"><b>RichComposer</b> 富编辑</span><span class="chip"><b>SortSwitch</b> 排序</span><span class="chip"><b>ReactionBar</b> 点赞</span><span class="chip"><b>MediaSlot</b> 图片位</span></div>
+        <div class="reuse">lazy-image 评论图懒加载</div>
+        <div class="size">≤ 2.5 KB</div>
+        <div class="eff">4–5 天<span class="hit h5">5/5</span></div>
+      </div>
+
+      <div class="tier g5">D · 消息与互动引擎 <small>3 件 · 消息中心 / 私信壳 / 举报治理</small></div>
+
+      <div class="plan-row">
+        <div><span class="cname">vane-message-center<span class="v g5">消息</span></span><span class="ctitle">消息中心引擎</span></div>
+        <div class="cdesc">分类型页签 / 未读同步 / 通知模板路由 / 置顶公告，站内信标配</div>
+        <div class="plug"><span class="chip"><b>TypeTabs</b> 分类型页签</span><span class="chip"><b>UnreadSync</b> 未读同步</span><span class="chip"><b>TemplateRouter</b> 通知模板</span><span class="chip"><b>BatchRead</b> 全部已读</span><span class="chip"><b>PinnedFeed</b> 置顶公告</span></div>
+        <div class="reuse">vane-card 列表积木，未读徽标内嵌积木</div>
+        <div class="size">≤ 2.5 KB</div>
+        <div class="eff">3–4 天<span class="hit h5">5/5</span></div>
+      </div>
+
+      <div class="plan-row">
+        <div><span class="cname">vane-chat<span class="v g5">消息</span></span><span class="ctitle">私信窗壳引擎</span></div>
+        <div class="cdesc">气泡插槽 / 输入中 / 已读回执 / 引用回复；协议层随插槽注入，只做壳不做协议</div>
+        <div class="plug"><span class="chip"><b>BubbleSlot</b> 气泡插槽</span><span class="chip"><b>TypingState</b> 输入中</span><span class="chip"><b>ReadState</b> 已读回执</span><span class="chip"><b>QuoteReply</b> 引用回复</span><span class="chip"><b>MsgRouter</b> 图文/视频路由</span></div>
+        <div class="reuse">vane-card 气泡积木 + lazy-image 消息图懒加载</div>
+        <div class="size">≤ 2.5 KB</div>
+        <div class="eff">4–5 天<span class="hit h5">5/5</span></div>
+      </div>
+
+      <div class="plan-row">
+        <div><span class="cname">vane-report<span class="v g5">消息</span></span><span class="ctitle">举报投诉引擎</span></div>
+        <div class="cdesc">分类网格 / 举证位 / 处理进度 / 申诉位，社区治理标配</div>
+        <div class="plug"><span class="chip"><b>CategoryGrid</b> 分类网格</span><span class="chip"><b>EvidenceSlot</b> 举证位</span><span class="chip"><b>StatusFeed</b> 处理进度</span><span class="chip"><b>AppealSlot</b> 申诉位</span><span class="chip"><b>Anonymity</b> 匿名提交</span></div>
+        <div class="reuse">vane-card 表单范式 + file-preview 截图举证联动</div>
+        <div class="size">≤ 2 KB</div>
+        <div class="eff">2–3 天<span class="hit h4">4/5</span></div>
+      </div>
+
+      <div class="tier gs">E · 通用运营引擎 <small>2 件 · 签到 / 搜索面板，全平台运营入口</small></div>
+
+      <div class="plan-row">
+        <div><span class="cname">vane-sign-in<span class="v gs">运营</span></span><span class="ctitle">签到引擎</span></div>
+        <div class="cdesc">连签状态 / 日历条 / 奖励预告 / 补签，各平台运营位通用</div>
+        <div class="plug"><span class="chip"><b>StreakState</b> 连签状态</span><span class="chip"><b>CalendarStrip</b> 日历条</span><span class="chip"><b>RewardPreview</b> 奖励预告</span><span class="chip"><b>MakeupSlot</b> 补签位</span></div>
+        <div class="reuse">vane-card 积木与样式令牌</div>
+        <div class="size">≤ 2 KB</div>
+        <div class="eff">2–3 天<span class="hit h5">5/5</span></div>
+      </div>
+
+      <div class="plan-row">
+        <div><span class="cname">vane-search-panel<span class="v gs">运营</span></span><span class="ctitle">搜索面板引擎</span></div>
+        <div class="cdesc">历史 / 热搜 / 联想 / 键盘漫游 / 回显，全站搜索入口通用</div>
+        <div class="plug"><span class="chip"><b>HistoryChip</b> 历史词</span><span class="chip"><b>HotWords</b> 热搜榜</span><span class="chip"><b>SuggestList</b> 联想列表</span><span class="chip"><b>KeyboardNav</b> 键盘漫游</span><span class="chip"><b>EchoChip</b> 回显</span></div>
+        <div class="reuse">vane-card 积木与令牌</div>
+        <div class="size">≤ 2.5 KB</div>
+        <div class="eff">3–4 天<span class="hit h5">5/5</span></div>
+      </div>
+
+      <div class="tier fl">旗舰 · 已规划（tasks/02 P3） <small>开工前先过 react-window + TanStack Table 生态对标，沉淀 ADR 再定范围</small></div>
+
+      <div class="plan-row">
+        <div><span class="cname">vane-table<span class="v vf">旗舰</span></span><span class="ctitle">数据表格</span></div>
+        <div class="cdesc">虚拟滚动 + 列模型的新旗舰；生态对标后定 Core 范围</div>
+        <div class="plug"><span class="chip">列宽 / 列固定 / 排序 / 选择 / 虚拟滚动 …</span></div>
+        <div class="reuse">waterfall computeVisibleRange 与 RecyclePlugin</div>
+        <div class="size">按红线单列</div>
+        <div class="eff">对标后定<span class="hit h5">5/5</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 04 batches ================= -->
+  <section>
+    <div class="sechead"><div class="secno">04</div><h2>建议落地批次（7 批 + 并行旗舰）</h2></div>
+    <p class="secsub">已确认三件先行验证模板链路；之后按“轻件铺量 → 视频基座 → 社交内容 → 内容治理 → 消息直播 → 直播收官”推进，同批组件共享状态机与积木基建。</p>
+    <div class="batches">
+      <div class="batch">
+        <span class="tag bt1">第 1 批 · 商品页三件</span>
+        <div class="items">vane-sku<br>vane-gallery<br>vane-coupon</div>
+        <div class="goal">首件全走 <code>pnpm new → verify → changeset</code> 验证模板链路；三件拼完整商品页 demo。</div>
+        <div class="ok"><span class="k">验收：</span>3 包发布 + 组合 demo + 体积红线全绿</div>
+      </div>
+      <div class="batch">
+        <span class="tag bt1">第 2 批 · 轻件铺量</span>
+        <div class="items">vane-sign-in<br>vane-search-panel<br>vane-follow<br>vane-user-card</div>
+        <div class="goal">四件 2–3 天级入口件快速铺量，全平台通用。</div>
+        <div class="ok"><span class="k">验收：</span>4 包发布 + 关注状态机 / 键盘漫游用例</div>
+      </div>
+      <div class="batch">
+        <span class="tag bt2">第 3 批 · 视频基座</span>
+        <div class="items">vane-video-card<br>vane-episode<br>vane-collection<br>vane-history</div>
+        <div class="goal">视频卡 / 选集 / 收藏 / 历史，共享“已看 / 续看”状态基建。</div>
+        <div class="ok"><span class="k">验收：</span>4 包发布 + 续播联动 demo</div>
+      </div>
+      <div class="batch">
+        <span class="tag bt2">第 4 批 · 社交内容</span>
+        <div class="items">vane-feed<br>vane-topic<br>vane-profile<br>vane-reaction</div>
+        <div class="goal">动态流 / 话题 / 主页 / 多表态，拼出社区 feed 页 demo。</div>
+        <div class="ok"><span class="k">验收：</span>4 包发布 + feed 组合 demo + 防刷用例</div>
+      </div>
+      <div class="batch">
+        <span class="tag bt3">第 5 批 · 内容与治理</span>
+        <div class="items">vane-reader<br>vane-comment<br>vane-report</div>
+        <div class="goal">长文阅读 + 评论区 + 举报治理，内容消费闭环。</div>
+        <div class="ok"><span class="k">验收：</span>3 包发布 + 嵌套回复 / 续读用例</div>
+      </div>
+      <div class="batch">
+        <span class="tag bt3">第 6 批 · 消息与直播</span>
+        <div class="items">vane-message-center<br>vane-chat<br>vane-danmaku<br>vane-seat</div>
+        <div class="goal">消息中心 + 私信壳 + 弹幕 + 连麦位，消息与直播双线。</div>
+        <div class="ok"><span class="k">验收：</span>4 包发布 + 未读同步 / 麦位状态用例</div>
+      </div>
+      <div class="batch">
+        <span class="tag bt3">第 7 批 · 直播收官</span>
+        <div class="items">vane-gift-panel</div>
+        <div class="goal">礼物面板收官，与弹幕 / 麦位拼完整直播间场景 demo 站。</div>
+        <div class="ok"><span class="k">验收：</span>发布 + 直播间组合 demo + 全家族 demo 站</div>
+      </div>
+      <div class="batch">
+        <span class="tag btf">并行 · 旗舰</span>
+        <div class="items">vane-table</div>
+        <div class="goal">按 tasks/02 P3 启动前，先做 react-window + TanStack Table 生态对标并沉淀 ADR。</div>
+        <div class="ok"><span class="k">验收：</span>对标 ADR + 1 万行滚动帧率 + 入口体积红线</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 05 prerequisites ================= -->
+  <section>
+    <div class="sechead"><div class="secno">05</div><h2>开工前置事项（来自本次评审）</h2></div>
+    <p class="secsub">本次项目评审（详见会话中的评审报告卡片）确认 2.0 基线架构成熟，同时有三件事必须在新一批包发布前处理，优先级如下。</p>
+    <div class="risks">
+      <div class="risk r0">
+        <span class="lv">P0 · 立即</span>
+        <div class="rt">吊销并轮换 .npmrc 中的 npm 发布令牌</div>
+        <div class="rd">项目内 <code>.npmrc</code> 第 7 行含明文 <code>_authToken</code>，且 <code>.lh/</code> 补丁记录中还有副本。吊销 → 凭据移到用户级 <code>~/.npmrc</code> → <code>.gitignore</code> 增加 <code>.lh/</code>，然后才可继续发布。</div>
+      </div>
+      <div class="risk r1">
+        <span class="lv">P1 · 定案后开工</span>
+        <div class="rt">统一内核依赖策略（peer 外部化 vs 内联）</div>
+        <div class="rd">当前四个包两种策略并存，模板为 peer 声明。vane-sku 等新包从模板生成前必须定案，否则分裂会随每个新包扩散。</div>
+      </div>
+      <div class="risk r2">
+        <span class="lv">P2 · 顺手修</span>
+        <div class="rt">更新过时的“内核未发布”注释</div>
+        <div class="rd">vane-card 与 vane-file-preview 的类型注释仍断言内核“未发布到 npm”，与 0.1.0 已发布的现状相反；随第 1 批 PR 一并修正。</div>
+      </div>
+      <div class="risk rg">
+        <span class="lv">闸门 · 每包必过</span>
+        <div class="rt">发布闸门不降级</div>
+        <div class="rd">每包发布前 <code>pnpm verify</code> 全绿（类型 / 单测 / 体积红线 / demo 体检），changeset 随包提交；SOP 命中表写入各包 README。</div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div>基于仓库 <code>e:\react-plugin-component</code> @ <code>4c393b7</code>（2.0 基线）</div>
+    <div>评审报告见会话卡片 · 本文档与评审结论配套阅读</div>
+    <div>2026-10-28 · vane-components 组件家族规划</div>
+  </footer>
+
+</div>
+</body>
+</html>
