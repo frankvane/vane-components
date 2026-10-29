@@ -107,13 +107,15 @@ export function withCommentPlugins<T = any>(
       // 关键：排序结果同时覆盖 `comments` 与 `data` —— CommentCore 的读取顺序是
       // `comments ?? data`，若只填 data 而消费方传了 comments（演示站 / 真实项目都这么传），
       // 排序就会被原始列表覆盖、静默失效。这里把两份都置成排序后的列表。
-      const sorted = ctxRef.current.comments as unknown as T;
+      // `comments` 字段在 props 类型里是固定的 `Comment[]`，`data` 才是泛型 `T`，
+      // 故 comments 直接用领域类型、data 走泛型透传。
+      const sortedComments = ctxRef.current.comments;
       const enhancedProps: CommentCoreProps<T> = {
         ...transformedProps,
         containerRefExternal: containerRef,
         debug: transformedProps.debug ?? enableDebug,
-        data: sorted,
-        comments: sorted,
+        data: sortedComments as unknown as T,
+        comments: sortedComments,
 
         onMount: () => {
           transformedProps.onMount?.();
