@@ -171,7 +171,7 @@ demo/src/
 - **验证全绿**：sku/profile tsc(`--noEmit` 含 demo)=0 error；demo build=0；sku vitest 42/42、profile vitest 12/12；check-structure 后 profile ✅、sku 余 1 项 A1（缺 `entries/`，既有设计，归 P4）。
 - 残留：sku 的 A1（无 `src/entries/`，走核心组件内联聚合）属 P4 入口聚合统一范畴，不在 P1。
 
-### P2 已落地（2026-10-29）
+### P2 已落地（2026-10-29，commit `62df413`，已推双远端 gitee+github，HEAD 一致）
 
 - **三件套提取**：card 22 + fp 17 = **39 个**插件目录的内联工厂 `index.tsx|ts` 抽成规范三件套：`create.tsx`（工厂+config 类型+全部导出，原 index 内容原样搬入）+ `doc.json`（P2 前已存在）+ `index.ts`（薄壳：`export * from "./create"` + 可选 `export { default }` + `Object.assign(create, { meta: doc })` 挂 `.meta`）。用 `git mv` 保留历史。
 - **`.meta` 契约保留**：沿用 waterfall/lazy-image/profile 的工厂契约——薄壳 `index.ts` 必须 `Object.assign(create, { meta: doc })` 挂 meta（测试断言 + profile 运行期渲染 `w.meta` 都依赖）。card/fp 不能去掉，故体积门随之上调（见下）。
