@@ -52,7 +52,7 @@ export function CommentZone({ comments }: { comments: Comment[] }) {
 
 const FEATURES = [
   ["内核只做列表与状态", "列表壳 + 置顶 + 删除态 + 审核态 + 操作行占位内置在内核：数据驱动渲染，能力靠插件增量叠"],
-  ["能力都是插件", "4 个官方插件（点赞 / 排序 / 楼中楼 / 富编辑），不想付的代价不装，不装就没有对应 UI"],
+  ["能力都是插件", "17 个领域插件（点赞 / 排序 / 楼中楼 / 富编辑 4 核心 + 13 扩展），不想付的代价不装，不装就没有对应 UI"],
   ["三插槽零改内核", "插件走 vane-plugin-core 现有三槽映射（header / overlay / footer），内核保持 0.1.0 不变"],
   ["四种排序模式", "newest / oldest / hottest / mostLiked 由 SortPlugin 提供，默认模式可配，换排序不用改组件"],
   ["楼中楼递归", "ThreadPlugin 递归嵌套回复，maxDepth 控制折叠深度，深 2~3 视场景而定"],
@@ -61,7 +61,7 @@ const FEATURES = [
 
 const NOTES = [
   ["装配一次", "withCommentPlugins 放模块顶层（纯配置）或 useMemo（工厂要读闭包）。每次渲染都调会造出新组件类型，React 直接卸载重建，用户刚点的赞会被清空。"],
-  ["一插件一职责", "点赞 / 排序 / 楼中楼 / 富编辑，4 个插件按 priority 串联，互不覆盖。"],
+  ["一插件一职责", "17 个插件按 priority 串联，互不覆盖；互动/组织/信息/转化按槽位分工，扩展无上限。"],
   ["子路径不进根入口", "官方插件走 vane-comment/custom-plugins/<Name>，根入口只含 Core + 装配器 + 类型（实测 ≤4KB gzip）。"],
 ];
 

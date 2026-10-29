@@ -14,7 +14,7 @@ const ScenariosPage = lazy(() =>
 
 const NAV = [
   { to: "/", no: "01", label: "总览", hint: "overview" },
-  { to: "/plugins", no: "02", label: "插件工坊", hint: "4 plugins" },
+  { to: "/plugins", no: "02", label: "插件工坊", hint: "17 plugins" },
   { to: "/scenarios", no: "03", label: "场景示例", hint: "4 plates" },
 ];
 
