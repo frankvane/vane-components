@@ -18,7 +18,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "..");
 const SCEN_DIR = path.join(ROOT, "demo/src/scenarios");
 const DEMO_DIR = path.join(ROOT, "demo/src/demos/catalog");
-const PLUGIN_DIR = path.join(ROOT, "src/components/CardPlugin/custom-plugins");
+const PLUGIN_DIR = path.join(ROOT, "src/custom-plugins");
 
 const problems = [];
 const fail = (msg) => problems.push(msg);

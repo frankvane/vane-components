@@ -17,7 +17,7 @@ import type { CardPlugin } from "../src/components/CardPlugin/plugins/types";
 import {
   createCountdownPlugin,
   createReviewPlugin,
-} from "../src/components/CardPlugin/custom-plugins";
+} from "../src/custom-plugins";
 import { renderCard, installObservers, flush } from "./helpers";
 
 beforeEach(() => {

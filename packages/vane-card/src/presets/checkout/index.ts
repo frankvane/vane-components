@@ -13,20 +13,20 @@ import type { CardPlugin } from "../../components/CardPlugin/plugins/types";
 import {
   createCouponRecommendPlugin,
   type CouponRecommendPluginConfig,
-} from "../../components/CardPlugin/custom-plugins/CouponRecommendPlugin";
-import type { Coupon } from "../../components/CardPlugin/custom-plugins/CouponPlugin";
+} from "../../custom-plugins/CouponRecommendPlugin";
+import type { Coupon } from "../../custom-plugins/CouponPlugin";
 import {
   createOrderSummaryPlugin,
   type OrderSummaryPluginConfig,
-} from "../../components/CardPlugin/custom-plugins/OrderSummaryPlugin";
+} from "../../custom-plugins/OrderSummaryPlugin";
 import {
   createComparePricePlugin,
   type ComparePricePluginConfig,
-} from "../../components/CardPlugin/custom-plugins/ComparePricePlugin";
+} from "../../custom-plugins/ComparePricePlugin";
 import {
   createAnalyticsPlugin,
   type AnalyticsPluginConfig,
-} from "../../components/CardPlugin/custom-plugins/AnalyticsPlugin";
+} from "../../custom-plugins/AnalyticsPlugin";
 
 export interface CheckoutPresetOptions {
   /** 候选券（必填，为空则不装券插件） */

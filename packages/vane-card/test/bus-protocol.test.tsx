@@ -15,7 +15,7 @@ import {
   createQuantityPlugin,
   createPriceCalculatorPlugin,
   createOrderSummaryPlugin,
-} from "../src/components/CardPlugin/custom-plugins";
+} from "../src/custom-plugins";
 import type { CardPlugin } from "../src/components/CardPlugin/plugins/types";
 import { renderCard, installObservers, flush } from "./helpers";
 

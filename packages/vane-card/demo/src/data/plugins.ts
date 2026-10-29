@@ -77,15 +77,15 @@ export interface PluginInfo {
 }
 
 const DOCS = import.meta.glob<PluginDocShape>(
-  "/src/components/CardPlugin/custom-plugins/*/doc.json",
+  "/src/custom-plugins/*/doc.json",
   { eager: true, import: "default" }
 );
-const RAW_TS = import.meta.glob<string>("/src/components/CardPlugin/custom-plugins/*/create.ts", {
+const RAW_TS = import.meta.glob<string>("/src/custom-plugins/*/create.ts", {
   eager: true,
   query: "?raw",
   import: "default",
 });
-const RAW_TSX = import.meta.glob<string>("/src/components/CardPlugin/custom-plugins/*/create.tsx", {
+const RAW_TSX = import.meta.glob<string>("/src/custom-plugins/*/create.tsx", {
   eager: true,
   query: "?raw",
   import: "default",

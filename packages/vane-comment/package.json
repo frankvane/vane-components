@@ -19,13 +19,61 @@
       "types": "./dist/entries/plugins.d.ts",
       "import": "./dist/entries/plugins.js"
     },
+    "./custom-plugins/CopyPlugin": {
+      "types": "./dist/custom-plugins/CopyPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/CopyPlugin/index.js"
+    },
+    "./custom-plugins/CountPlugin": {
+      "types": "./dist/custom-plugins/CountPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/CountPlugin/index.js"
+    },
+    "./custom-plugins/FavoritePlugin": {
+      "types": "./dist/custom-plugins/FavoritePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/FavoritePlugin/index.js"
+    },
+    "./custom-plugins/FilterPlugin": {
+      "types": "./dist/custom-plugins/FilterPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/FilterPlugin/index.js"
+    },
     "./custom-plugins/LikePlugin": {
       "types": "./dist/custom-plugins/LikePlugin/index.d.ts",
       "import": "./dist/custom-plugins/LikePlugin/index.js"
     },
+    "./custom-plugins/LocationPlugin": {
+      "types": "./dist/custom-plugins/LocationPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/LocationPlugin/index.js"
+    },
+    "./custom-plugins/LoginPromptPlugin": {
+      "types": "./dist/custom-plugins/LoginPromptPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/LoginPromptPlugin/index.js"
+    },
+    "./custom-plugins/ModerationPlugin": {
+      "types": "./dist/custom-plugins/ModerationPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ModerationPlugin/index.js"
+    },
+    "./custom-plugins/PinPlugin": {
+      "types": "./dist/custom-plugins/PinPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/PinPlugin/index.js"
+    },
+    "./custom-plugins/ReactionPlugin": {
+      "types": "./dist/custom-plugins/ReactionPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ReactionPlugin/index.js"
+    },
+    "./custom-plugins/ReportPlugin": {
+      "types": "./dist/custom-plugins/ReportPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ReportPlugin/index.js"
+    },
     "./custom-plugins/RichComposerPlugin": {
       "types": "./dist/custom-plugins/RichComposerPlugin/index.d.ts",
       "import": "./dist/custom-plugins/RichComposerPlugin/index.js"
+    },
+    "./custom-plugins/SearchPlugin": {
+      "types": "./dist/custom-plugins/SearchPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/SearchPlugin/index.js"
+    },
+    "./custom-plugins/SharePlugin": {
+      "types": "./dist/custom-plugins/SharePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/SharePlugin/index.js"
     },
     "./custom-plugins/SortPlugin": {
       "types": "./dist/custom-plugins/SortPlugin/index.d.ts",
@@ -34,6 +82,10 @@
     "./custom-plugins/ThreadPlugin": {
       "types": "./dist/custom-plugins/ThreadPlugin/index.d.ts",
       "import": "./dist/custom-plugins/ThreadPlugin/index.js"
+    },
+    "./custom-plugins/TimestampPlugin": {
+      "types": "./dist/custom-plugins/TimestampPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/TimestampPlugin/index.js"
     },
     "./custom-plugins": {
       "types": "./dist/custom-plugins/index.d.ts",

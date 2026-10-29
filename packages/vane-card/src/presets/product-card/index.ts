@@ -14,23 +14,23 @@ import type { CardPlugin } from "../../components/CardPlugin/plugins/types";
 import {
   createImagePlugin,
   type ImagePluginConfig,
-} from "../../components/CardPlugin/custom-plugins/ImagePlugin";
+} from "../../custom-plugins/ImagePlugin";
 import {
   createBadgePlugin,
   type BadgePluginConfig,
-} from "../../components/CardPlugin/custom-plugins/BadgePlugin";
+} from "../../custom-plugins/BadgePlugin";
 import {
   createHoverPlugin,
   type HoverPluginConfig,
-} from "../../components/CardPlugin/custom-plugins/HoverPlugin";
+} from "../../custom-plugins/HoverPlugin";
 import {
   createActionsPlugin,
   type ActionsPluginConfig,
-} from "../../components/CardPlugin/custom-plugins/ActionsPlugin";
+} from "../../custom-plugins/ActionsPlugin";
 import {
   createStatePlugin,
   type StatePluginConfig,
-} from "../../components/CardPlugin/custom-plugins/StatePlugin";
+} from "../../custom-plugins/StatePlugin";
 
 export interface ProductCardPresetOptions {
   image?: ImagePluginConfig;

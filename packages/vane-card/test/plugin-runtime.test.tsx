@@ -180,19 +180,19 @@ describe("内核级语义（vane-plugin-core 直接驱动）", () => {
 
   it("R2 内核级：卸载后 bus.off 计数 == bus.on 计数", async () => {
     const { createQuantityPlugin } = await import(
-      "../src/components/CardPlugin/custom-plugins"
+      "../src/custom-plugins"
     );
     const { createPriceCalculatorPlugin } = await import(
-      "../src/components/CardPlugin/custom-plugins"
+      "../src/custom-plugins"
     );
     const { createComparePricePlugin } = await import(
-      "../src/components/CardPlugin/custom-plugins"
+      "../src/custom-plugins"
     );
     const { createCouponRecommendPlugin } = await import(
-      "../src/components/CardPlugin/custom-plugins"
+      "../src/custom-plugins"
     );
     const { createOrderSummaryPlugin } = await import(
-      "../src/components/CardPlugin/custom-plugins"
+      "../src/custom-plugins"
     );
 
     const bus = createPluginBus();

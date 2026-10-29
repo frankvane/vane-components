@@ -11,19 +11,19 @@ import {
   createSKUPlugin,
   type SKUAttribute,
   type SKUVariant,
-} from "../../components/CardPlugin/custom-plugins/SKUPlugin";
+} from "../../custom-plugins/SKUPlugin";
 import {
   createQuantityPlugin,
   type QuantityPluginConfig,
-} from "../../components/CardPlugin/custom-plugins/QuantityPlugin";
+} from "../../custom-plugins/QuantityPlugin";
 import {
   createPriceCalculatorPlugin,
   type PriceCalculatorPluginConfig,
-} from "../../components/CardPlugin/custom-plugins/PriceCalculatorPlugin";
+} from "../../custom-plugins/PriceCalculatorPlugin";
 import {
   createInventoryPlugin,
   type InventoryPluginConfig,
-} from "../../components/CardPlugin/custom-plugins/InventoryPlugin";
+} from "../../custom-plugins/InventoryPlugin";
 
 export interface SkuFlowPresetOptions {
   /** 属性定义（必填） */

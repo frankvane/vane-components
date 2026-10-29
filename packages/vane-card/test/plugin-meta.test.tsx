@@ -13,10 +13,10 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, it, expect } from "vitest";
 import type { CardPlugin } from "../src/components/CardPlugin/plugins/types";
-import * as plugins from "../src/components/CardPlugin/custom-plugins";
+import * as plugins from "../src/custom-plugins";
 
 const ROOT = process.cwd();
-const PLUGIN_DIR = path.join(ROOT, "src/components/CardPlugin/custom-plugins");
+const PLUGIN_DIR = path.join(ROOT, "src/custom-plugins");
 
 /** 已删除的 9 个死钩子（C2：钩子面 24→15），出现即回归 */
 const REMOVED_HOOKS = [

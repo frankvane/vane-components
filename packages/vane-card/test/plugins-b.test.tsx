@@ -17,8 +17,8 @@ import {
   createA11yPlugin,
   createCountdownPlugin,
   createStatePlugin,
-} from "../src/components/CardPlugin/custom-plugins";
-import { __getLiveRegionUsers } from "../src/components/CardPlugin/custom-plugins/A11yPlugin";
+} from "../src/custom-plugins";
+import { __getLiveRegionUsers } from "../src/custom-plugins/A11yPlugin";
 import type { CardPlugin } from "../src/components/CardPlugin/plugins/types";
 import { renderCard, installObservers, ioInstances, flush } from "./helpers";
 

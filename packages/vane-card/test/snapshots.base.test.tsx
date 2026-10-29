@@ -13,15 +13,15 @@ import path from "node:path";
 import { describe, it, expect, vi } from "vitest";
 import { createPluginManager, createPluginBus } from "vane-plugin-core";
 import { BusKeys } from "../src/components/CardPlugin/plugins/BusKeys";
-import { createSKUPlugin } from "../src/components/CardPlugin/custom-plugins";
-import { createQuantityPlugin } from "../src/components/CardPlugin/custom-plugins";
-import { createPriceCalculatorPlugin } from "../src/components/CardPlugin/custom-plugins";
-import { createComparePricePlugin } from "../src/components/CardPlugin/custom-plugins";
-import { createCouponRecommendPlugin } from "../src/components/CardPlugin/custom-plugins";
-import { createOrderSummaryPlugin } from "../src/components/CardPlugin/custom-plugins";
+import { createSKUPlugin } from "../src/custom-plugins";
+import { createQuantityPlugin } from "../src/custom-plugins";
+import { createPriceCalculatorPlugin } from "../src/custom-plugins";
+import { createComparePricePlugin } from "../src/custom-plugins";
+import { createCouponRecommendPlugin } from "../src/custom-plugins";
+import { createOrderSummaryPlugin } from "../src/custom-plugins";
 
 const ROOT = process.cwd();
-const CUSTOM_DIR = path.join(ROOT, "src/components/CardPlugin/custom-plugins");
+const CUSTOM_DIR = path.join(ROOT, "src/custom-plugins");
 const OUT = path.join(ROOT, "test/fixtures/card-snapshots.json");
 
 /** 扫描每个插件源码，把 BusKeys.X 归类为「写」（emit/setData）或「读」（on/getData/subscribe） */
