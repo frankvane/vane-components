@@ -8,6 +8,8 @@ import {
 } from "react-router-dom";
 import { Sidebar } from "./components/Sidebar";
 import { PLUGINS_BY_CATEGORY } from "./data/plugin-catalog";
+import { DEMOS, findDemo } from "./demos/registry";
+import { DemoPage } from "./demos/DemoPage";
 
 const Home = lazy(() =>
   import("./pages/Home").then((m) => ({ default: m.Home }))
@@ -42,7 +44,18 @@ function currentLabel(pathname: string): string {
   if (pathname.startsWith("/scenarios")) return "scenario / 场景示例";
   if (pathname.startsWith("/workshop")) return "workshop / 插件工坊";
   if (pathname.startsWith("/gallery")) return "gallery / 商品图集";
+  if (pathname.startsWith("/demo")) return "demo / 逐项示例";
   return "index / 索引";
+}
+
+// /demo/:slug —— 找不到就回第一个示例，不要停在空白页
+function DemoRoute() {
+  const { slug } = useParams();
+  const entry = slug ? findDemo(slug) : undefined;
+  if (!entry) return <Navigate to={`/demo/${DEMOS[0].meta.slug}`} replace />;
+  const order = DEMOS.indexOf(entry) + 1;
+  // key 带 slug：路由切换时同一个组件类型会被复用，key 变化强制重挂载，避免状态串台
+  return <DemoPage key={entry.meta.slug} entry={entry} order={order} />;
 }
 
 const TopBar: React.FC<{ onMenu: () => void }> = ({ onMenu }) => {
@@ -113,6 +126,8 @@ const Shell: React.FC = () => {
               <Route path="/scenarios" element={<ScenariosPage />} />
               <Route path="/workshop" element={<WorkshopPage />} />
               <Route path="/gallery" element={<GalleryPage />} />
+              <Route path="/demo" element={<Navigate to={`/demo/${DEMOS[0].meta.slug}`} replace />} />
+              <Route path="/demo/:slug" element={<DemoRoute />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>

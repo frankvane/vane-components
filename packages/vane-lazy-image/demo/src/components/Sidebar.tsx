@@ -3,10 +3,9 @@ import { NavLink } from "react-router-dom";
 import {
   CATEGORY_LABELS,
   PLUGINS_BY_CATEGORY,
-  COMBOS,
-  ADVANCED,
   Category,
 } from "../data/plugin-catalog";
+import { demosOf } from "../demos/registry";
 
 // 菜单顺序：应用级入口 + 分组顺序
 const GROUP_ORDER: Category[] = [
@@ -105,42 +104,46 @@ export const Sidebar: React.FC<{ open: boolean; onClose: () => void }> = ({
           );
         })}
 
-        {COMBOS.some((c) => match(c.title, c.id)) && (
+        {demosOf("combo").some((c) => match(c.meta.title, c.meta.slug)) && (
           <div className="nav-group">
             <h3 className="nav-group-title">
               <span className="sub">组合示例</span>
               <span className="count">
-                {COMBOS.filter((c) => match(c.title, c.id)).length}
+                {demosOf("combo").filter((c) => match(c.meta.title, c.meta.slug)).length}
               </span>
             </h3>
             <div className="nav-group-items">
-              {COMBOS.filter((c) => match(c.title, c.id)).map((c) => (
-                <NavLink key={c.id} to={`/combo/${c.id}`} className="nav-link">
-                  {c.title}
-                </NavLink>
-              ))}
+              {demosOf("combo")
+                .filter((c) => match(c.meta.title, c.meta.slug))
+                .map((c) => (
+                  <NavLink key={c.meta.slug} to={`/combo/${c.meta.slug}`} className="nav-link">
+                    {c.meta.title}
+                  </NavLink>
+                ))}
             </div>
           </div>
         )}
 
-        {ADVANCED.some((a) => match(a.title, a.id)) && (
+        {demosOf("advanced").some((a) => match(a.meta.title, a.meta.slug)) && (
           <div className="nav-group">
             <h3 className="nav-group-title">
               <span className="sub">高级功能</span>
               <span className="count">
-                {ADVANCED.filter((a) => match(a.title, a.id)).length}
+                {demosOf("advanced").filter((a) => match(a.meta.title, a.meta.slug)).length}
               </span>
             </h3>
             <div className="nav-group-items">
-              {ADVANCED.filter((a) => match(a.title, a.id)).map((a) => (
-                <NavLink
-                  key={a.id}
-                  to={`/advanced/${a.id}`}
-                  className="nav-link"
-                >
-                  {a.title}
-                </NavLink>
-              ))}
+              {demosOf("advanced")
+                .filter((a) => match(a.meta.title, a.meta.slug))
+                .map((a) => (
+                  <NavLink
+                    key={a.meta.slug}
+                    to={`/advanced/${a.meta.slug}`}
+                    className="nav-link"
+                  >
+                    {a.meta.title}
+                  </NavLink>
+                ))}
             </div>
           </div>
         )}
@@ -149,8 +152,8 @@ export const Sidebar: React.FC<{ open: boolean; onClose: () => void }> = ({
           !GROUP_ORDER.some((cat) =>
             (PLUGINS_BY_CATEGORY[cat] || []).some((p) => match(p.title, p.id))
           ) &&
-          !COMBOS.some((c) => match(c.title, c.id)) &&
-          !ADVANCED.some((a) => match(a.title, a.id)) && (
+          !demosOf("combo").some((c) => match(c.meta.title, c.meta.slug)) &&
+          !demosOf("advanced").some((a) => match(a.meta.title, a.meta.slug)) && (
             <p className="nav-empty">没有匹配「{query}」的条目</p>
           )}
       </nav>

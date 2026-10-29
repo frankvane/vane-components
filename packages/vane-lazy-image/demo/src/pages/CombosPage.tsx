@@ -1,38 +1,26 @@
 import React from "react";
 import { useParams } from "react-router-dom";
-import { COMBOS, ComboMeta } from "../data/plugin-catalog";
+import { demosOf, findDemo } from "../demos/registry";
+import type { ComboMeta } from "../data/plugin-catalog";
 import { CodeBlock } from "../components/CodeBlock";
 import { ComboPanel } from "../components/ComboPanel";
 
-const LOADERS: Record<string, () => Promise<{ default: React.FC }>> = {
-  "error-resilience": () =>
-    import("../combos/ComboErrorResilienceDemo"),
-  performance: () => import("../combos/ComboPerformanceDemo"),
-  "visual-effects": () => import("../combos/ComboVisualEffectsDemo"),
-  "cache-storage": () => import("../combos/ComboCacheDemo"),
-  "viewport-interaction": () =>
-    import("../combos/ComboViewportInteractionDemo"),
-  "a11y-seo": () => import("../combos/ComboA11ySeoDemo"),
-  "visual-effects-plus": () =>
-    import("../combos/ComboVisualEffectsPlusDemo"),
-  "responsive-seo-webp": () =>
-    import("../combos/ComboResponsiveSeoWebPDemo"),
-  "interaction-overlay": () =>
-    import("../combos/ComboInteractionOverlayDemo"),
-  "engine-perf": () => import("../combos/ComboEnginePerfDemo"),
-};
+const combos = demosOf("combo");
 
-interface IdProps {
-  id: string;
-}
-
-const ComboDetail: React.FC<IdProps> = ({ id }) => {
-  const combo: ComboMeta | undefined = COMBOS.find((c) => c.id === id);
-  const loader = LOADERS[id];
-  if (!loader || !combo) {
+const ComboDetail: React.FC<{ id: string }> = ({ id }) => {
+  const entry = findDemo(id);
+  if (!entry || entry.meta.group !== "combo") {
     return <div className="page">未找到组合示例：{id}</div>;
   }
-  const Comp = React.lazy(loader);
+  const Comp = entry.Stage;
+  const combo: ComboMeta = {
+    id: entry.meta.slug,
+    title: entry.meta.title,
+    description: entry.meta.description ?? "",
+    component: "",
+    plugins: entry.meta.plugins ?? [],
+    code: entry.meta.code ?? "",
+  };
   return (
     <div className="page combo-detail">
       <h1 className="sr-only">{combo.title}</h1>
@@ -56,10 +44,10 @@ export const CombosPage: React.FC = () => {
         </p>
       </div>
       <div className="index-grid">
-        {COMBOS.map((c) => (
-          <a key={c.id} href={`#/combo/${c.id}`} className="chip chip-lg">
-            {c.title}
-            <span className="chip-desc">{c.description}</span>
+        {combos.map((c) => (
+          <a key={c.meta.slug} href={`#/combo/${c.meta.slug}`} className="chip chip-lg">
+            {c.meta.title}
+            <span className="chip-desc">{c.meta.description}</span>
           </a>
         ))}
       </div>

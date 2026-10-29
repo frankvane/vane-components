@@ -1,29 +1,19 @@
 import React from "react";
 import { useParams } from "react-router-dom";
-import { ADVANCED } from "../data/plugin-catalog";
+import { demosOf, findDemo } from "../demos/registry";
 
-interface IdProps {
-  id: string;
-}
+const advanced = demosOf("advanced");
 
-const LOADERS: Record<string, () => Promise<{ default: React.FC }>> = {
-  "plugin-sandbox": () => import("../advanced/PluginSandboxDemo"),
-  "performance-monitoring": () =>
-    import("../advanced/PerformanceMonitoringDemo"),
-  "engine-infra": () => import("../advanced/EngineInfraDemo"),
-  "plugin-hot-reload": () => import("../advanced/PluginHotReloadDemo"),
-  "dependency-resolver": () => import("../advanced/DependencyResolverDemo"),
-};
-
-const AdvancedDetail: React.FC<IdProps> = ({ id }) => {
-  const loader = LOADERS[id];
-  if (!loader) return <div className="page">未找到高级示例：{id}</div>;
-  const Comp = React.lazy(loader);
-  const meta = ADVANCED.find((a) => a.id === id);
+const AdvancedDetail: React.FC<{ id: string }> = ({ id }) => {
+  const entry = findDemo(id);
+  if (!entry || entry.meta.group !== "advanced") {
+    return <div className="page">未找到高级示例：{id}</div>;
+  }
+  const Comp = entry.Stage;
   return (
     <div className="page">
       {/* 各高级 demo 自带标题，这里补一个屏幕阅读器可见的页面主标题 */}
-      <h1 className="sr-only">{meta?.title ?? "高级功能"}</h1>
+      <h1 className="sr-only">{entry.meta.title}</h1>
       <React.Suspense fallback={<div className="loading">加载中…</div>}>
         <Comp />
       </React.Suspense>
@@ -43,10 +33,10 @@ export const AdvancedPage: React.FC = () => {
         </p>
       </div>
       <div className="index-grid">
-        {ADVANCED.map((a) => (
-          <a key={a.id} href={`#/advanced/${a.id}`} className="chip chip-lg">
-            {a.title}
-            <span className="chip-desc">{a.description}</span>
+        {advanced.map((a) => (
+          <a key={a.meta.slug} href={`#/advanced/${a.meta.slug}`} className="chip chip-lg">
+            {a.meta.title}
+            <span className="chip-desc">{a.meta.description}</span>
           </a>
         ))}
       </div>

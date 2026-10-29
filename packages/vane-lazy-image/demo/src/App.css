@@ -2528,3 +2528,7 @@ pre {
 .plugin-card h3 { margin: 0 0 6px; font-size: 14px; color: var(--text); }
 .plugin-card h3 em { font-style: normal; font-size: 11px; color: #2b7de9; margin-left: 6px; }
 .plugin-card p { margin: 0; font-size: 12px; color: var(--muted, #6b7280); line-height: 1.5; }
+
+/* registry 范式：单页示例（/demo/:slug）的舞台与源码容器 */
+.demo-stage-wrap { margin: 16px 0; border: 1px solid var(--accent-line, #e5e7eb); border-radius: 12px; padding: 14px; background: var(--panel, #fff); }
+.demo-source { margin-top: 8px; }
