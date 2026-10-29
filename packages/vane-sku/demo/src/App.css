@@ -2382,6 +2382,11 @@ pre {
   /* 舞台不要跟着右侧源码栏一起被拉高：grid 默认 stretch，会让短场景下面拖出一大片空白 */
   align-self: start;
 }
+/* 插件卡内嵌演示：复用场景舞台，但去掉为「左舞台右源码」准备的右边框 */
+.plugin-demo-stage {
+  border-right: none;
+  margin-top: var(--sp-3);
+}
 .scn-stage.tone-light {
   background: #e9e6df;
 }

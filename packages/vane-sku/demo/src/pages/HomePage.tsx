@@ -1,15 +1,16 @@
 import React from "react";
-import { createSkuSelector } from "../../../src";
-import { createPriceLinkPlugin } from "../../../src/custom-plugins/PriceLink";
-import { createPriceRangePlugin } from "../../../src/custom-plugins/PriceRange";
-import { createStockStatusPlugin } from "../../../src/custom-plugins/StockStatus";
-import { createQuotaPlugin } from "../../../src/custom-plugins/Quota";
-import { createQuantityPlugin } from "../../../src/custom-plugins/Quantity";
-import { createResetBarPlugin } from "../../../src/custom-plugins/ResetBar";
-import { createKeyboardNavPlugin } from "../../../src/custom-plugins/KeyboardNav";
-import { createSkuCodePlugin } from "../../../src/custom-plugins/SkuCode";
+import { createSkuSelector } from "vane-sku";
+import { createPriceLinkPlugin } from "vane-sku/custom-plugins/PriceLink";
+import { createPriceRangePlugin } from "vane-sku/custom-plugins/PriceRange";
+import { createStockStatusPlugin } from "vane-sku/custom-plugins/StockStatus";
+import { createQuotaPlugin } from "vane-sku/custom-plugins/Quota";
+import { createQuantityPlugin } from "vane-sku/custom-plugins/Quantity";
+import { createResetBarPlugin } from "vane-sku/custom-plugins/ResetBar";
+import { createKeyboardNavPlugin } from "vane-sku/custom-plugins/KeyboardNav";
+import { createSkuCodePlugin } from "vane-sku/custom-plugins/SkuCode";
 import { ATTRIBUTES, VARIANTS } from "../data/sample";
 import { PLUGIN_COUNT } from "../data/plugin-catalog";
+import { CodeBlock } from "../components/CodeBlock";
 
 // 组件类型必须在模块级创建（写在渲染函数里会导致每次渲染重建 → 重挂载 → 选择态丢失）
 const Sku = createSkuSelector([
@@ -61,7 +62,7 @@ export function HomePage() {
             <span className="stat-label">官方插件</span>
           </div>
           <div className="stat">
-            <span className="stat-value">6.1</span>
+            <span className="stat-value">6.0</span>
             <span className="stat-label">根入口 KB (gzip)</span>
           </div>
           <div className="stat">
@@ -69,7 +70,7 @@ export function HomePage() {
             <span className="stat-label">运行时依赖</span>
           </div>
           <div className="stat">
-            <span className="stat-value">41</span>
+            <span className="stat-value">42</span>
             <span className="stat-label">单元测试</span>
           </div>
         </div>
@@ -108,8 +109,9 @@ export function HomePage() {
 
         <div className="detail-right">
           <div className="block-title">典型用法</div>
-          <pre className="src-pre">
-            <code>{`import { createSkuSelector } from "vane-sku";
+          <CodeBlock
+            label="tsx · 快速上手"
+            code={`import { createSkuSelector } from "vane-sku";
 import { createPriceLinkPlugin }
   from "vane-sku/custom-plugins/PriceLink";
 
@@ -124,8 +126,8 @@ const Sku = createSkuSelector([
   attributes={attributes}
   variants={variants}
   defaultSelection={{ 颜色: "red", 尺码: "s" }}
-/>`}</code>
-          </pre>
+/>`}
+          />
 
           <div className="block-title">与 vane-card 的 SKUPlugin 什么关系</div>
           <p className="muted">

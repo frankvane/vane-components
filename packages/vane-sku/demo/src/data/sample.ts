@@ -1,4 +1,4 @@
-import type { SkuAttribute, SkuVariant } from "../../../src";
+import type { SkuAttribute, SkuVariant } from "vane-sku";
 
 /**
  * 演示用样例数据（多页共用）。
