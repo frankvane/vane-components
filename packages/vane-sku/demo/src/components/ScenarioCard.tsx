@@ -1,85 +1,112 @@
-import React from "react";
-
-import { CodeBlock } from "./CodeBlock";
-import { loadComponent, loadSource, type ScenarioMeta } from "../scenarios/catalog";
-
 /**
- * 一张场景卡：左「实时预览」，右「源码」（默认展开，可折叠）。
- * 源码读场景文件原文（?raw），所以展示的永远是真实跑起来的那份。
+ * 场景卡：一张通栏校样板
+ *
+ *  左：真实运行的那份组件（不是截图、不是伪代码），装在尺规板里
+ *  右：插件清单（每个插件「为什么需要」）+ 两份源码切换
+ *      · 完整版 —— `?raw` 读的就是左边正在跑的同名文件
+ *      · 最小装配 —— 由 meta 现场生成，去掉业务噪音，只剩装配与 props
  */
-export const ScenarioCard: React.FC<{
-  meta: ScenarioMeta;
-  defaultOpen?: boolean;
-}> = ({ meta, defaultOpen = true }) => {
-  const [open, setOpen] = React.useState(defaultOpen);
-  const [source, setSource] = React.useState<string>("");
-  const [err, setErr] = React.useState<string>("");
+import React, { useState } from "react";
+import { CodeBlock } from "./CodeBlock";
+import { buildMinimal } from "../scenarios/minimal";
+import type { ScenarioEntry } from "../scenarios/catalog";
 
-  const Preview = React.useMemo(() => {
-    const loader = loadComponent(meta.id);
-    return loader ? React.lazy(loader) : null;
-  }, [meta.id]);
+type CodeTab = "minimal" | "full";
 
-  React.useEffect(() => {
-    let alive = true;
-    const loader = loadSource(meta.id);
-    if (!loader) {
-      setErr("源码文件缺失");
-      return;
-    }
-    setSource("");
-    setErr("");
-    loader()
-      .then((text) => {
-        if (alive) setSource(text);
-      })
-      .catch((e: unknown) => {
-        if (alive) setErr(String(e));
-      });
-    return () => {
-      alive = false;
-    };
-  }, [meta.id]);
+export function ScenarioCard({ entry }: { entry: ScenarioEntry }) {
+  const { meta, Component, file, source } = entry;
+  const [tab, setTab] = useState<CodeTab>("minimal");
+
+  const minimal = buildMinimal(meta);
 
   return (
-    <article className="scn-card" id={`scn-${meta.id}`}>
+    <section className="scn-card" id={`scn-${meta.id}`} data-scenario={meta.id}>
       <header className="scn-head">
-        <span className="scn-code">{String(meta.no).padStart(2, "0")}</span>
+        <span className="scn-folio" aria-hidden>
+          {file.slice(0, 2)}
+        </span>
         <h3 className="scn-title">{meta.title}</h3>
+        <div className="scn-head-meta">
+          <code className="scn-id">{file}</code>
+          <a className="scn-ref" href={meta.ref.url} target="_blank" rel="noreferrer">
+            {meta.ref.label} ↗
+          </a>
+        </div>
+        <p className="scn-pain">{meta.pain}</p>
       </header>
-      <p className="scn-pain">{meta.hint}</p>
 
       <div className="scn-body">
-        <div className="scn-stage">
-          {Preview ? (
-            <React.Suspense fallback={<div className="scn-stage-fallback">LOADING PREVIEW…</div>}>
-              <Preview />
-            </React.Suspense>
-          ) : (
-            <div className="scn-stage-fallback">预览缺失</div>
-          )}
-        </div>
+        <figure className="plate scn-plate">
+          <figcaption className="plate-cap">
+            <b>stage</b>
+            <span>
+              {meta.group} · {meta.plugs.length} plugins
+            </span>
+            <em>live</em>
+          </figcaption>
+          <div className="plate-ruler" aria-hidden />
+          <div className={`scn-stage${meta.tone === "light" ? " tone-light" : ""}`}>
+            <Component />
+          </div>
+        </figure>
 
         <div className="scn-side">
-          <button
-            type="button"
-            className="scn-toggle"
-            aria-expanded={open}
-            onClick={() => setOpen((o) => !o)}
-          >
-            {open ? "隐藏源码" : "查看源码"}
-          </button>
-          {open && (
-            <div className="scn-code-wrap">
-              {err ? (
-                <div className="scn-empty">{err}</div>
-              ) : (
-                <CodeBlock code={source || "// 正在读取源码…"} label={`tsx · ${meta.id}.tsx`} />
-              )}
-            </div>
-          )}
+          <div className="scn-plugs">
+            {meta.plugs.map((p) => (
+              <span
+                key={p.fn}
+                className={`scn-plug${p.local ? " is-local" : ""}`}
+                title={p.why}
+              >
+                {p.fn.replace(/^create|Plugin$/g, "")}
+              </span>
+            ))}
+          </div>
+
+          <ul className="scn-why">
+            {meta.plugs.map((p) => (
+              <li key={p.fn}>
+                <code>{p.fn}</code>
+                <span>{p.why}</span>
+              </li>
+            ))}
+          </ul>
+
+          {meta.note ? <p className="scn-note">⚠ {meta.note}</p> : null}
         </div>
       </div>
-    </article>
+
+      {/* 代码放到两栏下方通栏：1fr 宽的代码列每行只能放 40 来个字符，读起来很痛苦 */}
+      <div className="scn-code">
+        <div className="scn-switch" role="tablist">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === "minimal"}
+            className={tab === "minimal" ? "is-active" : ""}
+            onClick={() => setTab("minimal")}
+          >
+            最小装配
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === "full"}
+            className={tab === "full" ? "is-active" : ""}
+            onClick={() => setTab("full")}
+          >
+            完整源码
+          </button>
+        </div>
+
+        <CodeBlock
+          key={tab}
+          code={tab === "minimal" ? minimal : source}
+          title={tab === "minimal" ? `${meta.id}.minimal.tsx` : file}
+          collapseAfter={tab === "minimal" ? 0 : 24}
+          maxHeight={430}
+        />
+      </div>
+    </section>
   );
-};
+}

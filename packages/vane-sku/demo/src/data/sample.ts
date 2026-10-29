@@ -48,3 +48,10 @@ function swatch(color: string): string {
 function pic(seed: string): string {
   return `https://picsum.photos/seed/${seed}/240/240`;
 }
+
+/** 折扣文案选项（demos/06-price-link 的 select 控件用；value 为空串表示不传 discountText） */
+export const DISCOUNT_TEXTS: Array<{ label: string; value: string }> = [
+  { label: "限时8折", value: "限时8折" },
+  { label: "满300减60", value: "满300减60" },
+  { label: "无（不传）", value: "" },
+];
