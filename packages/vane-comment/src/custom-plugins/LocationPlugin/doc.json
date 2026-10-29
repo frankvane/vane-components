@@ -1,0 +1,11 @@
+{
+  "name": "LocationPlugin",
+  "description": "地理位置：评论含 location 字段时在操作行展示 📍 标；Core 默认不渲染 location，由本插件补充。",
+  "since": "0.2.0",
+  "tags": ["ui", "信息", "地理位置"],
+  "config": [],
+  "example": "const Comment = withCommentPlugins(CommentCore, [\n  createLocationPlugin(),\n]);",
+  "features": ["条件渲染 📍 标", "无 location 时不占位"],
+  "useCases": ["本地生活 / 探店 / 旅行评论区", "带定位的 UGC 内容"],
+  "notes": ["位置文案来自 comment.location，由数据提供。"]
+}

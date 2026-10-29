@@ -4,7 +4,7 @@
 
 ## 平台预设（推荐起步）
 
-同一内核 + 四插件差异化配置。直接拿现成的：
+同一内核 + 四核心能力差异化配置。直接拿现成的：
 
 ```tsx
 import { createVideoComment } from "vane-comment/presets/video";

@@ -9,6 +9,11 @@ import { createLikePlugin } from "../../custom-plugins/LikePlugin";
 import { createSortPlugin } from "../../custom-plugins/SortPlugin";
 import { createThreadPlugin } from "../../custom-plugins/ThreadPlugin";
 import { createRichComposerPlugin } from "../../custom-plugins/RichComposerPlugin";
+import { createReportPlugin } from "../../custom-plugins/ReportPlugin";
+import { createSharePlugin } from "../../custom-plugins/SharePlugin";
+import { createCountPlugin } from "../../custom-plugins/CountPlugin";
+import { createModerationPlugin } from "../../custom-plugins/ModerationPlugin";
+import { createLoginPromptPlugin } from "../../custom-plugins/LoginPromptPlugin";
 import type { CommentPlugin } from "../../components/CommentPlugin/plugins/types";
 
 export function createVideoComment(plugins?: CommentPlugin[]) {
@@ -19,6 +24,11 @@ export function createVideoComment(plugins?: CommentPlugin[]) {
       createSortPlugin({ modes: ["hottest", "newest"], defaultMode: "hottest" }),
       createThreadPlugin({ maxDepth: 3 }),
       createRichComposerPlugin({ features: { emoji: true, image: true } }),
+      createReportPlugin(),
+      createSharePlugin(),
+      createCountPlugin(),
+      createModerationPlugin(),
+      createLoginPromptPlugin(),
     ]
   );
 }

@@ -1,0 +1,11 @@
+{
+  "name": "SharePlugin",
+  "description": "分享：每条评论操作行渲染分享按钮，复制本条评论锚点链接到剪贴板，给出「已复制」反馈。",
+  "since": "0.2.0",
+  "tags": ["ui", "互动", "分享"],
+  "config": [],
+  "example": "const Comment = withCommentPlugins(CommentCore, [\n  createSharePlugin(),\n]);",
+  "features": ["操作行 🔗分享按钮", "复制锚点链接 #comment-<id>", "复制后短暂「已复制链接」反馈"],
+  "useCases": ["社交 / 内容平台评论分享", "任意需要分享单条评论的场景"],
+  "notes": ["剪贴板不可用时静默失败，不影响其它交互。"]
+}

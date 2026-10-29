@@ -77,6 +77,12 @@ export interface Comment {
   images?: CommentImage[];
   /** 热度分（hottest 排序用） */
   hotScore?: number;
+  /** 地理位置文案（LocationPlugin 展示 📍 标） */
+  location?: string;
+  /** 是否已收藏（FavoritePlugin 读取 / 切换） */
+  favorited?: boolean;
+  /** 多表情反应计数（ReactionPlugin 读取 / 累加），如 { "👍": 12, "❤️": 3 } */
+  reactions?: Record<string, number>;
 }
 
 /** 排序模式；`custom` = 保留传入原始顺序（无排序 UI 时默认） */
@@ -94,6 +100,14 @@ export interface CommentCoreProps<T = CommentData> {
   data?: T;
   /** 点赞切换回调（乐观更新由 consumer 完成） */
   onLike?: (commentId: string, nextLiked: boolean) => void;
+  /** 收藏切换回调 */
+  onFavorite?: (commentId: string, nextFavorited: boolean) => void;
+  /** 置顶切换回调 */
+  onPin?: (commentId: string, nextPinned: boolean) => void;
+  /** 多表情反应回调（emoji 为具体表情） */
+  onReact?: (commentId: string, emoji: string) => void;
+  /** 未登录引导「登录」按钮回调（LoginPromptPlugin） */
+  onLogin?: () => void;
   /** 回复提交回调（content 为结构化富内容） */
   onReply?: (parentId: string, content: CommentNode[]) => void;
   /** 根评论提交回调 */

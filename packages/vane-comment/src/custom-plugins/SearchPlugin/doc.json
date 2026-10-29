@@ -1,0 +1,11 @@
+{
+  "name": "SearchPlugin",
+  "description": "搜索：顶栏输入框，经 transformData 按关键词过滤评论（读 state.query，标题/正文/@提及均参与匹配）。",
+  "since": "0.2.0",
+  "tags": ["ui", "组织", "搜索"],
+  "config": [],
+  "example": "const Comment = withCommentPlugins(CommentCore, [\n  createSearchPlugin(),\n]);",
+  "features": ["顶栏搜索框", "transformData 实时过滤", "大小写不敏感"],
+  "useCases": ["长评论区站内搜索", "客服 / 社区内容检索"],
+  "notes": ["过滤发生在排序之前。"]
+}

@@ -8,7 +8,7 @@
 
 // ===== Core + 插件系统 =====
 export { default as CommentCore } from "./components/CommentPlugin/CommentCore";
-export { withCommentPlugins } from "./components/CommentPlugin/withCommentPlugins";
+export { withCommentPlugins } from "./components/CommentPlugin/withPlugins";
 export {
   CommentSlotProvider,
   renderCommentSlot,

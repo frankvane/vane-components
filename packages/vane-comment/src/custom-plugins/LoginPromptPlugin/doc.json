@@ -1,0 +1,11 @@
+{
+  "name": "LoginPromptPlugin",
+  "description": "未登录引导：底部渲染「登录后参与评论」引导条，回调 onLogin；与 RichComposerPlugin 同槽共存。",
+  "since": "0.2.0",
+  "tags": ["ui", "转化", "登录"],
+  "config": [],
+  "example": "const Comment = withCommentPlugins(CommentCore, [\n  createLoginPromptPlugin(),\n]);",
+  "features": ["底部登录引导条", "回调 onLogin"],
+  "useCases": ["未登录态促登录", "评论框前置引导"],
+  "notes": ["仅展示引导，是否隐藏登录态由消费方条件装配决定。"]
+}

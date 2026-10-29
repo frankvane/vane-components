@@ -6,6 +6,19 @@ import { createLikePlugin } from "../../../src/custom-plugins/LikePlugin";
 import { createSortPlugin } from "../../../src/custom-plugins/SortPlugin";
 import { createThreadPlugin } from "../../../src/custom-plugins/ThreadPlugin";
 import { createRichComposerPlugin } from "../../../src/custom-plugins/RichComposerPlugin";
+import { createReportPlugin } from "../../../src/custom-plugins/ReportPlugin";
+import { createSharePlugin } from "../../../src/custom-plugins/SharePlugin";
+import { createCopyPlugin } from "../../../src/custom-plugins/CopyPlugin";
+import { createReactionPlugin } from "../../../src/custom-plugins/ReactionPlugin";
+import { createFavoritePlugin } from "../../../src/custom-plugins/FavoritePlugin";
+import { createPinPlugin } from "../../../src/custom-plugins/PinPlugin";
+import { createLocationPlugin } from "../../../src/custom-plugins/LocationPlugin";
+import { createTimestampPlugin } from "../../../src/custom-plugins/TimestampPlugin";
+import { createCountPlugin } from "../../../src/custom-plugins/CountPlugin";
+import { createFilterPlugin } from "../../../src/custom-plugins/FilterPlugin";
+import { createSearchPlugin } from "../../../src/custom-plugins/SearchPlugin";
+import { createModerationPlugin } from "../../../src/custom-plugins/ModerationPlugin";
+import { createLoginPromptPlugin } from "../../../src/custom-plugins/LoginPromptPlugin";
 import type { Comment, CommentNode, SortMode } from "../../../src";
 import { MENTIONS, freshComments } from "../data/sample";
 import { auditComment } from "./audit-comment";
@@ -62,6 +75,18 @@ function Harness({ sortMode }: { sortMode?: SortMode }) {
         createSortPlugin({ modes: ["newest", "oldest", "hottest", "mostLiked"], defaultMode: "newest" }),
         createThreadPlugin({ maxDepth: 3 }),
         createRichComposerPlugin({ features: { emoji: true, image: true, mention: true } }),
+        createReportPlugin(),
+        createSharePlugin(),
+        createCopyPlugin(),
+        createReactionPlugin(),
+        createFavoritePlugin(),
+        createPinPlugin(),
+        createLocationPlugin(),
+        createTimestampPlugin(),
+        createCountPlugin(),
+        createFilterPlugin(),
+        createSearchPlugin(),
+        createLoginPromptPlugin(),
       ]),
     []
   );
@@ -74,6 +99,10 @@ function Harness({ sortMode }: { sortMode?: SortMode }) {
       onReply={onReply}
       onSubmit={onSubmit}
       onReport={() => {}}
+      onFavorite={() => {}}
+      onPin={() => {}}
+      onReact={() => {}}
+      onLogin={() => {}}
       mentions={MENTIONS}
     />
   );
@@ -172,6 +201,61 @@ export async function runSelfTest(): Promise<SelfTestResult> {
     ok("排序 oldest：首条为最早（Ross）", topAuthors(oldest.host)[0] === "Ross");
     flushSync(() => oldest.root.unmount());
     oldest.host.remove();
+  }
+
+  // ---- 4. 新插件渲染（逐条操作行 + 顶栏 + 底部） ----
+  {
+    const t = await mount(<Harness sortMode="newest" />);
+    ok("新插件：举报按钮渲染", !!t.q('[data-testid="comment-report"]'));
+    ok("新插件：分享按钮渲染", !!t.q('[data-testid="comment-share"]'));
+    ok("新插件：复制按钮渲染", !!t.q('[data-testid="comment-copy"]'));
+    ok("新插件：多表情反应渲染", !!t.q('[data-testid="comment-reaction"]'));
+    ok("新插件：收藏按钮渲染", !!t.q('[data-testid="comment-favorite"]'));
+    ok("新插件：置顶按钮渲染", !!t.q('[data-testid="comment-pin"]'));
+    ok("新插件：绝对时间渲染", !!t.q('[data-testid="comment-timestamp"]'));
+    ok("新插件：计数条渲染（含「条评论」）", (t.q('[data-testid="comment-count"]')?.textContent ?? "").includes("条评论"));
+    ok("新插件：筛选栏渲染", !!t.q('[data-testid="comment-filter"]'));
+    ok("新插件：搜索框渲染", !!t.q('[data-testid="comment-search"]'));
+    ok("新插件：未登录引导渲染", !!t.q('[data-testid="comment-login-prompt"]'));
+    flushSync(() => t.root.unmount());
+    t.host.remove();
+  }
+
+  // ---- 5. 数据级插件：Moderation 脱敏 + Location 展示 ----
+  {
+    const modComments: Comment[] = [
+      {
+        id: "m1",
+        author: { id: "a", name: "A" },
+        content: [{ type: "text", value: "这是一段广告内容请加微信" }],
+        createdAt: Date.now(),
+        likeCount: 0,
+      },
+    ];
+    const ModComment = withCommentPlugins(CommentCore, [
+      createModerationPlugin({ words: ["广告", "加微信"] }),
+    ]);
+    const t = await mount(<ModComment comments={modComments} />);
+    const txt = t.q(".vc-content")?.textContent ?? "";
+    ok("审核：敏感词被脱敏（广告/加微信 不再出现）", !txt.includes("广告") && !txt.includes("加微信"));
+    flushSync(() => t.root.unmount());
+    t.host.remove();
+
+    const locComments: Comment[] = [
+      {
+        id: "l1",
+        author: { id: "a", name: "A" },
+        content: [{ type: "text", value: "好店推荐" }],
+        createdAt: Date.now(),
+        likeCount: 0,
+        location: "上海",
+      },
+    ];
+    const LocComment = withCommentPlugins(CommentCore, [createLocationPlugin()]);
+    const t2 = await mount(<LocComment comments={locComments} />);
+    ok("地理位置：含 location 时渲染 📍 标", !!t2.q('[data-testid="comment-location"]'));
+    flushSync(() => t2.root.unmount());
+    t2.host.remove();
   }
 
   return { total, passed: total - failed.length, failed };

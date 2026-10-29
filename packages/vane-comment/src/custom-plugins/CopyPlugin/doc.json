@@ -1,0 +1,11 @@
+{
+  "name": "CopyPlugin",
+  "description": "复制：每条评论操作行渲染复制按钮，把结构化富内容转纯文本后复制到剪贴板。",
+  "since": "0.2.0",
+  "tags": ["ui", "工具", "复制"],
+  "config": [],
+  "example": "const Comment = withCommentPlugins(CommentCore, [\n  createCopyPlugin(),\n]);",
+  "features": ["操作行 📋复制按钮", "富内容转纯文本", "复制后短暂「已复制」反馈"],
+  "useCases": ["任意需要引用 / 转发评论原文的场景"],
+  "notes": ["剪贴板不可用时静默失败。"]
+}

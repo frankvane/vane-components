@@ -1,0 +1,11 @@
+{
+  "name": "FavoritePlugin",
+  "description": "收藏：每条评论操作行渲染收藏按钮，切换回调 onFavorite(id, nextFavorited)；收藏态读 comment.favorited。",
+  "since": "0.2.0",
+  "tags": ["ui", "互动", "收藏"],
+  "config": [],
+  "example": "const Comment = withCommentPlugins(CommentCore, [\n  createFavoritePlugin(),\n]);",
+  "features": ["操作行 ☆/★ 收藏按钮", "回调 onFavorite(id, next)", "读 comment.favorited 反映后端态"],
+  "useCases": ["内容平台评论收藏", "电商 / 教程类评论区"],
+  "notes": ["收藏态不本地缓存，消费方更新 comments 回流后即时反映。"]
+}

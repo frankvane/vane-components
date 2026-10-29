@@ -1,0 +1,11 @@
+{
+  "name": "PinPlugin",
+  "description": "置顶：每条评论操作行渲染置顶按钮，切换回调 onPin(id, nextPinned)；Core 读取 comment.pinned 渲染置顶标。",
+  "since": "0.2.0",
+  "tags": ["ui", "组织", "置顶"],
+  "config": [],
+  "example": "const Comment = withCommentPlugins(CommentCore, [\n  createPinPlugin(),\n]);",
+  "features": ["操作行 📌 置顶/取消", "回调 onPin(id, next)", "与 Core 置顶标联动"],
+  "useCases": ["楼主 / 运营置顶优质评论", "热帖锚定"],
+  "notes": ["置顶态读 comment.pinned，后端排序 / 展示由消费方数据决定。"]
+}

@@ -110,14 +110,32 @@ interface Comment {
 
 排序结果**同时**覆盖 `comments` 与 `data` 两个字段——`CommentCore` 读取顺序是 `comments ?? data`，消费方无论传哪个都能拿到排好序的列表。
 
-## 插件（4 个，全部按需子路径）
+## 插件（17 个，全部按需子路径）
 
-### 互动与列表
+> 内核只提供数据驱动的列表壳与 4 个领域槽（操作行 / 顶栏 / 楼中楼 / 底部），行为全部由插件注入。插件按 `priority` 并联装配、互不覆盖：可只装 1 个，也能 17 个全开（见 [插件目录](../../docs/components/vane-comment/plugins.md) 与 [组合配方](../../docs/components/vane-comment/recipes.md)）。
+
+### 互动（操作行）
 
 | 插件 | 子路径 | 作用 |
 | --- | --- | --- |
 | `LikePlugin` | `.../custom-plugins/LikePlugin` | 每条评论操作行渲染点赞按钮 + 计数，点击回调 `onLike`；本地爆裂动画 |
-| `SortPlugin` | `.../custom-plugins/SortPlugin` | 顶栏渲染排序栏（最新 / 最早 / 最热 / 最赞），切换即时重排 |
+| `ReactionPlugin` | `.../custom-plugins/ReactionPlugin` | 多表情反应条（👍❤️😂🎉），点击累加计数，回调 `onReact(id, emoji)` |
+| `FavoritePlugin` | `.../custom-plugins/FavoritePlugin` | 收藏按钮，切换回调 `onFavorite(id, nextFavorited)`，状态读 `comment.favorited` |
+| `ReportPlugin` | `.../custom-plugins/ReportPlugin` | 举报按钮 + 理由浮层，提交回调 `onReport(id, reason)` |
+| `SharePlugin` | `.../custom-plugins/SharePlugin` | 分享按钮，复制本条评论锚点链接，给「已复制」反馈 |
+| `CopyPlugin` | `.../custom-plugins/CopyPlugin` | 复制按钮，把结构化富内容转纯文本写入剪贴板 |
+| `PinPlugin` | `.../custom-plugins/PinPlugin` | 置顶按钮，切换回调 `onPin(id, nextPinned)`，状态读 `comment.pinned` |
+
+### 组织（顶栏 / 信息）
+
+| 插件 | 子路径 | 作用 |
+| --- | --- | --- |
+| `SortPlugin` | `.../custom-plugins/SortPlugin` | 顶栏排序栏（最新 / 最早 / 最热 / 最赞），切换即时重排 |
+| `CountPlugin` | `.../custom-plugins/CountPlugin` | 顶栏评论总数 + 热议标，随筛选 / 搜索实时变化 |
+| `FilterPlugin` | `.../custom-plugins/FilterPlugin` | 顶栏「全部 / 有图 / 有回复」筛选，经 `transformData` 过滤 |
+| `SearchPlugin` | `.../custom-plugins/SearchPlugin` | 顶栏搜索框，按关键词（标题 / 正文 / @提及）过滤 |
+| `LocationPlugin` | `.../custom-plugins/LocationPlugin` | 评论含 `location` 时操作行展示 📍 标 |
+| `TimestampPlugin` | `.../custom-plugins/TimestampPlugin` | 操作行补充绝对时间芯片（YYYY-MM-DD HH:mm） |
 
 ### 楼中楼与输入
 
@@ -125,6 +143,13 @@ interface Comment {
 | --- | --- | --- |
 | `ThreadPlugin` | `.../custom-plugins/ThreadPlugin` | 递归楼中楼（限深折叠 + 展开/收起）+ 内联回复框，提交回调 `onReply` |
 | `RichComposerPlugin` | `.../custom-plugins/RichComposerPlugin` | 底部评论框（emoji / 图片 / @提及）+ 实时预览，提交回调 `onSubmit(CommentNode[])` |
+
+### 治理与转化
+
+| 插件 | 子路径 | 作用 |
+| --- | --- | --- |
+| `ModerationPlugin` | `.../custom-plugins/ModerationPlugin` | 数据级：经 `transformData` 屏蔽敏感词（**）+ 过滤待审 / 已删评论；不渲染 UI |
+| `LoginPromptPlugin` | `.../custom-plugins/LoginPromptPlugin` | 底部「登录后参与评论」引导条，回调 `onLogin`；与富编辑同槽共存 |
 
 插件一律走子路径按需引入（ADR-6），不进根入口。桶文件 `vane-comment/custom-plugins` 可一次引入全部（体积会变大，非推荐用法）。
 
@@ -137,8 +162,9 @@ interface Comment {
 | 单个插件子路径 `.../custom-plugins/SortPlugin` | ≤2 KB（实测 1.9） |
 | 单个插件子路径 `.../custom-plugins/ThreadPlugin` | ≤4.5 KB（实测 4.1） |
 | 单个插件子路径 `.../custom-plugins/RichComposerPlugin` | ≤4.5 KB（实测 3.9） |
+| 13 个新增轻量插件子路径（Report / Share / Copy / Reaction / Favorite / Pin / Location / Timestamp / Count / Filter / Search / Moderation / LoginPrompt） | ≤2 KB（各自实测约 0.15） |
 
-> 体积门：`pnpm check` 逐包卡。根入口含内联的领域槽 / 上下文（复用 peer 外部化的 `vane-plugin-core`，不进 dist）。`ThreadPlugin` 与 `RichComposerPlugin` 各自背着真实 UI（递归楼中楼 + 内联回复框 / emoji 选择器 + 图片 + @提及 + 预览），初版拍的 2KB 扁平预算对这俩重插件不成立，按「改口径必须写理由」的硬约束调到 4.5KB，而非静默调大（理由见 `package.json` 的 `sizeBudgetNote`）。根入口 4KB 预算守住，因为 ADR-6 规定插件绝不进根入口。
+> 体积门：`pnpm check` 逐包卡。根入口含内联的领域槽 / 上下文（复用 peer 外部化的 `vane-plugin-core`，不进 dist）。`ThreadPlugin` 与 `RichComposerPlugin` 各自背着真实 UI（递归楼中楼 + 内联回复框 / emoji 选择器 + 图片 + @提及 + 预览），初版拍的 2KB 扁平预算对这俩重插件不成立，按「改口径必须写理由」的硬约束调到 4.5KB，而非静默调大（理由见 `package.json` 的 `sizeBudgetNote`）。17 个插件中其余 13 个为 0.2.0 新增的轻量插件，多为操作行 / 顶栏薄壳或纯数据级 `transformData`，闭包 gzip 实测约 0.15KB，统一给 2KB 预算留余量。根入口 4KB 预算守住，因为 ADR-6 规定插件绝不进根入口。
 
 ## 文档
 

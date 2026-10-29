@@ -1,0 +1,18 @@
+{
+  "name": "FilterPlugin",
+  "description": "筛选：顶栏「全部/有图/有回复」筛选，经 transformData 过滤评论列表（读 state.filter）。",
+  "since": "0.2.0",
+  "tags": ["ui", "组织", "筛选"],
+  "config": [
+    {
+      "name": "options",
+      "type": "(\"all\"|\"image\"|\"replies\")[]",
+      "default": "[\"all\",\"image\",\"replies\"]",
+      "description": "筛选项"
+    }
+  ],
+  "example": "const Comment = withCommentPlugins(CommentCore, [\n  createFilterPlugin(),\n]);",
+  "features": ["顶栏筛选芯片", "transformData 实时过滤", "与 CountPlugin 联动计数"],
+  "useCases": ["电商晒单筛选（有图）", "热帖筛选（有回复）"],
+  "notes": ["过滤发生在排序之前，不影响排序结果。"]
+}

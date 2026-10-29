@@ -1,0 +1,22 @@
+{
+  "name": "ReportPlugin",
+  "description": "举报：每条评论操作行渲染举报按钮，弹出理由浮层，提交回调 onReport(id, reason)；理由可配置。",
+  "since": "0.2.0",
+  "tags": ["ui", "治理", "举报"],
+  "config": [
+    {
+      "name": "reasons",
+      "type": "string[]",
+      "default": "[\"垃圾广告\",\"辱骂攻击\",\"色情低俗\",\"诈骗\",\"其他\"]",
+      "description": "举报理由选项"
+    }
+  ],
+  "example": "const Comment = withCommentPlugins(CommentCore, [\n  createReportPlugin(),\n]);",
+  "features": [
+    "操作行 🚩举报按钮",
+    "点击弹出理由浮层（单选）",
+    "提交回调 onReport(id, reason)"
+  ],
+  "useCases": ["社区 / 内容平台评论举报", "任意需要内容治理的评论区"],
+  "notes": ["举报态不本地缓存，提交即回调由消费方处理。"]
+}

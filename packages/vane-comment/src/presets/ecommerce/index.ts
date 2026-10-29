@@ -9,6 +9,11 @@ import { createLikePlugin } from "../../custom-plugins/LikePlugin";
 import { createSortPlugin } from "../../custom-plugins/SortPlugin";
 import { createThreadPlugin } from "../../custom-plugins/ThreadPlugin";
 import { createRichComposerPlugin } from "../../custom-plugins/RichComposerPlugin";
+import { createFavoritePlugin } from "../../custom-plugins/FavoritePlugin";
+import { createFilterPlugin } from "../../custom-plugins/FilterPlugin";
+import { createCountPlugin } from "../../custom-plugins/CountPlugin";
+import { createModerationPlugin } from "../../custom-plugins/ModerationPlugin";
+import { createReportPlugin } from "../../custom-plugins/ReportPlugin";
 import type { CommentPlugin } from "../../components/CommentPlugin/plugins/types";
 
 export function createEcommerceComment(plugins?: CommentPlugin[]) {
@@ -22,6 +27,11 @@ export function createEcommerceComment(plugins?: CommentPlugin[]) {
       }),
       createThreadPlugin({ maxDepth: 2 }),
       createRichComposerPlugin({ features: { emoji: true, image: true } }),
+      createFavoritePlugin(),
+      createFilterPlugin(),
+      createCountPlugin(),
+      createModerationPlugin(),
+      createReportPlugin(),
     ]
   );
 }

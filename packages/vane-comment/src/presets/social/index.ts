@@ -9,6 +9,19 @@ import { createLikePlugin } from "../../custom-plugins/LikePlugin";
 import { createSortPlugin } from "../../custom-plugins/SortPlugin";
 import { createThreadPlugin } from "../../custom-plugins/ThreadPlugin";
 import { createRichComposerPlugin } from "../../custom-plugins/RichComposerPlugin";
+import { createReportPlugin } from "../../custom-plugins/ReportPlugin";
+import { createSharePlugin } from "../../custom-plugins/SharePlugin";
+import { createCopyPlugin } from "../../custom-plugins/CopyPlugin";
+import { createReactionPlugin } from "../../custom-plugins/ReactionPlugin";
+import { createFavoritePlugin } from "../../custom-plugins/FavoritePlugin";
+import { createPinPlugin } from "../../custom-plugins/PinPlugin";
+import { createLocationPlugin } from "../../custom-plugins/LocationPlugin";
+import { createTimestampPlugin } from "../../custom-plugins/TimestampPlugin";
+import { createCountPlugin } from "../../custom-plugins/CountPlugin";
+import { createFilterPlugin } from "../../custom-plugins/FilterPlugin";
+import { createSearchPlugin } from "../../custom-plugins/SearchPlugin";
+import { createModerationPlugin } from "../../custom-plugins/ModerationPlugin";
+import { createLoginPromptPlugin } from "../../custom-plugins/LoginPromptPlugin";
 import type { CommentPlugin } from "../../components/CommentPlugin/plugins/types";
 
 export function createSocialComment(plugins?: CommentPlugin[]) {
@@ -24,6 +37,19 @@ export function createSocialComment(plugins?: CommentPlugin[]) {
       createRichComposerPlugin({
         features: { emoji: true, image: true, mention: true },
       }),
+      createReportPlugin(),
+      createSharePlugin(),
+      createCopyPlugin(),
+      createReactionPlugin(),
+      createFavoritePlugin(),
+      createPinPlugin(),
+      createLocationPlugin(),
+      createTimestampPlugin(),
+      createCountPlugin(),
+      createFilterPlugin(),
+      createSearchPlugin(),
+      createModerationPlugin(),
+      createLoginPromptPlugin(),
     ]
   );
 }

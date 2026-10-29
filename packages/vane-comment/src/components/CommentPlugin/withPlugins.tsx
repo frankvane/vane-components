@@ -3,12 +3,14 @@
  *
  * 领域适配（对齐 vane-profile 的 withPlugins 约定）：
  *  1. 领域上下文扩展：在内核 context 基础上附加评论专属字段
- *     （comments = sortComments(data, sortMode) / sortMode / setSortMode）；
- *     extendContext 用 useCallback 稳定，每次 context 重建时重新应用排序。
- *  2. Core 回调 → 钩子链：onMount / onPropsChange（onUnmount 由内核统一执行）。
- *  3. 渲染插槽：列表级 renderToolbar / renderFooter 与逐条级 renderCommentActions /
+ *     （sortMode / setSortMode）；extendContext 用 useCallback 稳定。
+ *  2. 数据流水线：原始 → transformData（插件可过滤/遮罩/改写）→ 排序 → 透传。
+ *     plugin-core 提供了 transformData 但运行时不会自动套到 context.data，
+ *     这里统一套用，让 Filter / Search / Moderation 等数据级插件真正生效。
+ *  3. Core 回调 → 钩子链：onMount / onPropsChange（onUnmount 由内核统一执行）。
+ *  4. 渲染插槽：列表级 renderToolbar / renderFooter 与逐条级 renderCommentActions /
  *     renderNested 由 CommentCore 经 useCommentSlot 消费，复用内核排序 + priority + 错误边界。
- *  4. 内核三槽的外部化依赖策略：vane-plugin-core 已声明为 peer，构建期外部化，不进 dist。
+ *  5. 内核三槽的外部化依赖策略：vane-plugin-core 已声明为 peer，构建期外部化，不进 dist。
  *
  * priority 同向：内核「越大越先执行」，渲染插槽内「越大越靠后」，不做反转。
  */
@@ -41,21 +43,16 @@ export function withCommentPlugins<T = any>(
     (props, ref) => {
       const containerRef = useRef<HTMLDivElement | null>(null);
 
-      // 领域上下文扩展：在内核 context 基础上附加评论专属字段。
-      // base.data 是原始评论列表；按 state.sortMode（无则由 props.defaultSortMode /
-      // "custom" 兜底）排序后产出 comments。setSortMode 写入内核 state（base.setState），
-      // 触发 context 重建 → 列表重排。
+      // 领域上下文扩展：只补充评论专属字段 sortMode / setSortMode。
+      // 排序 + transformData 在拿到 runtime 之后再算（见下方），避免与 runtime 的鸡生蛋依赖。
       const extendContext = useCallback(
         (base: any): any => {
-          const raw = (base.data as any[] | undefined) ?? [];
           const mode: SortMode =
             (base.state?.sortMode as SortMode | undefined) ??
             props.defaultSortMode ??
             "custom";
-          const comments = sortComments(raw, mode);
           return {
             ...base,
-            comments,
             sortMode: mode,
             setSortMode: (m: SortMode) => base.setState({ sortMode: m }),
           };
@@ -103,13 +100,22 @@ export function withCommentPlugins<T = any>(
         }
       }, [props, execute]);
 
-      // 经排序后的评论列表透给 Core。
-      // 关键：排序结果同时覆盖 `comments` 与 `data` —— CommentCore 的读取顺序是
-      // `comments ?? data`，若只填 data 而消费方传了 comments（演示站 / 真实项目都这么传），
-      // 排序就会被原始列表覆盖、静默失效。这里把两份都置成排序后的列表。
+      // 数据流水线：原始 → transformData（插件过滤/遮罩/改写）→ 排序 → 透传。
+      // 关键：排序结果同时覆盖 `comments` 与 `data` —— CommentCore 读 `comments ?? data`，
+      // 若只填 data 而消费方传了 comments（演示站 / 真实项目都这么传），排序会被原始列表覆盖、静默失效。
       // `comments` 字段在 props 类型里是固定的 `Comment[]`，`data` 才是泛型 `T`，
       // 故 comments 直接用领域类型、data 走泛型透传。
-      const sortedComments = ctxRef.current.comments;
+      const baseData: any[] =
+        ((runtime.context.data as any[] | undefined) ?? []) as any[];
+      const transformed =
+        (runtime.transformData(baseData as unknown as T) as unknown as any[]) ??
+        baseData;
+      const mode: SortMode =
+        (runtime.context as any).sortMode ??
+        props.defaultSortMode ??
+        "custom";
+      const sortedComments = sortComments(transformed, mode);
+
       const enhancedProps: CommentCoreProps<T> = {
         ...transformedProps,
         containerRefExternal: containerRef,
@@ -125,10 +131,17 @@ export function withCommentPlugins<T = any>(
         },
       };
 
+      // 领域上下文：在 runtime.context 之上覆盖排序（且经 transformData）后的评论列表，
+      // 供插槽内插件（如 CountPlugin 读 comments.length、Filter/Search 读一致数据）使用。
+      const domainContext = {
+        ...(runtime.context as CommentPluginContext<T>),
+        comments: sortedComments,
+      };
+
       return (
         <CommentSlotProvider
           orderedPlugins={runtime.orderedPlugins as unknown as CommentPlugin<any>[]}
-          context={runtime.context as unknown as CommentPluginContext<T>}
+          context={domainContext as unknown as CommentPluginContext<T>}
         >
           <WrappedComponent
             ref={ref as React.Ref<CommentCoreRef>}

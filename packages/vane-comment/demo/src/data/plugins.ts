@@ -11,6 +11,19 @@ import { createLikePlugin } from "vane-comment/custom-plugins/LikePlugin";
 import { createSortPlugin } from "vane-comment/custom-plugins/SortPlugin";
 import { createThreadPlugin } from "vane-comment/custom-plugins/ThreadPlugin";
 import { createRichComposerPlugin } from "vane-comment/custom-plugins/RichComposerPlugin";
+import { createReportPlugin } from "vane-comment/custom-plugins/ReportPlugin";
+import { createSharePlugin } from "vane-comment/custom-plugins/SharePlugin";
+import { createCopyPlugin } from "vane-comment/custom-plugins/CopyPlugin";
+import { createReactionPlugin } from "vane-comment/custom-plugins/ReactionPlugin";
+import { createFavoritePlugin } from "vane-comment/custom-plugins/FavoritePlugin";
+import { createPinPlugin } from "vane-comment/custom-plugins/PinPlugin";
+import { createLocationPlugin } from "vane-comment/custom-plugins/LocationPlugin";
+import { createTimestampPlugin } from "vane-comment/custom-plugins/TimestampPlugin";
+import { createCountPlugin } from "vane-comment/custom-plugins/CountPlugin";
+import { createFilterPlugin } from "vane-comment/custom-plugins/FilterPlugin";
+import { createSearchPlugin } from "vane-comment/custom-plugins/SearchPlugin";
+import { createModerationPlugin } from "vane-comment/custom-plugins/ModerationPlugin";
+import { createLoginPromptPlugin } from "vane-comment/custom-plugins/LoginPromptPlugin";
 
 export type PluginGroup = "engage" | "organize" | "compose";
 
@@ -79,7 +92,7 @@ type Def = {
 };
 
 const DEFS: Def[] = [
-  // ---------- engage：互动 ----------
+  // ---------- engage：互动（逐条操作行） ----------
   {
     dir: "LikePlugin",
     group: "engage",
@@ -90,20 +103,85 @@ const DEFS: Def[] = [
     group: "engage",
     make: () => createThreadPlugin({ maxDepth: 3 }),
   },
+  {
+    dir: "ReportPlugin",
+    group: "engage",
+    make: () => createReportPlugin(),
+  },
+  {
+    dir: "SharePlugin",
+    group: "engage",
+    make: () => createSharePlugin(),
+  },
+  {
+    dir: "CopyPlugin",
+    group: "engage",
+    make: () => createCopyPlugin(),
+  },
+  {
+    dir: "ReactionPlugin",
+    group: "engage",
+    make: () => createReactionPlugin(),
+  },
+  {
+    dir: "FavoritePlugin",
+    group: "engage",
+    make: () => createFavoritePlugin(),
+  },
+  {
+    dir: "PinPlugin",
+    group: "engage",
+    make: () => createPinPlugin(),
+  },
+  {
+    dir: "LocationPlugin",
+    group: "engage",
+    make: () => createLocationPlugin(),
+  },
+  {
+    dir: "TimestampPlugin",
+    group: "engage",
+    make: () => createTimestampPlugin(),
+  },
 
-  // ---------- organize：组织 ----------
+  // ---------- organize：组织（顶栏 / 数据级） ----------
   {
     dir: "SortPlugin",
     group: "organize",
     make: () => createSortPlugin(),
   },
+  {
+    dir: "CountPlugin",
+    group: "organize",
+    make: () => createCountPlugin(),
+  },
+  {
+    dir: "FilterPlugin",
+    group: "organize",
+    make: () => createFilterPlugin(),
+  },
+  {
+    dir: "SearchPlugin",
+    group: "organize",
+    make: () => createSearchPlugin(),
+  },
+  {
+    dir: "ModerationPlugin",
+    group: "organize",
+    make: () => createModerationPlugin(),
+  },
 
-  // ---------- compose：编辑 ----------
+  // ---------- compose：编辑（底部） ----------
   {
     dir: "RichComposerPlugin",
     group: "compose",
     make: () =>
       createRichComposerPlugin({ features: { emoji: true, image: true, mention: true } }),
+  },
+  {
+    dir: "LoginPromptPlugin",
+    group: "compose",
+    make: () => createLoginPromptPlugin(),
   },
 ];
 
@@ -123,5 +201,5 @@ export const PLUGINS: PluginInfo[] = DEFS.map((def) => {
     GROUP_ORDER.indexOf(a.group) - GROUP_ORDER.indexOf(b.group) || b.priority - a.priority
 );
 
-/** 默认勾选：全部 4 个 —— 工坊的乐趣就是逐个取消，看每件长尾的代价 */
+/** 默认勾选：全部 17 个 —— 工坊的乐趣就是逐个取消，看每件长尾的代价 */
 export const DEFAULT_ON = PLUGINS.map((p) => p.dir);

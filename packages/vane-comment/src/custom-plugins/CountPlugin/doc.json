@@ -1,0 +1,11 @@
+{
+  "name": "CountPlugin",
+  "description": "计数：顶栏展示评论总数 + 热议标，读取 context.comments.length，随 Filter/Search 实时变化。",
+  "since": "0.2.0",
+  "tags": ["ui", "组织", "计数"],
+  "config": [],
+  "example": "const Comment = withCommentPlugins(CommentCore, [\n  createCountPlugin(),\n]);",
+  "features": ["顶栏评论总数", "非空时「热议」标", "与 Filter/Search 联动计数"],
+  "useCases": ["任意评论区计数展示", "与筛选 / 搜索组合"],
+  "notes": ["计数反映当前经 transformData 后的列表长度。"]
+}

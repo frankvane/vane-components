@@ -1,0 +1,18 @@
+{
+  "name": "ReactionPlugin",
+  "description": "多表情反应：每条评论操作行渲染表情反应条（👍❤️😂🎉），点击累加计数，回调 onReact(id, emoji)。区别于 LikePlugin 的单一赞。",
+  "since": "0.2.0",
+  "tags": ["ui", "互动", "表情"],
+  "config": [
+    {
+      "name": "emojis",
+      "type": "string[]",
+      "default": "[\"👍\",\"❤️\",\"😂\",\"🎉\"]",
+      "description": "可选表情集合"
+    }
+  ],
+  "example": "const Comment = withCommentPlugins(CommentCore, [\n  createReactionPlugin(),\n]);",
+  "features": ["操作行多表情快速反应", "每条表情带计数", "回调 onReact(id, emoji)"],
+  "useCases": ["微信 / 微博 / 小红书式评论反应", "需要比「赞」更丰富表达的评论区"],
+  "notes": ["反应计数显示于 comment.reactions，乐观更新由消费方完成。"]
+}

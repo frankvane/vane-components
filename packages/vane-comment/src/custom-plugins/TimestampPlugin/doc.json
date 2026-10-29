@@ -1,0 +1,11 @@
+{
+  "name": "TimestampPlugin",
+  "description": "绝对时间：Core 默认展示相对时间，本插件在操作行补充绝对时间芯片（YYYY-MM-DD HH:mm），便于精确查看。",
+  "since": "0.2.0",
+  "tags": ["ui", "信息", "时间"],
+  "config": [],
+  "example": "const Comment = withCommentPlugins(CommentCore, [\n  createTimestampPlugin(),\n]);",
+  "features": ["操作行绝对时间芯片", "与 Core 相对时间并存"],
+  "useCases": ["需要精确时间的合规 / 存档场景", "补充相对时间的不足"],
+  "notes": ["仅展示，不修改 Core 的相对时间渲染。"]
+}
