@@ -1,0 +1,40 @@
+{
+  "name": "HistoryPlugin",
+  "description": "领取记录：按 coupon.history / config.records 倒序渲染最近 N 条领取/使用记录。",
+  "since": "0.1.0",
+  "tags": [
+    "coupon",
+    "history",
+    "after"
+  ],
+  "config": [
+    {
+      "name": "records",
+      "type": "{ at: number; action: string }[]",
+      "default": "coupon.history",
+      "description": "记录列表，at 为 epoch ms"
+    },
+    {
+      "name": "max",
+      "type": "number",
+      "default": "3",
+      "description": "最多展示条数"
+    },
+    {
+      "name": "format",
+      "type": "(at: number) => string",
+      "default": "YYYY.MM.DD",
+      "description": "时间格式化"
+    }
+  ],
+  "features": [
+    "按时间倒序",
+    "空记录渲染 null",
+    "复用规则区的列表样式"
+  ],
+  "useCases": [
+    "多批次领取记录",
+    "核销流水展示"
+  ],
+  "example": "const Coupon = createCouponCard([createHistoryPlugin({ max: 5 })]);"
+}

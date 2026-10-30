@@ -34,7 +34,13 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const ROOT = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
+// Windows：Git Bash 会话的 cwd 可能是小写盘符（e:\…），import.meta.url 推出的 ROOT
+// 会跟着小写。spawn 给 vite 的 cwd 与其内部模块 id 大小写不一致时，
+// [vite:html-inline-proxy] 会报「No matching HTML proxy module found」（构建直接失败）。
+// 把盘符统一规范成大写，保证 spawn cwd 与模块解析大小写一致。
+const ROOT = path
+  .resolve(fileURLToPath(new URL("..", import.meta.url)))
+  .replace(/^[a-z]:/, (m) => m.toUpperCase());
 const OUT_DIR = path.join(ROOT, "demos");
 const PKG_DIR = path.join(ROOT, "packages");
 

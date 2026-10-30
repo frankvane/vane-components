@@ -49,6 +49,14 @@ export interface CouponData {
   claimed?: number;
   /** 是否可叠加（StackPlugin 徽标数据源） */
   stackable?: boolean;
+  /** 每人限领张数（QuotaPlugin 数据源） */
+  quota?: number;
+  /** 渠道限定标签（ChannelPlugin 数据源，如「仅 APP」「仅新客」） */
+  channels?: string[];
+  /** 券码（CopyCodePlugin 数据源，claimed 后展示复制） */
+  code?: string;
+  /** 领取/使用记录（HistoryPlugin 数据源，按时间倒序展示） */
+  history?: { at: number; action: string }[];
   /** 任意业务数据 */
   [key: string]: any;
 }

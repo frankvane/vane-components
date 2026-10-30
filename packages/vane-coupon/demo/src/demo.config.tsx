@@ -27,5 +27,5 @@ export const demoConfig: DemoShellConfig<DemoEntry> = {
     entries: DEMOS,
     detail: (entry, order) => <DemoPage entry={entry} order={order} />,
   },
-  footer: [`4 PLUGINS · ${DEMOS.length} DEMOS`, "STATE MACHINE CORE"],
+  footer: [`14 PLUGINS · ${DEMOS.length} DEMOS`, "STATE MACHINE CORE"],
 };

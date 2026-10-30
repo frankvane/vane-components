@@ -1,0 +1,53 @@
+{
+  "name": "CountdownPlugin",
+  "description": "开抢倒计时：startAt 未到时渲染「距开抢 HH:MM:SS」，到点可自动开抢（autoStart）并触发 onFire。",
+  "since": "0.1.0",
+  "tags": [
+    "coupon",
+    "countdown",
+    "timer",
+    "before"
+  ],
+  "config": [
+    {
+      "name": "startAt",
+      "type": "number",
+      "default": "-",
+      "description": "开抢时间（epoch ms），必填"
+    },
+    {
+      "name": "autoStart",
+      "type": "boolean",
+      "default": "false",
+      "description": "到点自动进入 available"
+    },
+    {
+      "name": "tickMs",
+      "type": "number",
+      "default": "1000",
+      "description": "定时精度"
+    },
+    {
+      "name": "onCountdown",
+      "type": "(remainingMs: number) => void",
+      "default": "-",
+      "description": "每跳回调"
+    },
+    {
+      "name": "onFire",
+      "type": "() => void",
+      "default": "-",
+      "description": "倒计时归零回调"
+    }
+  ],
+  "features": [
+    "onMount 挂 setTimeout 链（返回 cleanup，内核逆序执行）",
+    "剩余写内核 state.countdown",
+    "与 RemindPlugin 配合覆盖「未开始」全场景"
+  ],
+  "useCases": [
+    "定时开抢活动",
+    "整点发券"
+  ],
+  "example": "const Coupon = createCouponCard([createCountdownPlugin({ startAt: Date.parse('2026-11-01T10:00:00'), autoStart: true })]);"
+}

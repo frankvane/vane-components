@@ -1,0 +1,41 @@
+{
+  "name": "CopyCodePlugin",
+  "description": "券码复制：claimed/used 相位展示券码与复制按钮（clipboard API + execCommand 兜底），结果写 state.codeCopied。",
+  "since": "0.1.0",
+  "tags": [
+    "coupon",
+    "code",
+    "clipboard",
+    "after"
+  ],
+  "config": [
+    {
+      "name": "code",
+      "type": "string",
+      "default": "coupon.code",
+      "description": "券码"
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "\"券码\"",
+      "description": "标签文案"
+    },
+    {
+      "name": "onCopied",
+      "type": "(code: string) => void",
+      "default": "-",
+      "description": "复制成功回调"
+    }
+  ],
+  "features": [
+    "claimed/used 之外的相位渲染 null",
+    "http 内网环境 execCommand 兜底（对齐 CodeBlock 的复制策略）",
+    "1.6s 后自动还原按钮文案"
+  ],
+  "useCases": [
+    "口令券",
+    "线下核销码"
+  ],
+  "example": "const Coupon = createCouponCard([createCopyCodePlugin({ onCopied: (code) => tracker.copy(code) })]);"
+}

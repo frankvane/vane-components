@@ -7,6 +7,10 @@ import { createClaimStatePlugin } from "../../../src/custom-plugins/ClaimStatePl
 import { createValidityPlugin } from "../../../src/custom-plugins/ValidityPlugin";
 import { createRuleExpandPlugin } from "../../../src/custom-plugins/RuleExpandPlugin";
 import { createStackPlugin } from "../../../src/custom-plugins/StackPlugin";
+import { createProgressPlugin } from "../../../src/custom-plugins/ProgressPlugin";
+import { createQuotaPlugin } from "../../../src/custom-plugins/QuotaPlugin";
+import { createCopyCodePlugin } from "../../../src/custom-plugins/CopyCodePlugin";
+import { createCountdownPlugin } from "../../../src/custom-plugins/CountdownPlugin";
 import { auditCoupon } from "./audit-coupon";
 
 /**
@@ -49,6 +53,12 @@ const CouponFull = createCouponCard([
   createStackPlugin({ showWhenNotStackable: true }),
   createValidityPlugin({ urgentDays: 3 }),
   createRuleExpandPlugin(),
+  createClaimStatePlugin({ claim: async () => ({ ok: true }) }),
+]);
+const CouponProgress = createCouponCard([createProgressPlugin({ urgentPct: 30 })]);
+const CouponQuota = createCouponCard([createQuotaPlugin({ quota: 2, purchasedCount: 2 })]);
+const CouponCopyCode = createCouponCard([
+  createCopyCodePlugin({ code: "ST-2026" }),
   createClaimStatePlugin({ claim: async () => ({ ok: true }) }),
 ]);
 
@@ -252,6 +262,55 @@ export async function runSelfTest(): Promise<SelfTestResult> {
     );
     flushSync(() => t.root.unmount());
     t.host.remove();
+  }
+
+  // ---- 9. 扩展插件：进度 / 限领 / 券码 / 倒计时 ----
+  {
+    // 进度条：常规 + 紧迫
+    const t = await mount(
+      <CouponProgress coupon={{ ...baseCoupon, total: 100, claimed: 85 }} />
+    );
+    const p = t.q('[data-testid="coupon-progress"]') as HTMLElement;
+    ok("进度：percent 属性 85", p?.dataset.percent === "85");
+    ok("进度：紧迫态 urgent=true（urgentPct 30）", p?.dataset.urgent === "true");
+    ok("进度：文案含 已抢 85% 与 仅剩 15 张", (p?.textContent ?? "").includes("已抢 85%") && (p?.textContent ?? "").includes("仅剩 15 张"));
+    flushSync(() => t.root.unmount());
+    t.host.remove();
+
+    // 限领：超限红字
+    const t2 = await mount(<CouponQuota coupon={baseCoupon} />);
+    const qt = t2.q('[data-testid="coupon-quota"]') as HTMLElement;
+    ok("限领：reached=true", qt?.dataset.reached === "true");
+    ok("限领：文案「已达限领上限」", (qt?.textContent ?? "").includes("已达限领上限"));
+    flushSync(() => t2.root.unmount());
+    t2.host.remove();
+
+    // 券码：领取后出现（available 相位不渲染）
+    const t3 = await mount(<CouponCopyCode coupon={baseCoupon} />);
+    ok("券码：available 相位不渲染", !t3.q('[data-testid="coupon-code"]'));
+    await t3.click('[data-testid="coupon-claim-btn"]');
+    await waitFor(() => !!t3.q('[data-testid="coupon-code"]'));
+    ok("券码：领取后展示券码 ST-2026", t3.q('[data-testid="coupon-code"]')?.textContent === "ST-2026");
+    ok("券码：复制按钮存在", !!t3.q('[data-testid="coupon-copy-btn"]'));
+    flushSync(() => t3.root.unmount());
+    t3.host.remove();
+
+    // 倒计时：先出「距开抢」，到点 autoStart 降级 available
+    // startAt 必须在挂载前一刻取值（模块顶层装配会让 200ms 在跑到本节之前耗尽）
+    const CouponCountdown = createCouponCard([
+      createCountdownPlugin({ startAt: Date.now() + 200, tickMs: 50, autoStart: true }),
+    ]);
+    const t4 = await mount(<CouponCountdown coupon={baseCoupon} />);
+    const rootEl = () => t4.q('[data-testid="coupon-root"]') as HTMLElement;
+    await waitFor(() => !!t4.q('[data-testid="coupon-countdown-value"]'), 150);
+    ok("倒计时：渲染「距开抢」", (t4.q('[data-testid="coupon-countdown-value"]')?.textContent ?? "").includes("距开抢"));
+    await waitFor(() => rootEl()?.dataset.phase === "available", 150);
+    ok("倒计时：到点 autoStart 进入 available", rootEl()?.dataset.phase === "available");
+    // phase 先落地、countdown:0 的渲染随后（两次 setState 两个渲染），同样轮询
+    await waitFor(() => !t4.q('[data-testid="coupon-countdown-value"]'), 150);
+    ok("倒计时：到点后倒计时消失", !t4.q('[data-testid="coupon-countdown-value"]'));
+    flushSync(() => t4.root.unmount());
+    t4.host.remove();
   }
 
   return { total, passed: total - failed.length, failed };

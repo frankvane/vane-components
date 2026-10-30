@@ -69,6 +69,16 @@ import { CouponCard } from "vane-coupon";
 | ValidityPlugin | 有效期判定（绝对/相对） | `vane-coupon/custom-plugins/ValidityPlugin` |
 | RuleExpandPlugin | 规则展开 / 收起 | `vane-coupon/custom-plugins/RuleExpandPlugin` |
 | StackPlugin | 叠加态角标 | `vane-coupon/custom-plugins/StackPlugin` |
+| ProgressPlugin | 抢购进度条（紧迫态 / 已抢完） | `vane-coupon/custom-plugins/ProgressPlugin` |
+| QuotaPlugin | 每人限领提示（超限回调） | `vane-coupon/custom-plugins/QuotaPlugin` |
+| CountdownPlugin | 开抢倒计时（到点可自动开抢） | `vane-coupon/custom-plugins/CountdownPlugin` |
+| ChannelPlugin | 渠道小标（数据/配置双驱动） | `vane-coupon/custom-plugins/ChannelPlugin` |
+| SharePlugin | 分享按钮（footer 槽次按钮） | `vane-coupon/custom-plugins/SharePlugin` |
+| RemindPlugin | 开抢提醒开关（仅 idle 相位） | `vane-coupon/custom-plugins/RemindPlugin` |
+| CopyCodePlugin | 券码展示与复制（claimed/used） | `vane-coupon/custom-plugins/CopyCodePlugin` |
+| HistoryPlugin | 领取记录倒序切片 | `vane-coupon/custom-plugins/HistoryPlugin` |
+| AnalyticsPlugin | 行为埋点（mount/claim/error 双通道） | `vane-coupon/custom-plugins/AnalyticsPlugin` |
+| DetailLinkPlugin | 详情入口（href 链接 / onDetail 回调） | `vane-coupon/custom-plugins/DetailLinkPlugin` |
 
 ## 包体积
 

@@ -1,0 +1,28 @@
+{
+  "name": "ChannelPlugin",
+  "description": "渠道限定角标：按 coupon.channels / config.channels 渲染一组渠道小标（仅 APP / 仅新客…）。",
+  "since": "0.1.0",
+  "tags": [
+    "coupon",
+    "channel",
+    "badge",
+    "before"
+  ],
+  "config": [
+    {
+      "name": "channels",
+      "type": "string[]",
+      "default": "coupon.channels",
+      "description": "渠道标签列表"
+    }
+  ],
+  "features": [
+    "多渠道并列渲染",
+    "与 StackPlugin 同占 before 槽（order 20 排后）"
+  ],
+  "useCases": [
+    "仅 APP 领取",
+    "新客专享"
+  ],
+  "example": "const Coupon = createCouponCard([createChannelPlugin({ channels: [\"仅 APP\"] })]);"
+}

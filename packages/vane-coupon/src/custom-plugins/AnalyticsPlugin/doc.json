@@ -1,0 +1,28 @@
+{
+  "name": "AnalyticsPlugin",
+  "description": "券埋点：coupon:mount / coupon:claim / coupon:error 三类事件，回调与总线 coupon:analytics 双通道，自身不渲染 UI。",
+  "since": "0.1.0",
+  "tags": [
+    "coupon",
+    "analytics",
+    "event"
+  ],
+  "config": [
+    {
+      "name": "onEvent",
+      "type": "(event: string, payload: Record<string, unknown>) => void",
+      "default": "-",
+      "description": "埋点回调（与总线双通道）"
+    }
+  ],
+  "features": [
+    "priority 90 事件链最前",
+    "couponId + phase 随事件上报",
+    "对齐 vane-sku Analytics 的双通道约定"
+  ],
+  "useCases": [
+    "领券转化漏斗",
+    "A/B 实验埋点"
+  ],
+  "example": "const Coupon = createCouponCard([createAnalyticsPlugin({ onEvent: (e, p) => tracker.send(e, p) })]);"
+}

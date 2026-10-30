@@ -1,0 +1,41 @@
+{
+  "name": "QuotaPlugin",
+  "description": "每人限领：读 coupon.quota 与已领数渲染限领提示，超限写 state.quotaReached 供宿主门控领取按钮。",
+  "since": "0.1.0",
+  "tags": [
+    "coupon",
+    "quota",
+    "limit",
+    "after"
+  ],
+  "config": [
+    {
+      "name": "quota",
+      "type": "number",
+      "default": "coupon.quota",
+      "description": "每人限领张数"
+    },
+    {
+      "name": "purchasedCount",
+      "type": "number",
+      "default": "0",
+      "description": "当前用户已领张数"
+    },
+    {
+      "name": "onExceed",
+      "type": "() => void",
+      "default": "-",
+      "description": "超限回调"
+    }
+  ],
+  "features": [
+    "未声明 quota 视为不限领（渲染 null）",
+    "超限提示条红字",
+    "state.quotaReached 写内核 state"
+  ],
+  "useCases": [
+    "每人限领 N 张的活动券",
+    "会员等级限领"
+  ],
+  "example": "const Coupon = createCouponCard([createQuotaPlugin({ purchasedCount: 1 })]);"
+}

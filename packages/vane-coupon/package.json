@@ -19,13 +19,53 @@
       "types": "./dist/entries/plugins.d.ts",
       "import": "./dist/entries/plugins.js"
     },
+    "./custom-plugins/AnalyticsPlugin": {
+      "types": "./dist/custom-plugins/AnalyticsPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/AnalyticsPlugin/index.js"
+    },
+    "./custom-plugins/ChannelPlugin": {
+      "types": "./dist/custom-plugins/ChannelPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ChannelPlugin/index.js"
+    },
     "./custom-plugins/ClaimStatePlugin": {
       "types": "./dist/custom-plugins/ClaimStatePlugin/index.d.ts",
       "import": "./dist/custom-plugins/ClaimStatePlugin/index.js"
     },
+    "./custom-plugins/CopyCodePlugin": {
+      "types": "./dist/custom-plugins/CopyCodePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/CopyCodePlugin/index.js"
+    },
+    "./custom-plugins/CountdownPlugin": {
+      "types": "./dist/custom-plugins/CountdownPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/CountdownPlugin/index.js"
+    },
+    "./custom-plugins/DetailLinkPlugin": {
+      "types": "./dist/custom-plugins/DetailLinkPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/DetailLinkPlugin/index.js"
+    },
+    "./custom-plugins/HistoryPlugin": {
+      "types": "./dist/custom-plugins/HistoryPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/HistoryPlugin/index.js"
+    },
+    "./custom-plugins/ProgressPlugin": {
+      "types": "./dist/custom-plugins/ProgressPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ProgressPlugin/index.js"
+    },
+    "./custom-plugins/QuotaPlugin": {
+      "types": "./dist/custom-plugins/QuotaPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/QuotaPlugin/index.js"
+    },
+    "./custom-plugins/RemindPlugin": {
+      "types": "./dist/custom-plugins/RemindPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/RemindPlugin/index.js"
+    },
     "./custom-plugins/RuleExpandPlugin": {
       "types": "./dist/custom-plugins/RuleExpandPlugin/index.d.ts",
       "import": "./dist/custom-plugins/RuleExpandPlugin/index.js"
+    },
+    "./custom-plugins/SharePlugin": {
+      "types": "./dist/custom-plugins/SharePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/SharePlugin/index.js"
     },
     "./custom-plugins/StackPlugin": {
       "types": "./dist/custom-plugins/StackPlugin/index.d.ts",

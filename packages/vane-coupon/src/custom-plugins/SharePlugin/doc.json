@@ -1,0 +1,33 @@
+{
+  "name": "SharePlugin",
+  "description": "分享按钮：footer 槽渲染次按钮，分享能力由 onShare 回调提供；未配置 onShare 不渲染。",
+  "since": "0.1.0",
+  "tags": [
+    "coupon",
+    "share",
+    "footer"
+  ],
+  "config": [
+    {
+      "name": "text",
+      "type": "string",
+      "default": "\"分享好友\"",
+      "description": "按钮文案"
+    },
+    {
+      "name": "onShare",
+      "type": "() => void | Promise<void>",
+      "default": "-",
+      "description": "分享回调（必配才渲染）"
+    }
+  ],
+  "features": [
+    "muted 次按钮样式，排在领取按钮下方",
+    "onShare 后 forceUpdate 刷新闭包状态"
+  ],
+  "useCases": [
+    "分享裂变领券",
+    "好友代领"
+  ],
+  "example": "const Coupon = createCouponCard([createSharePlugin({ onShare: () => tracker.share() })]);"
+}

@@ -1,0 +1,47 @@
+{
+  "name": "ProgressPlugin",
+  "description": "领取进度条：按 total/claimed 渲染已抢百分比进度条，剩余 ≤ N% 换紧迫色，接口轮询数据刷新即更新。",
+  "since": "0.1.0",
+  "tags": [
+    "coupon",
+    "progress",
+    "stock",
+    "after"
+  ],
+  "config": [
+    {
+      "name": "total",
+      "type": "number",
+      "default": "coupon.total",
+      "description": "发放总量"
+    },
+    {
+      "name": "claimed",
+      "type": "number",
+      "default": "coupon.claimed",
+      "description": "已领取数"
+    },
+    {
+      "name": "urgentPct",
+      "type": "number",
+      "default": "20",
+      "description": "剩余 ≤ N% 标记紧迫"
+    },
+    {
+      "name": "showRemaining",
+      "type": "boolean",
+      "default": "true",
+      "description": "展示「仅剩 N 张」替代百分比"
+    }
+  ],
+  "features": [
+    "进度条宽度随 claimed/total 变化",
+    "紧迫色 #a54a00（对比度 5.6:1）",
+    "抢完显示「已抢完」"
+  ],
+  "useCases": [
+    "限量抢购券",
+    "发券预算监控"
+  ],
+  "example": "const Coupon = createCouponCard([createProgressPlugin({ urgentPct: 20 })]);"
+}

@@ -4,7 +4,7 @@
  * 对比度基调（白底组件，实测口径）：
  *   正文 #1f2328 / 次要 #57606a —— 白底 ≥ 6.4:1，粉底（#fff1f3）≥ 5.8:1
  *   面额/主按钮 #d03050 —— 白底 4.98:1，粉底 4.52:1；白字压 #d03050 4.98:1（正文 ≥ 4.5）
- *   禁用 #6f757b on #f2f3f5 ≈ 4.4:1（禁用态豁免线 3:1 之上）
+ *   次按钮/禁用 #5d636a on #f2f3f5 ≈ 5.5:1（同一 token 兼顾启用态 ≥4.5 与禁用态豁免 ≥3）
  *   紧迫 #a54a00 on #fff7e6 ≈ 5.6:1；过期 #b32d08 on #fff1f0 ≈ 5.9:1
  *
  * ADR-13：凡是内联了 background 的元素必须成对内联 color；文字弱化不用 opacity，
@@ -228,6 +228,8 @@ export const claimMutedStyle: React.CSSProperties = {
   ...claimStyle,
   cursor: "not-allowed",
   background: "#f2f3f5",
-  color: "#6f757b",
+  // #5d636a on #f2f3f5 ≈ 5.5:1 —— 这个 token 同时被启用态次按钮（Share/Remind，需 ≥4.5）
+  // 和禁用态领取按钮（豁免 ≥3）复用，取两者都达标的字色；#6f757b 只有 4.2 过不了启用态
+  color: "#5d636a",
   border: "1px solid #e8eaed",
 };

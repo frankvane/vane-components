@@ -1,0 +1,39 @@
+{
+  "name": "RemindPlugin",
+  "description": "开抢提醒：idle 相位渲染提醒开关，开关态写内核 state.reminded，可被宿主复位。",
+  "since": "0.1.0",
+  "tags": [
+    "coupon",
+    "remind",
+    "footer"
+  ],
+  "config": [
+    {
+      "name": "text",
+      "type": "string",
+      "default": "\"开抢提醒\"",
+      "description": "未提醒文案"
+    },
+    {
+      "name": "remindedText",
+      "type": "string",
+      "default": "\"已设提醒 ✓\"",
+      "description": "已提醒文案"
+    },
+    {
+      "name": "onRemind",
+      "type": "(on: boolean) => void",
+      "default": "-",
+      "description": "提醒开关回调"
+    }
+  ],
+  "features": [
+    "只在 idle 相位渲染（可领取/已领取后提醒无意义）",
+    "aria-pressed 无障碍开关语义"
+  ],
+  "useCases": [
+    "定时开抢前预约提醒",
+    "补货提醒"
+  ],
+  "example": "const Coupon = createCouponCard([createRemindPlugin({ onRemind: (on) => api.setReminder(on) })]);"
+}

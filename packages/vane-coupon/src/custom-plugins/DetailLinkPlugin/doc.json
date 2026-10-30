@@ -1,0 +1,39 @@
+{
+  "name": "DetailLinkPlugin",
+  "description": "完整规则链接：href 渲染 <a>、onDetail 渲染 <button>，落在规则区下方。",
+  "since": "0.1.0",
+  "tags": [
+    "coupon",
+    "link",
+    "after"
+  ],
+  "config": [
+    {
+      "name": "href",
+      "type": "string",
+      "default": "-",
+      "description": "详情页链接（有则渲染 <a>）"
+    },
+    {
+      "name": "text",
+      "type": "string",
+      "default": "\"查看完整规则\"",
+      "description": "链接文案"
+    },
+    {
+      "name": "onDetail",
+      "type": "() => void",
+      "default": "-",
+      "description": "点击回调（无 href 时渲染 <button>）"
+    }
+  ],
+  "features": [
+    "href 与 onDetail 都未配置渲染 null",
+    "下划线 + › 视觉与规则区衔接"
+  ],
+  "useCases": [
+    "规则详情页跳转",
+    "弹层查看完整规则"
+  ],
+  "example": "const Coupon = createCouponCard([createDetailLinkPlugin({ href: '/help/coupon-rules' })]);"
+}

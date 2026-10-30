@@ -15,6 +15,10 @@
 | `validDays?` | `number` | 相对有效期（领取后 N 天） |
 | `total?` / `claimed?` | `number` | 发放总量 / 已领取 |
 | `stackable?` | `boolean` | 是否可叠加 |
+| `quota?` | `number` | 每人限领张数（QuotaPlugin） |
+| `channels?` | `string[]` | 渠道小标文案（ChannelPlugin，config.channels 可覆盖） |
+| `code?` | `string` | 券码（CopyCodePlugin，config.code 可覆盖） |
+| `history?` | `{ at: number; action: string }[]` | 领取记录（HistoryPlugin 倒序切片） |
 
 ## `CouponCore`
 
