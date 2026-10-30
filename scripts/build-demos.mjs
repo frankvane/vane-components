@@ -5,7 +5,10 @@
  *   node scripts/build-demos.mjs            # 全量构建
  *   node scripts/build-demos.mjs --no-build # 复用已有 demo-dist，只做聚合（调试用）
  *   node scripts/build-demos.mjs --only vane-card,vane-sku
- *   node scripts/build-demos.mjs --clean    # 先清空 demos/（旧 hash 资源堆积时才需要；不能与 --only 连用）
+ *   node scripts/build-demos.mjs --clean    # 全量重建并先清空整个 demos/（清掉已下线包的残留；不能与 --only 连用）
+ *
+ * 单包目录每次都在 `copyDemo()` 里先删后铺，所以反复 `--only` 重建不会堆积旧 hash 产物；
+ * `--clean` 只用于「连别的残留一起清」的全量重置。
  *
  * 目录约定（产物，git 忽略）：
  *   demos/index.html        引导页
@@ -127,15 +130,20 @@ function copyDemo(pkg) {
   const src = path.join(pkg.dist, "demo");
   if (!fs.existsSync(src)) throw new Error(`${pkg.name}: 缺产物 ${path.relative(ROOT, src)}`);
   const dest = path.join(OUT_DIR, pkg.name);
+  // 先删本包目录再铺：cpSync 是叠加语义，不清就会把历史 hash 的旧产物越攒越多
+  // （file-preview 曾堆到 3000+ 文件 / 42MB，只能靠人记得带 --clean 才收敛）。
+  // 只删 demos/<pkg>，绝不波及 demos/index.html 与 demos/_audit.html（它们在 demos/ 根上）。
+  fs.rmSync(dest, { recursive: true, force: true });
   fs.mkdirSync(dest, { recursive: true });
 
   // vite 把 publicDir 的内容平铺在 demo-dist 根上（样本 404 的根因所在，见文件头）
   const extras = fs.readdirSync(pkg.dist).filter((name) => name !== "demo" && name !== "assets");
   const publicDirs = extras.filter((name) => fs.statSync(path.join(pkg.dist, name)).isDirectory());
 
-  // 顺序很关键：先铺资源、最后写 html。
-  // 这样正在预览的页面永远指向「已经全部就位」的文件；反过来先写 html 再铺资源，
-  // 中间那一瞬就是白屏/无样式。资源名带 hash，新旧并存互不干扰。
+  // 顺序很关键：先铺资源、最后写 html。这样新 html 落盘时它引用的资源一定已就位，
+  // 不会出现「html 已是新的、assets 还没搬完」的白屏窗口。
+  // 代价说明：上面那次 rmSync 会让正在预览本包的标签页在重建瞬间短暂 404（刷新即恢复），
+  // 这是换取「产物不堆积」的必然代价 —— 目录被清空的那一瞬不可能还有旧文件可服务。
   const assetsSrc = path.join(pkg.dist, "assets");
   let assets = 0;
   if (fs.existsSync(assetsSrc)) {
@@ -545,8 +553,8 @@ function main() {
   }
 
   console.log(`→ 聚合 ${pkgs.length} 个包的 demo 到 ${path.relative(ROOT, OUT_DIR)}/`);
-  // 默认**不清空** demos/：预览时重建不会出现「整站被删再写」的空窗，
-  // 浏览器里开着的页面也就不会突然变成无样式的白页。旧 hash 资源留着无害。
+  // 默认**不清空整个** demos/：只重写本次选中的包，其它包的演示台与引导页保持原样，
+  // 不用为一次单包更新付出「整站被删再写」的空窗。单包目录由 copyDemo() 自己先删后铺。
   if (clean) {
     console.log("  （--clean：先清空 demos/，请先关掉正在预览的标签页）");
     fs.rmSync(OUT_DIR, { recursive: true, force: true });

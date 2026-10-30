@@ -75,6 +75,36 @@ styles/             tokens.css + components.css（CSS 变量 + vc- 前缀 class�
 demo/               演示站：38 页逐项示例 + 9 版式 + 16 场景（不随包发布）
 ```
 
+## 样式与主题
+
+样式是**可选增强**——不引 `style.css` 组件照常渲染、照常交互，只是没有这套视觉：
+
+| 不引 `style.css` 时 | 说明 |
+| --- | --- |
+| 结构仍在 DOM 里 | `<table>` / `<button>` / `<ul><li>` / `<label>+<select>` 等语义标签原样保留，读屏、键盘 Tab、表单提交都不受影响 |
+| 功能属性仍内联 | 容器的 `position` / `box-sizing` / `padding` 留在内联样式上（overlay 靠它定位，padding 参与盒模型），绝对定位的浮层不会跑到别的祖先上去 |
+| 无障碍开关仍生效 | `<A11yToolbar>` 五个开关对应的 `:root[data-a11y-*]` 规则是**运行时注入**的，不依赖样式表 |
+| 缺的是纯外观 | 间距、字号、颜色、圆角、边框、状态色（售罄红 / 低库存橙 / 在售绿） |
+
+`demo/no-style.html` 就是这个形态的对照页，与 `demo/index.html` 用同一份数据渲染。
+
+换肤优先级从低到高：`:root` 默认值 → 容器上加 `data-vc-theme="dark"` → 行内覆盖单个变量。
+
+```tsx
+// 整块区域切暗色
+<div data-vc-theme="dark">
+  <ProductCard cardId="p1" data={data} />
+</div>
+
+// 单点覆盖：只改强调色
+<ProductCard cardId="p1" data={data} containerStyle={{ "--vc-accent": "#7c3aed" } as React.CSSProperties} />
+```
+
+常用变量：`--vc-fg` `--vc-fg-dim` `--vc-fg-muted` `--vc-bg` `--vc-bg-subtle` `--vc-border` `--vc-accent`
+`--vc-price` `--vc-danger` `--vc-success` `--vc-warning` `--vc-radius` `--vc-gap` `--vc-fs-xs..lg`。
+
+样式文件分两层：`styles/tokens.css` 放 `--vc-*` 变量（换肤改这里），`styles/components.css` 放 `vc-` 前缀 class（改排布改这里），构建时由 `@vane/build-config` 的 `cssCopyPlugin` 合并输出为 `dist/style.css`。class 命名是 `vc-<component>[__<element>][--<modifier>]`、状态用 `.is-*`；`test/styles.test.ts` 会静态对账源码与样式表（源码里出现的 class 必须有定义，定义的必须有人用），所以 class 拼错会在 CI 变红而不是悄悄掉样式。
+
 ## 插件目录速览
 
 | 组 | 插件 | 管什么 |

@@ -6,7 +6,9 @@
  *   A1 入口聚合：src/entries/{core,plugins}.ts 存在（canonical 聚合范式）
  *   A2 命名：插件目录必须 ^[A-Z][A-Za-z0-9]*Plugin$
  *   A3 三件套：每个插件目录含 create.{ts,tsx} + doc.json + index.{ts,tsx}
- *   A4 doc 字段：禁止复数 `examples`（应为 `example`）；其余字段差异仅 INFO 上报（P2 再统一 schema）
+ *   A4 doc.json：`example` 与 `examples` 双字段是**有意设计**（单数=用法字符串，复数=可视化示例数组，
+ *      驱动 demo 预览卡片；lazy-image 有 84 个插件两者并存），**勿当误用删除**。仅在「有 examples 却无 example」
+ *      时 INFO 提醒；其余字段差异同样只 INFO 上报（P2 再统一 schema）
  *   A5 ADR-6：根 src/index.ts 不得 `export * from "./custom-plugins"`（桶导出官方插件）
  *   A6 card 双结构：插件实现不得位于 src/components/<包>/custom-plugins（应并入 src/custom-plugins）
  *   C1 demo 范式（INFO）：优先 demos/registry.ts；用旧 pages/ 范式仅提示，P5 迁移

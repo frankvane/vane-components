@@ -83,6 +83,9 @@ async function copyTree(from, to) {
     // README.md 不复制：组件 README 由 docs:sync 从 docs/components/<pkg>/index.md 生成
     if (entry.name === "node_modules" || entry.name === ".git" || entry.name === ".DS_Store") continue;
     if (entry.name === "README.md") continue;
+    // docs 不复制：模板的 docs/ 只是种子，下面会直接落到仓库级 docs/components/<pkg>/。
+    // 复制进包内会得到永远没人维护的第二份副本（vane-sku 曾因此长期漂移）。
+    if (entry.name === "docs") continue;
     const src = path.join(from, entry.name);
     const dest = path.join(to, mapPath(entry.name));
     if (entry.isDirectory()) await copyTree(src, dest);
@@ -126,12 +129,15 @@ if (sync.status !== 0) {
   console.warn("  ⚠ demo 外壳生成失败，请手动运行 node scripts/sync-demo-shell.mjs");
 }
 
-// 文档骨架
+// 文档骨架：直接从模板取种子写入仓库级 docs/components/<pkg>/。
+// 因为模板的 docs/ 已不再复制进包内，这里的占位符替换要自己做一遍（原先靠 replaceInTree 顺带完成）。
 const docsDir = path.join(root, "docs", "components", pkg);
 await mkdir(docsDir, { recursive: true });
 for (const file of ["index.md", "api.md", "plugins.md", "recipes.md"]) {
-  const src = path.join(target, "docs", file);
-  if (existsSync(src)) await cp(src, path.join(docsDir, file));
+  const src = path.join(templateDir, "docs", file);
+  if (existsSync(src)) {
+    await writeFile(path.join(docsDir, file), replaceAll(await readFile(src, "utf-8")), "utf-8");
+  }
 }
 
 console.log(`

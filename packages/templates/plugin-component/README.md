@@ -31,7 +31,7 @@ plugin-component/
 │   └── custom-plugins/
 │       └── ExamplePlugin/        # 插件三件套：create.tsx + doc.json + index.ts
 ├── demo/                   # 演示站（不发布）
-└── docs/                   # 组件文档（会被同步成 npm README）
+└── docs/                   # 文档种子：建包时直接写到仓库级 docs/components/<pkg>/，不留在包内
 ```
 
 新增组件时只需要改三处：`__NAME__Core.tsx`（领域核心）、`plugins/types.ts`（领域钩子）、`custom-plugins/*`（插件）。
