@@ -42,15 +42,12 @@
     "./custom-plugins/*": {
       "types": "./dist/custom-plugins/*/index.d.ts",
       "import": "./dist/custom-plugins/*/index.js"
-    },
-    "./style.css": "./dist/style.css"
+    }
   },
   "files": [
     "dist"
   ],
-  "sideEffects": [
-    "**/*.css"
-  ],
+  "sideEffects": false,
   "publishConfig": {
     "access": "public"
   },
@@ -83,7 +80,7 @@
       "brand": "C",
       "subtitle": "优惠券 / plugin index",
       "title": "优惠券 演示台",
-      "accent": "#ff7a29",
+      "accent": "#d03050",
       "bg": "#0b0a09"
     },
     "sizeBudgetKb": 8,

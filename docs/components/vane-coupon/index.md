@@ -79,15 +79,21 @@ import { CouponCard } from "vane-coupon";
 
 ## 样式与主题
 
-组件样式随 `import "vane-coupon/style.css"` 引入（或不引入、完全自绘）。主题令牌以 `--vane-coupon-*` 前缀定义在 `:root`（面额色、按钮色、紧迫/过期提示色等），宿主直接覆盖变量即可换肤：
+组件样式**全部内联**（与 vane-sku / vane-comment 同一家族口径）：自带白底 + 字色 + 内边距，消费者零配置，不需要额外引入样式文件。
 
-```css
-:root {
-  --vane-coupon-amount: #d03050;     /* 面额 / 主按钮 */
-  --vane-coupon-claim-bg: #d03050;   /* 领取按钮底色 */
-  --vane-coupon-urgent-color: #a54a00; /* 紧迫态文字 */
-}
+换肤两种方式：
+
+```tsx
+// 方式一：containerStyle 覆盖根节点（内联样式之前置的宿主入口）
+<Coupon coupon={data} containerStyle={{ borderRadius: 4, borderColor: "#f3c9d2" }} />;
+
+// 方式二：宿主包裹层统一改色（组件背景白、字色深，包裹层可控的是留白与外框）
+<div style={{ background: "#fff8f9", padding: 16 }}>
+  <Coupon coupon={data} containerStyle={{ background: "transparent" }} />
+</div>;
 ```
+
+调色板常量在 `src/components/CouponPlugin/plugins/tokens.ts`（面额红 #d03050、紧迫 #a54a00/#fff7e6、过期 #b32d08/#fff1f0 等，正文对比度 ≥ 4.5:1、禁用态 ≥ 3:1），自定义插件可直接 import 复用。
 
 ## 文档
 

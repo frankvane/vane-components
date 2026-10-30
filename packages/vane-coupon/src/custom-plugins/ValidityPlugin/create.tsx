@@ -4,6 +4,7 @@ import type {
   CouponPluginContext,
   CouponValidity,
 } from "../../components/CouponPlugin/plugins/types";
+import * as T from "../../components/CouponPlugin/plugins/tokens";
 
 /**
  * ValidityPlugin — 有效期判定（after 槽，priority 23 > RuleExpand 的 21，渲染在规则上方）。
@@ -140,28 +141,24 @@ export function createValidityPlugin(
 
         return (
           <div
-            className={
-              validity.urgent
-                ? "vc-coupon__validity vc-coupon__validity--urgent"
-                : "vc-coupon__validity"
-            }
+            style={T.validityStyle}
             data-testid="coupon-validity"
             data-mode={validity.mode}
             data-expired={validity.expired ? "true" : "false"}
             data-urgent={validity.urgent ? "true" : "false"}
           >
-            <span className="vc-coupon__field-label">有效期</span>
-            <span className="vc-coupon__validity-text">{validity.text}</span>
+            <span style={T.fieldLabelStyle}>有效期</span>
+            <span style={T.validityTextStyle}>{validity.text}</span>
             {validity.expired ? (
-              <span className="vc-coupon__chip vc-coupon__chip--expired">
+              <span style={T.chipExpiredStyle}>
                 已过期
               </span>
             ) : validity.urgent && remainingDays !== null ? (
-              <span className="vc-coupon__chip vc-coupon__chip--urgent">
+              <span style={T.chipUrgentStyle}>
                 仅剩 {remainingDays} 天
               </span>
             ) : validity.notStarted ? (
-              <span className="vc-coupon__chip vc-coupon__chip--muted">
+              <span style={T.chipMutedStyle}>
                 未开始
               </span>
             ) : null}

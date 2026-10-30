@@ -6,6 +6,7 @@ import React, {
   useState,
 } from "react";
 import type { CouponCoreProps, CouponCoreRef } from "./plugins/types";
+import * as T from "./plugins/tokens";
 
 /**
  * 优惠券核心组件。
@@ -77,31 +78,38 @@ export const CouponCore = forwardRef<CouponCoreRef, CouponCoreProps>(
         }
         data-testid="coupon-root"
         data-phase={phase ?? ""}
-        style={{ position: "relative", boxSizing: "border-box", ...containerStyle }}
+        style={{
+          position: "relative",
+          boxSizing: "border-box",
+          // 容器自带 background + color（ADR-13：不靠继承；有背景必有字色）。
+          // 与家族其它包一致走内联样式 —— 消费者零配置，demo 聚合后也天然生效。
+          ...T.rootStyle,
+          ...containerStyle,
+        }}
       >
         {slots?.before}
 
-        <div className="vc-coupon__body" data-testid="coupon-body">
-          <div className="vc-coupon__face">
-            <div className="vc-coupon__amount" data-testid="coupon-amount">
+        <div className="vc-coupon__body" data-testid="coupon-body" style={T.bodyStyle}>
+          <div className="vc-coupon__face" style={T.faceStyle}>
+            <div className="vc-coupon__amount" data-testid="coupon-amount" style={T.amountStyle}>
               {isDiscount ? (
                 <>
-                  <span className="vc-coupon__amount-value">{coupon.amount}</span>
-                  <span className="vc-coupon__amount-unit">折</span>
+                  <span className="vc-coupon__amount-value" style={T.amountValueStyle}>{coupon.amount}</span>
+                  <span className="vc-coupon__amount-unit" style={T.amountUnitStyle}>折</span>
                 </>
               ) : (
                 <>
-                  <span className="vc-coupon__amount-currency">¥</span>
-                  <span className="vc-coupon__amount-value">{coupon.amount}</span>
+                  <span className="vc-coupon__amount-currency" style={T.amountCurrencyStyle}>¥</span>
+                  <span className="vc-coupon__amount-value" style={T.amountValueStyle}>{coupon.amount}</span>
                 </>
               )}
             </div>
-            <div className="vc-coupon__threshold" data-testid="coupon-threshold">
+            <div className="vc-coupon__threshold" data-testid="coupon-threshold" style={T.thresholdStyle}>
               {thresholdText}
             </div>
           </div>
-          <div className="vc-coupon__info">
-            <div className="vc-coupon__title" data-testid="coupon-title">
+          <div className="vc-coupon__info" style={T.infoStyle}>
+            <div className="vc-coupon__title" data-testid="coupon-title" style={T.titleStyle}>
               {coupon.title}
             </div>
           </div>

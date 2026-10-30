@@ -3,6 +3,7 @@ import type {
   CouponPlugin,
   CouponPluginContext,
 } from "../../components/CouponPlugin/plugins/types";
+import * as T from "../../components/CouponPlugin/plugins/tokens";
 
 /**
  * StackPlugin — 叠加态角标（before 槽）。
@@ -44,9 +45,9 @@ export function createStackPlugin(config: StackConfig = {}): CouponPlugin {
 
         if (config.always || stackable === true) {
           return (
-            <div className="vc-coupon__badges" data-testid="coupon-badges">
+            <div style={T.badgesStyle} data-testid="coupon-badges">
               <span
-                className="vc-coupon__badge vc-coupon__badge--stack"
+                style={T.badgeStackStyle}
                 data-testid="coupon-stack-badge"
                 data-stackable="true"
               >
@@ -58,9 +59,9 @@ export function createStackPlugin(config: StackConfig = {}): CouponPlugin {
 
         if (config.showWhenNotStackable && stackable === false) {
           return (
-            <div className="vc-coupon__badges" data-testid="coupon-badges">
+            <div style={T.badgesStyle} data-testid="coupon-badges">
               <span
-                className="vc-coupon__badge vc-coupon__badge--muted"
+                style={T.badgeMutedStyle}
                 data-testid="coupon-stack-badge"
                 data-stackable="false"
               >

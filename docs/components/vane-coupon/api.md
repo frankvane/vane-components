@@ -115,15 +115,16 @@ export const createHighlightPlugin = (config: { keyword: string } = { keyword: "
 
 事件钩子里改了闭包状态必须调用 `ctx.forceUpdate()`；写内核 `state`（`ctx.setState`）则无需——写入即触发 context 重建。
 
-## 样式令牌
+## 样式与换肤
 
-完整清单见 `dist/style.css`（`src/styles/tokens.css`），核心几项：
+组件样式全部内联（自带白底 + 字色 + 16px 内边距，ADR-13：有背景必有字色）。调色板常量在 `src/components/CouponPlugin/plugins/tokens.ts`，核心几项：
 
-| 令牌 | 默认值 | 用途 |
+| 常量 | 值 | 用途 |
 | --- | --- | --- |
-| `--vane-coupon-color` | `#1f2328` | 正文 |
-| `--vane-coupon-dim` | `#57606a` | 次要文字 |
-| `--vane-coupon-amount` | `#d03050` | 面额 / 主按钮 |
-| `--vane-coupon-amount-bg` | `#fff1f3` | 面额区底色 |
-| `--vane-coupon-urgent-color` / `-bg` | `#a54a00` / `#fff7e6` | 紧迫态 |
-| `--vane-coupon-expired-color` / `-bg` | `#b32d08` / `#fff1f0` | 过期态 |
+| `rootStyle` | 白底 / `#1f2328` / 内边距 16 | 票券根 |
+| `amountStyle` | `#d03050` | 面额 |
+| `claimStyle` / `claimMutedStyle` | `#d03050` 白墨 / 灰底灰字 | 领取按钮（禁用对比度 ≥ 3:1） |
+| `chipUrgentStyle` | `#a54a00` on `#fff7e6` | 紧迫角标 |
+| `chipExpiredStyle` | `#b32d08` on `#fff1f0` | 过期角标 |
+
+换肤走 `containerStyle` 覆盖根节点，或宿主包裹层统一处理；自定义插件 import tokens.ts 复用同一套色值。

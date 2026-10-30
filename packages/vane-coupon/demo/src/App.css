@@ -86,11 +86,14 @@
   --rule-2: rgba(242, 237, 228, 0.24);
   --rule-soft: rgba(242, 237, 228, 0.07);
 
-  /* 唯一强调色：琥珀橙 */
-  --accent: #ff7a29;
-  --accent-ink: #0b0a09;
-  --accent-wash: rgba(255, 122, 41, 0.12);
-  --accent-line: rgba(255, 122, 41, 0.4);
+  /* 唯一强调色：券面红（与组件令牌 --vane-coupon-amount 同源；红底配白墨 4.98:1） */
+  --accent: #d03050;
+  --accent-ink: #ffffff;
+  --accent-wash: rgba(208, 48, 80, 0.14);
+  --accent-line: rgba(208, 48, 80, 0.4);
+  /* accent 做文字色用的提亮变体：#d03050 压深底 #0b0a09 只有 3.98:1，
+     白墨压 #d03050 需要 L≤0.18，与深底 ≥4.5 需要的 L≥0.22 不可兼得，拆两个变量 */
+  --accent-text: #e0476a; /* on #0b0a09 ≈ 4.97:1 */
 
   --ok: #7fd08c;
   --warn: #f5c24b;
@@ -274,7 +277,7 @@ time {
   font-size: var(--fs-micro);
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .demo-src-hint {

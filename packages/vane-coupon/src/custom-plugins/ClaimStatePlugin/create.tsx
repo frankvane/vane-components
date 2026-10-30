@@ -4,6 +4,7 @@ import type {
   CouponPlugin,
   CouponPluginContext,
 } from "../../components/CouponPlugin/plugins/types";
+import * as T from "../../components/CouponPlugin/plugins/tokens";
 
 /**
  * ClaimStatePlugin — 领取状态机（footer 槽）。
@@ -151,13 +152,13 @@ export function createClaimStatePlugin(
         };
 
         return (
-          <div className="vc-coupon__actions" data-testid="coupon-claim-area">
+          <div className="vc-coupon__actions" style={T.actionsStyle} data-testid="coupon-claim-area">
             <button
               type="button"
-              className={
+              style={
                 phase === "available" || phase === "claiming"
-                  ? "vc-coupon__claim"
-                  : "vc-coupon__claim vc-coupon__claim--muted"
+                  ? T.claimStyle
+                  : T.claimMutedStyle
               }
               data-testid="coupon-claim-btn"
               data-phase={phase}

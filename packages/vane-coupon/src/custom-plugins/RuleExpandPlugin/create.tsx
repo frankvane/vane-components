@@ -3,6 +3,7 @@ import type {
   CouponPlugin,
   CouponPluginContext,
 } from "../../components/CouponPlugin/plugins/types";
+import * as T from "../../components/CouponPlugin/plugins/tokens";
 
 /**
  * RuleExpandPlugin — 规则展开/收起（after 槽，priority 21 < Validity 的 23，渲染在有效期下方）。
@@ -55,18 +56,18 @@ export function createRuleExpandPlugin(
 
         return (
           <div
-            className="vc-coupon__rules"
+            style={T.rulesStyle}
             data-testid="coupon-rules"
             data-expanded={expanded ? "true" : "false"}
           >
             {title ? (
-              <div className="vc-coupon__rules-title">{title}</div>
+              <div style={T.rulesTitleStyle}>{title}</div>
             ) : null}
-            <ul className="vc-coupon__rules-list">
+            <ul style={T.rulesListStyle}>
               {visible.map((rule, i) => (
                 <li
                   key={i}
-                  className="vc-coupon__rules-item"
+                  style={T.rulesItemStyle}
                   data-testid={`coupon-rule-${i}`}
                 >
                   {rule}
@@ -76,7 +77,7 @@ export function createRuleExpandPlugin(
             {rules.length > collapsedCount ? (
               <button
                 type="button"
-                className="vc-coupon__rules-toggle"
+                style={T.rulesToggleStyle}
                 data-testid="coupon-rules-toggle"
                 aria-expanded={expanded}
                 onClick={() => context.toggleRules()}
@@ -86,7 +87,7 @@ export function createRuleExpandPlugin(
                   : showCount
                     ? `${expandText} (${hiddenCount} 项)`
                     : expandText}
-                <span aria-hidden="true" className="vc-coupon__rules-caret">
+                <span aria-hidden="true" style={T.rulesCaretStyle}>
                   {expanded ? "▲" : "▼"}
                 </span>
               </button>
