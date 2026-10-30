@@ -62,6 +62,7 @@
     "@vitejs/plugin-react": "^4.3.1",
     "happy-dom": "^15.11.7",
     "react": "^18.3.1",
+    "react-router-dom": "^6.26.2",
     "react-dom": "^18.3.1",
     "typescript": "^5.6.3",
     "vite": "^5.4.1",

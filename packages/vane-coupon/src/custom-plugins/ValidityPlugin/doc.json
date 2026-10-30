@@ -1,0 +1,31 @@
+{
+  "name": "ValidityPlugin",
+  "description": "有效期判定：绝对（validFrom/validTo）与相对（领取后 N 天）双模式，紧迫态（剩余 ≤ N 天）强调展示，过期结果写内核 state 供领取状态机联动。",
+  "since": "0.1.0",
+  "tags": ["coupon", "validity", "date", "after"],
+  "config": [
+    {
+      "name": "now",
+      "type": "() => number",
+      "default": "Date.now",
+      "description": "当前时钟，可注入固定值用于测试/演示"
+    },
+    {
+      "name": "urgentDays",
+      "type": "number",
+      "default": "3",
+      "description": "紧迫阈值：剩余 ≤ N 天显示「仅剩 X 天」强调角标"
+    }
+  ],
+  "features": [
+    "absolute：validFrom/validTo 区间展示 + 未开始/已过期判定",
+    "relative：未领取显示「领取后 N 天内有效」，已领取从 state.claimedAt 起算",
+    "产出 state.validity（changed 才写），ClaimStatePlugin 借 onValidityChange 降级 expired"
+  ],
+  "useCases": ["固定活动周期的券", "领取后 N 天生效的券"],
+  "notes": [
+    "渲染 after 槽（priority 23 > RuleExpand 21），显示在规则区上方。",
+    "两种模式都未声明时不渲染也不写 state。"
+  ],
+  "example": "const Coupon = createCouponCard([createValidityPlugin({ urgentDays: 3 })]);"
+}

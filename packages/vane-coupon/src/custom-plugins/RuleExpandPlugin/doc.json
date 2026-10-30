@@ -1,0 +1,49 @@
+{
+  "name": "RuleExpandPlugin",
+  "description": "规则展开/收起：使用规则按条数折叠（默认 1 条），展开态写内核 state，可被宿主复位；不用 line-clamp 避免纵向裁切。",
+  "since": "0.1.0",
+  "tags": ["coupon", "rules", "expand", "after"],
+  "config": [
+    {
+      "name": "collapsedCount",
+      "type": "number",
+      "default": "1",
+      "description": "折叠态显示的规则条数"
+    },
+    {
+      "name": "expandText",
+      "type": "string",
+      "default": "\"展开\"",
+      "description": "展开按钮文案"
+    },
+    {
+      "name": "collapseText",
+      "type": "string",
+      "default": "\"收起\"",
+      "description": "收起按钮文案"
+    },
+    {
+      "name": "showCount",
+      "type": "boolean",
+      "default": "true",
+      "description": "按钮是否带剩余条数（「展开 (3 项)」）"
+    },
+    {
+      "name": "title",
+      "type": "string",
+      "default": "\"使用规则\"",
+      "description": "区域标题；传空字符串隐藏"
+    }
+  ],
+  "features": [
+    "折叠态显示前 collapsedCount 条 + 「展开 (N 项)」，展开后全量 + 「收起」",
+    "展开态写内核 state.rulesExpanded（toggleRules）",
+    "rules 为空渲染 null；无更多条目时不渲染切换按钮"
+  ],
+  "useCases": ["规则条目多的营销券", "需要默认收纳的紧凑版面"],
+  "notes": [
+    "渲染 after 槽（priority 21 < Validity 23），显示在有效期下方。",
+    "按条数截断而非 line-clamp：tasks/28 几何体检证明 line-clamp 是纵向裁切重灾区。"
+  ],
+  "example": "const Coupon = createCouponCard([createRuleExpandPlugin({ collapsedCount: 2 })]);"
+}

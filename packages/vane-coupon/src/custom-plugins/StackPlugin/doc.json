@@ -1,0 +1,41 @@
+{
+  "name": "StackPlugin",
+  "description": "叠加态角标：按 coupon.stackable 渲染「可叠加」强调角标或「不可叠加」灰标，可强制展示；渲染在票面顶部角标区。",
+  "since": "0.1.0",
+  "tags": ["coupon", "stack", "badge", "before"],
+  "config": [
+    {
+      "name": "text",
+      "type": "string",
+      "default": "\"可叠加\"",
+      "description": "可叠加角标文案"
+    },
+    {
+      "name": "notStackableText",
+      "type": "string",
+      "default": "\"不可叠加\"",
+      "description": "不可叠加角标文案"
+    },
+    {
+      "name": "showWhenNotStackable",
+      "type": "boolean",
+      "default": "false",
+      "description": "stackable === false 时是否渲染灰标"
+    },
+    {
+      "name": "always",
+      "type": "boolean",
+      "default": "false",
+      "description": "不看数据字段强制渲染可叠加角标"
+    }
+  ],
+  "features": [
+    "数据驱动：coupon.stackable === true → 强调角标；false + showWhenNotStackable → 灰标",
+    "always: true 强制渲染（组合示例/纯展示场景）"
+  ],
+  "useCases": ["可与店铺券/运费券叠加的券", "需要明示叠加限制的营销位"],
+  "notes": [
+    "渲染 before 槽（priority 12）；config 必须显式 slotPosition: \"before\"，缺省会被 renderPluginSlot 落到 after。"
+  ],
+  "example": "const Coupon = createCouponCard([createStackPlugin({ showWhenNotStackable: true })]);"
+}

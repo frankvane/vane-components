@@ -1,0 +1,55 @@
+{
+  "name": "ClaimStatePlugin",
+  "description": "领取状态机：7 态相位流转（未开始/可领取/领取中/已领取/已使用/已抢空/已过期），点击触发异步领取，联动有效期与库存自动降级终态。",
+  "since": "0.1.0",
+  "tags": ["coupon", "claim", "state-machine", "footer"],
+  "config": [
+    {
+      "name": "initialPhase",
+      "type": "CouponPhase",
+      "default": "-",
+      "description": "初始相位，默认 available（可领取）"
+    },
+    {
+      "name": "claim",
+      "type": "() => Promise<{ ok?: boolean; reason?: string } | void>",
+      "default": "-",
+      "description": "异步领取回调；返回 ok:false 视为失败，回退 available 并触发 onClaimError"
+    },
+    {
+      "name": "stock",
+      "type": "number",
+      "default": "-",
+      "description": "剩余库存；≤ 0 自动降级 soldout（已抢光）"
+    },
+    {
+      "name": "onPhaseChange",
+      "type": "(phase, prev) => void",
+      "default": "-",
+      "description": "相位变化回调"
+    },
+    {
+      "name": "onClaimError",
+      "type": "(reason?: string) => void",
+      "default": "-",
+      "description": "领取失败回调"
+    },
+    {
+      "name": "texts",
+      "type": "Partial<Record<CouponPhase, string>>",
+      "default": "-",
+      "description": "按钮文案按相位覆盖"
+    }
+  ],
+  "features": [
+    "7 态状态机：idle / available / claiming / claimed / used / soldout / expired，终态不再响应点击",
+    "读取 state.validity（ValidityPlugin 写入）自动降级 expired；stock ≤ 0 降级 soldout",
+    "claimedAt 写入内核 state，供相对有效期锚定领取时刻"
+  ],
+  "useCases": ["领券中心", "营销活动页", "会员权益券"],
+  "notes": [
+    "渲染 footer 槽（priority 32）；事件钩子写内核 state，不在渲染期 setState。",
+    "expired 只覆盖非终态：已核销（used）的券不会被过期判定打回。"
+  ],
+  "example": "const Coupon = createCouponCard([createClaimStatePlugin({ claim: async () => ({ ok: true }) })]);"
+}
