@@ -84,6 +84,19 @@ function discover() {
       description: pkg.description ?? "",
       meta: pkg.vane.demo,
       dist: path.join(dir, "demo-dist"),
+      // 引导页统计：版本号 / 插件数（src/custom-plugins/*Plugin 目录）/ 逐项示例页数
+      // （demo/src/demos/[0-9]*.tsx，card/lazy-image 的 demo 结构不同则为 0，chip 条件渲染）
+      version: pkg.version ?? "0.0.0",
+      plugins: (() => {
+        const cp = path.join(dir, "src", "custom-plugins");
+        if (!fs.existsSync(cp)) return 0;
+        return fs.readdirSync(cp, { withFileTypes: true }).filter((e) => e.isDirectory() && e.name.endsWith("Plugin")).length;
+      })(),
+      demos: (() => {
+        const dd = path.join(dir, "demo", "src", "demos");
+        if (!fs.existsSync(dd)) return 0;
+        return fs.readdirSync(dd).filter((f) => /^[0-9].*\.tsx$/.test(f)).length;
+      })(),
     });
   }
   return list.sort((a, b) => a.name.localeCompare(b.name));
@@ -211,9 +224,16 @@ const kb = (bytes) => `${Math.round(bytes / 1024)} KB`;
 
 function landing(pkgs) {
   const stamp = new Date().toISOString().slice(0, 10);
+  const totalPlugins = pkgs.reduce((n, p) => n + p.plugins, 0);
+  const totalDemos = pkgs.reduce((n, p) => n + p.demos, 0);
   const cards = pkgs
-    .map(
-      (p) => `      <li class="cell">
+    .map((p) => {
+      const chips = [
+        `v${esc(p.version)}`,
+        p.plugins > 0 ? `${p.plugins} plugins` : null,
+        p.demos > 0 ? `${p.demos} demos` : null,
+      ].filter(Boolean);
+      return `      <li class="cell" data-name="${esc(p.name)}">
         <a class="card" href="./${esc(p.name)}/" style="--a: ${esc(p.meta.accent)}; --a-ink: ${esc(p.meta.bg)}">
           <span class="card-top">
             <span class="mark">${esc(p.meta.brand)}</span>
@@ -221,13 +241,14 @@ function landing(pkgs) {
           </span>
           <span class="title">${esc(p.meta.title)}</span>
           <span class="desc">${esc(p.description)}</span>
+          <span class="stats">${chips.map((c) => `<i>${c}</i>`).join("")}</span>
           <span class="foot">
-            <code>${esc(p.name)}</code>
+            <code class="install">npm install ${esc(p.name)}</code>
             <span class="go">打开 <i>→</i></span>
           </span>
         </a>
-      </li>`,
-    )
+      </li>`;
+    })
     .join("\n");
 
   return `<!doctype html>
@@ -369,6 +390,70 @@ function landing(pkgs) {
 
       .lede b { color: var(--text); font-weight: 600; }
 
+      /* ---- 工具行（kicker + 过滤框）与汇总 ---- */
+
+      .tools {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 18px;
+        flex-wrap: wrap;
+        margin: 44px 0 16px;
+      }
+
+      .tools .kicker { margin: 0; }
+
+      .search { position: relative; display: flex; align-items: center; }
+
+      .search input {
+        width: min(320px, 72vw);
+        padding: 9px 36px 9px 12px;
+        background: var(--ink-1);
+        border: 1px solid var(--rule);
+        color: var(--text);
+        font-family: var(--ff-sans);
+        font-size: 12.5px;
+        outline: none;
+        transition: border-color 0.18s ease;
+      }
+
+      .search input:focus { border-color: var(--rule-2); }
+      .search input::placeholder { color: var(--faint); }
+
+      .search kbd {
+        position: absolute;
+        right: 9px;
+        padding: 1px 5px;
+        border: 1px solid var(--rule);
+        font-family: var(--ff-mono);
+        font-size: 9.5px;
+        color: var(--faint);
+        pointer-events: none;
+      }
+
+      .tally {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 22px;
+        margin: 18px 0 0;
+        font-family: var(--ff-mono);
+        font-size: 10.5px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--dim);
+      }
+
+      .tally b { color: var(--text); font-weight: 600; }
+
+      .nohit {
+        display: none;
+        margin: 32px 0 0;
+        font-size: 13px;
+        color: var(--dim);
+      }
+
+      .nohit.on { display: block; }
+
       /* ---- 卡片网格 ---- */
 
       .grid {
@@ -466,6 +551,22 @@ function landing(pkgs) {
         overflow: hidden;
       }
 
+      .card .stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .card .stats i {
+        padding: 3px 8px;
+        border: 1px solid var(--rule);
+        font-family: var(--ff-mono);
+        font-style: normal;
+        font-size: 9.5px;
+        letter-spacing: 0.08em;
+        color: var(--dim);
+      }
+
       .card .foot {
         display: flex;
         align-items: center;
@@ -479,6 +580,11 @@ function landing(pkgs) {
         font-family: var(--ff-mono);
         font-size: 10.5px;
         color: var(--faint);
+      }
+
+      .card .foot code.install {
+        color: var(--dim);
+        user-select: all;
       }
 
       .card .go {
@@ -527,16 +633,29 @@ function landing(pkgs) {
     </header>
 
     <main>
-      <p class="kicker">— DEMO INDEX · BUILD ${stamp}</p>
+      <div class="tools">
+        <p class="kicker">— DEMO INDEX · BUILD ${stamp}</p>
+        <label class="search">
+          <input id="q" type="search" placeholder="过滤：包名 / 描述 / 关键词" autocomplete="off" />
+          <kbd>/</kbd>
+        </label>
+      </div>
       <h1>组件演示台<span>，</span>一个入口。</h1>
       <p class="lede">
         每个包一套独立演示台：<b>同一套外壳</b>（侧栏索引 / 顶栏 / 逐项示例导航 / 兜底），
         各包之间只有<b>主题色</b>不同。点进去即可调参数、看运行时信号、读可复制的源码。
       </p>
+      <p class="tally">
+        <span><b>${pkgs.length}</b> packages</span>
+        <span><b>${totalPlugins}</b> plugins</span>
+        ${totalDemos > 0 ? `<span><b>${totalDemos}</b> demos</span>` : ""}
+        <span>build ${stamp}</span>
+      </p>
 
       <ul class="grid">
 ${cards}
       </ul>
+      <p class="nohit" id="nohit">没有匹配的包——换个关键词试试。</p>
     </main>
 
     <footer>
@@ -544,6 +663,36 @@ ${cards}
       <span>generated by scripts/build-demos.mjs</span>
       <span>vane-components</span>
     </footer>
+
+    <script>
+      (function () {
+        var q = document.getElementById("q");
+        var cells = Array.prototype.slice.call(document.querySelectorAll(".grid .cell"));
+        var nohit = document.getElementById("nohit");
+        var apply = function () {
+          var s = q.value.trim().toLowerCase();
+          var hit = 0;
+          for (var i = 0; i < cells.length; i++) {
+            var on = !s || cells[i].textContent.toLowerCase().indexOf(s) !== -1;
+            cells[i].style.display = on ? "" : "none";
+            if (on) hit++;
+          }
+          nohit.classList.toggle("on", hit === 0);
+        };
+        q.addEventListener("input", apply);
+        window.addEventListener("keydown", function (e) {
+          if (e.key === "/" && document.activeElement !== q) {
+            e.preventDefault();
+            q.focus();
+          }
+          if (e.key === "Escape" && document.activeElement === q) {
+            q.value = "";
+            apply();
+            q.blur();
+          }
+        });
+      })();
+    </script>
   </body>
 </html>
 `;
