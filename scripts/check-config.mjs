@@ -21,16 +21,18 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(fileURLToPath(new URL(".", import.meta.url)), "..");
 const packagesDir = path.join(root, "packages");
 
-// 7 个组件包（排除 core / templates / docs 等非组件包）
-const COMPONENT_PKGS = [
-  "vane-card",
-  "vane-comment",
-  "vane-file-preview",
-  "vane-lazy-image",
-  "vane-profile",
-  "vane-sku",
-  "vane-waterfall",
-];
+// 非组件包：templates 是模板，plugin-core 是内核基座（无 demo，脚手架层不适用组件包标准）
+const NON_COMPONENT_DIRS = new Set(["templates", "plugin-core"]);
+
+// 与 check-packages.mjs 同口径动态扫描：新包自动纳入，避免硬编码清单漏扫造成门禁假绿
+const COMPONENT_PKGS = (await readdir(packagesDir, { withFileTypes: true }))
+  .filter(
+    (d) =>
+      d.isDirectory() &&
+      !NON_COMPONENT_DIRS.has(d.name) &&
+      existsSync(path.join(packagesDir, d.name, "package.json")),
+  )
+  .map((d) => d.name);
 
 const CANON_INCLUDE = ["src", "src/**/*.json", "test", "demo/src"];
 const CANON_ESLINT = `import vane from "@vane/eslint-config";\n\nexport default vane;\n`;

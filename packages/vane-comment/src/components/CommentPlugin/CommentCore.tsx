@@ -75,6 +75,17 @@ const CommentCore = forwardRef<CommentCoreRef, CommentCoreProps>(
           background: "#fff",
           color: "#1f2328",
           fontFamily: "inherit",
+          /*
+           * 白底是根节点自己画的，内边距也得它自己带：白底之内没有第二层带内边距的
+           * 容器（profile 有 vp-content-area / tab-bar 顶着 16px，comment 没有），
+           * 内容会直接顶到白底边缘，行末文字贴边框只剩 0px。
+           * 16px 与 profile 内容区、demo 舞台的 --s4 一致；放在 containerStyle 之前，
+           * 宿主想改照旧能盖掉。
+           *
+           * 注意别在 demo 的样式表里再补一次：内联样式优先级高于样式表，写了也不生效，
+           * 只会留下一段看起来有用、实际是死代码的规则。
+           */
+          padding: 16,
           ...containerStyle,
         }}
       >

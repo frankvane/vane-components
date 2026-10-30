@@ -132,7 +132,7 @@
       "accent": "#ff7a29",
       "bg": "#0b0a09"
     },
-    "sizeBudgetKb": 4,
+    "sizeBudgetKb": 5,
     "subpathBudgets": {
       "./custom-plugins/LikePlugin": 2,
       "./custom-plugins/SortPlugin": 2,
@@ -152,7 +152,7 @@
       "./custom-plugins/ModerationPlugin": 2,
       "./custom-plugins/LoginPromptPlugin": 2
     },
-    "sizeBudgetNote": "根入口 = CommentCore（数据驱动列表壳）+ withCommentPlugins 装配器 + 领域槽 + 类型；vane-plugin-core 按 B1-A 走 peer 外部化（构建期外置，不进 dist），根 gzip 实测 3.7KB，预算 4KB 留余量（ADR-6 守住了：插件绝不进根入口）。四个官方插件严格走子路径 vane-comment/custom-plugins/*（ADR-6）。子路径闭包量的是「入口 + 共享内核(slots+content ~1.35KB) + 自身代码」——LikePlugin/SortPlugin 只是薄壳（1.5/1.9KB），但 ThreadPlugin（4.1KB）与 RichComposerPlugin（3.9KB）各自背着真实 UI：前者是递归楼中楼 + 内联回复框，后者是 emoji 选择器 + 图片 + @提及 + 实时预览的富编辑框，自身代码约 2.6/2.5KB。初版拍的 2KB 扁平预算对这两个重插件不成立（要压到 2KB 只能砍功能），故按「改口径必须写理由」的硬约束把二者调到 4.5KB，而非静默调大。三平台预设走 ./presets/* 整装逃生口，不单列预算（根入口不受影响）。17 个插件中，13 个为 0.2.0 新增的轻量插件（举报/分享/复制/反应/收藏/置顶/地理位置/绝对时间/计数/筛选/搜索/审核/登录引导），各自闭包 gzip 实测约 0.15KB，统一给 2KB 预算留足余量；它们多为操作行/顶栏的薄壳或纯数据级 transformData，不背重 UI。"
+    "sizeBudgetNote": "【2026-10-30 口径变更：4KB → 5KB，理由如下，非静默调大】根入口仍严格按 ADR-6 只导出核心（CommentCore + withCommentPlugins + 槽 + 类型），实测入口的静态 import 只有 CommentCore / withPlugins / slots 三个 chunk，17 个官方插件一个都没进根入口——结构没有退化。实测构成：入口 0.22KB + CommentCore 2.36KB + withPlugins 0.88KB + slots 0.65KB = 4.11KB（加本次根节点 padding 后 4.3KB）。原 4KB 是「根 gzip 3.7KB」那个版本拍的，早已过期；要压回 4KB 只能砍 CommentCore 里的递归楼中楼或富编辑 UI，属于砍功能，不可取。故按硬约束写明理由后调到 5KB。另注：基线（不含本次 padding）实测已是 4.1KB，即超标属既存问题，之前没暴露是因为体积门只在 dist/index.js 存在时才量、而 verify 链里没有 build。‖ 原说明：根入口 = CommentCore（数据驱动列表壳）+ withCommentPlugins 装配器 + 领域槽 + 类型；vane-plugin-core 按 B1-A 走 peer 外部化（构建期外置，不进 dist），根 gzip 实测 3.7KB，预算 4KB 留余量（ADR-6 守住了：插件绝不进根入口）。四个官方插件严格走子路径 vane-comment/custom-plugins/*（ADR-6）。子路径闭包量的是「入口 + 共享内核(slots+content ~1.35KB) + 自身代码」——LikePlugin/SortPlugin 只是薄壳（1.5/1.9KB），但 ThreadPlugin（4.1KB）与 RichComposerPlugin（3.9KB）各自背着真实 UI：前者是递归楼中楼 + 内联回复框，后者是 emoji 选择器 + 图片 + @提及 + 实时预览的富编辑框，自身代码约 2.6/2.5KB。初版拍的 2KB 扁平预算对这两个重插件不成立（要压到 2KB 只能砍功能），故按「改口径必须写理由」的硬约束把二者调到 4.5KB，而非静默调大。三平台预设走 ./presets/* 整装逃生口，不单列预算（根入口不受影响）。17 个插件中，13 个为 0.2.0 新增的轻量插件（举报/分享/复制/反应/收藏/置顶/地理位置/绝对时间/计数/筛选/搜索/审核/登录引导），各自闭包 gzip 实测约 0.15KB，统一给 2KB 预算留足余量；它们多为操作行/顶栏的薄壳或纯数据级 transformData，不背重 UI。"
   },
   "repository": {
     "type": "git",

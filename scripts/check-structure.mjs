@@ -29,16 +29,19 @@ const packagesDir = path.join(root, "packages");
 
 const STRICT = process.argv.includes("--strict");
 
-/** 受检的 7 个组件包（templates 单独作为 golden 自检） */
-const COMPONENT_PKGS = [
-  "vane-card",
-  "vane-comment",
-  "vane-file-preview",
-  "vane-lazy-image",
-  "vane-profile",
-  "vane-sku",
-  "vane-waterfall",
-];
+// 非组件包：templates 是模板（golden 单独自检），plugin-core 是内核基座（无 demo / 无 entries 聚合）
+const NON_COMPONENT_DIRS = new Set(["templates", "plugin-core"]);
+
+// 与 check-packages.mjs 同口径动态扫描：readdir(packages) 而非硬编码清单，
+// 否则新包不进数组就完全不被扫描，门禁假绿。
+const COMPONENT_PKGS = (await readdir(packagesDir, { withFileTypes: true }))
+  .filter(
+    (d) =>
+      d.isDirectory() &&
+      !NON_COMPONENT_DIRS.has(d.name) &&
+      existsSync(path.join(packagesDir, d.name, "package.json")),
+  )
+  .map((d) => d.name);
 
 const PLUGIN_NAME_RE = /^[A-Z][A-Za-z0-9]*Plugin$/;
 

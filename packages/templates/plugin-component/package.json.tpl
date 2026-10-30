@@ -34,6 +34,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
     "lint": "eslint .",
+    "sync:exports": "node ../../scripts/sync-exports.mjs",
     "prepublishOnly": "npm run build"
   },
   "vane": {
@@ -59,6 +60,7 @@
     "vane-plugin-core": "workspace:*",
     "@vane/tsconfig": "workspace:*",
     "@vitejs/plugin-react": "^4.3.1",
+    "happy-dom": "^15.11.7",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "typescript": "^5.6.3",

@@ -5,7 +5,7 @@
  *   node scripts/build-demos.mjs            # 全量构建
  *   node scripts/build-demos.mjs --no-build # 复用已有 demo-dist，只做聚合（调试用）
  *   node scripts/build-demos.mjs --only vane-card,vane-sku
- *   node scripts/build-demos.mjs --clean    # 先清空 demos/（旧 hash 资源堆积时才需要）
+ *   node scripts/build-demos.mjs --clean    # 先清空 demos/（旧 hash 资源堆积时才需要；不能与 --only 连用）
  *
  * 目录约定（产物，git 忽略）：
  *   demos/index.html        引导页
@@ -16,6 +16,15 @@
  * 资源落在 `demo-dist/assets/`，因此 html 里写的是 `../assets/x.js`。
  * 聚合后 html 被提到 `demos/<pkg>/index.html`、资源放到 `demos/<pkg>/assets/`，
  * 层级从「上一级」变成「同级」，所以统一把 `../assets/` 换成 `./assets/`。
+ *
+ * 同一件事的另一半是 publicDir：vane-file-preview 的样本文件在 `demo/public/samples/`，
+ * 单包形态（dev / `serve-demo.cjs` 以 demo-dist 为根）下挂在站点根，源码里只能写
+ * `/samples/x`。聚合后文档变成 `/<pkg>/index.html`，这个绝对路径就指到了
+ * `demos/samples/` —— 那里没有文件，于是页面上每个样本都 404。
+ * 所以 JS 里 `/<publicDir>/` 也要跟着降一级，改成 `./<publicDir>/`。
+ *
+ * 两条改写都只作用于 `demos/` 下的聚合产物，`demo-dist/` 里的单包产物保持原样，
+ * 包内 dev 与单包 preview 因此不受影响。
  */
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
@@ -31,6 +40,17 @@ const noBuild = argv.includes("--no-build");
 const clean = argv.includes("--clean");
 const onlyArg = argv[argv.indexOf("--only") + 1];
 const only = argv.includes("--only") && onlyArg ? onlyArg.split(",").map((s) => s.trim()).filter(Boolean) : null;
+
+// --clean 会清空整个 demos/，而引导页只在**全量**构建时重写（见 main 里 `if (!only)`）——
+// 这个组合不是要修的行为，是用法错误：连用会删掉 demos/index.html 且不重建，
+// 之后访问 / 直接 404。要干净基线就全量跑 --clean，要单包更新就用 --only 别带 --clean。
+if (clean && only) {
+  console.error("✗ --clean 不能与 --only 连用");
+  console.error("  --clean 清空 demos/ 后，引导页只在全量构建时重建，连用会把它删掉且不补回来，访问 / 直接 404。");
+  console.error("  干净基线：node scripts/build-demos.mjs --clean");
+  console.error("  单包更新：node scripts/build-demos.mjs --only <pkg>");
+  process.exit(1);
+}
 
 /* ---------------------------------------------------------------- 采集 */
 
@@ -86,11 +106,32 @@ function build(pkg) {
 
 /* ---------------------------------------------------------------- 聚合 */
 
+/** 需要改写资源前缀的文本产物；图片/字体等二进制原样搬 */
+const REWRITE_EXT = new Set([".html", ".js", ".mjs", ".css"]);
+
+/**
+ * 把单包产物的资源前缀改成聚合产物能用的一级（规则见文件头注释）。
+ * `publicDirs` 是 vite 吐在 `demo-dist/` 根上的顶层目录（如 `samples`）。
+ */
+function rewriteAssetPaths(text, publicDirs) {
+  let out = text.replaceAll("../assets/", "./assets/");
+  for (const dir of publicDirs) {
+    // 断言前一个字符不是 `.` / `/` / 单词字符：既避免把已经是 `./samples/` 的
+    // 再降一级变成 `../samples/`，也避免误伤别的包里恰好同名的一段路径。
+    out = out.replace(new RegExp(String.raw`(?<![\w./])/${dir}/`, "g"), `./${dir}/`);
+  }
+  return out;
+}
+
 function copyDemo(pkg) {
   const src = path.join(pkg.dist, "demo");
   if (!fs.existsSync(src)) throw new Error(`${pkg.name}: 缺产物 ${path.relative(ROOT, src)}`);
   const dest = path.join(OUT_DIR, pkg.name);
   fs.mkdirSync(dest, { recursive: true });
+
+  // vite 把 publicDir 的内容平铺在 demo-dist 根上（样本 404 的根因所在，见文件头）
+  const extras = fs.readdirSync(pkg.dist).filter((name) => name !== "demo" && name !== "assets");
+  const publicDirs = extras.filter((name) => fs.statSync(path.join(pkg.dist, name)).isDirectory());
 
   // 顺序很关键：先铺资源、最后写 html。
   // 这样正在预览的页面永远指向「已经全部就位」的文件；反过来先写 html 再铺资源，
@@ -99,12 +140,20 @@ function copyDemo(pkg) {
   let assets = 0;
   if (fs.existsSync(assetsSrc)) {
     fs.cpSync(assetsSrc, path.join(dest, "assets"), { recursive: true });
-    assets = fs.readdirSync(assetsSrc).length;
+    const names = fs.readdirSync(assetsSrc);
+    assets = names.length;
+    // cpSync 只搬不改：样本 URL 写在 JS 里，搬完再扫一遍文本产物
+    if (publicDirs.length) {
+      for (const name of names) {
+        const file = path.join(dest, "assets", name);
+        if (!REWRITE_EXT.has(path.extname(name))) continue;
+        fs.writeFileSync(file, rewriteAssetPaths(fs.readFileSync(file, "utf8"), publicDirs));
+      }
+    }
   }
 
-  // 兜底：vite 若把别的顶层目录也吐在 demo-dist 根上，一并搬过去
-  for (const name of fs.readdirSync(pkg.dist)) {
-    if (name === "demo" || name === "assets") continue;
+  // 兜底：vite 若把别的顶层文件/目录也吐在 demo-dist 根上，一并搬过去
+  for (const name of extras) {
     fs.cpSync(path.join(pkg.dist, name), path.join(dest, name), { recursive: true });
   }
 
@@ -116,9 +165,9 @@ function copyDemo(pkg) {
       fs.copyFileSync(from, path.join(dest, name));
       continue;
     }
-    // 资源保持相对（../assets → ./assets）：demo 用 HashRouter，导航只改 hash、
-    // 文档路径恒为 /<pkg>/，相对路径不会随路由变深，反而能整包搬来搬去。
-    const text = fs.readFileSync(from, "utf8").replaceAll("../assets/", "./assets/");
+    // 资源保持相对：demo 用 HashRouter，导航只改 hash、文档路径恒为 /<pkg>/，
+    // 相对路径不会随路由变深，反而能整包搬来搬去。
+    const text = rewriteAssetPaths(fs.readFileSync(from, "utf8"), publicDirs);
     fs.writeFileSync(path.join(dest, name), text);
     html += 1;
   }

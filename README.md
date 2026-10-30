@@ -7,12 +7,17 @@
 ```
 vane-components/
 ├── packages/
-│   ├── plugin-core/          # vane-plugin-core 共用内核（发布）
-│   ├── templates/            # 组件脚手架模板（不发布、不进 workspace）
-│   ├── vane-lazy-image/      # 图片懒加载（迁移中）
-│   ├── vane-card/            # 电商卡片（迁移中）
-│   ├── vane-waterfall/       # 瀑布流布局（迁移中）
-│   └── vane-file-preview/    # 文件预览（迁移中）
+│   ├── plugin-core/          # vane-plugin-core：家族共用插件内核（发布）
+│   ├── templates/            # 模板（不发布、不进 workspace）
+│   │   ├── plugin-component/ # 组件包脚手架：`pnpm new` 的唯一基线
+│   │   └── demo-shell/       # demo 外壳唯一真源：由 sync-demo-shell.mjs 生成到各包
+│   ├── vane-card/            # 电商卡片（22 插件 + 38 复合组件）
+│   ├── vane-comment/         # 评论区引擎（点赞 / 排序 / 楼中楼 / 富编辑）
+│   ├── vane-file-preview/    # 文件预览（17 个按文件类型路由的预览插件）
+│   ├── vane-lazy-image/      # 图片懒加载（含 gallery 子路径）
+│   ├── vane-profile/         # 个人主页引擎（Banner / StatRow / Tab 联动）
+│   ├── vane-sku/             # SKU 规格选择引擎（组合矩阵 / 禁用推导 / 限购）
+│   └── vane-waterfall/       # 瀑布流布局（可变高 / 虚拟化，27 插件）
 ├── internal/                 # 内部共享配置（不发布）
 │   ├── build-config/         # Vite lib / demo 配置工厂 + 入口自动发现
 │   ├── tsconfig/             # 分层 tsconfig
