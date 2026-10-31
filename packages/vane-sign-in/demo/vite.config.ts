@@ -25,6 +25,10 @@ export default {
         find: new RegExp(`^vane-sign-in\\/custom-plugins\\/(.+)$`),
         replacement: path.resolve(root, "src/custom-plugins/$1"),
       },
+      {
+        find: "vane-sign-in/custom-plugins",
+        replacement: path.resolve(root, "src/custom-plugins/index.ts"),
+      },
       { find: "vane-sign-in", replacement: path.resolve(root, "src/index.ts") },
     ],
   },

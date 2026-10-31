@@ -1,11 +1,13 @@
 /**
- * 总览页（模板版）
+ * 总览页
  *
- * 只放「这是什么 + 从哪看起」。真站点这里通常再放几个数字（插件数 / 示例数 /
- * 场景数）与两三个入口按钮 —— 见 vane-sku 的 pages/HomePage.tsx。
+ * 「这是什么 + 从哪看起」：三个入口 —— 插件工坊（勾选即装配）、场景示例（组合成真实运营位）、
+ * 逐项示例（每个插件的单页用法）。原子插件只解决一件事，工坊与场景把它拼回业务。
  */
 import React from "react";
 import { DEMOS } from "../demos/registry";
+import { PLUGINS } from "../data/plugins";
+import { SCENARIOS, USED_PLUGINS } from "../scenarios/catalog";
 
 export function HomePage() {
   return (
@@ -17,6 +19,14 @@ export function HomePage() {
         </div>
         <div className="page-facts">
           <div>
+            <b>{PLUGINS.length}</b>
+            <span>plugins</span>
+          </div>
+          <div>
+            <b>{SCENARIOS.length}</b>
+            <span>plates</span>
+          </div>
+          <div>
             <b>{DEMOS.length}</b>
             <span>demos</span>
           </div>
@@ -24,15 +34,33 @@ export function HomePage() {
       </header>
 
       <p className="page-sub">
-        插件式 React 组件的演示台：左侧「逐项示例」逐页看用法，每页展示的源码就是那一页正在跑的那份。
-        外壳（顶栏 / 侧栏 / 兜底）与其它组件包完全一致，只有主题色不同。
+        插件式 React 组件的演示台：{PLUGINS.length} 个原子插件按「头部 / 日历 / 奖励 / 操作 / 底部」
+        五个槽位协同，组合出电商签到、游戏连签、会员中心等真实运营位。逐一拆解看用法，去
+        <b>插件工坊</b>勾选即装配，去<b>场景示例</b>看组合后的完整业务界面。
       </p>
 
-      <section className="demo-stage">
-        <p style={{ margin: 0, color: "var(--dim)", fontSize: 14 }}>
-          从左侧「逐项示例」开始；新增一页 = 在 <code>demo/src/demos/</code> 里加一个
-          <code> NN-slug.tsx</code>，导出 <code>meta</code> 与默认 Stage 即可，导航与编号自动生成。
-        </p>
+      <section className="demo-stage home-cards">
+        <a className="home-card" href="#/plugins">
+          <span className="home-card-kicker">workshop</span>
+          <b>插件工坊</b>
+          <span className="home-card-desc">
+            {PLUGINS.length} 个插件按五区排列，勾选即装配 —— 右侧预览是真的在跑，不是示意图。
+          </span>
+        </a>
+        <a className="home-card" href="#/scenarios">
+          <span className="home-card-kicker">plates</span>
+          <b>场景示例</b>
+          <span className="home-card-desc">
+            {SCENARIOS.length} 个真实版式（{USED_PLUGINS.length} 个插件组合），左侧运行右侧给最小装配代码。
+          </span>
+        </a>
+        <a className="home-card" href="#/demo/basic">
+          <span className="home-card-kicker">demos</span>
+          <b>逐项示例</b>
+          <span className="home-card-desc">
+            {DEMOS.length} 页，每页只装一个插件看它的独立行为，源码就是正在跑的那份。
+          </span>
+        </a>
       </section>
     </article>
   );

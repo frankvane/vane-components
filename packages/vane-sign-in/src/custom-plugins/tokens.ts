@@ -2,7 +2,7 @@
  * 签到家族共享色板（ADR-13 约束：有背景必有字色、不用 opacity 压字；
  * 正文≥4.5 / 禁用≥3 / UI≥3）。所有插件统一从这里取色，避免内联字面量漂移。
  */
-export const ACCENT = "#ff7a29";
+export const ACCENT = "#cf4407";
 export const ACCENT_SOFT = "#fff1e6";
 export const GOLD = "#b8860b";
 export const GOLD_SOFT = "#fff8e1";
@@ -19,8 +19,8 @@ export const DAY_COLORS: Record<
   string,
   { bg: string; fg: string; border: string }
 > = {
-  signed: { bg: "#fff1e6", fg: "#d35400", border: "#ff7a29" },
-  today: { bg: "#ff7a29", fg: "#ffffff", border: "#ff7a29" },
+  signed: { bg: "#fff1e6", fg: "#d35400", border: "#cf4407" },
+  today: { bg: "#cf4407", fg: "#ffffff", border: "#cf4407" },
   missed: { bg: "#f2f3f5", fg: "#7d7d7d", border: "#e3e5e8" },
   future: { bg: "#fafafa", fg: "#8a8a8a", border: "#ececec" },
   reward: { bg: "#fff8e1", fg: "#b8860b", border: "#e0a800" },

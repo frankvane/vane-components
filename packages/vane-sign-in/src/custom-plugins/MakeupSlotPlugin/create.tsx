@@ -40,12 +40,14 @@ export function createMakeupSlotPlugin<T = any>(
         return (
           <button
             type="button"
+            data-testid="si-makeup-btn"
+            data-disabled={String(disabled)}
             disabled={disabled}
             onClick={() => target && ctx.callbacks.makeup?.(target.date)}
             style={{
-              border: disabled ? "1px solid #d8d8d8" : "1px solid #ff7a29",
+              border: disabled ? "1px solid #d8d8d8" : "1px solid #cf4407",
               background: disabled ? "#f2f3f5" : "#fff",
-              color: disabled ? "#8a8a8a" : "#ff7a29",
+              color: disabled ? "#8a8a8a" : "#cf4407",
               borderRadius: 18,
               padding: "6px 14px",
               fontSize: 13,

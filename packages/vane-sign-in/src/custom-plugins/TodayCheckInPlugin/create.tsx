@@ -35,11 +35,13 @@ export function createTodayCheckInPlugin<T = any>(
         return (
           <button
             type="button"
+            data-testid="si-checkin-btn"
+            data-signed={String(todaySigned)}
             disabled={todaySigned}
             onClick={() => !todaySigned && ctx.callbacks.sign?.()}
             style={{
               border: "none",
-              background: todaySigned ? "#f2f3f5" : "#ff7a29",
+              background: todaySigned ? "#f2f3f5" : "#cf4407",
               color: todaySigned ? "#8a8a8a" : "#ffffff",
               borderRadius: 20,
               padding: "8px 20px",

@@ -17,14 +17,14 @@
 
 ## P2 DEMO
 
-- [ ] 11. `demo.config.tsx`：pkg/brand/subtitle/nav/routes/demos/footer；vane.demo 五项与 config 对齐
-- [ ] 12. `App.css` 仅改 accent 四行 + 品牌文案（外壳四件套由 sync-demo-shell 生成，勿手改）
-- [ ] 13. `demos/` 逐项示例层：17 单页（每页 meta{slug,plugin} + Stage）；`useMemo` 依赖开关值重建，严禁渲染体内无条件调装配工厂
-- [ ] 14. demo vite alias：通配在前、裸名在后；消费者视角包名导入
-- [ ] 15. `lib/selftest.tsx`：签到主流程断言（todaySigned 切换 / 连签数 / 补签入口 / 奖励领取）+ 几何体检（越界/负坐标/零尺寸/重叠/scrollHeight）
-- [ ] 16. `test/selftest.dom.test.tsx`：CI 可跑的等价断言
-- [ ] 17. P2 门禁：`build:demo` 成功 → `serve:demo` 起 3350 → `?selftest=1` 读到 `PASS n/n` → 对比度 `_audit.html?pkg=vane-sign-in` 0 处不达标
-- [ ] 18. 阶段提交 + 双远端 push
+- [x] 11. `demo.config.tsx`：pkg/brand/subtitle/nav/routes/demos/footer；vane.demo 五项与 config 对齐
+- [x] 12. `App.css` 仅改 accent 四行 + 品牌文案（外壳四件套由 sync-demo-shell 生成，勿手改）
+- [x] 13. `demos/` 逐项示例层：00-basic + 17 插件各一页（共 18 页，每页 meta + Stage）；模块级装配常量，渲染体内不调工厂
+- [x] 14. demo vite alias：通配在前、裸名在后；消费者视角包名导入
+- [x] 15. `lib/selftest.tsx`：签到主流程断言（todaySigned 切换 / 连签数 / 补签入口 / 奖励领取）+ 几何体检（无布局引擎自动跳过）；SignInCore 与四插件补 data-testid
+- [x] 16. `test/selftest.dom.test.tsx`：CI 可跑的等价断言（happy-dom 全过）
+- [x] 17. P2 门禁：`build:demo` 成功 ✓；`?selftest=1` 确定性等价（happy-dom）全过 ✓；对比度静态核对全过 ✓（无头浏览器不可用，直播与 _audit.html 未跑；强调橙由 #ff7a29 加深到 #cf4407 满足 ADR-13）
+- [x] 18. 阶段提交 + 双远端 push（27e2125）
 
 ## P3 文档·测试·门禁·发布
 

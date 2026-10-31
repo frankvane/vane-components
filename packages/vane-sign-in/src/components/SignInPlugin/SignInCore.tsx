@@ -57,6 +57,7 @@ const SignInCore = forwardRef<SignInCoreRef, SignInCoreProps>(
     return (
       <div
         ref={containerRef as React.RefObject<HTMLDivElement>}
+        data-testid="si-root"
         className={`vs-signin ${containerClassName || ""}`}
         style={{
           // position/box-sizing 功能性保留；根节点自带底色与字色（ADR-13：内联背景必内联字色）

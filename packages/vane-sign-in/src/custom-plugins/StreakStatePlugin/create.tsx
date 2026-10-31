@@ -30,9 +30,9 @@ export function createStreakStatePlugin<T = any>(
       renderHeader: (ctx: SignInPluginContext<T>) => {
         const { streak, maxStreak } = ctx.data;
         return (
-          <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+          <div data-testid="si-streak" style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
             <span
-              style={{ fontSize: 30, fontWeight: 800, color: "#ff7a29", lineHeight: 1 }}
+              style={{ fontSize: 30, fontWeight: 800, color: "#cf4407", lineHeight: 1 }}
             >
               {streak}
             </span>

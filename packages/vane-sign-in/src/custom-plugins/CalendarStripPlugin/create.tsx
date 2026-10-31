@@ -15,8 +15,8 @@ export interface CalendarStripConfig {
 
 /** 各状态配色（背景 + 字色成对，满足 ADR-13 对比度门槛） */
 const COLORS: Record<DayStatus, { bg: string; fg: string; border: string }> = {
-  signed: { bg: "#fff1e6", fg: "#d35400", border: "#ff7a29" },
-  today: { bg: "#ff7a29", fg: "#ffffff", border: "#ff7a29" },
+  signed: { bg: "#fff1e6", fg: "#d35400", border: "#cf4407" },
+  today: { bg: "#cf4407", fg: "#ffffff", border: "#cf4407" },
   missed: { bg: "#f2f3f5", fg: "#7d7d7d", border: "#e3e5e8" },
   future: { bg: "#fafafa", fg: "#8a8a8a", border: "#ececec" },
   reward: { bg: "#fff8e1", fg: "#b8860b", border: "#e0a800" },

@@ -40,6 +40,8 @@ export function createRewardClaimPlugin<T = any>(
         return (
           <button
             type="button"
+            data-testid="si-claim-btn"
+            data-day={String(target.day)}
             onClick={() => ctx.callbacks.claim?.(target.day)}
             style={{
               border: "none",
