@@ -1,0 +1,163 @@
+{
+  "name": "vane-sign-in",
+  "version": "0.1.0",
+  "description": "插件式 React 每日签到：连签状态 / 日历条 / 奖励预告 / 补签，各平台运营位通用",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./entries/core": {
+      "types": "./dist/entries/core.d.ts",
+      "import": "./dist/entries/core.js"
+    },
+    "./entries/plugins": {
+      "types": "./dist/entries/plugins.d.ts",
+      "import": "./dist/entries/plugins.js"
+    },
+    "./custom-plugins/CalendarGridPlugin": {
+      "types": "./dist/custom-plugins/CalendarGridPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/CalendarGridPlugin/index.js"
+    },
+    "./custom-plugins/CalendarStripPlugin": {
+      "types": "./dist/custom-plugins/CalendarStripPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/CalendarStripPlugin/index.js"
+    },
+    "./custom-plugins/CountdownPlugin": {
+      "types": "./dist/custom-plugins/CountdownPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/CountdownPlugin/index.js"
+    },
+    "./custom-plugins/InvitePlugin": {
+      "types": "./dist/custom-plugins/InvitePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/InvitePlugin/index.js"
+    },
+    "./custom-plugins/LevelBadgePlugin": {
+      "types": "./dist/custom-plugins/LevelBadgePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/LevelBadgePlugin/index.js"
+    },
+    "./custom-plugins/MakeupSlotPlugin": {
+      "types": "./dist/custom-plugins/MakeupSlotPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/MakeupSlotPlugin/index.js"
+    },
+    "./custom-plugins/MilestonePlugin": {
+      "types": "./dist/custom-plugins/MilestonePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/MilestonePlugin/index.js"
+    },
+    "./custom-plugins/PointsBalancePlugin": {
+      "types": "./dist/custom-plugins/PointsBalancePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/PointsBalancePlugin/index.js"
+    },
+    "./custom-plugins/RemindPlugin": {
+      "types": "./dist/custom-plugins/RemindPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/RemindPlugin/index.js"
+    },
+    "./custom-plugins/RewardClaimPlugin": {
+      "types": "./dist/custom-plugins/RewardClaimPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/RewardClaimPlugin/index.js"
+    },
+    "./custom-plugins/RewardHistoryPlugin": {
+      "types": "./dist/custom-plugins/RewardHistoryPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/RewardHistoryPlugin/index.js"
+    },
+    "./custom-plugins/RewardPreviewPlugin": {
+      "types": "./dist/custom-plugins/RewardPreviewPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/RewardPreviewPlugin/index.js"
+    },
+    "./custom-plugins/RuleExpandPlugin": {
+      "types": "./dist/custom-plugins/RuleExpandPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/RuleExpandPlugin/index.js"
+    },
+    "./custom-plugins/SharePlugin": {
+      "types": "./dist/custom-plugins/SharePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/SharePlugin/index.js"
+    },
+    "./custom-plugins/StatRowPlugin": {
+      "types": "./dist/custom-plugins/StatRowPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/StatRowPlugin/index.js"
+    },
+    "./custom-plugins/StreakStatePlugin": {
+      "types": "./dist/custom-plugins/StreakStatePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/StreakStatePlugin/index.js"
+    },
+    "./custom-plugins/TodayCheckInPlugin": {
+      "types": "./dist/custom-plugins/TodayCheckInPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/TodayCheckInPlugin/index.js"
+    },
+    "./custom-plugins": {
+      "types": "./dist/custom-plugins/index.d.ts",
+      "import": "./dist/custom-plugins/index.js"
+    },
+    "./custom-plugins/*": {
+      "types": "./dist/custom-plugins/*/index.d.ts",
+      "import": "./dist/custom-plugins/*/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "react",
+    "plugin",
+    "sign-in",
+    "typescript"
+  ],
+  "author": "Frank Vane",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/frankvane/vane-components.git",
+    "directory": "packages/vane-sign-in"
+  },
+  "scripts": {
+    "dev": "vite --config demo/vite.config.ts",
+    "build": "vite build --mode lib",
+    "build:demo": "vite build --config demo/vite.config.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "lint": "eslint .",
+    "sync:exports": "node ../../scripts/sync-exports.mjs",
+    "prepublishOnly": "npm run build"
+  },
+  "vane": {
+    "demo": {
+      "brand": "S",
+      "subtitle": "每日签到 / plugin index",
+      "title": "每日签到 演示台",
+      "accent": "#ff7a29",
+      "bg": "#0b0a09"
+    },
+    "sizeBudgetKb": 14
+  },
+  "peerDependencies": {
+    "react": ">=16.8.0",
+    "react-dom": ">=16.8.0",
+    "vane-plugin-core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vane/build-config": "workspace:*",
+    "vane-plugin-core": "workspace:*",
+    "@vane/tsconfig": "workspace:*",
+    "@vitejs/plugin-react": "^4.3.1",
+    "happy-dom": "^15.11.7",
+    "react": "^18.3.1",
+    "react-router-dom": "^6.26.2",
+    "react-dom": "^18.3.1",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.1",
+    "vite-plugin-dts": "^4.5.4",
+    "vitest": "^2.1.8",
+    "@vane/vitest-config": "workspace:*",
+    "@vane/eslint-config": "workspace:*"
+  }
+}

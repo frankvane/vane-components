@@ -1,0 +1,23 @@
+{
+  "name": "CalendarGridPlugin",
+  "description": "月历网格：以 7 列网格形态呈现整轮签到进度，日历区渲染。",
+  "since": "0.1.0",
+  "tags": ["calendar", "grid", "calendar-slot"],
+  "config": [
+    {
+      "name": "columns",
+      "type": "number",
+      "default": "7",
+      "description": "网格每周列数"
+    }
+  ],
+  "example": "withSignInPlugins(SignInCore, [createCalendarGridPlugin()])",
+  "examples": [
+    {
+      "name": "默认",
+      "description": "以 7 列网格展示整轮签到",
+      "src": "createCalendarGridPlugin()",
+      "config": {}
+    }
+  ]
+}

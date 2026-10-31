@@ -1,0 +1,16 @@
+{
+  "name": "PointsBalancePlugin",
+  "description": "累计积分：展示当前累计积分总额，头部区渲染。",
+  "since": "0.1.0",
+  "tags": ["points", "header", "balance"],
+  "config": [],
+  "example": "withSignInPlugins(SignInCore, [createPointsBalancePlugin()])",
+  "examples": [
+    {
+      "name": "默认",
+      "description": "头部展示累计积分",
+      "src": "createPointsBalancePlugin()",
+      "config": {}
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "name": "RewardClaimPlugin",
+  "description": "当日奖励领取：提供已达天数待领奖励的领取按钮，奖励区渲染。",
+  "since": "0.1.0",
+  "tags": ["reward", "claim", "rewards-slot"],
+  "config": [],
+  "example": "withSignInPlugins(SignInCore, [createRewardClaimPlugin()])",
+  "examples": [
+    {
+      "name": "默认",
+      "description": "展示待领奖励领取按钮",
+      "src": "createRewardClaimPlugin()",
+      "config": {}
+    }
+  ]
+}

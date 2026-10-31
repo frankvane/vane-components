@@ -1,0 +1,299 @@
+/* ============================================================
+   __PKG_NAME__ · __TITLE__ / 页面级样式
+   ------------------------------------------------------------
+   外壳（骨架 / 顶栏 / 侧栏 / 逐项示例导航 / 兜底）由
+   scripts/sync-demo-shell.mjs 从 packages/templates/demo-shell 生成到
+   demo/src/shell.css，**这里不要写外壳规则**。
+
+   本文件只放两块，也是各包 demo 之间唯一允许的差异：
+     1. 视觉令牌（--accent 等）—— 换成本包识别色，其它留默认
+     2. 页面级样式 —— 总览 / 工坊 / 场景板 / 示例页特有版式
+
+   下面的字体、令牌、基础排版是标准取值，来自 vane-sku 演示台，
+   新包直接沿用即可；只改 --accent* 三行与品牌文案。
+   ============================================================ */
+
+/* ---------------- 0. 自托管字体（不依赖外网 CDN） ---------------- */
+@font-face {
+  font-family: "Chakra Petch";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("./assets/fonts/chakra-petch-latin-500-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Chakra Petch";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("./assets/fonts/chakra-petch-latin-600-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Chakra Petch";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("./assets/fonts/chakra-petch-latin-700-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("./assets/fonts/jetbrains-mono-latin-400-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("./assets/fonts/jetbrains-mono-latin-700-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* ---------------- 1. 令牌 ---------------- */
+
+:root {
+  color-scheme: dark;
+
+  /* 表面：暖墨黑，绝不用纯黑或纯灰 */
+  --ink-0: #0b0a09;
+  --ink-1: #121110;
+  --ink-2: #171513;
+  --ink-3: #1f1c18;
+  --paper: #f2ede4;
+
+  --text: #f2ede4;
+  --dim: #bdb4a8;
+  --faint: #90887d;
+
+  /* 发丝线：只有一个族，靠 alpha 分强弱 */
+  --rule: rgba(242, 237, 228, 0.14);
+  --rule-2: rgba(242, 237, 228, 0.24);
+  --rule-soft: rgba(242, 237, 228, 0.07);
+
+  /* 唯一强调色：琥珀橙 */
+  --accent: #ff7a29;
+  --accent-ink: #0b0a09;
+  --accent-wash: rgba(255, 122, 41, 0.12);
+  --accent-line: rgba(255, 122, 41, 0.4);
+
+  --ok: #7fd08c;
+  --warn: #f5c24b;
+  --danger: #f2685e;
+
+  /* 展示字：拉丁/数字走 Chakra Petch，中文自动落到系统中文字体 */
+  --ff-display: "Chakra Petch", "PingFang SC", "Microsoft YaHei", "Noto Sans SC",
+    "Source Han Sans SC", sans-serif;
+  --ff-sans: "Chakra Petch", "PingFang SC", "Microsoft YaHei", "Noto Sans SC",
+    "Source Han Sans SC", sans-serif;
+  --ff-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas,
+    monospace;
+
+  /* 字阶：1.25 近似，展示级单独给 clamp */
+  --fs-micro: 10.5px;
+  --fs-xs: 12px;
+  --fs-sm: 13px;
+  --fs-base: 15px;
+  --fs-md: 17px;
+  --fs-lg: 21px;
+  --fs-xl: 28px;
+  --fs-hero: clamp(34px, 4.3vw, 58px);
+
+  /* 间距梯度 */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 24px;
+  --s6: 32px;
+  --s7: 48px;
+  --s8: 72px;
+
+  /* 设备面板风：2px 微圆角（vane-sku 识别，profile 是全套直角） */
+  --r: 2px;
+
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur: 320ms;
+  --dur-fast: 160ms;
+
+  --side-w: 238px;
+  --top-h: 54px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--ff-sans);
+  font-size: var(--fs-base);
+  line-height: 1.68;
+  color: var(--text);
+  background: var(--ink-0);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* 氛围：左上荧光雾 + 全站颗粒。纯色平铺是失败模式，这里给两层 */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(52rem 34rem at 6% -12%, rgba(255, 122, 41, 0.16), transparent 62%),
+    radial-gradient(44rem 30rem at 96% 4%, rgba(95, 211, 200, 0.08), transparent 60%);
+}
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+code,
+pre,
+kbd,
+time {
+  font-family: var(--ff-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* 统一的等宽小标签语气 */
+.eyebrow,
+.masthead,
+.plate-cap,
+.nav-section-head,
+.ws-group h4,
+.doc-cols h5 {
+  font-family: var(--ff-mono);
+  font-size: var(--fs-micro);
+  font-weight: 500;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.skip-link {
+  position: fixed;
+  left: 12px;
+  top: -60px;
+  z-index: 90;
+  padding: 10px 16px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-family: var(--ff-mono);
+  font-size: 12px;
+  transition: top var(--dur-fast) ease;
+}
+.skip-link:focus {
+  top: 12px;
+}
+
+
+/* ---------------- 2. 页面级：舞台与源码 ---------------- */
+
+/* 舞台：真实运行的组件装在这里。外壳只提供 .page-head / .card，舞台版式归页面自己 */
+.demo-stage {
+  margin: var(--s5) 0;
+  padding: var(--s5);
+  background: var(--ink-1);
+  border: 1px solid var(--rule);
+  border-radius: var(--r);
+}
+
+.demo-src-wrap {
+  margin-top: var(--s6);
+}
+
+.demo-src-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s3);
+  padding-bottom: var(--s2);
+  border-bottom: 1px solid var(--rule);
+}
+
+.demo-src-title {
+  font-family: var(--ff-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.demo-src-hint {
+  font-size: var(--fs-xs);
+  color: var(--faint);
+}
+
+.demo-src {
+  margin: 0;
+  padding: var(--s4) var(--s4) var(--s5);
+  background: var(--ink-1);
+  border: 1px solid var(--rule);
+  border-top: 0;
+  overflow: auto;
+  max-height: 460px;
+  font-family: var(--ff-mono);
+  font-size: 11.5px;
+  line-height: 1.75;
+  color: var(--dim);
+  white-space: pre;
+  tab-size: 2;
+}

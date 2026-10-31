@@ -1,0 +1,16 @@
+{
+  "name": "CountdownPlugin",
+  "description": "次签倒计时：依据 nextResetAt 展示距下次可签到剩余时间，头部区渲染。",
+  "since": "0.1.0",
+  "tags": ["countdown", "header", "timer"],
+  "config": [],
+  "example": "withSignInPlugins(SignInCore, [createCountdownPlugin()])",
+  "examples": [
+    {
+      "name": "默认",
+      "description": "头部展示次签倒计时",
+      "src": "createCountdownPlugin()",
+      "config": {}
+    }
+  ]
+}

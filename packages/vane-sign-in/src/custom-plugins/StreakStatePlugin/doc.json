@@ -1,0 +1,23 @@
+{
+  "name": "StreakStatePlugin",
+  "description": "连签状态：展示当前连签天数与历史最高连签，头部区渲染。",
+  "since": "0.1.0",
+  "tags": ["streak", "header", "status"],
+  "config": [
+    {
+      "name": "showMax",
+      "type": "boolean",
+      "default": "true",
+      "description": "是否展示历史最高连签天数"
+    }
+  ],
+  "example": "withSignInPlugins(SignInCore, [createStreakStatePlugin()])",
+  "examples": [
+    {
+      "name": "默认",
+      "description": "头部展示连签天数与最高连签",
+      "src": "createStreakStatePlugin()",
+      "config": {}
+    }
+  ]
+}

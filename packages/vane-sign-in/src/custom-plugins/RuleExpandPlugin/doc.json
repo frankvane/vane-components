@@ -1,0 +1,23 @@
+{
+  "name": "RuleExpandPlugin",
+  "description": "规则折叠展开：将活动规则折叠为可展开列表，底部区渲染；无规则时静默跳过。",
+  "since": "0.1.0",
+  "tags": ["rule", "footer", "collapse"],
+  "config": [
+    {
+      "name": "defaultOpen",
+      "type": "boolean",
+      "default": "false",
+      "description": "初始是否展开"
+    }
+  ],
+  "example": "withSignInPlugins(SignInCore, [createRuleExpandPlugin()])",
+  "examples": [
+    {
+      "name": "默认",
+      "description": "底部展示可折叠的活动规则",
+      "src": "createRuleExpandPlugin()",
+      "config": {}
+    }
+  ]
+}

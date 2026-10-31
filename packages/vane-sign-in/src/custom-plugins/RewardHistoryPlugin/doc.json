@@ -1,0 +1,23 @@
+{
+  "name": "RewardHistoryPlugin",
+  "description": "领取记录：展示历史领取记录列表，底部区渲染；无记录时显示终态文案。",
+  "since": "0.1.0",
+  "tags": ["history", "footer", "record"],
+  "config": [
+    {
+      "name": "limit",
+      "type": "number",
+      "default": "5",
+      "description": "最多展示几条记录"
+    }
+  ],
+  "example": "withSignInPlugins(SignInCore, [createRewardHistoryPlugin()])",
+  "examples": [
+    {
+      "name": "默认",
+      "description": "底部展示领取记录",
+      "src": "createRewardHistoryPlugin()",
+      "config": {}
+    }
+  ]
+}

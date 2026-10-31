@@ -1,0 +1,23 @@
+{
+  "name": "RemindPlugin",
+  "description": "签到提醒开关：本地维护开关态并回调下发，操作区渲染。",
+  "since": "0.1.0",
+  "tags": ["remind", "actions", "toggle"],
+  "config": [
+    {
+      "name": "defaultOn",
+      "type": "boolean",
+      "default": "false",
+      "description": "初始是否开启提醒"
+    }
+  ],
+  "example": "withSignInPlugins(SignInCore, [createRemindPlugin()])",
+  "examples": [
+    {
+      "name": "默认",
+      "description": "操作区展示提醒开关",
+      "src": "createRemindPlugin()",
+      "config": {}
+    }
+  ]
+}

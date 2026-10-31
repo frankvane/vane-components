@@ -1,0 +1,23 @@
+{
+  "name": "CalendarStripPlugin",
+  "description": "日历条：横向滚动的逐日格，展示已签/今日/漏签/未来/奖励五态，带奖励格金点提示。",
+  "since": "0.1.0",
+  "tags": ["calendar", "strip", "status"],
+  "config": [
+    {
+      "name": "showRewardDot",
+      "type": "boolean",
+      "default": "true",
+      "description": "是否在带奖励的格右上角显示金点"
+    }
+  ],
+  "example": "withSignInPlugins(SignInCore, [createCalendarStripPlugin()])",
+  "examples": [
+    {
+      "name": "默认",
+      "description": "日历条展示当月逐日签到状态",
+      "src": "createCalendarStripPlugin()",
+      "config": {}
+    }
+  ]
+}

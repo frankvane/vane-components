@@ -1,0 +1,23 @@
+{
+  "name": "RewardPreviewPlugin",
+  "description": "奖励预告：从当前连签天数起，逐日展示后续可领奖励（积分 / 券 / 礼包 / 徽章）。",
+  "since": "0.1.0",
+  "tags": ["reward", "preview", "rewards"],
+  "config": [
+    {
+      "name": "limit",
+      "type": "number",
+      "default": "5",
+      "description": "最多展示的奖励预告条数"
+    }
+  ],
+  "example": "withSignInPlugins(SignInCore, [createRewardPreviewPlugin()])",
+  "examples": [
+    {
+      "name": "默认",
+      "description": "奖励区逐日预告后续奖励",
+      "src": "createRewardPreviewPlugin()",
+      "config": {}
+    }
+  ]
+}

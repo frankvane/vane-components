@@ -1,0 +1,23 @@
+{
+  "name": "MakeupSlotPlugin",
+  "description": "补签位：找到可补签的漏签格并提供补签入口，补签次数用尽后置灰禁用。",
+  "since": "0.1.0",
+  "tags": ["makeup", "actions", "recovery"],
+  "config": [
+    {
+      "name": "buttonText",
+      "type": "string",
+      "default": "undefined",
+      "description": "自定义按钮文案（禁用态仍显示「补签次数已用完」）"
+    }
+  ],
+  "example": "withSignInPlugins(SignInCore, [createMakeupSlotPlugin()])",
+  "examples": [
+    {
+      "name": "默认",
+      "description": "操作区补签入口，禁用态置灰",
+      "src": "createMakeupSlotPlugin()",
+      "config": {}
+    }
+  ]
+}

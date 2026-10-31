@@ -1,0 +1,16 @@
+{
+  "name": "MilestonePlugin",
+  "description": "里程碑进度：展示距下一未达奖励还差几天与进度条，奖励区渲染。",
+  "since": "0.1.0",
+  "tags": ["milestone", "rewards", "progress"],
+  "config": [],
+  "example": "withSignInPlugins(SignInCore, [createMilestonePlugin()])",
+  "examples": [
+    {
+      "name": "默认",
+      "description": "展示下一里程碑进度",
+      "src": "createMilestonePlugin()",
+      "config": {}
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "name": "LevelBadgePlugin",
+  "description": "会员等级徽标：展示等级名与进度条，头部区渲染；无等级数据时静默跳过。",
+  "since": "0.1.0",
+  "tags": ["level", "header", "badge"],
+  "config": [],
+  "example": "withSignInPlugins(SignInCore, [createLevelBadgePlugin()])",
+  "examples": [
+    {
+      "name": "默认",
+      "description": "头部展示会员等级与进度",
+      "src": "createLevelBadgePlugin()",
+      "config": {}
+    }
+  ]
+}

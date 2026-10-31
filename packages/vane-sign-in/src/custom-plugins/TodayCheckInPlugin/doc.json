@@ -1,0 +1,29 @@
+{
+  "name": "TodayCheckInPlugin",
+  "description": "今日签到：主 CTA，已签置灰、未签高亮，点击经回调下发签到动作。",
+  "since": "0.1.0",
+  "tags": ["checkin", "actions", "cta"],
+  "config": [
+    {
+      "name": "signedText",
+      "type": "string",
+      "default": "今日已签 ✓",
+      "description": "已签到时的按钮文案"
+    },
+    {
+      "name": "unsignedText",
+      "type": "string",
+      "default": "立即签到",
+      "description": "未签到时的按钮文案"
+    }
+  ],
+  "example": "withSignInPlugins(SignInCore, [createTodayCheckInPlugin()])",
+  "examples": [
+    {
+      "name": "默认",
+      "description": "操作区主签到按钮",
+      "src": "createTodayCheckInPlugin()",
+      "config": {}
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "name": "InvitePlugin",
+  "description": "邀请好友助力：触发邀请回调的按钮，操作区渲染，常用于拉新运营位。",
+  "since": "0.1.0",
+  "tags": ["invite", "actions", "growth"],
+  "config": [
+    {
+      "name": "text",
+      "type": "string",
+      "default": "邀请好友助力",
+      "description": "按钮文案"
+    }
+  ],
+  "example": "withSignInPlugins(SignInCore, [createInvitePlugin()])",
+  "examples": [
+    {
+      "name": "默认",
+      "description": "操作区展示邀请按钮",
+      "src": "createInvitePlugin()",
+      "config": {}
+    }
+  ]
+}

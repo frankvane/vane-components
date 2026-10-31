@@ -1,0 +1,23 @@
+{
+  "name": "SharePlugin",
+  "description": "分享成就：触发分享回调的无状态按钮，操作区渲染。",
+  "since": "0.1.0",
+  "tags": ["share", "actions", "social"],
+  "config": [
+    {
+      "name": "text",
+      "type": "string",
+      "default": "分享成就",
+      "description": "按钮文案"
+    }
+  ],
+  "example": "withSignInPlugins(SignInCore, [createSharePlugin()])",
+  "examples": [
+    {
+      "name": "默认",
+      "description": "操作区展示分享按钮",
+      "src": "createSharePlugin()",
+      "config": {}
+    }
+  ]
+}

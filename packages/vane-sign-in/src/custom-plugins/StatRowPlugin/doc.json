@@ -1,0 +1,16 @@
+{
+  "name": "StatRowPlugin",
+  "description": "数据行：一行展示累计天数与累计积分，头部区渲染。",
+  "since": "0.1.0",
+  "tags": ["stat", "header", "summary"],
+  "config": [],
+  "example": "withSignInPlugins(SignInCore, [createStatRowPlugin()])",
+  "examples": [
+    {
+      "name": "默认",
+      "description": "头部展示累计天数与积分",
+      "src": "createStatRowPlugin()",
+      "config": {}
+    }
+  ]
+}
