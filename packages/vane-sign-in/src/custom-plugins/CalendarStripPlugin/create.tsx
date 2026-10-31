@@ -52,9 +52,8 @@ export function createCalendarStripPlugin<T = any>(
           <div
             style={{
               display: "flex",
+              flexWrap: "wrap",
               gap: 6,
-              overflowX: "auto",
-              paddingBottom: 4,
             }}
           >
             {cells.map((c) => {

@@ -63,8 +63,15 @@ const SignInCore = forwardRef<SignInCoreRef, SignInCoreProps>(
           // position/box-sizing 功能性保留；根节点自带底色与字色（ADR-13：内联背景必内联字色）
           position: "relative",
           boxSizing: "border-box",
+          // 卡片框：圆角 + 发丝边 + 浅投影，让组件在深色 demo 里是一张「卡」而不是漂浮白块
           background: "#fff",
           color: "#1f2328",
+          borderRadius: 12,
+          border: "1px solid #e3e5e8",
+          boxShadow: "0 1px 3px rgba(16, 22, 26, 0.06)",
+          overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
           ...containerStyle,
         }}
       >
@@ -74,8 +81,8 @@ const SignInCore = forwardRef<SignInCoreRef, SignInCoreProps>(
             style={{
               display: "flex",
               flexDirection: "column",
-              gap: 10,
-              padding: "16px 16px 0",
+              gap: 12,
+              padding: "14px 16px 8px",
             }}
           >
             {header}
@@ -83,13 +90,31 @@ const SignInCore = forwardRef<SignInCoreRef, SignInCoreProps>(
         )}
 
         {calendar.length > 0 && (
-          <div className="vs-calendar" style={{ padding: "12px 16px" }}>
+          <div
+            className="vs-calendar"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 12,
+              padding: "8px 16px",
+              borderTop: "1px solid #f0f2f4",
+            }}
+          >
             {calendar}
           </div>
         )}
 
         {rewards.length > 0 && (
-          <div className="vs-rewards" style={{ padding: "0 16px" }}>
+          <div
+            className="vs-rewards"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 10,
+              padding: "8px 16px",
+              borderTop: "1px solid #f0f2f4",
+            }}
+          >
             {rewards}
           </div>
         )}
@@ -101,7 +126,8 @@ const SignInCore = forwardRef<SignInCoreRef, SignInCoreProps>(
               display: "flex",
               flexWrap: "wrap",
               gap: 8,
-              padding: "12px 16px",
+              padding: "8px 16px",
+              borderTop: "1px solid #f0f2f4",
             }}
           >
             {actions}
@@ -109,7 +135,16 @@ const SignInCore = forwardRef<SignInCoreRef, SignInCoreProps>(
         )}
 
         {footer.length > 0 && (
-          <div className="vs-footer" style={{ padding: "0 16px 16px" }}>
+          <div
+            className="vs-footer"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 12,
+              padding: "8px 16px 16px",
+              borderTop: "1px solid #f0f2f4",
+            }}
+          >
             {footer}
           </div>
         )}
