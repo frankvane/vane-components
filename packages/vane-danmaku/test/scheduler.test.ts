@@ -82,3 +82,59 @@ describe("DanmakuScheduler 激活/回收", () => {
     expect(active.map((a) => a.item.id)).toContain("cmd-1");
   });
 });
+
+/** 同一时刻到达的 n 条滚动弹幕 */
+function burst(n: number, duration = 5): DanmakuItem[] {
+  return Array.from({ length: n }, (_, i) => ({
+    id: `z${i}`,
+    text: `同时到达 ${i}`,
+    mode: "scroll" as const,
+    time: 0,
+    duration,
+    meta: {},
+  }));
+}
+
+describe("DanmakuScheduler 避让区 / 饱和策略", () => {
+  it("同一时刻到达的弹幕不会叠在同一条轨上（初始 x 必须是入场位）", () => {
+    const s = new DanmakuScheduler();
+    const active = s.tick(burst(8), SIZE, 0, true, opts, []);
+    expect(active).toHaveLength(8);
+    // 8 条各占一轨；若初始 x=0，trackFree 会误判空轨，全部挤到 lo 轨
+    expect(new Set(active.map((a) => a.track)).size).toBe(8);
+  });
+
+  it("避让区纵向压满整屏时仍能入场，且依然不叠轨（交给绘制期裁剪挖空）", () => {
+    const s = new DanmakuScheduler();
+    // 人物框：横向 200..600、纵向贯穿全部轨道 —— 没有一条「干净」轨可选
+    const zones = [{ x: 200, y: 0, w: 400, h: SIZE.height }];
+    const active = s.tick(burst(8), SIZE, 0, true, opts, zones);
+    expect(active).toHaveLength(8);
+    expect(new Set(active.map((a) => a.track)).size).toBe(8);
+  });
+
+  it("画布真的饱和时丢弃溢出条目，而不是挤进同一轨叠字", () => {
+    const s = new DanmakuScheduler();
+    // 只有 1 条轨道：同一时刻只容得下 1 条
+    const size = { width: 800, height: opts.trackHeight };
+    expect(s.tick(burst(5), size, 0, true, opts, [])).toHaveLength(1);
+    // 等过 WAIT_MAX：排队的 4 条被丢弃
+    s.tick(burst(5), size, DanmakuScheduler.WAIT_MAX + 0.1, true, opts, []);
+    expect(s.activeCount).toBe(1);
+    expect(s.droppedCount).toBe(4);
+  });
+
+  it("排队未超时的弹幕会在空轨出现时补位（吸收突发）", () => {
+    const s = new DanmakuScheduler();
+    const size = { width: 800, height: opts.trackHeight };
+    const items: DanmakuItem[] = [
+      { id: "first", text: "先来的", mode: "scroll", time: 0, duration: 0.5, meta: {} },
+      { id: "second", text: "排队等下", mode: "scroll", time: 0.1, duration: 0.5, meta: {} },
+    ];
+    s.tick(items, size, 0, true, opts, []);
+    s.tick(items, size, 0.1, true, opts, []); // second 无轨可入 → 排队
+    const later = s.tick(items, size, 0.6, true, opts, []); // first 已飞完，second 补位
+    expect(later.map((a) => a.item.id)).toContain("second");
+    expect(s.droppedCount).toBe(0);
+  });
+});

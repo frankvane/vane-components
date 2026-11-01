@@ -45,11 +45,23 @@ const SAMPLE_VIDEOS: { label: string; url: string }[] = [
 const DETECT_W = 480; // 检测降采样宽度（保纵横比）
 
 /**
- * 避让区只用「主体」关键点（鼻/双肩/双髋），不用全部 33 个点。
- * 全骨架外接在举手、踢腿、跨步时会膨胀成几乎整屏的框，弹幕就无处可去；
- * 主体框跟着躯干走，既挡住人、又给弹幕留出上下通道。
+ * 避让区用「主体骨架」：鼻 + 双肩 + 双髋 + 双膝。
+ * 不取全 33 点 —— 举手/踢腿/张开手臂时腕踝会把框撑到几乎整屏；也不只取躯干 ——
+ * 大腿以下会漏，弹幕会压着腿走。取到膝盖是「覆盖人、但仍然贴着人」的折中。
  */
-const CORE_POINTS = [0, 11, 12, 23, 24];
+const CORE_POINTS = [0, 11, 12, 23, 24, 25, 26];
+
+/** 连续这么久检测不到人（人出画 / 侧身）就撤掉避让区，别让旧框一直压着画面 */
+const ZONE_TTL = 0.3;
+
+/**
+ * 视频缩放模式 —— 必须和下面的坐标映射保持一致，否则避让区会整体错位。
+ *
+ * 用 contain 而不是 cover：示例片源是竖屏（9:16）近景，塞进 16:9 舞台用 cover 会把画面
+ * 裁到只剩腰部，人物横向占掉半个屏 → 避让区巨大，弹幕全被裁掉，看起来像「没弹幕」。
+ * contain 让整帧可见，人物只占窄窄一条，弹幕才有地方走、也才看得出「从人身后穿过」。
+ */
+const FIT: "contain" | "cover" = "contain";
 
 // 标准人体骨骼连线（PoseLandmarker 33 关键点：头面 / 躯干 / 四肢）
 const POSE_CONNECTIONS: ReadonlyArray<readonly [number, number]> = [
@@ -62,11 +74,21 @@ const POSE_CONNECTIONS: ReadonlyArray<readonly [number, number]> = [
 
 type Mode = "idle" | "camera" | "upload" | "synthetic";
 
-//  denser 弹幕流：原样本 + 半周期错位的第二波，让「绕开人物」更直观
-const STREAM: DanmakuItem[] = [
-  ...SAMPLE_BASIC,
-  ...SAMPLE_BASIC.map((d) => ({ ...d, id: `${d.id}-b`, time: (d.time + 6) % 12 })),
+// 加密的弹幕流：主样本 + 第二波（只补 scroll，且是不同的句子）。
+// 注意别把 top/bottom 也复制一遍 —— 屏幕上会出现两条一模一样的置顶公告，看着像 bug。
+const WAVE2: DanmakuItem[] = [
+  { id: "b1", text: "这段卡点太准了", mode: "scroll", time: 0.5, meta: {} },
+  { id: "b2", text: "导演加个鸡腿", mode: "scroll", time: 1.4, meta: {} },
+  { id: "b3", text: "镜头感绝了", mode: "scroll", time: 2.7, meta: {} },
+  { id: "b4", text: "背景音乐叫啥", mode: "scroll", time: 3.4, meta: {} },
+  { id: "b5", text: "慢动作好评", mode: "scroll", time: 4.8, meta: {} },
+  { id: "b6", text: "这走位有点东西", mode: "scroll", time: 6.1, meta: {} },
+  { id: "b7", text: "刚进来就赶上了", mode: "scroll", time: 7.3, meta: {} },
+  { id: "b8", text: "已三连", mode: "scroll", time: 9.1, meta: {} },
+  { id: "b9", text: "回放看起来", mode: "scroll", time: 10.4, meta: {} },
 ];
+
+const STREAM: DanmakuItem[] = [...SAMPLE_BASIC, ...WAVE2];
 
 function MediaPipeOcclusion() {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -79,6 +101,8 @@ function MediaPipeOcclusion() {
   const rafRef = useRef<number>(0);
   const startRef = useRef(performance.now());
   const detCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  /** 最近一次检测到人的时间（秒），用于避让区过期 */
+  const lastSeenRef = useRef(0);
 
   // 默认直接播放第一段示例视频：打开场景即看到「视频 + 弹幕穿透」，无需手动点选
   const [mode, setMode] = useState<Mode>("upload");
@@ -254,8 +278,9 @@ function MediaPipeOcclusion() {
             if (lms && lms.length) {
               const cw = el.clientWidth;
               const ch = el.clientHeight;
-              // cover 变换：与 <video objectFit:cover> 一致（用原始帧尺寸）
-              const scale = Math.max(cw / vw, ch / vh);
+              // 与 <video object-fit> 一致的缩放映射（用原始帧尺寸算，不能用降采样后的）
+              const scale =
+                FIT === "cover" ? Math.max(cw / vw, ch / vh) : Math.min(cw / vw, ch / vh);
               const dispW = vw * scale;
               const dispH = vh * scale;
               const offX = (cw - dispW) / 2;
@@ -289,6 +314,12 @@ function MediaPipeOcclusion() {
                   y: offY + p.y * dispH,
                 }))
               );
+              lastSeenRef.current = performance.now() / 1000;
+            } else if (performance.now() / 1000 - lastSeenRef.current > ZONE_TTL) {
+              // 人出画 / 侧身检测不到：撤掉避让区与骨架，否则旧框会一直压在画面上
+              // （内核拿到的避让区是「最新已知」，我们不更新它就不会过期）
+              zonesRef.current = [];
+              drawOverlay([]);
             }
           }
           raf = requestAnimationFrame(loop);
@@ -424,7 +455,7 @@ function MediaPipeOcclusion() {
           inset: 0,
           width: "100%",
           height: "100%",
-          objectFit: "cover",
+          objectFit: FIT,
           opacity: showVideo ? 1 : 0,
           transition: "opacity .3s",
           zIndex: 0,

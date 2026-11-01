@@ -10,6 +10,7 @@ import { useDanmakuSlot } from "./plugins/slots";
 import {
   DanmakuScheduler,
   draw,
+  measure,
   type RenderOptions,
 } from "./render";
 
@@ -25,6 +26,29 @@ const DEFAULTS: Omit<RenderOptions, "accent" | "stroke"> = {
   topInset: 0,
   bottomInset: 0,
 };
+
+/**
+ * 把避让区裁成「可挖空的洞」：裁到画布内、丢掉退化矩形，并保护一个极端情况 ——
+ * 避让区几乎覆盖整屏时（模型框明显异常 / 人物贴满镜头）放弃遮罩，
+ * 宁可轻微压人，也不能让整块画布一条弹幕都看不见。
+ */
+function clipZones(zones: Rect[], width: number, height: number): Rect[] | null {
+  const holes: Rect[] = [];
+  const canvasArea = width * height;
+  let covered = 0;
+  for (const z of zones) {
+    const x = Math.max(0, z.x);
+    const y = Math.max(0, z.y);
+    const w = Math.min(width, z.x + z.w) - x;
+    const h = Math.min(height, z.y + z.h) - y;
+    if (w <= 1 || h <= 1) continue;
+    holes.push({ x, y, w, h });
+    covered += w * h;
+  }
+  if (!holes.length) return null;
+  if (covered > canvasArea * 0.85) return null;
+  return holes;
+}
 
 /**
  * DanmakuCore —— 弹幕核心组件（canvas 渲染内核）。
@@ -104,6 +128,11 @@ export const DanmakuCore = forwardRef<DanmakuCoreRef, DanmakuCoreProps>(
           height: containerRef.current?.offsetHeight ?? 0,
         }),
         getCanvas: () => canvasRef.current,
+        /** 运行时读数：在飞条数（真正参与绘制的量）与本周期饱和丢弃数 */
+        getStats: () => ({
+          active: schedulerRef.current.activeCount,
+          dropped: schedulerRef.current.droppedCount,
+        }),
       }),
       [containerRef]
     );
@@ -152,6 +181,9 @@ export const DanmakuCore = forwardRef<DanmakuCoreRef, DanmakuCoreProps>(
           topInset: live.topInset,
           bottomInset: live.bottomInset,
         };
+        // 调度期也要真实宽度：字符类估算在 emoji / 粉丝牌 / 长拉丁串上会偏小，
+        // 而速度 = (画布宽 + 宽度) / 时长，估小了就等于让后车「以为追不上」却真的追尾。
+        opts.measureWidth = (item) => measure(item, ctx, opts).width;
 
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         ctx.clearRect(0, 0, width, height);
@@ -166,13 +198,27 @@ export const DanmakuCore = forwardRef<DanmakuCoreRef, DanmakuCoreProps>(
           zones
         );
 
+        // 避让区裁剪：把人物矩形从画布里「挖空」（evenodd），落在人物身上的那部分弹幕
+        // 直接不绘制 —— 这是「人物区域里绝不能有弹幕」的最终保证，调度绕不开时也不会压人。
+        // 每帧最多几条矩形，clip 走的是路径栅格化，开销可忽略。
+        const holes = zones.length ? clipZones(zones, width, height) : null;
+        if (holes) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.rect(0, 0, width, height);
+          for (const z of holes) ctx.rect(z.x, z.y, z.w, z.h);
+          ctx.clip("evenodd");
+        }
+
         ctx.globalAlpha = opts.opacity;
         for (const a of active) {
-          // 完全在画布外的跳过（右侧刚入场 / 左侧已滑出），满载时能省掉可观的光栅化开销
-          if (a.x > width || a.x + a.width < 0) continue;
+          // 完全在画布外（右侧刚入场 / 左侧已滑出）或已渐隐到看不见的条目直接跳过：
+          // 满载时能省掉可观的光栅化开销（strokeText/fillText 是最贵的一步）
+          if (a.x > width || a.x + a.width < 0 || a.alpha <= 0.01) continue;
           draw(a, ctx, opts);
         }
         ctx.globalAlpha = 1;
+        if (holes) ctx.restore();
 
         raf = requestAnimationFrame(frame);
       };

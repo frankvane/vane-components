@@ -145,6 +145,12 @@ export interface DanmakuCoreRef {
   getSize: () => { width: number; height: number };
   /** 取 canvas 元素（消费方做截图 / 接 MediaPipe 帧源） */
   getCanvas: () => HTMLCanvasElement | null;
+  /**
+   * 运行时读数（压测 / 监控用）：
+   *  · active —— 当前在飞条数（真正逐帧绘制的量，出画即回收，不含未到时间与已离场条目）
+   *  · dropped —— 本周期因画布饱和（无任何空闲轨）被丢弃的条数，饱和时宁可丢弃也不叠字
+   */
+  getStats: () => { active: number; dropped: number };
 }
 
 // ============ 插件上下文 ============
