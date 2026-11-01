@@ -7,13 +7,17 @@
  *   3. 把避让区通过 SafeZonePlugin 的 `provider` 注入运行时 shared，内核每帧读取、
  *      让轨道调度避开人物，绝不阻塞 60fps 渲染。
  *
- * 三种输入，保证「视频中有人物」一定能演示：
+ * 四种输入，保证「视频中有人物」一定能演示：
+ *   · 示例视频：仓库 demo/public/samples 下的两段人物镜头（离线，无需摄像头/外网）。
+ *   · 上传视频：选一段本地有人物的视频，离线即可跑骨骼识别（最稳）。
  *   · 启动摄像头：真实人物实时骨骼识别（需授权 + 安全上下文 + 外网拉模型）。
- *   · 上传视频：选一段有人物的本地视频，离线即可跑骨骼识别（最稳，无需摄像头）。
  *   · 模拟人物：无摄像头 / 无外网时合成一个来回移动的避让区，跑同一套防遮挡逻辑。
  *
  * 弹幕穿透：弹幕层绝对定位于视频之上（GPU canvas 叠加），人物框区域被内核调度绕开，
  * 既不挡人、也不被视频裁切 —— 这是「弹幕穿透视频」的正确范式。
+ *
+ * 性能：4K 视频直接喂 PoseLandmarker 太重，检测前先降采样画到 480px 宽的离屏 canvas，
+ * normalized 坐标不变，cover 映射逻辑照旧，检测开销降一个量级。
  *
  * 发布包不捆绑 MediaPipe（体积预算不受影响）；ML 跑在消费方独立循环，低频产出避让区。
  */
@@ -31,7 +35,15 @@ const POSE_MODEL =
 const VISION_URL =
   "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
 
-// 标准人体骨骼连线（PoseLandmarker 33 关键点子集：头面 / 躯干 / 四肢）
+// 离线示例视频（放在 demo/public/samples，构建后由 build-demos.mjs 平铺到产物根）
+const SAMPLE_VIDEOS: { label: string; url: string }[] = [
+  { label: "示例 · 人物镜头 A", url: "/samples/3391101-uhd_2160_3840_25fps.mp4" },
+  { label: "示例 · 人物镜头 B", url: "/samples/2795747-uhd_2160_3840_25fps.mp4" },
+];
+
+const DETECT_W = 480; // 检测降采样宽度（保纵横比）
+
+// 标准人体骨骼连线（PoseLandmarker 33 关键点：头面 / 躯干 / 四肢）
 const POSE_CONNECTIONS: ReadonlyArray<readonly [number, number]> = [
   [0, 1], [1, 2], [2, 3], [3, 7], [0, 4], [4, 5], [5, 6], [6, 8], [9, 10],
   [11, 12], [11, 13], [13, 15], [12, 14], [14, 16],
@@ -58,11 +70,12 @@ function MediaPipeOcclusion() {
   const landmarkerRef = useRef<any>(null);
   const rafRef = useRef<number>(0);
   const startRef = useRef(performance.now());
+  const detCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const [mode, setMode] = useState<Mode>("idle");
   const [videoSrc, setVideoSrc] = useState<string | null>(null);
   const [status, setStatus] = useState<string>(
-    "未启动 —— 点「启动摄像头」接真实人物，或「上传视频」选一段有人物的画面，或「模拟人物」立即看效果"
+    "未启动 —— 点「示例视频」看离线人物镜头，或「启动摄像头」接真实人物，或「上传视频」选本地画面，或「模拟人物」立即看效果"
   );
   const [currentTime, setCurrentTime] = useState(0);
 
@@ -189,11 +202,15 @@ function MediaPipeOcclusion() {
     };
   }, [mode, loadVision]);
 
-  // 检测循环：摄像头 / 上传视频 共用，取骨骼点 → 外接矩形 → 避让区 + 骨架
+  // 检测循环：摄像头 / 上传视频 / 示例视频 共用，取骨骼点 → 外接矩形 → 避让区 + 骨架
+  // 4K 视频先降采样到 DETECT_W 宽再检测，normalized 坐标不变，开销降一个量级。
   useEffect(() => {
     if (mode !== "camera" && mode !== "upload") return;
     let cancelled = false;
     let raf = 0;
+    if (!detCanvasRef.current) detCanvasRef.current = document.createElement("canvas");
+    const det = detCanvasRef.current;
+    const detCtx = det.getContext("2d", { willReadFrequently: true });
     (async () => {
       try {
         await loadVision();
@@ -203,15 +220,21 @@ function MediaPipeOcclusion() {
           const vv = videoRef.current;
           const el = containerRef.current;
           const lm = landmarkerRef.current;
-          if (vv && el && lm && vv.readyState >= 2) {
-            const res = lm.detectForVideo(vv, performance.now());
+          if (vv && el && lm && vv.readyState >= 2 && vv.videoWidth > 0 && detCtx) {
+            const vw = vv.videoWidth;
+            const vh = vv.videoHeight;
+            const dh = Math.round((vh * DETECT_W) / vw);
+            if (det.width !== DETECT_W || det.height !== dh) {
+              det.width = DETECT_W;
+              det.height = dh;
+            }
+            detCtx.drawImage(vv, 0, 0, DETECT_W, dh);
+            const res = lm.detectForVideo(det, performance.now());
             const lms = res.landmarks?.[0];
             if (lms && lms.length) {
               const cw = el.clientWidth;
               const ch = el.clientHeight;
-              const vw = vv.videoWidth || cw;
-              const vh = vv.videoHeight || ch;
-              // cover 变换：与 <video objectFit:cover> 一致
+              // cover 变换：与 <video objectFit:cover> 一致（用原始帧尺寸）
               const scale = Math.max(cw / vw, ch / vh);
               const dispW = vw * scale;
               const dispH = vh * scale;
@@ -256,7 +279,7 @@ function MediaPipeOcclusion() {
     };
   }, [mode, loadVision, drawOverlay]);
 
-  // 上传视频：设置 src 并播放（离线即可跑骨骼识别）
+  // 上传视频 / 示例视频：设置 src 并播放（离线即可跑骨骼识别）
   useEffect(() => {
     if (mode !== "upload" || !videoSrc) return;
     const v = videoRef.current;
@@ -271,6 +294,14 @@ function MediaPipeOcclusion() {
     if (!f) return;
     if (videoSrc) URL.revokeObjectURL(videoSrc);
     setVideoSrc(URL.createObjectURL(f));
+    setMode("upload");
+  };
+
+  const onSample = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const url = e.target.value;
+    if (!url) return;
+    if (videoSrc && videoSrc.startsWith("blob:")) URL.revokeObjectURL(videoSrc);
+    setVideoSrc(url);
     setMode("upload");
   };
 
@@ -404,6 +435,16 @@ function MediaPipeOcclusion() {
         <button type="button" className="mp-btn" onClick={() => setMode("camera")}>
           启动摄像头
         </button>
+        <select className="mp-btn" defaultValue="" onChange={onSample}>
+          <option value="" disabled>
+            示例视频
+          </option>
+          {SAMPLE_VIDEOS.map((s) => (
+            <option key={s.url} value={s.url}>
+              {s.label}
+            </option>
+          ))}
+        </select>
         <button
           type="button"
           className="mp-btn"
@@ -442,7 +483,7 @@ export const meta = {
   ],
   props: ["items={STREAM}", "currentTime={t}", "playing", "avoidZoneProvider"],
   note:
-    "发布包不捆绑 MediaPipe（体积预算不受影响）。这里在 demo 里用 PoseLandmarker 取 33 个骨骼点，算人物外接矩形当避让区；内核每帧同步消费，几帧延迟对人无感。三种输入：摄像头（真实人物）/ 上传视频（离线最稳）/ 模拟人物（无设备回退）。弹幕穿透 = canvas 叠在视频之上、绕开人物框。",
+    "发布包不捆绑 MediaPipe（体积预算不受影响）。这里在 demo 里用 PoseLandmarker 取 33 个骨骼点，算人物外接矩形当避让区；内核每帧同步消费，几帧延迟对人无感。四种输入：示例视频（离线人物镜头）/ 上传视频（离线最稳）/ 摄像头（真实人物）/ 模拟人物（无设备回退）。4K 视频检测前降采样到 480px 宽，开销降一量级。弹幕穿透 = canvas 叠在视频之上、绕开人物框。",
   tone: "dark",
 };
 

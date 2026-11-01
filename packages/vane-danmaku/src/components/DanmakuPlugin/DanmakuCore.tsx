@@ -22,6 +22,7 @@ const DEFAULTS: Omit<RenderOptions, "accent" | "stroke"> = {
   opacity: 1,
   defaultDuration: 8,
   gap: 24,
+  fadeMs: 450,
 };
 
 /**

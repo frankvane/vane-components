@@ -10,6 +10,8 @@ export interface RenderOptions {
   defaultDuration: number;
   /** 同轨最小间隔（px），碰撞检测余量 */
   gap: number;
+  /** 渐显/渐隐时长（秒），缓解「弹幕突然出现/突然消失」 */
+  fadeMs: number;
   /** 高赞/置顶高亮色 */
   accent: string;
   /** 描边色（提升任意背景可读性） */
@@ -21,11 +23,15 @@ export interface Active {
   item: DanmakuItem;
   track: number;
   mode: DanmakuMode;
+  /** 移动方向：scroll=-1（向右->左）、reverse=+1（向左->右）、停留型=0 */
+  dir: number;
   enterAt: number;
   duration: number;
   width: number;
   x: number;
   y: number;
+  /** 当前透明度（渐显/渐隐），绘制时与 opts.opacity 相乘 */
+  alpha: number;
 }
 
 const BADGE_PAD = 6;
@@ -92,6 +98,8 @@ function trackBlocked(track: number, trackHeight: number, zones: Rect[]): boolea
  */
 export class DanmakuScheduler {
   private active = new Map<string, Active>();
+  /** 上一帧 currentTime，用于检测时钟回绕（如 LiveDanmaku 的 currentTime % loop） */
+  private lastTime = 0;
 
   tick(
     items: DanmakuItem[],
@@ -101,6 +109,11 @@ export class DanmakuScheduler {
     opts: RenderOptions,
     zones: Rect[]
   ): Active[] {
+    // 时钟回绕（取模循环导致 currentTime 从 ~loop 跳回 ~0）：清空上一轮仍在飞行的弹幕，
+    // 否则负 elapsed 会让它们错乱瞬移 / 卡在轨道里占坑。干净重置后由 time 重新激活。
+    if (currentTime < this.lastTime - 0.5) this.active.clear();
+    this.lastTime = currentTime;
+
     // 1. 激活到达时间的弹幕
     const trackCount = Math.max(1, Math.floor(size.height / opts.trackHeight));
     for (const item of items) {
@@ -108,22 +121,26 @@ export class DanmakuScheduler {
       if (item.time <= currentTime) {
         const track = this.assignTrack(item, currentTime, size, trackCount, opts, zones);
         const dur = item.duration ?? opts.defaultDuration;
+        const stay = item.mode === "top" || item.mode === "bottom" || item.renderHint?.pinned === true;
+        const dir = stay ? 0 : item.mode === "reverse" ? 1 : -1;
         // 调度阶段不持 ctx，用字符类近似宽度（CJK/假名/谚文/全角≈1em、西文≈0.55em，含牌/角标）
         const est = estimateWidth(item, opts.baseFontSize);
         this.active.set(item.id, {
           item,
           track,
           mode: item.mode,
+          dir,
           enterAt: currentTime,
           duration: dur,
           width: est,
           x: 0,
           y: 0,
+          alpha: 1,
         });
       }
     }
 
-    // 2. 推进位置，回收离场
+    // 2. 推进位置，回收离场，算渐显/渐隐透明度
     const result: Active[] = [];
     for (const [id, a] of this.active) {
       const pos = compute(a, currentTime, size, opts, playing);
@@ -133,6 +150,15 @@ export class DanmakuScheduler {
       }
       a.x = pos.x;
       a.y = pos.y;
+      let alpha = 1;
+      if (playing) {
+        const elapsed = currentTime - a.enterAt;
+        const fade = opts.fadeMs;
+        if (elapsed < fade) alpha = Math.max(0, elapsed / fade);
+        const remain = a.duration - elapsed;
+        if (remain < fade) alpha = Math.min(alpha, Math.max(0, remain / fade));
+      }
+      a.alpha = alpha;
       result.push(a);
     }
     return result;
@@ -185,7 +211,12 @@ export class DanmakuScheduler {
     return lo;
   }
 
-  /** 该轨道是否可容纳一条同模式弹幕：停留型看时长、滚动型看右缘是否已移出 */
+  /**
+   * 该轨道是否可容纳一条新弹幕。
+   * 关键：滚动型按移动方向分轨 —— 正向(scroll, dir=-1)与反向(reverse, dir=+1)在
+   * 同一条轨道必会迎面交叠，因此异向直接判冲突；同向才看入口/出口余量；
+   * 停留型(top/bottom/pinned)在其停留期内独占整条轨道。
+   */
   private trackFree(
     track: number,
     item: DanmakuItem,
@@ -194,12 +225,25 @@ export class DanmakuScheduler {
     opts: RenderOptions
   ): boolean {
     const stay = item.mode === "top" || item.mode === "bottom" || item.renderHint?.pinned;
+    const dir = stay ? 0 : item.mode === "reverse" ? 1 : -1;
     for (const a of this.active.values()) {
       if (a.track !== track) continue;
-      if (stay) {
+      if (a.dir === 0) {
+        // 轨上已有停留型弹幕：其停留期内占轨
         if (currentTime - a.enterAt < a.duration) return false;
-      } else if (a.x + a.width > size.width - opts.gap) {
-        return false;
+        continue;
+      }
+      if (dir === 0) {
+        // 新来的是停留型：只要轨上移动弹幕尚未完全离场就先占着（移动弹幕很快走完）
+        if (currentTime - a.enterAt < a.duration) return false;
+        continue;
+      }
+      if (a.dir !== dir) return false; // 异向必交叠
+      // 同向滚动：需等前一条让出「入口/出口」余量
+      if (dir === -1) {
+        if (a.x + a.width > size.width - opts.gap) return false;
+      } else {
+        if (a.x < opts.gap) return false;
       }
     }
     return true;
@@ -268,6 +312,10 @@ export function draw(
   ctx.textBaseline = "middle";
   ctx.textAlign = "left";
 
+  // 渐显/渐隐：整体透明度 = 生命周期 alpha × 全局 opacity
+  ctx.save();
+  ctx.globalAlpha = a.alpha * opts.opacity;
+
   let cursorX = a.x;
   const cy = a.y;
   const totalW = measure(a.item, ctx, opts).width;
@@ -275,7 +323,7 @@ export function draw(
   // 高亮底块（半透明圆角，不压字）
   if (a.item.renderHint?.highlight) {
     ctx.save();
-    ctx.globalAlpha = 0.22;
+    ctx.globalAlpha *= 0.22;
     ctx.fillStyle = a.item.renderHint.highlight;
     ctx.beginPath();
     ctx.roundRect(a.x - 6, cy - fontSize / 2 - 5, totalW + 12, fontSize + 10, 8);
@@ -347,4 +395,6 @@ export function draw(
     ctx.fillText(tag, cursorX, cy);
     ctx.restore();
   }
+
+  ctx.restore();
 }
