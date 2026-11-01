@@ -31,20 +31,36 @@ export interface Active {
 const BADGE_PAD = 6;
 const BADGE_GAP = 6;
 
-/** 测量单条弹幕宽度（文字 + 粉丝牌底块） */
+/** 测量单条弹幕宽度（文字 + 粉丝牌底块；rich 分段时取各段之和） */
 export function measure(
   item: DanmakuItem,
   ctx: CanvasRenderingContext2D,
   opts: RenderOptions
 ): { width: number; height: number } {
   const fontSize = item.meta.fontSize ?? opts.baseFontSize;
-  ctx.font = `${fontSize}px ${opts.fontFamily}`;
-  let width = ctx.measureText(item.text).width;
+  ctx.font = fontString(fontSize, item, opts);
+  let width: number;
+  const rich = item.renderHint?.rich;
+  if (rich && rich.length > 0) {
+    width = rich.reduce((acc, seg) => acc + ctx.measureText(seg.text).width, 0);
+  } else {
+    width = ctx.measureText(item.text).width;
+  }
   if (item.meta.fanBadge) {
     const badgeW = ctx.measureText(` ${item.meta.fanBadge.name} Lv${item.meta.fanBadge.level} `).width;
     width += badgeW + BADGE_PAD * 2 + BADGE_GAP;
   }
+  if (item.meta.combo && item.meta.combo > 1) {
+    width += ctx.measureText(` x${item.meta.combo}`).width;
+  }
   return { width, height: fontSize };
+}
+
+/** 组装 ctx.font（尊重 meta.fontFamily / fontWeight） */
+function fontString(fontSize: number, item: DanmakuItem, opts: RenderOptions): string {
+  const family = item.meta.fontFamily ?? opts.fontFamily;
+  const weight = item.meta.fontWeight ?? 400;
+  return `${weight} ${fontSize}px ${family}`;
 }
 
 /** 轨道是否落在某条避让区（y 区间相交） */
@@ -124,6 +140,23 @@ export class DanmakuScheduler {
     const lo = isTop ? 0 : isBottom ? Math.floor(trackCount * 0.7) : 0;
     const hi = isTop ? Math.floor(trackCount * 0.3) : trackCount;
 
+    // 显式轨道（TrackStrategyPlugin / 置顶带）：该轨空闲且不落避让区则直接采用
+    const forced = item.renderHint?.track;
+    if (forced != null && forced >= 0 && forced < trackCount) {
+      let free = !trackBlocked(forced, opts.trackHeight, zones);
+      if (free) {
+        for (const a of this.active.values()) {
+          if (a.track !== forced) continue;
+          if (isTop || isBottom || item.renderHint?.pinned) {
+            if (currentTime - a.enterAt < a.duration) { free = false; break; }
+          } else {
+            if (a.x + a.width > size.width - opts.gap) { free = false; break; }
+          }
+        }
+      }
+      if (free) return forced;
+    }
+
     for (let t = lo; t < hi; t++) {
       if (trackBlocked(t, opts.trackHeight, zones)) continue;
       let free = true;
@@ -192,12 +225,24 @@ export function draw(
   opts: RenderOptions
 ): void {
   const fontSize = a.item.meta.fontSize ?? opts.baseFontSize;
-  ctx.font = `${fontSize}px ${opts.fontFamily}`;
+  ctx.font = fontString(fontSize, a.item, opts);
   ctx.textBaseline = "middle";
   ctx.textAlign = "left";
 
   let cursorX = a.x;
   const cy = a.y;
+  const totalW = measure(a.item, ctx, opts).width;
+
+  // 高亮底块（半透明圆角，不压字）
+  if (a.item.renderHint?.highlight) {
+    ctx.save();
+    ctx.globalAlpha = 0.22;
+    ctx.fillStyle = a.item.renderHint.highlight;
+    ctx.beginPath();
+    ctx.roundRect(a.x - 6, cy - fontSize / 2 - 5, totalW + 12, fontSize + 10, 8);
+    ctx.fill();
+    ctx.restore();
+  }
 
   // 高赞环
   if (a.item.renderHint?.ring) {
@@ -209,7 +254,7 @@ export function draw(
     ctx.roundRect(
       a.x - pad,
       cy - fontSize / 2 - pad,
-      a.width + pad * 2,
+      totalW + pad * 2,
       fontSize + pad * 2,
       8
     );
@@ -233,11 +278,34 @@ export function draw(
     cursorX += bw + BADGE_GAP;
   }
 
-  // 描边 + 填充文字（任意背景可读）
-  const text = a.item.text;
+  // 描边 + 填充文字（任意背景可读）；rich 分段着色，否则整条单色
   ctx.lineWidth = Math.max(2, fontSize / 12);
   ctx.strokeStyle = opts.stroke;
-  ctx.fillStyle = a.item.meta.color ?? "#fff";
-  ctx.strokeText(text, cursorX, cy);
-  ctx.fillText(text, cursorX, cy);
+  const rich = a.item.renderHint?.rich;
+  if (rich && rich.length > 0) {
+    for (const seg of rich) {
+      ctx.fillStyle = seg.color ?? a.item.meta.color ?? "#fff";
+      ctx.strokeText(seg.text, cursorX, cy);
+      ctx.fillText(seg.text, cursorX, cy);
+      cursorX += ctx.measureText(seg.text).width;
+    }
+  } else {
+    ctx.fillStyle = a.item.meta.color ?? "#fff";
+    ctx.strokeText(a.item.text, cursorX, cy);
+    ctx.fillText(a.item.text, cursorX, cy);
+    cursorX += ctx.measureText(a.item.text).width;
+  }
+
+  // 礼物连击角标
+  if (a.item.meta.combo && a.item.meta.combo > 1) {
+    const tag = ` x${a.item.meta.combo}`;
+    ctx.save();
+    ctx.font = `${fontString(fontSize, a.item, opts)}`;
+    ctx.fillStyle = opts.accent;
+    ctx.strokeStyle = opts.stroke;
+    ctx.lineWidth = Math.max(2, fontSize / 12);
+    ctx.strokeText(tag, cursorX, cy);
+    ctx.fillText(tag, cursorX, cy);
+    ctx.restore();
+  }
 }

@@ -1,0 +1,10 @@
+{
+  "name": "FilterTogglePlugin",
+  "description": "过滤开关条（UI 面）：一排过滤项 chip，点击经 bus 广播 danmaku:filter {key,enabled}，由消费方重建对应数据面插件。",
+  "since": "0.1.0",
+  "tags": ["ui", "filter", "toolbar"],
+  "config": [
+    { "name": "defaults", "type": "string[]", "default": "全部开启", "description": "默认开启的过滤项 key" }
+  ],
+  "example": "withDanmakuPlugins(DanmakuCore, [createFilterTogglePlugin()])"
+}

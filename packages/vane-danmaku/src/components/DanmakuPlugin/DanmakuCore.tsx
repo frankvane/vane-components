@@ -6,6 +6,7 @@ import React, {
   useState,
 } from "react";
 import type { DanmakuCoreProps, DanmakuCoreRef, Rect } from "./plugins/types";
+import { useDanmakuSlot } from "./plugins/slots";
 import {
   DanmakuScheduler,
   draw,
@@ -34,7 +35,7 @@ const DEFAULTS: Omit<RenderOptions, "accent" | "stroke"> = {
  *     保证 Core 可脱离插件运行时独立使用。
  */
 export const DanmakuCore = forwardRef<DanmakuCoreRef, DanmakuCoreProps>(
-  function DanmakuCore(props, ref) {
+    function DanmakuCore(props, ref) {
     const {
       items,
       currentTime = 0,
@@ -51,6 +52,11 @@ export const DanmakuCore = forwardRef<DanmakuCoreRef, DanmakuCoreProps>(
       avoidZoneProvider,
       children,
     } = props;
+
+    // 领域 DOM 插槽：控制面板 / 工具条 / 指令输入框等（弹幕主体仍由 canvas 绘制）
+    const headerNodes = useDanmakuSlot("renderHeader");
+    const overlayNodes = useDanmakuSlot("renderOverlay");
+    const footerNodes = useDanmakuSlot("renderFooter");
 
     const internalRef = useRef<HTMLDivElement | null>(null);
     const containerRef = containerRefExternal ?? internalRef;
@@ -181,6 +187,56 @@ export const DanmakuCore = forwardRef<DanmakuCoreRef, DanmakuCoreProps>(
           ref={canvasRef as React.RefObject<HTMLCanvasElement>}
           style={{ position: "absolute", inset: 0, pointerEvents: "none" }}
         />
+        {/* 顶部工具条（StatsBar / FilterToggle 等） */}
+        {headerNodes.length > 0 && (
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 8,
+              padding: 8,
+              pointerEvents: "none",
+              zIndex: 2,
+            }}
+          >
+            {headerNodes}
+          </div>
+        )}
+        {/* 浮层（SettingsPanel 等自由定位面板） */}
+        {overlayNodes.length > 0 && (
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              pointerEvents: "none",
+              zIndex: 3,
+            }}
+          >
+            {overlayNodes}
+          </div>
+        )}
+        {/* 底部条（CommandInput 等） */}
+        {footerNodes.length > 0 && (
+          <div
+            style={{
+              position: "absolute",
+              bottom: 0,
+              left: 0,
+              right: 0,
+              display: "flex",
+              gap: 8,
+              padding: 8,
+              pointerEvents: "none",
+              zIndex: 2,
+            }}
+          >
+            {footerNodes}
+          </div>
+        )}
         {children}
       </div>
     );

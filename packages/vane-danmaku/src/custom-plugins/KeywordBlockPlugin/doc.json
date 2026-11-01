@@ -1,0 +1,11 @@
+{
+  "name": "KeywordBlockPlugin",
+  "description": "关键词硬屏蔽：命中词直接从弹幕流删除（区别于 SensitiveFilter 打码保留），用于违禁/竞品词。",
+  "since": "0.1.0",
+  "tags": ["block", "filter", "data"],
+  "config": [
+    { "name": "words", "type": "string[]", "default": "[]", "description": "硬屏蔽词" },
+    { "name": "mode", "type": "\"contains\"|\"equals\"", "default": "\"contains\"", "description": "contains=包含即删；equals=整句相等才删" }
+  ],
+  "example": "withDanmakuPlugins(DanmakuCore, [createKeywordBlockPlugin({ words: [\"违禁词\"] })])"
+}

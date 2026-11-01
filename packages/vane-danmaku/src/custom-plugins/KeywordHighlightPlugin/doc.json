@@ -1,0 +1,11 @@
+{
+  "name": "KeywordHighlightPlugin",
+  "description": "关键词高亮：命中词写入 renderHint.rich 带色分段，内核按段着色，其余保持原色。",
+  "since": "0.1.0",
+  "tags": ["highlight", "keyword", "data"],
+  "config": [
+    { "name": "keywords", "type": "string[]", "default": "[]", "description": "要高亮的词" },
+    { "name": "color", "type": "string", "default": "\"#ff7a29\"", "description": "高亮色" }
+  ],
+  "example": "withDanmakuPlugins(DanmakuCore, [createKeywordHighlightPlugin({ keywords: [\"福利\", \"抽奖\"] })])"
+}

@@ -1,0 +1,10 @@
+{
+  "name": "DedupPlugin",
+  "description": "弹幕去重：同一用户+相同文案在 window 秒内重复出现只保留首条，缓解刷屏。",
+  "since": "0.1.0",
+  "tags": ["dedup", "cleanup", "data"],
+  "config": [
+    { "name": "window", "type": "number", "default": "5", "description": "去重时间窗（秒）" }
+  ],
+  "example": "withDanmakuPlugins(DanmakuCore, [createDedupPlugin({ window: 5 })])"
+}

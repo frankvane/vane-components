@@ -1,0 +1,12 @@
+{
+  "name": "TrackStrategyPlugin",
+  "description": "轨道分配策略：vipTop 把管理员/高等级滚动弹幕建议钉到顶部轨道；spread 让其余分散起始轨道。仅产出建议，是否采用由调度器裁决。",
+  "since": "0.1.0",
+  "tags": ["track", "strategy", "data"],
+  "config": [
+    { "name": "vipTop", "type": "boolean", "default": "true", "description": "管理员/高等级钉顶部轨道" },
+    { "name": "vipLevel", "type": "number", "default": "18", "description": "触发 vipTop 的等级阈值" },
+    { "name": "spread", "type": "boolean", "default": "false", "description": "其余滚动弹幕分散起始轨道" }
+  ],
+  "example": "withDanmakuPlugins(DanmakuCore, [createTrackStrategyPlugin({ vipTop: true })])"
+}

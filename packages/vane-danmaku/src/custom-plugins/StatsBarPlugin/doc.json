@@ -1,0 +1,10 @@
+{
+  "name": "StatsBarPlugin",
+  "description": "弹幕统计条（UI 面）：读取领域 data 展示弹幕总数/置顶数/各模式计数，纯展示不修改弹幕流。",
+  "since": "0.1.0",
+  "tags": ["ui", "stats", "toolbar"],
+  "config": [
+    { "name": "showModes", "type": "boolean", "default": "true", "description": "是否显示各模式计数" }
+  ],
+  "example": "withDanmakuPlugins(DanmakuCore, [createStatsBarPlugin()])"
+}

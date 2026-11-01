@@ -39,6 +39,12 @@ export interface DanmakuMeta {
   /** 弹幕颜色覆盖 */
   color?: string;
   fontSize?: number;
+  /** 字体族覆盖（StylePresetPlugin 设定；渲染器优先采用） */
+  fontFamily?: string;
+  /** 字重覆盖（StylePresetPlugin 设定；渲染器优先采用） */
+  fontWeight?: number;
+  /** 礼物连击（GiftComboPlugin 富化；渲染器末尾绘制 xN 角标） */
+  combo?: number;
   /** 表情包占位（EmojiRenderPlugin 填充） */
   emoji?: string[];
 }
@@ -62,7 +68,7 @@ export interface Rect {
  * 这是「数据面插件 ↔ canvas 内核」的唯一契约边界。
  */
 export interface DanmakuRenderHint {
-  /** 指定轨道（置顶 / 防遮挡策略产出） */
+  /** 指定轨道（置顶 / 防遮挡策略 / TrackStrategyPlugin 产出） */
   track?: number;
   /** 高赞高亮环 */
   ring?: boolean;
@@ -72,6 +78,10 @@ export interface DanmakuRenderHint {
   masked?: boolean;
   /** 该条局部避让区（可选，叠加全局避让区） */
   avoidZones?: Rect[];
+  /** 高亮底块颜色（KeywordHighlightPlugin 等：渲染器画半透明圆角底） */
+  highlight?: string;
+  /** 分段着色：命中词 / @提及 等局部着色，渲染器按段绘制（缺省整条单色） */
+  rich?: { text: string; color?: string }[];
 }
 
 /** 单条弹幕 */

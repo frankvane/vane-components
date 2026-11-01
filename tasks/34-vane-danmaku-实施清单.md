@@ -5,16 +5,16 @@
 
 ## P1 构建
 
-- [ ] **脚手架**：`node scripts/create-component.mjs vane-danmaku --title "弹幕" --desc "插件式 React 弹幕组件（canvas 渲染 + 业务语义插件）"` → `pnpm install` → `node scripts/sync-exports.mjs`
-- [ ] **自检扫描**：`check-structure.mjs` / `check-config.mjs` grep 得到 `vane-danmaku`（动态扫描，无需登记）
-- [ ] **依赖派系**：确认 `vane-plugin-core` 在 `peerDependencies`（`workspace:*`）；react/react-dom 仅 peer；MediaPipe 不进 dependencies
-- [ ] **入口聚合**：`src/index.ts`（DanmakuCore + withDanmakuPlugins + 类型）/ `src/entries/core.ts` / `src/entries/plugins.ts`；根不桶导出插件（ADR-6）
-- [ ] **内核 DanmakuCore / TrackRender**：`<canvas>` + rAF 循环；`Renderer` 抽象（`Canvas2DRenderer` 起步）；轨道调度 + `computeLayout` 补坐标；每帧消费 `avoidZones`；纯 canvas 绘制文字/粉丝牌/高赞环。自检 ≤150 行（渲染+生命周期，可变需求全交插件）
-- [ ] **契约**：`forwardRef` + `useImperativeHandle`(getContainer/forceUpdate/getSize) + `containerRefExternal` + onMount/onUnmount；工厂模块顶层调用；context 用 getter
-- [ ] **数据面插件 18 个**（priority 10–29，三件套 + doc.json + `.meta`）：SensitiveFilter / FanBadge / PinnedTop / CmdParse / Dedup / RateLimit / KeywordHighlight / KeywordBlock / UserMute / EmojiRender / AtMention / GiftCombo / LangFilter / AuditLog / StylePreset / TrackStrategy / SpeedControl / ColorPolicy
-- [ ] **UI 面插件 5 个**（priority 30–49，DOM slot）：SettingsPanel(renderOverlay) / FilterToggle(renderToolbar) / CommandInput(renderFooter) / StatsBar(renderToolbar) / SafeZone(lifecycle+data, `getAvoidZones` 契约 + 静态安全区默认)
-- [ ] **插件三件套**：`src/custom-plugins/<Name>Plugin/{create.tsx,doc.json,index.ts}`，缺一 A3 FAIL；实现放 `src/custom-plugins/`（勿放 `components/**/custom-plugins/`）
-- [ ] **P1 门禁**：`./node_modules/.bin/tsc --noEmit` 0 → `../../node_modules/.bin/eslint .` 0 → `vite build --mode lib` 成功 → 仓库根 `node scripts/check-packages.mjs` 绿（先 build 再 check）；`check-structure.mjs --strict` 0
+- [x] **脚手架**：`node scripts/create-component.mjs vane-danmaku --title "弹幕" --desc "插件式 React 弹幕组件（canvas 渲染 + 业务语义插件）"` → `pnpm install` → `node scripts/sync-exports.mjs`
+- [x] **自检扫描**：`check-structure.mjs` / `check-config.mjs` grep 得到 `vane-danmaku`（动态扫描，无需登记）
+- [x] **依赖派系**：确认 `vane-plugin-core` 在 `peerDependencies`（`workspace:*`）；react/react-dom 仅 peer；MediaPipe 不进 dependencies
+- [x] **入口聚合**：`src/index.ts`（DanmakuCore + withDanmakuPlugins + 类型）/ `src/entries/core.ts` / `src/entries/plugins.ts`；根不桶导出插件（ADR-6）
+- [x] **内核 DanmakuCore / TrackRender**：`<canvas>` + rAF 循环；`Renderer` 抽象（`Canvas2DRenderer` 起步）；轨道调度 + `computeLayout` 补坐标；每帧消费 `avoidZones`；纯 canvas 绘制文字/粉丝牌/高赞环/高亮底/分段着色/连击角标。自检 ≤150 行（渲染+生命周期，可变需求全交插件）
+- [x] **契约**：`forwardRef` + `useImperativeHandle`(getContainer/forceUpdate/getSize/getCanvas) + `containerRefExternal` + onMount/onUnmount；工厂模块顶层调用；context 用 getter
+- [x] **数据面插件 18 个**（priority 10–29，三件套 + doc.json + `.meta`）：SensitiveFilter / FanBadge / PinnedTop / CmdParse / Dedup / RateLimit / KeywordHighlight / KeywordBlock / UserMute / EmojiRender / AtMention / GiftCombo / LangFilter / AuditLog / StylePreset / TrackStrategy / SpeedControl / ColorPolicy
+- [x] **UI 面插件 5 个**（priority 30–49，DOM slot）：SettingsPanel(renderOverlay) / FilterToggle(renderHeader) / CommandInput(renderFooter) / StatsBar(renderHeader) / SafeZone(lifecycle+data, `avoidZoneProvider` 契约 + 静态安全区默认)
+- [x] **插件三件套**：`src/custom-plugins/<Name>Plugin/{create.tsx,doc.json,index.ts}`，缺一 A3 FAIL；实现放 `src/custom-plugins/`（勿放 `components/**/custom-plugins/`）
+- [x] **P1 门禁**：`./node_modules/.bin/tsc --noEmit` 0 → `../../node_modules/.bin/eslint .` 0 → `vite build --mode lib` 成功 → 仓库根 `node scripts/check-packages.mjs` 绿（先 build 再 check）；`check-structure.mjs --strict` 0（注：UI 插件经 DanmakuCore 的 useDanmakuSlot 渲染 header/overlay/footer 三层 DOM 槽；render.ts 新增 rich 分段着色 / highlight 高亮底 / combo 连击角标 / track 显式轨道）
 
 ## P2 DEMO
 

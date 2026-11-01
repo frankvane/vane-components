@@ -1,0 +1,11 @@
+{
+  "name": "AtMentionPlugin",
+  "description": "@提及高亮：识别 @用户名 写入 renderHint.rich 带色分段，与 KeywordHighlight 共用分段机制。",
+  "since": "0.1.0",
+  "tags": ["mention", "highlight", "data"],
+  "config": [
+    { "name": "color", "type": "string", "default": "\"#4ea1ff\"", "description": "@提及着色" },
+    { "name": "pattern", "type": "string", "default": "@[\\w\\u4e00-\\u9fa5]+", "description": "自定义提及正则" }
+  ],
+  "example": "withDanmakuPlugins(DanmakuCore, [createAtMentionPlugin()])"
+}

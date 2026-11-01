@@ -1,0 +1,10 @@
+{
+  "name": "CommandInputPlugin",
+  "description": "弹幕/指令输入框（UI 面）：提交经 bus 广播 danmaku:send {text}，由消费方追加弹幕或交给 CmdParse 解析指令。",
+  "since": "0.1.0",
+  "tags": ["ui", "input", "command"],
+  "config": [
+    { "name": "placeholder", "type": "string", "default": "发条弹幕 / 指令（/clear）", "description": "输入框占位符" }
+  ],
+  "example": "withDanmakuPlugins(DanmakuCore, [createCommandInputPlugin()])"
+}

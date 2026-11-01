@@ -1,0 +1,11 @@
+{
+  "name": "LangFilterPlugin",
+  "description": "语种过滤：弹幕须至少命中 allow 中一种字符体系才保留；blockUnknown 时纯符号刷屏直接丢弃。",
+  "since": "0.1.0",
+  "tags": ["lang", "filter", "data"],
+  "config": [
+    { "name": "allow", "type": "(\"cjk\"|\"latin\"|\"symbol\")[]", "default": "[\"cjk\",\"latin\"]", "description": "允许的字符体系" },
+    { "name": "blockUnknown", "type": "boolean", "default": "true", "description": "无命中体系（纯符号）直接丢弃" }
+  ],
+  "example": "withDanmakuPlugins(DanmakuCore, [createLangFilterPlugin({ allow: [\"cjk\"] })])"
+}

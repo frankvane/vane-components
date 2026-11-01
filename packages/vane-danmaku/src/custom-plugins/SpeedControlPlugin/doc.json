@@ -1,0 +1,13 @@
+{
+  "name": "SpeedControlPlugin",
+  "description": "速度控制：飞行时长按 factor 缩放并夹在 [min,max]；未指定 duration 用 defaultDuration 作基准。",
+  "since": "0.1.0",
+  "tags": ["speed", "duration", "data"],
+  "config": [
+    { "name": "factor", "type": "number", "default": "1", "description": "飞行时长系数（>1 更慢）" },
+    { "name": "minDuration", "type": "number", "default": "4", "description": "时长下限（秒）" },
+    { "name": "maxDuration", "type": "number", "default": "16", "description": "时长上限（秒）" },
+    { "name": "defaultDuration", "type": "number", "default": "8", "description": "缺省飞行时长（秒）" }
+  ],
+  "example": "withDanmakuPlugins(DanmakuCore, [createSpeedControlPlugin({ factor: 1.4 })])"
+}

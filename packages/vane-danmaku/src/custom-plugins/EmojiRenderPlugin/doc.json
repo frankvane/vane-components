@@ -1,0 +1,10 @@
+{
+  "name": "EmojiRenderPlugin",
+  "description": "表情短码转义：把 :shortcode:（如 :rocket:）替换为 unicode 表情，内核按普通文字绘制。",
+  "since": "0.1.0",
+  "tags": ["emoji", "text", "data"],
+  "config": [
+    { "name": "map", "type": "Record<string,string>", "default": "{...内置常用表}", "description": "短码->表情映射，可覆盖/扩充内置表" }
+  ],
+  "example": "withDanmakuPlugins(DanmakuCore, [createEmojiRenderPlugin()])"
+}

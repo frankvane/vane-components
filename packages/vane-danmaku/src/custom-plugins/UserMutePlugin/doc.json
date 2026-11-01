@@ -1,0 +1,11 @@
+{
+  "name": "UserMutePlugin",
+  "description": "用户静音：users 中的用户弹幕被删除；allowAdmins 时管理员豁免，避免误伤房管。",
+  "since": "0.1.0",
+  "tags": ["mute", "user", "data"],
+  "config": [
+    { "name": "users", "type": "string[]", "default": "[]", "description": "被静音的用户 id" },
+    { "name": "allowAdmins", "type": "boolean", "default": "true", "description": "管理员豁免静音" }
+  ],
+  "example": "withDanmakuPlugins(DanmakuCore, [createUserMutePlugin({ users: [\"spammer-1\"] })])"
+}

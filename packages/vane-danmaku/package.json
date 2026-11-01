@@ -19,17 +19,65 @@
       "types": "./dist/entries/plugins.d.ts",
       "import": "./dist/entries/plugins.js"
     },
+    "./custom-plugins/AtMentionPlugin": {
+      "types": "./dist/custom-plugins/AtMentionPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/AtMentionPlugin/index.js"
+    },
+    "./custom-plugins/AuditLogPlugin": {
+      "types": "./dist/custom-plugins/AuditLogPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/AuditLogPlugin/index.js"
+    },
     "./custom-plugins/CmdParsePlugin": {
       "types": "./dist/custom-plugins/CmdParsePlugin/index.d.ts",
       "import": "./dist/custom-plugins/CmdParsePlugin/index.js"
+    },
+    "./custom-plugins/ColorPolicyPlugin": {
+      "types": "./dist/custom-plugins/ColorPolicyPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ColorPolicyPlugin/index.js"
+    },
+    "./custom-plugins/CommandInputPlugin": {
+      "types": "./dist/custom-plugins/CommandInputPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/CommandInputPlugin/index.js"
+    },
+    "./custom-plugins/DedupPlugin": {
+      "types": "./dist/custom-plugins/DedupPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/DedupPlugin/index.js"
+    },
+    "./custom-plugins/EmojiRenderPlugin": {
+      "types": "./dist/custom-plugins/EmojiRenderPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/EmojiRenderPlugin/index.js"
     },
     "./custom-plugins/FanBadgePlugin": {
       "types": "./dist/custom-plugins/FanBadgePlugin/index.d.ts",
       "import": "./dist/custom-plugins/FanBadgePlugin/index.js"
     },
+    "./custom-plugins/FilterTogglePlugin": {
+      "types": "./dist/custom-plugins/FilterTogglePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/FilterTogglePlugin/index.js"
+    },
+    "./custom-plugins/GiftComboPlugin": {
+      "types": "./dist/custom-plugins/GiftComboPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/GiftComboPlugin/index.js"
+    },
+    "./custom-plugins/KeywordBlockPlugin": {
+      "types": "./dist/custom-plugins/KeywordBlockPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/KeywordBlockPlugin/index.js"
+    },
+    "./custom-plugins/KeywordHighlightPlugin": {
+      "types": "./dist/custom-plugins/KeywordHighlightPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/KeywordHighlightPlugin/index.js"
+    },
+    "./custom-plugins/LangFilterPlugin": {
+      "types": "./dist/custom-plugins/LangFilterPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/LangFilterPlugin/index.js"
+    },
     "./custom-plugins/PinnedTopPlugin": {
       "types": "./dist/custom-plugins/PinnedTopPlugin/index.d.ts",
       "import": "./dist/custom-plugins/PinnedTopPlugin/index.js"
+    },
+    "./custom-plugins/RateLimitPlugin": {
+      "types": "./dist/custom-plugins/RateLimitPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/RateLimitPlugin/index.js"
     },
     "./custom-plugins/SafeZonePlugin": {
       "types": "./dist/custom-plugins/SafeZonePlugin/index.d.ts",
@@ -38,6 +86,30 @@
     "./custom-plugins/SensitiveFilterPlugin": {
       "types": "./dist/custom-plugins/SensitiveFilterPlugin/index.d.ts",
       "import": "./dist/custom-plugins/SensitiveFilterPlugin/index.js"
+    },
+    "./custom-plugins/SettingsPanelPlugin": {
+      "types": "./dist/custom-plugins/SettingsPanelPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/SettingsPanelPlugin/index.js"
+    },
+    "./custom-plugins/SpeedControlPlugin": {
+      "types": "./dist/custom-plugins/SpeedControlPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/SpeedControlPlugin/index.js"
+    },
+    "./custom-plugins/StatsBarPlugin": {
+      "types": "./dist/custom-plugins/StatsBarPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/StatsBarPlugin/index.js"
+    },
+    "./custom-plugins/StylePresetPlugin": {
+      "types": "./dist/custom-plugins/StylePresetPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/StylePresetPlugin/index.js"
+    },
+    "./custom-plugins/TrackStrategyPlugin": {
+      "types": "./dist/custom-plugins/TrackStrategyPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/TrackStrategyPlugin/index.js"
+    },
+    "./custom-plugins/UserMutePlugin": {
+      "types": "./dist/custom-plugins/UserMutePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/UserMutePlugin/index.js"
     },
     "./custom-plugins": {
       "types": "./dist/custom-plugins/index.d.ts",

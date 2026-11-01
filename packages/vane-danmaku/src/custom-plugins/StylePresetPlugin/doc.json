@@ -1,0 +1,12 @@
+{
+  "name": "StylePresetPlugin",
+  "description": "统一样式预设：为未指定样式的弹幕补齐 fontFamily/fontWeight/fontSize 默认，整场风格统一。",
+  "since": "0.1.0",
+  "tags": ["style", "preset", "data"],
+  "config": [
+    { "name": "fontFamily", "type": "string", "default": "system-ui, sans-serif", "description": "字体族" },
+    { "name": "fontWeight", "type": "number", "default": "400", "description": "字重" },
+    { "name": "fontSize", "type": "number", "default": "22", "description": "基础字号（仅当单条未指定时生效）" }
+  ],
+  "example": "withDanmakuPlugins(DanmakuCore, [createStylePresetPlugin({ fontWeight: 600 })])"
+}

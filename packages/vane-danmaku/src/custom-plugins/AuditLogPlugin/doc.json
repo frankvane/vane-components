@@ -1,0 +1,11 @@
+{
+  "name": "AuditLogPlugin",
+  "description": "弹幕审计：不增删弹幕，对每条触发 onLog 回调（审核/风控/落库），可选经 bus 广播 danmaku:audit。",
+  "since": "0.1.0",
+  "tags": ["audit", "log", "data"],
+  "config": [
+    { "name": "onLog", "type": "(item, context) => void", "default": "undefined", "description": "每条弹幕的审计回调" },
+    { "name": "emit", "type": "boolean", "default": "false", "description": "是否经 bus 广播 danmaku:audit" }
+  ],
+  "example": "withDanmakuPlugins(DanmakuCore, [createAuditLogPlugin({ onLog: (it) => console.log(it.id) })])"
+}

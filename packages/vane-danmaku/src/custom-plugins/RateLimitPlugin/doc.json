@@ -1,0 +1,11 @@
+{
+  "name": "RateLimitPlugin",
+  "description": "单用户限流：window 秒内超过 max 条的同用户弹幕被丢弃，防刷屏压垮轨道。",
+  "since": "0.1.0",
+  "tags": ["ratelimit", "flood", "data"],
+  "config": [
+    { "name": "max", "type": "number", "default": "3", "description": "窗口内单用户最多保留条数" },
+    { "name": "window", "type": "number", "default": "10", "description": "统计窗口（秒）" }
+  ],
+  "example": "withDanmakuPlugins(DanmakuCore, [createRateLimitPlugin({ max: 3, window: 10 })])"
+}
