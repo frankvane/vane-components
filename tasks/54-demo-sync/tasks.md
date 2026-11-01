@@ -51,8 +51,8 @@
 
 ## T5 · 提交与双推
 
-- [ ] T5.1 `chore(file-preview): 同步 demo 到 sandbox/无 embed 的新行为`（含 T1 与 spec/tasks）
-- [ ] T5.2 `chore(profile): 同步 FollowEcho mutual 点击语义文案`（含 T2）
-- [ ] T5.3 `git push origin main`
-- [ ] T5.4 `git push github main`
-- [ ] T5.5 `git ls-remote` 校验 origin / github 均为最新提交，工作区 clean。
+- [x] T5.1 `chore(file-preview): 同步 demo 到 sandbox/无 embed 的新行为`（含 T1 与 spec/tasks）
+- [x] T5.2 `chore(profile): 同步 FollowEcho mutual 点击语义文案`（含 T2）
+- [x] T5.3 `git push origin main`
+- [x] T5.4 `git push github main`
+- [x] T5.5 `git ls-remote` 校验 origin / github 均为最新提交，工作区 clean。
