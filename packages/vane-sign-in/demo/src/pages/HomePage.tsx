@@ -11,7 +11,7 @@ import { SCENARIOS, USED_PLUGINS } from "../scenarios/catalog";
 
 export function HomePage() {
   return (
-    <article>
+    <article className="home">
       <header className="page-head">
         <div>
           <p className="eyebrow">overview · 总览</p>
@@ -62,6 +62,37 @@ export function HomePage() {
           </span>
         </a>
       </section>
+
+      <section className="home-start">
+        <div className="home-start-step">
+          <span>01</span>
+          <div>
+            <b>看单插件</b>
+            <span>逐项示例每页只装一个插件，先把独立行为看明白。</span>
+          </div>
+        </div>
+        <div className="home-start-step">
+          <span>02</span>
+          <div>
+            <b>去工坊装配</b>
+            <span>勾选想要的插件，右侧即时出可运行的预览与装配代码。</span>
+          </div>
+        </div>
+        <div className="home-start-step">
+          <span>03</span>
+          <div>
+            <b>套场景落地</b>
+            <span>场景示例把原子插件拼成真实运营位，抄最小装配代码即可。</span>
+          </div>
+        </div>
+      </section>
+
+      <footer className="home-foot">
+        <span>
+          {PLUGINS.length} 插件 · {SCENARIOS.length} 场景 · {DEMOS.length} 示例，全部可勾选装配
+        </span>
+        <a href="#/demo/basic">从最小可用开始 →</a>
+      </footer>
     </article>
   );
 }

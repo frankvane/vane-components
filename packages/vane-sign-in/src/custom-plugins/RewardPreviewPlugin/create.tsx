@@ -35,7 +35,17 @@ export function createRewardPreviewPlugin<T = any>(
         );
         if (!rewards.length) return null;
         return (
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          <div
+            style={{
+              background: "#fafbfc",
+              border: "1px solid #eef0f2",
+              borderRadius: 10,
+              padding: "10px 12px",
+              display: "flex",
+              flexDirection: "column",
+              gap: 8,
+            }}
+          >
             {rewards.slice(0, limit).map((r) => (
               <div
                 key={r.day}
@@ -48,7 +58,7 @@ export function createRewardPreviewPlugin<T = any>(
                     borderRadius: 8,
                     flex: "0 0 auto",
                     background: "#fff8e1",
-                    color: "#b8860b",
+                    color: "#9a6a00",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",

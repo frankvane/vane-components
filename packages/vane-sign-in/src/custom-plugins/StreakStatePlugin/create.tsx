@@ -4,6 +4,7 @@ import type {
   SignInPluginContext,
 } from "../../components/SignInPlugin/plugins/types";
 import type { PluginDoc } from "vane-plugin-core";
+import { ACCENT, TEXT_2, BORDER } from "../tokens";
 import doc from "./doc.json";
 
 export interface StreakStateConfig {
@@ -30,19 +31,35 @@ export function createStreakStatePlugin<T = any>(
       renderHeader: (ctx: SignInPluginContext<T>) => {
         const { streak, maxStreak } = ctx.data;
         return (
-          <div data-testid="si-streak" style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+          <div
+            data-testid="si-streak"
+            style={{ display: "flex", alignItems: "baseline", gap: 8 }}
+          >
             <span
-              style={{ fontSize: 30, fontWeight: 800, color: "#cf4407", lineHeight: 1 }}
+              style={{
+                fontSize: 34,
+                fontWeight: 800,
+                color: ACCENT,
+                lineHeight: 1,
+                letterSpacing: "-0.5px",
+              }}
             >
               {streak}
             </span>
-            <span style={{ fontSize: 13, color: "#6b6b6b" }}>天连签</span>
+            <span style={{ fontSize: 13, color: TEXT_2, fontWeight: 600 }}>
+              天连签
+            </span>
             {showMax && (
               <span
                 style={{
                   marginLeft: "auto",
                   fontSize: 12,
-                  color: "#8a8a8a",
+                  color: TEXT_2,
+                  background: "#faf7f4",
+                  border: `1px solid ${BORDER}`,
+                  borderRadius: 999,
+                  padding: "3px 10px",
+                  whiteSpace: "nowrap",
                 }}
               >
                 最高 {maxStreak} 天

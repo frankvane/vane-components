@@ -898,19 +898,26 @@ time {
 /* ============================================================
    6. 总览页入口卡
    ============================================================ */
+/* 总览页统一收成一条 920 居中的栏：标题/导语/卡片/步骤/页脚左缘对齐 */
+.home .page-head,
+.home .page-sub {
+  max-width: 920px;
+  margin-left: auto;
+  margin-right: auto;
+}
 .home-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--s4);
-  background: transparent;
-  border: 0;
-  padding: 0;
+  max-width: 920px;
+  margin: 0 auto;
 }
 .home-card {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: var(--s4);
+  padding: var(--s5);
+  min-height: 136px;
   background: var(--ink-1);
   border: 1px solid var(--rule);
   border-radius: var(--r);
@@ -937,6 +944,71 @@ time {
   color: var(--dim);
   font-size: 13px;
   line-height: 1.6;
+}
+
+/* 快速开始：填补总览页下部留白，给新用户一条明确动线 */
+.home-start {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s4);
+  max-width: 920px;
+  margin: var(--s6) auto 0;
+}
+.home-start-step {
+  display: flex;
+  gap: 12px;
+  padding: var(--s4);
+  border: 1px dashed var(--rule-2);
+  border-radius: var(--r);
+}
+.home-start-step > span {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--accent-wash);
+  color: var(--accent);
+  font-family: var(--ff-mono);
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.home-start-step div b {
+  display: block;
+  font-family: var(--ff-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+.home-start-step div span {
+  color: var(--dim);
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.home-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s4);
+  max-width: 920px;
+  margin: var(--s6) auto 0;
+  padding-top: var(--s4);
+  border-top: 1px solid var(--rule);
+  color: var(--faint);
+  font-size: 13px;
+}
+.home-foot a {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.home-foot a:hover {
+  text-decoration: underline;
 }
 
 /* ============================================================
