@@ -1,0 +1,576 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>vane-file-preview 核心功能评审</title>
+<style>
+  :root{
+    --bg:#0b0a09; --panel:#171513; --panel2:#1d1a17;
+    --line:rgba(255,255,255,.09); --line2:rgba(255,255,255,.16);
+    --text:#ebe7e2; --muted:#9a938c; --dim:#6f6862;
+    --accent:#ff7a29; --accent-soft:rgba(255,122,41,.14);
+    --p0:#ff4d4f; --p1:#ffa940; --p2:#7aa7ff; --ok:#3ecf8e;
+    --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1200px 600px at 12% -8%,rgba(255,122,41,.13),transparent 60%),
+      radial-gradient(900px 500px at 92% 0%,rgba(122,167,255,.08),transparent 62%),
+      var(--bg);
+    color:var(--text);font-family:var(--sans);line-height:1.65;
+    padding:44px 28px 90px;
+  }
+  .wrap{max-width:1180px;margin:0 auto}
+  header.hero{border-bottom:1px solid var(--line);padding-bottom:26px;margin-bottom:34px}
+  .eyebrow{display:flex;gap:10px;align-items:center;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent)}
+  h1{font-size:clamp(26px,3.6vw,42px);line-height:1.16;margin:14px 0 10px;letter-spacing:-.02em}
+  h1 span{color:var(--accent)}
+  .sub{color:var(--muted);max-width:840px;font-size:15px}
+  .sub code,.sec-desc code{font-family:var(--mono);font-size:12.5px;color:var(--accent)}
+  .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+  .chip{font-size:12px;color:var(--muted);border:1px solid var(--line2);border-radius:999px;padding:4px 11px}
+  .chip b{color:var(--text);font-weight:600}
+
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin:6px 0 44px}
+  .stat{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:14px;padding:18px;position:relative;overflow:hidden}
+  .stat::after{content:"";position:absolute;inset:auto 0 0 0;height:2px;background:var(--accent-soft)}
+  .stat .n{font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1.1}
+  .stat .k{font-size:12px;color:var(--muted);margin-top:5px}
+  .stat.p0 .n{color:var(--p0)} .stat.p1 .n{color:var(--p1)} .stat.p2 .n{color:var(--p2)} .stat.ok .n{color:var(--ok)}
+
+  section{margin-bottom:48px}
+  .sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:8px}
+  .sec-head h2{font-size:21px;margin:0;letter-spacing:-.01em}
+  .sec-head .idx{font-family:var(--mono);font-size:12px;color:var(--accent);border:1px solid var(--accent-soft);background:var(--accent-soft);padding:2px 7px;border-radius:6px}
+  .sec-desc{color:var(--muted);font-size:14px;margin:0 0 20px;max-width:920px}
+
+  .flow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+  .flow .step{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+  .flow .step h4{margin:0 0 6px;font-size:13.5px;color:var(--text)}
+  .flow .step p{margin:0;font-size:12px;color:var(--muted);line-height:1.55}
+  .flow .step code{font-family:var(--mono);font-size:11px;color:var(--accent)}
+  .flow .step:nth-child(2){border-color:rgba(255,122,41,.35)}
+  .flow .step:nth-child(4){border-color:rgba(122,167,255,.3)}
+
+  .issues{display:grid;gap:16px}
+  .issue{background:linear-gradient(180deg,rgba(255,255,255,.03),transparent 40%),var(--panel);border:1px solid var(--line);border-left:3px solid var(--p1);border-radius:12px;padding:18px 20px}
+  .issue.p0{border-left-color:var(--p0)}
+  .issue.p2{border-left-color:var(--p2)}
+  .issue .top{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:start}
+  .issue h3{margin:0;font-size:16px;line-height:1.45}
+  .sev{font-size:11px;font-weight:700;letter-spacing:.08em;padding:3px 9px;border-radius:999px;white-space:nowrap}
+  .sev.p0{color:#2a0000;background:var(--p0)}
+  .sev.p1{color:#1a1200;background:var(--p1)}
+  .sev.p2{color:#04122e;background:var(--p2)}
+  .issue .body{margin-top:12px;display:grid;gap:10px}
+  .row{display:grid;grid-template-columns:78px 1fr;gap:10px;font-size:13.5px}
+  .row .lb{color:var(--dim);font-size:12px;padding-top:2px}
+  .row .v{color:var(--muted)}
+  .row .v b{color:var(--text);font-weight:600}
+  pre{background:#0d0c0b;border:1px solid var(--line);border-radius:10px;padding:13px 15px;overflow:auto;margin:0}
+  pre code{font-family:var(--mono);font-size:12px;color:#d9d3cd;line-height:1.65;white-space:pre}
+  .path{font-family:var(--mono);font-size:12px;color:var(--accent);background:rgba(255,122,41,.08);border-radius:5px;padding:1px 6px}
+
+  .ok-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+  .ok-card{background:rgba(62,207,142,.045);border:1px solid rgba(62,207,142,.22);border-radius:12px;padding:16px}
+  .ok-card h4{margin:0 0 7px;font-size:14px;color:#bfeed8;display:flex;gap:7px;align-items:center}
+  .ok-card h4 .tick{color:var(--ok);font-size:13px}
+  .ok-card p{margin:0;font-size:12.5px;color:var(--muted);line-height:1.6}
+  .ok-card code{font-family:var(--mono);font-size:11px;color:#9fe3c3}
+
+  .sec-grid{display:grid;grid-template-columns:1.15fr 1fr;gap:14px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:18px 20px}
+  .panel h4{margin:0 0 10px;font-size:14.5px}
+  .kv{display:grid;gap:9px}
+  .kv .r{display:grid;grid-template-columns:104px 1fr;gap:10px;font-size:13px}
+  .kv .r .k{color:var(--dim);font-size:12px}
+  .kv .r .x{color:var(--muted)}
+  .tag{display:inline-block;font-size:11px;padding:1px 8px;border-radius:999px;margin-right:6px}
+  .tag.safe{color:var(--ok);background:rgba(62,207,142,.12)}
+  .tag.warn{color:var(--p1);background:rgba(255,169,64,.13)}
+  .tag.danger{color:var(--p0);background:rgba(255,77,79,.13)}
+  .tag.info{color:var(--p2);background:rgba(122,167,255,.12)}
+
+  .fix{display:grid;gap:10px}
+  .fix .f{display:grid;grid-template-columns:44px 1fr auto;gap:14px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:13px 16px}
+  .fix .f .no{font-family:var(--mono);font-size:18px;color:var(--accent);text-align:center}
+  .fix .f .t{font-size:13.5px}
+  .fix .f .t span{display:block;color:var(--dim);font-size:11.5px;margin-top:2px;font-family:var(--mono)}
+  .fix .f .e{font-size:11px;color:var(--muted);border:1px solid var(--line2);border-radius:999px;padding:3px 10px;white-space:nowrap}
+
+  footer{border-top:1px solid var(--line);padding-top:20px;color:var(--dim);font-size:12px;display:grid;gap:6px}
+  @media (max-width:860px){.flow{grid-template-columns:1fr 1fr}.sec-grid{grid-template-columns:1fr}.row{grid-template-columns:1fr}.fix .f{grid-template-columns:32px 1fr;row-gap:8px}.fix .f .e{grid-column:2}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow"><span class="dot"></span>tasks/39 · vane-file-preview 核心功能评审 · 2026-11-01</div>
+    <h1>文件预览组件核心功能分析<span>：1 P0 · 5 P1 · 9 P2</span></h1>
+    <p class="sub">
+      审查 <code>packages/vane-file-preview</code>（src 60 文件 / 8571 行、17 个渲染器插件 + 内核装配层）的
+      「文件类型识别 → 渲染器选择 → 内容加载 → 缩放/翻页/切换 → 错误与降级」主链路。
+      结论：路由与状态机骨架成立、缺依赖与未知类型都有可渲染的降级面板，但<b>加载竞态</b>、<b>跨文件共享状态残留</b>、
+      <b>大文件阻断</b>与<b>无 sandbox 的 iframe</b> 是真实接入必然踩到的四类问题。本报告只读审查，未改动任何源码/配置/测试。
+    </p>
+    <div class="meta">
+      <span class="chip">范围 <b>src 60 文件 / 8571 行</b></span>
+      <span class="chip">方法 <b>调用链源码审查 + 单测实证</b></span>
+      <span class="chip">基线 <b>security-best-practices</b></span>
+      <span class="chip">基线 <b>vercel-react-best-practices</b></span>
+      <span class="chip">测试 <b>18 文件 / 260 用例通过</b></span>
+    </div>
+  </header>
+
+  <div class="stats">
+    <div class="stat p0"><div class="n">1</div><div class="k">P0 安全 · iframe 无 sandbox</div></div>
+    <div class="stat p1"><div class="n">5</div><div class="k">P1 高优先级 · 真实接入必踩</div></div>
+    <div class="stat p2"><div class="n">9</div><div class="k">P2 契约 / 性能 / 无障碍</div></div>
+    <div class="stat ok"><div class="n">260/260</div><div class="k">单元测试通过 · 18 文件</div></div>
+    <div class="stat ok"><div class="n">0</div><div class="k">预览侧泄漏的 objectURL</div></div>
+  </div>
+
+  <!-- 01 数据流 -->
+  <section>
+    <div class="sec-head"><span class="idx">01</span><h2>核心数据流与职责边界</h2></div>
+    <p class="sec-desc">
+      主链路是一条单向流水线：<b>文件描述符</b>进装配层 → <b>纯函数路由</b>选出唯一赢家 →
+      <b>Core 状态机</b>开门 → <b>赢家插件</b>动态加载解析库并自报状态 → 工具栏/正文双插槽渲染。
+      「状态」只有一个真源（Core 的 <code>stateRef</code>），插件只能通过 <code>reportState</code> 上报；
+      「跨插件通信」只有一张 <code>sharedData</code>。后文所有问题都能落回这两个单点。
+    </p>
+    <div class="flow">
+      <div class="step"><h4>① FileInfo 进入装配层</h4><p><code>name / type / extension / size / url</code> 由消费方传入，<code>withPlugins</code> 用它做路由与渲染。</p></div>
+      <div class="step"><h4>② resolvePreview 单赢家</h4><p>排序键：<code>priority</code> 降序 → 匹配置信度（MIME=2 / 扩展名=1）→ 声明顺序；<code>canHandle</code> 优先且互斥。</p></div>
+      <div class="step"><h4>③ Core 开门</h4><p><code>loading</code> → <code>onBeforeLoad()</code> → <code>loaded</code> / <code>error</code>；无赢家时装配层返回 <code>false</code> 直接落 <code>idle</code>。</p></div>
+      <div class="step"><h4>④ 插件懒加载解析库</h4><p><code>useDynamicModule</code> 动态 import；缺失的 optional peer 落到 <code>MissingDependency</code> 面板，不白屏。</p></div>
+      <div class="step"><h4>⑤ 双插槽渲染</h4><p><code>renderToolbar</code> + <code>render</code> 只渲染赢家；工具栏与正文通过 <code>sharedData</code> + <code>forceUpdate</code> 同步。</p></div>
+    </div>
+  </section>
+
+  <!-- 02 已验证成立 -->
+  <section>
+    <div class="sec-head"><span class="idx">02</span><h2>已验证成立的核心机制</h2></div>
+    <p class="sec-desc">
+      这几条是最容易被误判为「没做」的地方。逐条按代码与测试核对后结论是「成立」，不作为问题上报。
+    </p>
+    <div class="ok-grid">
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>单赢家路由可单测、规则无歧义</h4>
+        <p><code>resolvePreview</code> 先过滤出 <code>strength &gt; 0</code> 的候选，再按 priority → 置信度 → 声明顺序稳定排序；空 MIME 靠扩展名兜底，不会出现「空 type 一律不认」。<code>test/resolve.test.ts</code> 覆盖通配、互斥、平手、兜底。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>未知类型有明确的降级面板</h4>
+        <p>无任何插件认领时 <code>onBeforeLoad</code> 返回 <code>false</code>（<span class="path">withPlugins.tsx:217-223</span>），Core 不进加载流程，正文换成 <code>UnsupportedNotice</code>（<code>data-vfp-unsupported</code>，:59/:256）。不会白屏、不会无限 loading。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>懒加载有卸载守卫</h4>
+        <p><span class="path">shared/useDynamicModule.ts:43-63</span> 中 <code>let alive = true</code> + cleanup 置 false，模块 resolve 后先判 <code>alive</code> 再写 state；默认导出用 <code>defaultOf</code> 兼容 CJS/UMD。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>缺依赖可渲染，而不是模块图炸裂</h4>
+        <p>7 个重依赖插件改动态 import，失败落到 <span class="path">shared/panels.tsx:138-241</span> 的 <code>MissingDependency</code>：写明包名、安装命令、折叠原始错误。optional peer 的语义因此成立。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>Markdown 默认不解析原始 HTML</h4>
+        <p><code>allowHtml</code> 默认 <code>false</code>（<span class="path">MarkdownPreviewPlugin/create.tsx:530</span>），安全档只加载非 raw 链路；开启档也追加 <code>stripDangerousAttrs</code> 剥 <code>on*</code> 与 <code>javascript:</code>（:159-178 / :343-347）。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>预览侧不创建 objectURL</h4>
+        <p>全库 <code>URL.createObjectURL</code> 仅 2 处，都是用户触发的导出下载（<span class="path">JsonPreviewPlugin:312-315</span>、<span class="path">CsvPreviewPlugin:193-196</span>），且都在 2s/10s 后 <code>revokeObjectURL</code>。预览本身直接用 <code>file.url</code>，不存在「每渲染一次泄漏一个 blob」。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>体积门控已有可复制范式</h4>
+        <p>JSON 在 <code>fetch</code> 前用 <code>file.size</code> 拦（<span class="path">JsonPreviewPlugin/create.tsx:172-180</span>），XML 同理（<span class="path">XmlPreviewPlugin/create.tsx:159-167</span>），超限给「下载原文件」的出路而不是硬解析。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>EPUB 不用 blob URL、关闭脚本内容</h4>
+        <p><span class="path">EpubPreviewPlugin/create.tsx:385-408</span> 直接把解析后的对象传给 Reader，<code>epubOptions={{ allowScriptedContent: false }}</code>（:394）；文件头注释也记录了「blob: 会丢章节相对路径」的原因。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>Core 单真源 + 用户回调不丢</h4>
+        <p><span class="path">FilePreviewCore.tsx:132-136</span> 每次提交都写 <code>stateRef</code> 并回调；<span class="path">withPlugins.tsx:243-252</span> 先做值比较镜像，再把用户的 <code>onStateChange</code> 转发出去，宿主不会「一直停在 idle」。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>CSV 编码识别是完整的</h4>
+        <p><span class="path">CsvPreviewPlugin/parse.ts:170-212</span>：BOM → 严格 UTF-8 → GB18030 → 宽容 UTF-8 四级降级，避免 GBK 表格一片乱码；<code>parseCsv</code> 还补齐长短行并给出 warnings。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 P0 -->
+  <section>
+    <div class="sec-head"><span class="idx">03</span><h2>P0 阻断级问题</h2></div>
+    <p class="sec-desc">只有 1 条，但属于「不受信文件内容在宿主源执行」的安全边界，建议优先处理。</p>
+    <div class="issues">
+      <div class="issue p0">
+        <div class="top"><h3>P0-1 · PDF / Office 用无 sandbox 的 iframe 渲染不受信文件</h3><span class="sev p0">P0</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">packages/vane-file-preview/src/custom-plugins/PdfPreviewPlugin/create.tsx:89-90</span></div></div>
+          <pre><code>{useIframe ? (
+  &lt;iframe src={src} title={file.name} style={frameStyle} /&gt;
+) : (
+  &lt;embed src={src} type="application/pdf" style={frameStyle} title={file.name} /&gt;
+)}</code></pre>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">packages/vane-file-preview/src/custom-plugins/OfficePreviewPlugin/create.tsx:206-210</span> 同样是裸 <code>&lt;iframe src={buildViewerUrl(...)}&gt;</code>。全库 <code>src</code> 检索 <code>sandbox</code> 命中数为 <b>0</b>。</div></div>
+          <div class="row"><span class="lb">证据 3</span><div class="v">PDF 插件同时声明了 <code>supportedTypes: ["application/pdf"]</code> 与 <code>supportedExtensions: [".pdf"]</code>（<span class="path">PdfPreviewPlugin/create.tsx:61-62</span>）。<code>matchExtension</code> 命中即得 1 分置信度，因此<b>只要扩展名是 .pdf，即使 MIME 声明不对也会被路由到 PDF 插件</b>。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">文件预览的输入天然不可信（用户上传、别人转发的链接）。当 iframe 目标实际返回 <code>text/html</code>（同源静态目录、按扩展名给 MIME 的简易文件服务、或消费方自建的 <code>blob:</code> URL —— blob 继承创建者 origin）时，HTML 里的脚本会<b>在宿主源执行</b>，可读 cookie/localStorage、代发同源请求，构成存储型 XSS。若目标跨源，脚本虽被 SOP 隔离，但仍可诱导点击/社工。Office 走第三方 viewer，风险低一档，但同样缺失边界。</div></div>
+          <div class="row"><span class="lb">前提</span><div class="v">浏览器对真正的 <code>application/pdf</code> 会进内置查看器、不执行 HTML；本条的触发条件是「响应 Content-Type 为 HTML 而路由仍按扩展名命中」，属于真实可达但非默认路径。这里按「安全边界缺失」定级 P0。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">给两个 iframe 加 <code>sandbox="allow-scripts"</code>（<b>不要</b>同时给 <code>allow-same-origin</code>，否则可逃逸到宿主源）或更严格的 <code>sandbox=""</code>，并配 <code>referrerPolicy="no-referrer"</code>；PDF 场景更彻底的做法是引入 pdf.js 自绘，不走 iframe。服务端/消费方配合设置 <code>Content-Security-Policy: frame-src</code> 白名单与 <code>X-Content-Type-Options: nosniff</code>。改动后需回归「内置 PDF 查看器是否仍可翻页」。</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 P1 -->
+  <section>
+    <div class="sec-head"><span class="idx">04</span><h2>P1 问题（建议本迭代修）</h2></div>
+    <p class="sec-desc">以下 5 条在「列表里快速切换文件 / 打开真实大文件 / 用户开启 HTML 预览」时必然踩到，且都有明确代码证据。</p>
+    <div class="issues">
+
+      <div class="issue p1">
+        <div class="top"><h3>P1-1 · 加载状态无请求令牌：快速切文件时旧加载覆盖新文件</h3><span class="sev p1">P1</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">packages/vane-file-preview/src/components/FilePreviewPlugin/core/FilePreviewCore.tsx:145-172</span></div></div>
+          <pre><code>const runLoad = useCallback(async (opts?: { force?: boolean }) =&gt; {
+  const cur = stateRef.current.state;
+  if (!opts?.force &amp;&amp; (cur === "loading" || cur === "loaded")) return;
+
+  commit({ state: "loading" });
+  try {
+    const canLoad = await Promise.resolve(callbacksRef.current.onBeforeLoad?.());
+    if (canLoad === false) { commit({ state: "idle" }); return; }
+    commit({ state: "loaded" });
+  } catch (error) { commit({ state: "error", ... }); }
+}, [commit]);</code></pre>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">同文件 :181-184</span> 自动加载 effect 只依赖 <code>file.url</code>，<b>没有 cleanup</b>：<code>useEffect(() =&gt; { void runLoad({ force: true }); }, [file.url])</code>。</div></div>
+          <div class="row"><span class="lb">时序</span><div class="v">文件 A 的 <code>onBeforeLoad</code> 是异步的（比如消费方在那里取签名 URL / 做鉴权），此时用户切到文件 B：B 的 runLoad 先 <code>commit(loading)</code>，随后 A 的 Promise resolve → <code>commit(loaded)</code> → <b>A 的进度把 B 的状态改成 loaded</b>，而 B 的内容可能还没开始渲染。反向（A 抛错）则会把 B 打到 error。</div></div>
+          <div class="row"><span class="lb">同类</span><div class="v">插件里旧异步任务在文件切换后仍调 <code>reportState</code>（如图片 <code>onError</code>），同样会写入新文件的状态 —— Core 只校验补丁内容，不校验「这条上报属于哪个文件」。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">引入 <code>loadTokenRef</code>：每次 <code>runLoad</code>/<code>reportState</code> 携带当前 token（或 <code>file.url</code> 快照），每个 <code>await</code> 后与最新 token 比对，不一致直接丢弃；effect 的 cleanup 递增 token。插件侧异步也能复用同一个 token。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p1">
+        <div class="top"><h3>P1-2 · DOCX 渲染竞态：fetch 之后、渲染之前没有 alive 检查</h3><span class="sev p1">P1</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">packages/vane-file-preview/src/custom-plugins/DocxPreviewPlugin/create.tsx:115-133</span></div></div>
+          <pre><code>const res = await fetch(file.url);
+...
+const arrayBuffer = await res.arrayBuffer();
+
+const host = hostRef.current;
+if (!host) return;
+host.innerHTML = "";                       // 旧内容先清空
+await docx.renderAsync(arrayBuffer, host, null, {...});
+if (!alive) return;                         // 只有渲染完才检查
+setState({ status: "ready" });</code></pre>
+          <div class="row"><span class="lb">问题</span><div class="v">cleanup 只把 <code>alive = false</code>，但代码在清空 DOM 与 <code>renderAsync</code> 之间<b>从不读它</b>。切到文件 B 后，A 的 fetch 若更晚 resolve，旧 effect 仍会清空 host 并把 A 的文档画进 B 的容器 —— 表现为「切过去先看到旧文档，再被新文档覆盖」或直接停在旧文档。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">在 <code>fetch</code>、<code>arrayBuffer</code>、DOM 清空之前各补一次 <code>if (!alive) return</code>；fetch 传 <code>AbortController</code>。更稳的写法是先渲染到游离的 <code>DocumentFragment</code>/临时节点，完成后再整体替换 host，避免半成品文档闪入。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p1">
+        <div class="top"><h3>P1-3 · sharedData 的生命周期是整个组件实例，跨文件状态串味</h3><span class="sev p1">P1</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">根因</span><div class="v"><span class="path">packages/plugin-core/src/react/usePluginRuntime.ts:88</span></div></div>
+          <pre><code>const sharedRef = useRef&lt;Map&lt;string, unknown&gt;&gt;(new Map());
+// 生命周期 = 宿主组件实例；file.url 变化不会清空</code></pre>
+          <div class="row"><span class="lb">证据 1</span><div class="v">图片的缩放/旋转存在 sharedData：<span class="path">ImagePreviewPlugin/create.tsx:60-61</span> 定义 <code>KEY_SCALE = "image:scale"</code> / <code>KEY_ROTATION = "image:rotation"</code>，正文 <span class="path">:79-80</span> 直接 <code>useSharedValue</code> 读取。组件没有「file.url 变化时复位」的逻辑（<code>:85</code> 在非 loaded 时返回 null，但值还在 Map 里）。</div></div>
+          <div class="row"><span class="lb">证据 2</span><div class="v">代码预览语言同样驻留 sharedData：<span class="path">CodePreviewPlugin/create.tsx:140-146</span> 的 fallback 只在 key <b>不存在</b>时生效。用户给 <code>a.ts</code> 手动选过 TypeScript 后再打开 <code>b.py</code>，仍显示 TypeScript。</div></div>
+          <div class="row"><span class="lb">证据 3</span><div class="v">CSV 的搜索词/分隔符/页码：<span class="path">CsvPreviewPlugin/create.tsx:92-94</span>。前一个文件里输入的过滤词会继续过滤新文件，用户会以为新文件「是空的」。</div></div>
+          <div class="row"><span class="lb">说明</span><div class="v">XLSX 的 <code>KEY_ACTIVE</code> 在每次加载时被重置为 <code>defaultSheetIndex</code>（<span class="path">XlsxPreviewPlugin/create.tsx:128-132</span>），所以它<b>不在</b>本条问题里 —— 这个写法本身可以作为其余插件的修复范式。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">两种方案择一：（a）在 <code>withPlugins</code> 里监听 <code>file.url</code>，变化时清空 sharedData 并 <code>forceUpdate</code>；（b）key 加文件作用域（<code>image:scale:${file.url}</code>），插件在文件切换的 effect 里复位本地 key。文档里已有「<code>sharedData</code> 是跨插件表」的提醒，还应补一句「不跨文件」。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p1">
+        <div class="top"><h3>P1-4 · 大文件无体积门控：同步解析进主线程，最长可达数十秒</h3><span class="sev p1">P1</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v">Code：<span class="path">CodePreviewPlugin/create.tsx:206-210</span> 直接 <code>await fetch → res.text()</code>，<b>没有 file.size 预检</b>；<span class="path">:249</span> <code>const tooLarge = config.maxBytes &gt; 0 &amp;&amp; code.text.length &gt; config.maxBytes</code> —— 用<b>字符数</b>与<b>字节阈值</b>比较，中文/emoji 文件会提前误判，UTF-8 大文件则低估。</div></div>
+          <pre><code>const res = await fetch(file.url);
+const text = await res.text();          // 全量读入内存
+...
+const tooLarge = config.maxBytes &gt; 0 &amp;&amp; code.text.length &gt; config.maxBytes;
+...
+{code.text.slice(0, 200_000)}           // 只截显示，text 仍全量驻留</code></pre>
+          <div class="row"><span class="lb">证据 2</span><div class="v">Zip：<span class="path">ZipPreviewPlugin/create.tsx:103-108</span> <code>arrayBuffer</code> + <code>JSZip.loadAsync(buf)</code> 全量解压索引，然后 <span class="path">:110-121</span> 对 <b>全部 entries</b> <code>map</code> + <code>sort</code>；配置的 <code>maxFiles</code> 只限制渲染行数，不限制解析量。</div></div>
+          <div class="row"><span class="lb">证据 3</span><div class="v">Xlsx：<span class="path">XlsxPreviewPlugin/create.tsx:120-125</span> <code>arrayBuffer</code> + 同步 <code>XLSX.read(new Uint8Array(buf))</code>。10MB 级 xlsx 在低端机上就是数秒级长任务，期间页面完全卡死。</div></div>
+          <div class="row"><span class="lb">证据 4</span><div class="v">Csv：<span class="path">CsvPreviewPlugin/create.tsx:104-108</span> 同样全量 <code>arrayBuffer</code> + <code>decodeText</code>；Pptx：<span class="path">PptxPreviewPlugin/create.tsx:177-193</span> 逐页 <code>await entry.async("text")</code> + DOMParser，页数多时串行解析。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">没有 <code>maxFileSize</code> 的 5 个插件中，任意一个被打开超大文件都会造成<b>阻断式卡顿</b>，且 loading 面板无进度、无法取消；Code 还会把整段文本留在 state 里直至组件卸载。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">统一采用 JSON/XML 的范式：<code>file.size &gt; maxFileSize</code> 时直接给「文件过大，请下载」的降级面板（<code>ErrorPanel</code> 已支持 <code>action</code>）。Code 改用 <code>file.size</code> 判阈值；Zip 先读中央目录再按需解压；Xlsx/CSV/Pptx 的解析搬进 Worker，或至少用 <code>startTransition</code> 让 UI 先出 loading 再解析。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p1">
+        <div class="top"><h3>P1-5 · 两处 dangerouslySetInnerHTML 直接把第三方产物塞进 DOM，无本地清洗</h3><span class="sev p1">P1</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">packages/vane-file-preview/src/custom-plugins/MammothDocxPlugin/create.tsx:179-183</span></div></div>
+          <pre><code>&lt;div className="vfp-docx-mammoth"
+     data-vfp-docx-mode="mammoth"
+     dangerouslySetInnerHTML={{ __html: state.html }} /&gt;</code></pre>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">packages/vane-file-preview/src/custom-plugins/XlsxPreviewPlugin/create.tsx:264-265</span> <code>&lt;div dangerouslySetInnerHTML={{ __html: rendered.html }} /&gt;</code>，<code>rendered.html</code> 来自 <code>XLSX.utils.sheet_to_html</code>。</div></div>
+          <div class="row"><span class="lb">边界</span><div class="v">全库检索 <code>dompurify</code> / <code>sanitize-html</code> / <code>xss</code> 均无命中 —— 安全性<b>完全依赖 mammoth 与 SheetJS 的转义实现</b>。Mammoth 会把 DOCX 里的超链接输出为 <code>&lt;a href="..."&gt;</code>，链接协议是否被限制取决于库的实现；此类「预览不可信文档」的路径一旦漏掉 <code>javascript:</code>，点击即执行。SheetJS 的 <code>sheet_to_html</code> 是否对单元格内容做转义、是否输出超链接，也需要按具体版本核对。</div></div>
+          <div class="row"><span class="lb">置信度</span><div class="v">「没有本地清洗」是确凿事实；「能否构造出可执行 payload」未能实证（本机 pnpm 布局下无法直接读到 mammoth 源码），因此不据此升级为 P0，详见 09「未覆盖范围」。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">引入 DOMPurify，对 <code>state.html / rendered.html</code> 做一次 <code>ALLOWED_TAGS/ATTR</code> 白名单清洗后再插入；或改用 <code>&lt;iframe sandbox&gt;</code> / 库提供的 HTML→AST 输出自行渲染。最低成本是加一条「清洗后 html 不含 <code>on*</code> 与 <code>javascript:</code>」的单测。</div></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 05 P2 -->
+  <section>
+    <div class="sec-head"><span class="idx">05</span><h2>P2 问题（契约 / 性能 / 可维护性 / 无障碍）</h2></div>
+    <p class="sec-desc">9 条，不影响主链路「能不能预览」，但影响契约可信度、交互完整度与长期维护成本。</p>
+    <div class="issues">
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-1 · 类型里有 unsupported，但 Core 永远不会提交这个状态</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">plugins/types.ts:67-72</span> 声明 <code>"unsupported"</code>；<span class="path">plugins/resolve.ts:127</span> 注释写「一个都不认时返回 null，由装配层落到 <code>unsupported</code> 状态」。</div></div>
+          <div class="row"><span class="lb">证据 2</span><div class="v">实际 <span class="path">core/FilePreviewCore.tsx:155-158</span> 在 <code>canLoad === false</code> 时提交的是 <code>{ state: "idle" }</code>；<span class="path">withPlugins.tsx:217-223</span> 无赢家时返回 false，正文另渲染 <code>UnsupportedNotice</code>。</div></div>
+          <div class="row"><span class="lb">证据 3</span><div class="v">回归测试反过来锁定了 idle：<span class="path">test/lifecycle.test.tsx:111-121</span> 断言「没有插件认领 → Core 停在 idle」。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">UI 层是对的（有明确提示），但 API 契约错位：宿主若按 <code>getState().state === "unsupported"</code> 做埋点/分支，永远收不到；类型定义也会误导新插件作者。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">二选一：让 Core 落 <code>unsupported</code>（需同步改测试与文档），或从 <code>PreviewState</code> 与注释里删掉它，并在 README 写清「无赢家 = idle + 面板」。同时补一条 <code>onStateChange</code> 的契约测试。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-2 · PreviewProgress 是死契约（导出但无人使用）</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">plugins/types.ts:58-63</span> 定义 <code>loaded / total / percent / indeterminate</code>；仅在 <span class="path">plugins/index.ts:30</span> 与 <span class="path">src/core.ts:44</span> 被 re-export，src 内<b>没有任何读写点</b>。而工具栏已有 <code>ProgressIndicator</code>（<span class="path">shared/ToolbarComponents.tsx:199</span>）在等数据。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">消费方按类型实现进度上报时无入口；大文件解析期用户始终看不到「已解析多少」。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">要么把 <code>PreviewProgress</code> 接进 <code>PreviewStateInfo</code>/<code>reportProgress</code>（顺带解决 P1-4 的无进度问题），要么删除这个导出，避免公开面继续扩大死契约。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-3 · 代码预览的「已复制」定时器卸载后仍会 setState</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">CodePreviewPlugin/create.tsx:354-367</span>：<code>setTimeout(() =&gt; setCopied("idle"), 2000)</code> 没有保存 id，也没有 effect cleanup。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">点了复制立刻切文件/关闭预览，2 秒后定时器仍触发对已卸载组件 setState。React 18 不再警告，但属于明确的泄漏模式；同类写法若扩展到轮询会变成持续泄漏。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">用 <code>useRef&lt;number&gt;</code> 保存 timeout 并在 <code>useEffect(() =&gt; () =&gt; clearTimeout(...), [])</code> 里清理；或改成「复制成功状态随视觉停留自然衰减」的事件驱动写法。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-4 · 图片缩放没有平移，高倍缩放只能看中心</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">ImagePreviewPlugin/create.tsx:92-125</span>：外层 <code>display:flex; align-items:center; justify-content:center; overflow:hidden</code>，图片只有 <code>transform: scale() rotate()</code>，没有 pointer 拖拽、没有 translate、也没有滚动容器。</div></div>
+          <div class="row"><span class="lb">边界</span><div class="v">缩放有 <code>clampScale</code>（:66-68）不会越界，旋转按 90° 递增但<b>没有对 360 取模</b>（连续点击会累加到 <code>90000deg</code>，数值本身不会 NaN，但状态无界）。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v"><code>maxZoom</code> 通常 &gt; 2，放大后只能看到图像中心，无法查看角落细节 —— 工具栏提供的「缩放」因此只完成了一半。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">补一个受 <code>clamp</code> 约束的平移状态（或外层加 <code>overflow:auto</code>），拖拽时同步写入 sharedData；旋转角度用 <code>rotation % 360</code> 收敛。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-5 · PDF / Office 的缩放与翻页完全交给外部查看器</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">PdfPreviewPlugin/create.tsx:89-98</span> 正文只有 <code>iframe</code>/<code>embed</code>；工具栏（<span class="path">:103-120</span>）只有文件信息与「下载」。</div></div>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">同文件 :41-48</span> 的 <code>withViewerParams</code> 只能通过 <code>#toolbar=0&amp;navpanes=0&amp;scrollbar=0</code> 把浏览器查看器的 UI <b>藏起来</b>，不能替代它做翻页/缩放。Office 同理只有一个第三方 viewer 的 iframe。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">「缩放/翻页」这一步在 PDF/Office 上不可自控；<code>enableToolbar: false</code> 时用户反而失去了翻页入口，只留下滚轮。这不违反「能预览」，但主链路的功能覆盖不完整，且不同浏览器行为不一致。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">在文档中明确「PDF 控件由浏览器提供」；若要统一体验，改用 pdf.js 自绘工具栏（与 P0-1 的修复方向一致）。<code>enableToolbar:false</code> 时应同时提供自研的页码/缩放控件。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-6 · JSON / XML 复制走裸 navigator.clipboard，无降级</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">JsonPreviewPlugin/create.tsx:368</span> <code>void navigator.clipboard?.writeText(hit.path)</code>；<span class="path">XmlPreviewPlugin/create.tsx:271</span> 同样写法。</div></div>
+          <div class="row"><span class="lb">证据 2</span><div class="v">共享工具 <span class="path">shared/fileHelpers.ts:130-157</span> 早已实现「clipboard → execCommand 兜底 → 返回 boolean」，但只有 Code 在用（<span class="path">CodePreviewPlugin/create.tsx:361</span>）。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">内网 http 页面（非 secure context）里 <code>navigator.clipboard</code> 为 <code>undefined</code>，点「复制路径」毫无反应也无提示。这与 Code 的体验不一致。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">统一调用 <code>copyToClipboard()</code>，并根据返回值给「已复制 / 复制失败」的反馈。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-7 · CSV 的排序与列宽是本地 state，切文件不复位</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">CsvPreviewPlugin/create.tsx:95-96</span> <code>const [sort, setSort] = useState(...)</code> / <code>const [columnWidths, setColumnWidths] = useState(...)</code>，两者都没有 <code>file.url</code> 变化时的复位；<span class="path">:165-167</span> 只把页码拉回合法范围。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">在 B 文件里仍按 A 文件的列号排序、沿用 A 的列宽 —— 若 B 的列数更少，排序列可能指向空列，视觉上像「表头错位」。这与 P1-3 的 sharedData 问题同源，但这两项是组件本地 state，需单独处理。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">用 <code>useEffect(() =&gt; { setSort(...); setColumnWidths({}); }, [file.url])</code> 复位，或把 key 提升到上级「按文件渲染」的组件实例，靠 <code>key={file.url}</code> 强制重建。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-8 · 工具栏按钮绕过 React 直接改 DOM 样式，图标按钮无 aria-label</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">shared/ToolbarComponents.tsx:134-147</span></div></div>
+          <pre><code>onMouseEnter={(e) =&gt; {
+  if (!disabled &amp;&amp; !active) {
+    Object.assign(e.currentTarget.style, baseStyle, toolbarStyles.buttonHover);
+  }
+}}
+onMouseLeave={(e) =&gt; {
+  if (!disabled &amp;&amp; !active) Object.assign(e.currentTarget.style, baseStyle);
+}}</code></pre>
+          <div class="row"><span class="lb">问题 1</span><div class="v">直接写 <code>style</code> 绕过了 React 的 style diff：一旦某个按钮由 <code>active</code> 变回 <code>false</code>，React 只会 diff 它认为变化的键，鼠标态残留可能与 state 打架。正确做法是 <code>useState(hovered)</code> 或 <code>:hover</code> 类。</div></div>
+          <div class="row"><span class="lb">问题 2</span><div class="v">按钮只传 <code>title</code>，没有 <code>aria-label</code>；多个插件用的是 emoji 图标（如 <code>🔍</code>、<code>⬇</code>），读屏软件会把 emoji 当正文念，语义丢失。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">hover 态改为 React state；<code>ToolbarButton</code> 增加 <code>aria-label</code> 必填项（缺省取 <code>title</code>），图标 <code>span</code> 加 <code>aria-hidden="true"</code>。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-9 · isPubliclyReachableUrl 只拦 IPv4 私网与 ::1，IPv6 私网仍会发给第三方 viewer</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">shared/fileHelpers.ts:97-109</span></div></div>
+          <pre><code>// IPv6 回环
+if (host === "[::1]" || host === "::1") return false;
+
+const ipv4 = host.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+if (ipv4) { ... 10/172.16-31/192.168/169.254/127 ... }</code></pre>
+          <div class="row"><span class="lb">问题</span><div class="v">未覆盖 <code>fc00::/7</code>（ULA）、<code>fe80::/10</code>（链路本地）、IPv4-mapped <code>::ffff:192.168.x.x</code>。Office 插件用它的结果决定「是否把地址拼进 Microsoft/Google viewer 的 URL」（<span class="path">OfficePreviewPlugin/create.tsx:198</span>、<span class="path">:84-102</span>），漏判会把内网地址外发给第三方。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">用 <code>URL</code> 解析后对 IPv6 做前缀判断（或先 <code>normalize</code> 成统一形态），并补一组单测；缺省策略改为「只允许已知公网 scheme + 打点域名单」。</div></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 06 安全 -->
+  <section>
+    <div class="sec-head"><span class="idx">06</span><h2>安全审查（security-best-practices）</h2></div>
+    <p class="sec-desc">
+      输入模型：<b>文件内容不可信</b>，文件名/URL 也不可信。审查口径是「不受信内容进入 DOM / iframe / 剪贴板 / 第三方服务」的每一处边界。
+      总体：Markdown 与 EPUB 两道高风险面收得很紧；DOCX/XLSX 与 PDF 三道面偏松。
+    </p>
+    <div class="sec-grid">
+      <div class="panel">
+        <h4>注入面盘点（全库检索）</h4>
+        <div class="kv">
+          <div class="r"><span class="k">dangerouslySetInnerHTML</span><span class="x">2 处：<span class="path">MammothDocxPlugin:182</span>、<span class="path">XlsxPreviewPlugin:265</span> —— 均无本地清洗 <span class="tag warn">P1-5</span></span></div>
+          <div class="r"><span class="k">innerHTML</span><span class="x">1 处：<span class="path">DocxPreviewPlugin:122</span>，写入内容来自 docx-preview 的 DOM 渲染，不是字符串拼接</span></div>
+          <div class="r"><span class="k">iframe</span><span class="x">2 处：PDF 与 Office；<code>sandbox</code> 命中 0 <span class="tag danger">P0-1</span></span></div>
+          <div class="r"><span class="k">createObjectURL</span><span class="x">2 处，均为导出下载，2s / 10s 后 revoke <span class="tag safe">成立</span></span></div>
+          <div class="r"><span class="k">eval / new Function</span><span class="x">无命中</span></div>
+          <div class="r"><span class="k">sanitize 依赖</span><span class="x">全库无 <code>dompurify</code> / <code>sanitize-html</code> / <code>xss</code> <span class="tag warn">缺位</span></span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h4>已收口的边界</h4>
+        <div class="kv">
+          <div class="r"><span class="k">Markdown</span><span class="x">raw HTML 默认关闭；开启档追加 <code>stripDangerousAttrs</code> 剥 <code>on*</code> 与 <code>javascript:</code>；链接统一加 <code>noopener noreferrer</code> <span class="tag safe">安全默认</span></span></div>
+          <div class="r"><span class="k">URL 协议</span><span class="x">Markdown 图片/链接走 <code>SAFE_PROTOCOLS</code> 白名单（<span class="path">MarkdownPreviewPlugin:191-208</span>） <span class="tag safe">成立</span></span></div>
+          <div class="r"><span class="k">EPUB</span><span class="x"><code>allowScriptedContent: false</code>，且刻意不用 blob URL（避免相对路径失效与 origin 继承） <span class="tag safe">成立</span></span></div>
+          <div class="r"><span class="k">下载</span><span class="x"><code>triggerDownload</code> 用 <code>&lt;a download rel="noopener"&gt;</code> 并即时移除节点（<span class="path">fileHelpers.ts:55-65</span>） <span class="tag safe">成立</span></span></div>
+          <div class="r"><span class="k">隐私</span><span class="x">代码偏好 localStorage 有 <code>vane-file-preview:</code> 前缀、<code>storage:false</code> 可关、字段做合法性校验（<span class="path">preferences.ts:60-140</span>） <span class="tag safe">成立</span></span></div>
+          <div class="r"><span class="k">CSP</span><span class="x">组件库不设响应头；消费方需自行配 <code>frame-src</code> / <code>object-src</code> <span class="tag info">部署侧</span></span></div>
+        </div>
+      </div>
+    </div>
+    <div class="sec-grid" style="margin-top:14px">
+      <div class="panel">
+        <h4>iframe 与 URL 生命周期</h4>
+        <div class="kv">
+          <div class="r"><span class="k">PDF src</span><span class="x">直接 <code>file.url</code> + hash 参数（<span class="path">PdfPreviewPlugin:42-48</span>），不校验协议：<code>javascript:</code> URL 不会被 iframe 执行为脚本（浏览器拒绝），但 <code>data:text/html</code> 会。</span></div>
+          <div class="r"><span class="k">Office src</span><span class="x">先过 <code>isPubliclyReachableUrl</code>，再 <code>encodeURIComponent</code> 拼 viewer <span class="tag warn">IPv6 漏判 P2-9</span></span></div>
+          <div class="r"><span class="k">EPUB 历史</span><span class="x">文件头注释明确记录「曾用 blob:，因相对路径丢失而弃用」—— 这个取舍反而消掉了一个 URL 生命周期问题。</span></div>
+          <div class="r"><span class="k">预览 URL</span><span class="x">库本身从不创建预览用 objectURL，故不存在「组件卸载后 blob 仍存活」的泄漏；<code>file.url</code> 的 revoke 责任在消费方。</span></div>
+          <div class="r"><span class="k">建议</span><span class="x">在 README 明确「<code>file.url</code> 由调用方生命周期管理」，并给出 <code>useEffect</code> revoke 示例，避免消费者误以为组件会清。</span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h4>第三方库信任边界</h4>
+        <div class="kv">
+          <div class="r"><span class="k">mammoth</span><span class="x">DOCX → HTML 由库生成，直接 <code>innerHTML</code>；超链接/图片协议未在本地复核 <span class="tag warn">未确证</span></span></div>
+          <div class="r"><span class="k">SheetJS</span><span class="x"><code>sheet_to_html</code> 输出直接插入；单元格转义依赖库 <span class="tag warn">未确证</span></span></div>
+          <div class="r"><span class="k">docx-preview</span><span class="x">写入 <code>host.innerHTML</code> 的是渲染出的 DOM 树，风险取决于库对图片/超链接的处理 <span class="tag info">需抽样</span></span></div>
+          <div class="r"><span class="k">papaparse / jszip</span><span class="x">只做解析不产出 HTML，风险面小；但 JSZip 全量解压有性能问题（P1-4）</span></div>
+          <div class="r"><span class="k">react-syntax-highlighter</span><span class="x">输出 React 节点，不拼 HTML；缺失时优雅降级为纯文本 <span class="tag safe">成立</span></span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 07 React / 性能 -->
+  <section>
+    <div class="sec-head"><span class="idx">07</span><h2>React / 性能审查（vercel-react-best-practices）</h2></div>
+    <p class="sec-desc">
+      口径：重渲染来源、context 依赖、effect 依赖与清理、以及「同步长任务」。整体没有「每次渲染重建插件」这类高频病，
+      但存在一个结构性的「context 每次渲染重建」和一个「同步解析占主线程」。
+    </p>
+    <div class="sec-grid">
+      <div class="panel">
+        <h4>已做对的部分</h4>
+        <div class="kv">
+          <div class="r"><span class="k">插件稳定化</span><span class="x">内核按<b>元素引用</b>而非 name 做快照（<span class="path">usePluginRuntime.ts:100-117</span>），内联数组不会每次重注册 —— 这是最常见的一类性能 bug，已避开。<span class="tag safe">成立</span></span></div>
+          <div class="r"><span class="k">状态镜像去抖</span><span class="x"><span class="path">withPlugins.tsx:243-250</span> 在 setState 前比较 state/message/error，值不变直接返回 prev，避免无意义重渲染。<span class="tag safe">成立</span></span></div>
+          <div class="r"><span class="k">监听清理</span><span class="x">AudioCard 的 ResizeObserver 有 <code>disconnect</code>（<span class="path">AudioPreviewPlugin:107-122</span>）；JSON 的 matchMedia 有 removeEventListener（<span class="path">JsonPreviewPlugin:123-142</span>）。<span class="tag safe">成立</span></span></div>
+          <div class="r"><span class="k">懒加载分批</span><span class="x">7 个重依赖插件动态 import，且 <code>sideEffects:false</code> + 根入口不桶导出重依赖插件，主包体积可控。<span class="tag safe">成立</span></span></div>
+          <div class="r"><span class="k">插件错误隔离</span><span class="x"><code>PluginErrorBoundary</code> 包住赢家正文，单个插件 render 抛错不会带走整页（<span class="path">withPlugins.tsx:255-258</span>）。</span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h4>可改进点</h4>
+        <div class="kv">
+          <div class="r"><span class="k">context 重建</span><span class="x">内核 <code>context</code> 的 <code>useMemo</code> 依赖包含 <code>state</code>（<span class="path">usePluginRuntime.ts:138-157</span>），任何状态提交都会重建 context 并触发所有插槽重渲染。单赢家限制了影响面，但工具栏与正文都会被带着重跑。建议把 <code>state</code> 拆到独立的 <code>useSyncExternalStore</code> 订阅，context 只放稳定引用。 <span class="tag info">MEDIUM</span></span></div>
+          <div class="r"><span class="k">winner 重算</span><span class="x"><span class="path">withPlugins.tsx:116-119</span> 依赖 <code>[plugins, file]</code>，父级每次新建 <code>file</code> 对象都会重算路由（虽然只做一次线性扫描，成本低）。可把依赖收敛到 <code>file.name/type/extension/url</code>。 <span class="tag info">LOW</span></span></div>
+          <div class="r"><span class="k">同步长任务</span><span class="x">Xlsx/CSV/Pptx/Zip 的解析在 render effect 内同步执行（P1-4），没有 <code>startTransition</code> / Worker，loading 首帧都来不及绘制。 <span class="tag warn">HIGH</span></span></div>
+          <div class="r"><span class="k">定时器</span><span class="x">Code 复制的 2s 定时器未清理（P2-3）。</span></div>
+          <div class="r"><span class="k">内联样式</span><span class="x"><span class="path">ToolbarComponents.tsx:134-147</span> 的 hover 直接写 DOM；属于 <code>js-batch-dom-css</code> 反例（应走 class 或 React state）。 <span class="tag info">LOW</span></span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 08 修复顺序 -->
+  <section>
+    <div class="sec-head"><span class="idx">08</span><h2>建议修复顺序</h2></div>
+    <p class="sec-desc">按「安全 → 主链路正确性 → 阻断性能 → 契约/交互清理」排。T01/T02 建议同一迭代完成，T03 之前先落 T01 的 token 机制可复用。</p>
+    <div class="fix">
+      <div class="f"><span class="no">T01</span><div class="t">给 PDF / Office 的 iframe 加 sandbox 与 referrerPolicy，补 frame-src 部署说明<span>P0-1 · PdfPreviewPlugin:89-90 / OfficePreviewPlugin:206-210</span></div><span class="e">安全 · 最高优先</span></div>
+      <div class="f"><span class="no">T02</span><div class="t">Core 引入 loadToken / AbortController，effect cleanup 使旧请求失效<span>P1-1 · FilePreviewCore.tsx:145-184</span></div><span class="e">正确性</span></div>
+      <div class="f"><span class="no">T03</span><div class="t">DOCX 在每个 await 后检查 alive，改用游离容器再替换<span>P1-2 · DocxPreviewPlugin:115-133</span></div><span class="e">正确性</span></div>
+      <div class="f"><span class="no">T04</span><div class="t">sharedData 按 file.url 作用域或切换时清空；插件复位自身 key<span>P1-3 · usePluginRuntime:88 / Image:60, Code:140, Csv:92</span></div><span class="e">正确性</span></div>
+      <div class="f"><span class="no">T05</span><div class="t">Mammoth / XLSX 产物插入前做 DOMPurify 白名单清洗<span>P1-5 · Mammoth:182 / Xlsx:265</span></div><span class="e">安全</span></div>
+      <div class="f"><span class="no">T06</span><div class="t">统一 maxFileSize 前置；Code 改判 file.size；解析搬 Worker<span>P1-4 · Code/Zip/Xlsx/Csv/Pptx</span></div><span class="e">性能</span></div>
+      <div class="f"><span class="no">T07</span><div class="t">收敛 unsupported 契约与 PreviewProgress 死类型<span>P2-1 / P2-2 · types.ts:58-72 / Core:155-158</span></div><span class="e">契约</span></div>
+      <div class="f"><span class="no">T08</span><div class="t">清理 P2-3 ~ P2-9（定时器、图片平移、复制兜底、CSV 复位、hover/aria、IPv6）<span>零散但都可在同一次「打磨迭代」完成</span></div><span class="e">可维护性</span></div>
+    </div>
+  </section>
+
+  <!-- 09 未覆盖 -->
+  <section>
+    <div class="sec-head"><span class="idx">09</span><h2>未覆盖范围与取证记录</h2></div>
+    <p class="sec-desc">以下结论未在本轮确证，不应被当作可复现漏洞；同时保留命令原始结果，便于复核。</p>
+    <div class="sec-grid">
+      <div class="panel">
+        <h4>未覆盖 / 未确证</h4>
+        <div class="kv">
+          <div class="r"><span class="k">mammoth 转义</span><span class="x">本机 pnpm 布局下根 <code>node_modules</code> 无平铺 mammoth 目录，无法读取其 HTML 生成逻辑。<b>未验证</b> DOCX 超链接是否会被输出为 <code>javascript:</code> href。P1-5 只确认「缺本地清洗」这一事实。</span></div>
+          <div class="r"><span class="k">SheetJS 转义</span><span class="x">未逐版本核对 <code>sheet_to_html</code> 是否对单元格文本转义、是否生成链接。同样只确认「无本地清洗」。</span></div>
+          <div class="r"><span class="k">浏览器实测</span><span class="x">未启动真实浏览器执行 P0-1 的 payload、未验证 sandbox 对内置 PDF 查看器的影响，也未做 CSP 实测。</span></div>
+          <div class="r"><span class="k">压测</span><span class="x">未用真实大文件测 Xlsx/Zip/Csv/Pptx 的耗时阈值；P1-4 的「数十秒」是按同步解析复杂度给出的量级判断，未计时。</span></div>
+          <div class="r"><span class="k">公开契约</span><span class="x">未通读 README / CHANGELOG，因此 P2-1 的「契约错位」只按类型与代码注释判断，未核对文档承诺。</span></div>
+          <div class="r"><span class="k">17×17 矩阵</span><span class="x"><code>resolve.test.ts</code> 头注释提到真实插件矩阵测试（<code>resolve-matrix.test.ts</code>）在 P3 迁移后才有；本包内未找到该文件，路由「真实插件声明是否漂移」未覆盖。</span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h4>取证命令原始结果</h4>
+        <div class="kv">
+          <div class="r"><span class="k">test</span><span class="x"><b>通过</b>。<code>Test Files 18 passed (18)</code> · <code>Tests 260 passed (260)</code> · duration 38.28s。stderr 有若干 <code>act(...)</code> 警告与 bus 的预期抛错日志，均非失败。</span></div>
+          <div class="r"><span class="k">typecheck</span><span class="x"><b>通过</b>。<code>tsc --noEmit -p tsconfig.json</code> exit 0，无输出。</span></div>
+          <div class="r"><span class="k">lint</span><span class="x"><b>0 error / 77 warning</b>。绝大多数是 <code>react-refresh/only-export-components</code>（插件工厂与组件同文件导出），另有 <code>test/helpers.tsx:22</code> 的 <code>no-explicit-any</code>。与本次评审结论无冲突。</span></div>
+          <div class="r"><span class="k">只读声明</span><span class="x">除本 HTML 外，未创建、修改或删除任何源码 / 配置 / 测试文件。</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div>审查范围：<b>packages/vane-file-preview/src</b>（60 文件 / 8571 行）+ <b>packages/plugin-core/src/react</b>（装配内核）+ <b>test/</b>（18 文件）。</div>
+    <div>分级口径：P0 = 崩溃 / 阻断 / 安全边界缺失 / 数据错乱；P1 = 真实接入必然踩到；P2 = 契约 / 性能 / 可维护性 / 无障碍。</div>
+    <div>本报告为只读评审产物，所有结论均附「相对路径 + 行号 + 关键片段」；无法确证的内容已单列在 09。</div>
+  </footer>
+
+</div>
+</body>
+</html>
+
+

@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>vane-sign-in 核心功能分析报告</title>
+<style>
+  :root{
+    --bg:#0b0a09; --panel:#171513; --panel2:#1d1a17;
+    --line:rgba(255,255,255,.09); --line2:rgba(255,255,255,.16);
+    --text:#ebe7e2; --muted:#9a938c; --dim:#6f6862;
+    --accent:#ff7a29; --accent-soft:rgba(255,122,41,.14);
+    --p0:#ff4d4f; --p1:#ffa940; --p2:#7aa7ff; --ok:#3ecf8e;
+    --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1200px 600px at 12% -8%,rgba(255,122,41,.13),transparent 60%),
+      radial-gradient(900px 500px at 92% 0%,rgba(122,167,255,.08),transparent 62%),
+      var(--bg);
+    color:var(--text);font-family:var(--sans);line-height:1.65;
+    padding:44px 28px 90px;
+  }
+  .wrap{max-width:1180px;margin:0 auto}
+  header.hero{border-bottom:1px solid var(--line);padding-bottom:26px;margin-bottom:34px}
+  .eyebrow{display:flex;gap:10px;align-items:center;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent)}
+  h1{font-size:clamp(26px,3.6vw,42px);line-height:1.16;margin:14px 0 10px;letter-spacing:-.02em}
+  h1 span{color:var(--accent)}
+  .sub{color:var(--muted);max-width:840px;font-size:15px}
+  .sub code,.sec-desc code{font-family:var(--mono);font-size:12.5px;color:var(--accent)}
+  .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+  .chip{font-size:12px;color:var(--muted);border:1px solid var(--line2);border-radius:999px;padding:4px 11px}
+  .chip b{color:var(--text);font-weight:600}
+
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin:6px 0 44px}
+  .stat{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:14px;padding:18px;position:relative;overflow:hidden}
+  .stat::after{content:"";position:absolute;inset:auto 0 0 0;height:2px;background:var(--accent-soft)}
+  .stat .n{font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1.1}
+  .stat .k{font-size:12px;color:var(--muted);margin-top:5px}
+  .stat.p0 .n{color:var(--p0)} .stat.p1 .n{color:var(--p1)} .stat.p2 .n{color:var(--p2)} .stat.ok .n{color:var(--ok)}
+
+  section{margin-bottom:48px}
+  .sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:8px}
+  .sec-head h2{font-size:21px;margin:0;letter-spacing:-.01em}
+  .sec-head .idx{font-family:var(--mono);font-size:12px;color:var(--accent);border:1px solid var(--accent-soft);background:var(--accent-soft);padding:2px 7px;border-radius:6px}
+  .sec-desc{color:var(--muted);font-size:14px;margin:0 0 20px;max-width:920px}
+
+  .flow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+  .flow .step{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+  .flow .step h4{margin:0 0 6px;font-size:13.5px;color:var(--text)}
+  .flow .step p{margin:0;font-size:12px;color:var(--muted);line-height:1.55}
+  .flow .step code{font-family:var(--mono);font-size:11px;color:var(--accent)}
+  .flow .step:nth-child(2){border-color:rgba(255,122,41,.35)}
+  .flow .step:nth-child(4){border-color:rgba(122,167,255,.3)}
+
+  .issues{display:grid;gap:16px}
+  .issue{background:linear-gradient(180deg,rgba(255,255,255,.03),transparent 40%),var(--panel);border:1px solid var(--line);border-left:3px solid var(--p1);border-radius:12px;padding:18px 20px}
+  .issue.p0{border-left-color:var(--p0);background:linear-gradient(180deg,rgba(255,77,79,.07),transparent 45%),var(--panel)}
+  .issue.p2{border-left-color:var(--p2)}
+  .issue .top{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:start}
+  .issue h3{margin:0;font-size:16px;line-height:1.45}
+  .sev{font-size:11px;font-weight:700;letter-spacing:.08em;padding:3px 9px;border-radius:999px;white-space:nowrap}
+  .sev.p0{color:#fff;background:var(--p0)}
+  .sev.p1{color:#1a1200;background:var(--p1)}
+  .sev.p2{color:#04122e;background:var(--p2)}
+  .issue .body{margin-top:12px;display:grid;gap:10px}
+  .row{display:grid;grid-template-columns:78px 1fr;gap:10px;font-size:13.5px}
+  .row .lb{color:var(--dim);font-size:12px;padding-top:2px}
+  .row .v{color:var(--muted)}
+  .row .v b{color:var(--text);font-weight:600}
+  pre{background:#0d0c0b;border:1px solid var(--line);border-radius:10px;padding:13px 15px;overflow:auto;margin:0}
+  pre code{font-family:var(--mono);font-size:12px;color:#d9d3cd;line-height:1.65;white-space:pre}
+  .path{font-family:var(--mono);font-size:12px;color:var(--accent);background:rgba(255,122,41,.08);border-radius:5px;padding:1px 6px}
+
+  .ok-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+  .ok-card{background:rgba(62,207,142,.045);border:1px solid rgba(62,207,142,.22);border-radius:12px;padding:16px}
+  .ok-card h4{margin:0 0 7px;font-size:14px;color:#bfeed8;display:flex;gap:7px;align-items:center}
+  .ok-card h4 .tick{color:var(--ok);font-size:13px}
+  .ok-card p{margin:0;font-size:12.5px;color:var(--muted);line-height:1.6}
+  .ok-card code{font-family:var(--mono);font-size:11px;color:#9fe3c3}
+
+  .sec-grid{display:grid;grid-template-columns:1.15fr 1fr;gap:14px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:18px 20px}
+  .panel h4{margin:0 0 10px;font-size:14.5px}
+  .kv{display:grid;gap:9px}
+  .kv .r{display:grid;grid-template-columns:104px 1fr;gap:10px;font-size:13px}
+  .kv .r .k{color:var(--dim);font-size:12px}
+  .kv .r .x{color:var(--muted)}
+  .tag{display:inline-block;font-size:11px;padding:1px 8px;border-radius:999px;margin-right:6px}
+  .tag.safe{color:var(--ok);background:rgba(62,207,142,.12)}
+  .tag.warn{color:var(--p1);background:rgba(255,169,64,.13)}
+  .tag.bad{color:var(--p0);background:rgba(255,77,79,.14)}
+  .tag.info{color:var(--p2);background:rgba(122,167,255,.12)}
+
+  .fix{display:grid;gap:10px}
+  .fix .f{display:grid;grid-template-columns:44px 1fr auto;gap:14px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:13px 16px}
+  .fix .f .no{font-family:var(--mono);font-size:18px;color:var(--accent);text-align:center}
+  .fix .f .t{font-size:13.5px}
+  .fix .f .t span{display:block;color:var(--dim);font-size:11.5px;margin-top:2px;font-family:var(--mono)}
+  .fix .f .e{font-size:11px;color:var(--muted);border:1px solid var(--line2);border-radius:999px;padding:3px 10px;white-space:nowrap}
+
+  footer{border-top:1px solid var(--line);padding-top:20px;color:var(--dim);font-size:12px;display:grid;gap:6px}
+  @media (max-width:860px){.flow{grid-template-columns:1fr 1fr}.sec-grid{grid-template-columns:1fr}.row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow"><span class="dot"></span>tasks/42 · vane-sign-in 核心功能评审 · 2026-11-01</div>
+    <h1>每日签到组件核心功能分析<span>：1 项 P0（并发签到）· 4 项 P1 · 9 项 P2</span></h1>
+    <p class="sub">
+      审查 <code>packages/vane-sign-in</code>（约 44 文件 / 1739 行，17 个官方插件 + 五段式 Core + 包内领域槽）的
+      「日历与连签日期计算、重复签到判定、补签规则、请求竞态与乐观更新、登录态与错误提示」是否真的成立。
+      结论：<b>签到判定与日期计算整套能力都不在包里</b>——包只做「按 props 渲染 + 回调下发」。
+      端到端确认：<b>双击会并发签到</b>（P0-1）；<b>本地/服务器时区差异必然导致差一天</b>（P1-2）；<b>页面跨夜不会自动复位，失败也没有任何提示</b>（P1-1 / P1-3）。
+    </p>
+    <div class="meta">
+      <span class="chip">范围 <b>src 17 插件 + Core/HOC/slots</b></span>
+      <span class="chip">方法 <b>调用链阅读 + 单测实证</b></span>
+      <span class="chip">基线 <b>security-best-practices</b></span>
+      <span class="chip">基线 <b>vercel-react-best-practices</b></span>
+      <span class="chip">测试 <b>6/6 通过（3 文件）</b></span>
+      <span class="chip">typecheck <b>通过</b> · lint <b>0 error</b></span>
+    </div>
+  </header>
+
+  <div class="stats">
+    <div class="stat p0"><div class="n">1</div><div class="k">P0 · 并发签到可致重复发放</div></div>
+    <div class="stat p1"><div class="n">4</div><div class="k">P1 高优先级 · 待修</div></div>
+    <div class="stat p2"><div class="n">9</div><div class="k">P2 契约/性能/无障碍 · 待修</div></div>
+    <div class="stat ok"><div class="n">6/6</div><div class="k">单测用例 · 3 文件通过</div></div>
+    <div class="stat ok"><div class="n">0</div><div class="k">危险 DOM / 动态执行点 / 凭证处理</div></div>
+  </div>
+
+  <!-- 01 数据流 -->
+  <section>
+    <div class="sec-head"><span class="idx">01</span><h2>核心数据流与职责边界</h2></div>
+    <p class="sec-desc">签到的「真相」全部放在消费方的 <code>props.data</code> 里：今天签没签、连签几天、日历每格什么状态、还有几次补签，都是服务端算好后发下来的字段。包内没有第二个真相源，也<b>没有任何日期运算</b>。这条边界决定了后面所有结论的性质——不是「算错了」，而是「没人算」。</p>
+    <div class="flow">
+      <div class="step"><h4>① props.data</h4><p><code>todaySigned / streak / calendar / makeup / rewards / nextResetAt / history</code> 由宿主填，包里无 schema 校验、无默认值兜底。</p></div>
+      <div class="step"><h4>② 五段领域槽</h4><p>Core 固定五段：<code>renderHeader / renderCalendar / renderRewards / renderActions / renderFooter</code>，每段按插件排序后逐个调用。</p></div>
+      <div class="step"><h4>③ 插件纯渲染</h4><p>17 个插件只读 <code>ctx.data</code> 做展示；有内部态的只有 <code>Remind</code> / <code>RuleExpand</code> / <code>TodayCheckIn</code>（后者无态）。</p></div>
+      <div class="step"><h4>④ 回调下发</h4><p><code>sign / claim / makeup / share / remind / invite</code> 交给宿主；类型允许返回 <code>Promise</code>，但<b>返回值全被丢弃</b>。</p></div>
+      <div class="step"><h4>⑤ 宿主回写</h4><p>请求成功后宿主重新拉 <code>data</code> 触发重渲染。<b>无 pending、无 error、无乐观层、无重试</b>。</p></div>
+    </div>
+  </section>
+
+  <!-- 02 已验证正确 -->
+  <section>
+    <div class="sec-head"><span class="idx">02</span><h2>已验证成立的核心机制</h2></div>
+    <p class="sec-desc">这几条在上一轮出现过问题或在同类包里容易写错，逐条核对后确认「当前实现是对的」，不应作为缺陷上报。</p>
+    <div class="ok-grid">
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>五段槽不重影</h4>
+        <p>HOC 刻意<b>不</b>用内核 <code>composeSlots</code>，<code>children</code> 只兜 <code>renderOverlay</code>（<code>withPlugins.tsx:104-120</code>，注释 :105-110 写明了双渲染事故）。<code>test/slot-dup.test.tsx</code> 断言「天连签 / 黄金会员 / 领取记录 / 活动规则」各只出现一次。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>单插件抛错不连坐</h4>
+        <p><code>renderSignInSlot</code> 先 <code>try/catch</code> 包住 hook 调用（<code>slots.tsx:57-76</code>），再套 <code>PluginErrorBoundary</code>（:66）；坏插件只丢自己那一段，其余四段照常。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>禁用态确实由数据驱动</h4>
+        <p>签到按钮 <code>disabled={todaySigned}</code> 且 <code>data-signed</code> 同步（<code>TodayCheckInPlugin:38-41</code>）；奖励 <code>claimed</code> 走终态文案（<code>RewardPreviewPlugin:71-75</code>）；补签按 <code>available - used</code> 置灰（<code>MakeupSlotPlugin:36</code>）。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>日历格 key 用日期而非下标</h4>
+        <p><code>CalendarStripPlugin:64</code> 与 <code>CalendarGridPlugin:45</code> 都用 <code>key={c.date}</code>；补签/重取数据后不会错配内部状态。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>空集合一律优雅降级</h4>
+        <p><code>calendar ?? []</code>（Strip:50 / Grid:32）、<code>rewards ?? []</code>（Preview:33 / Milestone:29）、<code>history ?? []</code>（History:31）、<code>rules</code> 为空直接 <code>null</code>（RuleExpand:18），都返回 <code>null</code> 而非空容器。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>槽内排序确定</h4>
+        <p><code>config.order</code> 升序 → <code>priority</code> 降序（<code>slots.tsx:51-55</code>），与内核一致；<code>header</code> 里 Streak(10) → Countdown(14) 的顺序稳定。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>根容器背景与字色成对</h4>
+        <p><code>SignInCore.tsx:67-71</code> 同时写 <code>background:"#fff"</code> / <code>color:"#1f2328"</code>，深色宿主里不会出现低对比度文字（ADR-13）。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>无监听器与定时器泄漏</h4>
+        <p>全包 <code>src</code> 检索 <code>setInterval / setTimeout / addEventListener</code> <b>0 命中</b>；<code>useEffect</code> 只用于 onMount / onPropsChange，依赖为稳定的 <code>execute</code>，重复执行风险已规避。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 P0 -->
+  <section>
+    <div class="sec-head"><span class="idx">03</span><h2>P0 问题（并发签到）</h2></div>
+    <p class="sec-desc">端到端确认结论：<b>存在「点击两次并发签到」</b>，且同样的空窗在「领奖」上重复出现。判定为 P0 的前提是服务端未做幂等——而客户端这边确实没有为它兜底的任何机制。</p>
+    <div class="issues">
+
+      <div class="issue p0">
+        <div class="top"><h3>P0-1 · 签到 / 领奖按钮没有在途锁：请求飞行期间可无限次点击</h3><span class="sev p0">P0</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">packages/vane-sign-in/src/custom-plugins/TodayCheckInPlugin/create.tsx:36-53</span></div></div>
+          <pre><code>const { todaySigned } = ctx.data;
+&lt;button type="button" data-testid="si-checkin-btn"
+  data-signed={String(todaySigned)}
+  disabled={todaySigned}                                  // 唯一的锁：服务端真相
+  onClick={() =&gt; !todaySigned &amp;&amp; ctx.callbacks.sign?.()} // 不 await、不置 pending
+&gt;</code></pre>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">plugins/types.ts:87</span> 的类型明确允许异步：<code>sign?: () =&gt; void | Promise&lt;void&gt;;</code>；但返回值在 <code>TodayCheckInPlugin:41</code> 被直接丢弃。</div></div>
+          <div class="row"><span class="lb">证据 3</span><div class="v"><span class="path">types.ts:70-83</span> 的 <code>SignInData</code> <b>没有</b> <code>signing / pending / error</code> 字段；<code>RewardClaimPlugin:41-46</code> 的领取按钮同样无在途态：<code>onClick={() =&gt; ctx.callbacks.claim?.(target.day)}</code>。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v"><code>todaySigned</code> 只有等宿主重新拉取数据后才变 <code>true</code>——在网络往返（200ms～2s）内按钮始终可用。移动端双击、或用户觉得「没反应」连点三次，就会发出 2～3 个签到请求，领奖同理。<b>若后端不是幂等实现，直接产生重复签到 / 重复发积分与券</b>，也就是「签到数据错乱」。即使后端幂等，也会出现第二条请求报错、用户看到错误提示的次生体验问题。</div></div>
+          <div class="row"><span class="lb">另证</span><div class="v">客户端禁用态不是安全边界：<code>disabled</code> 只影响这个按钮，任何脚本仍可直接调用 <code>callbacks.sign()</code>。服务端必须自行按 <code>(userId, 服务器业务日)</code> 幂等，但包文档（<code>README.md:16</code>）把「数据驱动禁用态」写成了防重手段，容易让接入方误以为安全。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">插件内维护 <code>const [pending, setPending] = useState(false)</code>，点击后立即 <code>setPending(true)</code> 并 <code>await ctx.callbacks.sign?.()</code>，<code>finally</code> 里复位；按钮 <code>disabled={todaySigned || pending}</code> 并显示 loading 文案。若要跨插件共享，应在 <code>SignInData</code> 增加 <code>signing</code>（由宿主回写）并让 CTA 读它。补一条「连点两次只调用一次 sign」的单测（可用 <code>vi.fn()</code> 返回未决 Promise）。</div></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 04 P1 -->
+  <section>
+    <div class="sec-head"><span class="idx">04</span><h2>P1 问题（真实接入必然踩到）</h2></div>
+    <p class="sec-desc">四条里两条是「日期与时区契约空洞」，一条是「失败不可见」，一条是「补签选错日期」。它们都不是边角场景，而是签到这个功能的定义域。</p>
+    <div class="issues">
+
+      <div class="issue p1">
+        <div class="top"><h3>P1-1 · 失败没有提示、没有回滚通道；提醒开关本地乐观态永不回退</h3><span class="sev p1">P1</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">plugins/types.ts:86-93</span>：<code>SignInCallbacks</code> 六个回调全部返回 <code>void | Promise&lt;void&gt;</code>，<b>不接收也不回传错误</b>；<code>SignInData</code>（:70-83）也没有 <code>error / message / status</code> 字段。</div></div>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">src/custom-plugins/RemindPlugin/create.tsx:20-25</span></div></div>
+          <pre><code>onClick={() =&gt; {
+  const v = !on;
+  setOn(v);                       // 先乐观切换
+  ctx.callbacks.remind?.(v);      // 返回值丢弃，失败也不回退
+}}</code></pre>
+          <div class="row"><span class="lb">后果</span><div class="v">签到失败（网络断、风控拦截、当日已签）时，UI 上没有任何反馈：按钮仍是「立即签到」，用户重复点击（进一步放大 P0-1）。提醒开关在持久化失败时永久显示「已开启提醒」——这正是「失败后 UI 停留在成功态」的同构问题（<b>对签到 CTA 来说，因为不写乐观态反而不会卡在「今日已签」，但代价是完全静默</b>）。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">回调签名改为 <code>(...args) =&gt; Promise&lt;void&gt;</code> 并在包内 <code>try/catch</code>；<code>SignInData</code> 增加 <code>lastError?: { code, message }</code>，或给 CTA 加 <code>errorText</code> 插槽；<code>Remind</code> 改为受控（读 <code>data.remindEnabled</code>）或失败时回退 <code>setOn(!v)</code>。补「remind reject 后开关回到原态」单测。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p1">
+        <div class="top"><h3>P1-2 · 日期与时区契约是空的：没有工具函数、没有时区约定，展示层还会差一天</h3><span class="sev p1">P1</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">plugins/types.ts:36-37</span> 只写 <code>date: string; /** ISO yyyy-mm-dd */</code>——<b>没有说明这是服务器时区日、本地时区日还是 UTC 日</b>；<code>:79</code> 的 <code>nextResetAt?: number</code> 也没有任何时区/口径注释。</div></div>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">src/custom-plugins/CountdownPlugin/create.tsx:30</span> <code>const diff = nextResetAt - Date.now();</code>；一旦宿主按「本地 23:59」构造（<code>new Date().setHours(23,59,59)</code>），就与服务器按 UTC 日切线的判定相差 8 小时（东八区）。</div></div>
+          <div class="row"><span class="lb">证据 3</span><div class="v"><span class="path">src/custom-plugins/RewardHistoryPlugin/create.tsx:53</span></div></div>
+          <pre><code>{new Date(h.at).toLocaleDateString()}</code></pre>
+          <div class="row"><span class="lb">证据 4</span><div class="v"><span class="path">packages/vane-sign-in/demo/src/demos/lib/sampleData.ts:10-25</span>：整个演示的日历是<b>硬编码</b> <code>date: `2026-10-${String(day).padStart(2,"0")}`</code>，<code>"today"</code> 恒为第 8 天，与真实日期（2026-11-01）无关——说明包内确实没有日历生成器，连示例都绕过了日期计算。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">跨月（31 天）、闰年（2/29）、DST（欧美/南半球时区）以及「当天边界」这四类日期计算，<b>全部由接入方自行实现且没有任何约定</b>。最典型的线上事故是：服务器按 UTC 日期判定「今天」，中国用户 00:00–08:00 签到会被记到昨天，或日历里「今天」高亮落在昨天那格——<b>差一天</b>。而 <code>toLocaleDateString()</code> 在 SSR（Node 服务器时区）与浏览器（用户时区）会输出不同结果，同时造成 hydration mismatch 与领取记录日期错位（UTC-5 用户看到的 <code>Date.UTC(y,m,d)</code> 会回退一天）。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">导出三件事并写进类型注释：① <code>toDayKey(date, tz)</code>（固定用 <code>Intl.DateTimeFormat("en-CA",{timeZone})</code> 取 <code>yyyy-mm-dd</code>）；② <code>diffDays(a,b)</code>（按 DayKey 计算，不碰 <code>Date</code> 相减，天然免疫 DST）；③ 明确 <code>nextResetAt</code> 用绝对 epoch ms、<code>date</code> 用「业务所在时区」的 DayKey。展示层用 <code>formatDayKey(h.at, tz)</code> 而不是 <code>toLocaleDateString()</code>。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p1">
+        <div class="top"><h3>P1-3 · 跨天边界不闭环：倒计时不 tick，跨夜按钮不复位</h3><span class="sev p1">P1</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">src/custom-plugins/CountdownPlugin/create.tsx:13-15</span> 注释自述「纯渲染计算（无定时器），由消费方在 nextResetAt 变化时重渲即可刷新」；<span class="path">:30-44</span> 只在渲染时读 <code>Date.now()</code>。</div></div>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">src/custom-plugins/TodayCheckInPlugin/create.tsx:40-41</span>：按钮可用性只看 <code>ctx.data.todaySigned</code>，包内没有任何「到 <code>nextResetAt</code> 自动置 false」的逻辑（<code>src</code> 无 <code>setTimeout/setInterval</code>，检索 0 命中）。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">用户 23:50 打开页面放着不动，00:10 点「立即签到」：如果 <code>todaySigned</code> 已是昨天签到的 <code>true</code>（宿主通常缓存到刷新为止），按钮仍是灰的「今日已签 ✓」，用户会以为自己断签了；倒计时文案「距下次可签到 5小时30分」也不会递减，永远是渲染那一刻的旧值。反过来，倒计时到 0 之后不会自动变成「现在可签到」，除非宿主撞上一次重渲染。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">在 Core（而不是插件）里起一个 1s 定时器只更新 <code>now</code>，通过 context 下发：<code>Countdown</code> 与 <code>TodayCheckIn</code> 用 <code>now &gt;= nextResetAt</code> 参与判定；同时监听 <code>visibilitychange</code> 与 <code>focus</code>，回到前台时触发一次宿主 <code>refresh()</code>（可通过 <code>callbacks.refresh</code> 新增）。补「跨过 nextResetAt 后按钮变可用」的假时钟单测（<code>vi.setSystemTime</code>）。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p1">
+        <div class="top"><h3>P1-4 · 补签目标按数组顺序取第一个，且完全不校验补签窗口</h3><span class="sev p1">P1</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">src/custom-plugins/MakeupSlotPlugin/create.tsx:34</span></div></div>
+          <pre><code>const target = (calendar ?? []).find((c) =&gt; c.canMakeup);   // 无排序、无日期比较
+...
+onClick={() =&gt; target &amp;&amp; ctx.callbacks.makeup?.(target.date)}  // 只传 date</code></pre>
+          <div class="row"><span class="lb">补充</span><div class="v"><code>DayCell.canMakeup</code> 的类型注释是「漏签且仍在补签窗口内」（<code>types.ts:41-42</code>），判定责任被完全外移；包内没有「<code>date &lt;= today</code>」「窗口天数」「每轮仅一次」任一校验。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">服务端返回的 <code>calendar</code> 若是「本月 1 号起」或按 <code>date</code> 倒序/乱序，补签按钮补的可能是 1 号（最老的）也可能是最近一天，取决于数组顺序——运营规则无法保证。<b>更危险的是未来日期</b>：若后端误把明天格标了 <code>canMakeup</code>，前端会照补，产生「补签未来」这类数据错乱。另外 <code>makeup.available - used</code> 只是展示配额，不参与目标选择。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">改为按业务规则显式选目标：<code>calendar.filter(c =&gt; c.canMakeup &amp;&amp; c.date &lt;= todayKey).sort(by date)[0]</code>（或让 <code>SignInData</code> 直接下发 <code>makeupTarget?: DayCell</code>，把规则收回服务端）；补签回调改为 <code>makeup(date, { dayIndex })</code> 便于对账。补「数组倒序时仍补最早漏签日」单测。</div></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 05 P2 -->
+  <section>
+    <div class="sec-head"><span class="idx">05</span><h2>P2 问题（契约 / 成本 / 可维护性）</h2></div>
+    <p class="sec-desc">这些不会立刻破坏业务，但会让「接进去才发现不对」和「改一个小地方要动三处」的概率显著上升。</p>
+    <div class="issues">
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-1 · 领域槽 key 带 index，插件顺序变化丢开关状态</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">src/components/SignInPlugin/plugins/slots.tsx:66</span>：<code>key={`signin-slot-${plugin.name}-${index}`}</code>。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">调整 <code>order/priority</code> 或增删同槽插件 → index 位移 → <code>RemindButton</code>（<code>RemindPlugin:16-38</code>）的开关态与 <code>RuleBlock</code>（<code>RuleExpandPlugin:16-34</code>）的展开态被重挂载重置。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">key 只用 <code>plugin.name</code>。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-2 · Provider 的 useMemo 无效；每次渲染做 5 次排序</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">slots.tsx:33-37</span> 依赖 <code>[orderedPlugins, context]</code>；<code>plugin-core/src/react/usePluginRuntime.ts:157</code> 的 context 依赖 <code>props</code> 与 <code>extendContext</code>，后者又是 <code>useCallback(..., [props])</code>（<code>withPlugins.tsx:43-53</code>）。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">宿主任意一次 setState（输入框、滚动驱动）都会让 context 换身份 → Provider value 变化 → Core 的 5 个 <code>useSignInSlot</code> 全部重跑（<code>SignInCore.tsx:36-40</code>），每个槽都重新 <code>filter/sort/map</code>（<code>slots.tsx:45-56</code>）。插件数 P 时每渲染 ≈ 5 × O(P log P) + 5 × P。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">HOC 里按槽预分组并 memo；<code>extendContext</code> 依赖收敛到具体字段，避免整包 props 换身份。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-3 · 渲染期写 ref：ctxRef.current 在函数体内赋值</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">withPlugins.tsx:64-67</span>：<code>ctxRef.current = runtime.context</code> 写在 render 阶段（Profile 包同样问题）。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">React 18 可用但违反 <code>rerender-use-ref-transient-values</code> 前提；未来并发渲染下插件执行（<code>execute → manager.executeHook(contextRef.current!)</code>）可能拿到未提交的 context。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">挪到 <code>useLayoutEffect</code>，或用 <code>useLatest</code> 模式；<code>execute</code> 内部改为读取最新 context。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-4 · transformData 钩子在本包永不执行</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">withPlugins.tsx:76</span> 只调 <code>runtime.transformProps(props)</code>；<code>src</code> 内检索 <code>transformData</code> 仅命中类型注释（<code>plugins/types.ts:143-144</code> 继承自内核）。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">想写「服务端时间戳 → 本地日历 DayCell」归一化插件的作者会静默失望；数据清洗只能散落在各渲染插件里。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">HOC 对 <code>data</code> 跑一次 <code>transformData</code>（memo 化）并下发；否则从领域 <code>SignInPluginHooks</code> 中移除该钩子。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-5 · 声明了却从未使用的配置项（defaultOn / defaultOpen）</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">src/custom-plugins/RemindPlugin/create.tsx:48,57-58</span>：<code>const { defaultOn = false } = config;</code> 然后 <code>void defaultOn;</code>，<code>RemindButton</code> 的 <code>useState(false)</code> 硬编码。</div></div>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">src/custom-plugins/RuleExpandPlugin/create.tsx:61,70</span>：<code>void defaultOpen;</code>，<code>RuleBlock</code> 的 <code>useState(false)</code> 硬编码；<code>CountdownConfig</code>（<code>CountdownPlugin:10</code>）是 <code>Record&lt;string, never&gt;</code> 即空对象，纯占位。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">TS 类型承诺「可配置初始开关态」，运行时静默失效——接入方按文档传参不生效，与 vane-danmaku 上一轮 P2-2 完全同类。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">把初值透传进组件（<code>&lt;RemindButton initialOn={defaultOn} /&gt;</code>），或删掉这两个字段。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-6 · 补签文案与状态不符：无目标但仍有配额时仍显示「次数已用完」</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">MakeupSlotPlugin:36-39</span></div></div>
+          <pre><code>const disabled = remaining &lt;= 0 || !target;
+const label = disabled ? "补签次数已用完" : buttonText ?? `补签 · 剩${remaining}次`;</code></pre>
+          <div class="row"><span class="lb">后果</span><div class="v">没有可补的漏签日（<code>!target</code>）但配额还剩 2 次时，按钮显示「补签次数已用完」——文案直接说错，用户会去客服质问配额。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">区分两态：<code>remaining &lt;= 0 ⇒ 次数已用完</code>；<code>!target ⇒ 暂无可补签</code>（并可用 <code>renderReturn</code>/静默隐藏）。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-7 · 日历色板有两份且已经漂移</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">CalendarStripPlugin/create.tsx:17-23</span> 自带一份 <code>COLORS</code>，而 <span class="path">tokens.ts:18-27</span> 又有一份 <code>DAY_COLORS</code>；同一个 <code>signed</code> 态前景色是 <code>#c2410c</code> vs <code>#d35400</code>，<code>missed</code> 是 <code>#6b6b6b</code> vs <code>#7d7d7d</code>。CalendarGrid 用 tokens，CalendarStrip 用自己的。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">同一个卡片里同时放日历条与月历网格时，同状态颜色不一致；日后调色要改两处，必然再漂。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">删掉 Strip 内的 <code>COLORS</code>/<code>GLYPH</code>，统一 import tokens（对齐 ADR-13 的单一色板原则）。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-8 · 缺字段防御不一致：补签整段会静默消失、连签会显示 undefined</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">MakeupSlotPlugin:33-36</span> 直接解构并访问 <code>makeup.available</code>（无 <code>?? </code> 兜底），而其它插件普遍 <code>calendar ?? []</code> / <code>rewards ?? []</code>。</div></div>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">StreakStatePlugin:32,47,65</span> 直接把 <code>streak / maxStreak</code> 塞进 JSX；缺字段时渲染「undefined 天连签 / 最高 undefined 天」。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">接口灰度或字段改名时：<code>makeup</code> 缺失 → <code>renderActions</code> 抛 <code>TypeError</code> → 被 <code>slots.tsx:70-76</code> 的 <code>catch</code> 吞掉 → <b>补签入口整段消失且只有一条 console.warn</b>，业务方很难发现；<code>streak</code> 缺失则直接展示错误文案。类型上这些字段都是必填，所以编译期不会有任何提示。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">给 <code>SignInData</code> 增加包内 <code>normalizeSignInData()</code>（统一 <code>??</code> 默认值 + 数字校验），在 HOC 里跑一次；或至少把所有插件改成同样的可选访问风格。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-9 · 展示格式与可访问性细节</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">RewardPreviewPlugin:33-49</span>：<code>filter(...)</code> 后直接 <code>slice(0, limit)</code>，未按 <code>day</code> 排序——服务端乱序时预告顺序也乱。</div></div>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">CountdownPlugin:36-37</span> 的 <code>h</code> 未封顶也不换算天，<code>nextResetAt</code> 给到 7 天后会显示「168小时0分」。</div></div>
+          <div class="row"><span class="lb">证据 3</span><div class="v"><span class="path">RuleExpandPlugin:21-34</span> 的展开按钮无 <code>aria-expanded / aria-controls</code>；<span class="path">CalendarStripPlugin:63-84</span> 用 <code>&lt;div title&gt;</code> 承载日期与状态，屏幕阅读器只能读到「第3天 ✓」，读不出「今天 / 漏签 / 可补签」语义。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">奖励预告可能把「第 30 天大奖」排到列表末尾而看不到；倒计时在长周期场景不可读；键盘/读屏用户拿不到日历状态。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">预告前先 <code>toSorted((a,b) =&gt; a.day - b.day)</code>；倒计时 <code>h &gt;= 24</code> 时显示「n天m小时」；按钮补 aria 属性；日历格补 <code>aria-label={`${c.date} ${STATUS_TEXT[c.status]}`}</code>。</div></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 06 安全 -->
+  <section>
+    <div class="sec-head"><span class="idx">06</span><h2>安全审查（security-best-practices）</h2></div>
+    <p class="sec-desc">结论：<b>注入类风险为零</b>（无危险 DOM、无 URL 输出、无凭证读写）；真正要写进接入文档的是「客户端禁用态不构成安全边界」。</p>
+    <div class="sec-grid">
+      <div class="panel">
+        <h4>注入与凭证</h4>
+        <div class="kv">
+          <div class="r"><span class="k">XSS</span><span class="x"><span class="tag safe">安全</span><code>src</code> 检索 <code>dangerouslySetInnerHTML / innerHTML / eval / new Function</code> 0 命中；所有 <code>rules</code> / <code>label</code> / <code>liveTitle</code> 类文本都进 React 文本节点，自动转义。</span></div>
+          <div class="r"><span class="k">URL 输出</span><span class="x"><span class="tag safe">安全</span>本包不拼任何 <code>href</code>/<code>src</code>/CSS <code>url()</code>；分享/邀请只回调宿主，二维码不在此包（对比 vane-profile 的 P1-4）。</span></div>
+          <div class="r"><span class="k">凭证 / 隐私</span><span class="x"><span class="tag safe">安全</span>无 <code>localStorage / sessionStorage / document.cookie / fetch / token</code>（检索 0 命中）；包内不持有登录态，也不打印用户数据（仅 <code>console.warn</code> 插件名）。</span></div>
+          <div class="r"><span class="k">外链属性</span><span class="x"><span class="tag safe">安全</span>无外链渲染，因此无 <code>target</code>/<code>rel</code> 缺口。</span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h4>业务安全边界</h4>
+        <div class="kv">
+          <div class="r"><span class="k">防重放</span><span class="x"><span class="tag bad">P0</span>客户端没有在途锁与幂等键（P0-1）。服务端必须按 <code>(userId, businessDay)</code> 唯一约束；<code>README.md:16</code> 把「禁用态」当作防重手段，属于误导性文档。</span></div>
+          <div class="r"><span class="k">信任边界</span><span class="x"><span class="tag warn">P1</span><code>todaySigned / canMakeup / reward.claimed</code> 全部由 props 决定，组件不校验也不签名；任何可写 props 的代码都能让 UI 显示「已领」。这是设计取舍，需在文档里明确「展示层不负责校验」。</span></div>
+          <div class="r"><span class="k">补签</span><span class="x"><span class="tag warn">P1</span>回调只传 <code>date</code>（<code>MakeupSlot:46</code>），服务端必须自行复核窗口与配额，否则前端可选任意 <code>canMakeup=true</code> 的格子。</span></div>
+          <div class="r"><span class="k">供应链</span><span class="x"><span class="tag safe">安全</span>零运行时依赖（peer 仅 <code>react</code> / <code>vane-plugin-core</code>），发布仅 <code>dist</code>，无新增供应链面。</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 07 React -->
+  <section>
+    <div class="sec-head"><span class="idx">07</span><h2>React / 性能审查（vercel-react-best-practices）</h2></div>
+    <p class="sec-desc">按「避免无谓渲染 / 热路径分配 / effect 与渲染纯函数」三条线核对。好消息：没有监听器与定时器泄漏；坏消息：<code>Date.now()</code> 进了渲染函数，SSR 与客户端输出必然不一致。</p>
+    <div class="sec-grid">
+      <div class="panel">
+        <h4>成立的部分</h4>
+        <div class="kv">
+          <div class="r"><span class="k">异常隔离</span><span class="x"><span class="tag safe">正确</span>渲染期 <code>try/catch</code> + 每插件 <code>PluginErrorBoundary</code>（<code>slots.tsx:57-76</code>）双保险，符合「单点故障不扩散」。</span></div>
+          <div class="r"><span class="k">列表 key</span><span class="x"><span class="tag safe">正确</span>日历格以 <code>date</code> 为 key（<code>Strip:64</code> / <code>Grid:45</code>），嵌套 map 的二维码式点阵也用行列坐标复合 key。</span></div>
+          <div class="r"><span class="k">内部态归属</span><span class="x"><span class="tag safe">正确</span><code>RemindButton / RuleBlock</code> 都拆成独立组件，hooks 发生在 React 上下文内，没有「插件函数里调 useState」的规则破坏。</span></div>
+          <div class="r"><span class="k">订阅粒度</span><span class="x"><span class="tag safe">正确</span>插件只从 context 读自己需要的字段；算 & 渲染在同一个组件内，没有额外的 effect 中间态（<code>rerender-derived-state-no-effect</code> 达标）。</span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h4>缺口</h4>
+        <div class="kv">
+          <div class="r"><span class="k">渲染非纯</span><span class="x"><code>CountdownPlugin:30</code> 在 render 内调 <code>Date.now()</code>；测试里 <code>renderToStaticMarkup</code> 走的是服务端渲染路径，服务端时间与客户端时间不同 → <code>diff</code> 不同 → 文案不同 → <b>hydration mismatch</b>（且倒计时本来就不 tick，见 P1-3）。</span></div>
+          <div class="r"><span class="k">memo 失效</span><span class="x"><code>SlotProvider</code> value 随 props 身份变化重建（P2-2），宿主任意 setState 都会让 5 个槽重跑；<code>SignInCore.tsx:36-40</code> 每次渲染调 5 次 <code>useSignInSlot</code>，无缓存。</span></div>
+          <div class="r"><span class="k">热路径分配</span><span class="x">5 次 <code>[...plugins].filter().sort().map()</code> 每渲染重建（<code>slots.tsx:45-56</code>）；<code>CalendarStrip</code> / <code>CalendarGrid</code> 每次重建全部格子样式对象（内联 style 对象无 memo）。</span></div>
+          <div class="r"><span class="k">渲染期写 ref</span><span class="x"><code>withPlugins.tsx:64-67</code>（P2-3）；同时在 render 内执行 <code>runtime.transformProps(props)</code>（<code>:76</code>），属于「渲染期跑插件链」，插件若有副作用会按渲染次数重复。</span></div>
+          <div class="r"><span class="k">SSR 可用性</span><span class="x">除 Countdown 外无其它时间/随机源；<code>useImperativeHandle</code>（<code>SignInCore.tsx:42-55</code>）只暴露容器能力，不影响 SSR。</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 08 修复顺序 -->
+  <section>
+    <div class="sec-head"><span class="idx">08</span><h2>建议修复顺序（可直接作为任务拆分）</h2></div>
+    <p class="sec-desc">T01 是唯一阻断级项，先做；T02–T05 是「签到这个功能的定义域」，必须在首次接入前落地；T06–T09 可排期。<b>执行状态：全部待修复</b>（本轮只读评审，未改任何源码）。</p>
+    <div class="fix">
+      <div class="f"><span class="no">T01</span><div class="t">签到/领奖在途锁 + loading 态 + 幂等键约定<span>对应 P0-1 · TodayCheckInPlugin:36-53 · RewardClaimPlugin:41-46 · 单测：连点两次 sign 只调用一次</span></div><span class="e">P0 · 待修复</span></div>
+      <div class="f"><span class="no">T02</span><div class="t">日期与时区工具：toDayKey / diffDays + nextResetAt 口径写进类型<span>对应 P1-2 · types.ts:36,79 · 新增 <code>src/utils/date.ts</code> · 单测：UTC/Asia-Shanghai/跨月/闰年/DST 五组</span></div><span class="e">P1 · 待修复</span></div>
+      <div class="f"><span class="no">T03</span><div class="t">跨天闭环：Core 内 1s 时钟 + visibilitychange 刷新钩子<span>对应 P1-3 · CountdownPlugin:30-44 · TodayCheckInPlugin:40-41 · 单测：vi.setSystemTime 跨过 nextResetAt 后按钮可用</span></div><span class="e">P1 · 待修复</span></div>
+      <div class="f"><span class="no">T04</span><div class="t">补签目标显式选最早漏签日 + 窗口校验<span>对应 P1-4 · MakeupSlotPlugin:34,46 · 单测：calendar 倒序时仍补最早一天</span></div><span class="e">P1 · 待修复</span></div>
+      <div class="f"><span class="no">T05</span><div class="t">失败可见：回调 try/catch + error 字段 / errorText 插槽；Remind 回退<span>对应 P1-1 · types.ts:86-93 · RemindPlugin:20-25 · 单测：remind reject 后开关回原态</span></div><span class="e">P1 · 待修复</span></div>
+      <div class="f"><span class="no">T06</span><div class="t">槽位缓存化 + key 去 index + context 依赖收敛<span>对应 P2-1 / P2-2 · slots.tsx:33,45,66 · 单测：父级空 setState 不触发插件重算</span></div><span class="e">P2 · 待修复</span></div>
+      <div class="f"><span class="no">T07</span><div class="t">normalizeSignInData 统一兜底；修补签文案两态；色板合并到 tokens<span>对应 P2-6 / P2-7 / P2-8 · MakeupSlot:33-39 · CalendarStrip:17-23 · tokens.ts:18-27</span></div><span class="e">P2 · 待修复</span></div>
+      <div class="f"><span class="no">T08</span><div class="t">渲染期写 ref 改 effect；transformData 契约二选一；接上 defaultOn / defaultOpen<span>对应 P2-3 / P2-4 / P2-5 · withPlugins.tsx:64,76 · Remind:48,57 · RuleExpand:61,70</span></div><span class="e">P2 · 待修复</span></div>
+      <div class="f"><span class="no">T09</span><div class="t">展示与 a11y：预告排序、倒计时换天单位、日历格 aria-label、规则按钮 aria-expanded<span>对应 P2-9 · RewardPreview:33-49 · Countdown:36-37 · RuleExpand:21-34 · CalendarStrip:63-84</span></div><span class="e">P2 · 待修复</span></div>
+    </div>
+  </section>
+
+  <!-- 09 未覆盖 -->
+  <section>
+    <div class="sec-head"><span class="idx">09</span><h2>未覆盖范围（本次未确证，不作结论）</h2></div>
+    <p class="sec-desc">下列内容依赖运行时、服务端或超出只读静态评审能证伪的范围，因此不给严重度。报告里所有结论都限定在「本包代码 + 其公开契约」内。</p>
+    <div class="panel">
+      <div class="kv">
+        <div class="r"><span class="k">服务端幂等</span><span class="x">P0-1 的最终危害取决于后端是否按 <code>(userId, 业务日)</code> 去重。仓库内没有服务端代码，<b>无法确证</b>是否会真的重复发积分；这条按「客户端缺锁」定级，不按「已造成重复发放」定级。</span></div>
+        <div class="r"><span class="k">真实时区事故</span><span class="x">未在多个时区（UTC-5 / UTC+8 / DST 切换日）跑浏览器实测；P1-2 的「差一天」是按 <code>toLocaleDateString()</code> 与 UTC 日切线的语义推导，不是复现出的线上日志。</span></div>
+        <div class="r"><span class="k">浏览器实测</span><span class="x">未启动 <code>demo</code>：补签按钮点击后的整链表现、签到后卡片重渲染时序、深色宿主下的对比度均未实机验证；<code>sticky</code> / 吸顶类样式不在本包。</span></div>
+        <div class="r"><span class="k">性能基线</span><span class="x">P2-2 的「5 × O(P log P)」为静态推算；未用 React Profiler 或 P&gt;15 插件压测，无帧时间数据。</span></div>
+        <div class="r"><span class="k">单测覆盖</span><span class="x"><code>test/signin.test.ts</code>（4 例）只做 <code>toBeTruthy()</code> 存活断言，<b>没有</b>断言文案/禁用态；<code>test/slot-dup.test.tsx</code>（1 例）验重影；<code>test/selftest.dom.test.tsx</code>（1 例）直接 import <code>demo/src/lib/selftest.tsx</code>（测试依赖 demo 代码）。全包<b>没有</b>任何日期、并发、失败回滚、跨天用例。</span></div>
+        <div class="r"><span class="k">构建产物</span><span class="x">未审查 <code>dist/</code>、未跑 <code>build</code>、未核对 <code>sizeBudgetKb:14</code>；<code>demo-dist/</code> 已入库，未评估其体积影响。</span></div>
+        <div class="r"><span class="k">登录态</span><span class="x">任务要求核查「登录态 / 错误提示」：包内没有登录态概念（无 token、无权限判断、无未登录分支），故该维度只能判定为<b>能力缺失</b>，不属于实现缺陷。</span></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div>审查对象：<code>packages/vane-sign-in</code>（Core <code>SignInCore.tsx 165 行</code>、HOC <code>withPlugins.tsx 141 行</code>、领域槽 <code>slots.tsx 92 行</code>、17 个官方插件 + entries）。任务给定规模约 44 文件 / 1739 行（含 doc.json）。</div>
+    <div>实证：<code>pnpm --filter vane-sign-in test</code> → 3 个文件 / 6 用例全部通过（输出中的 <code>act(...)</code> 警告来自 <code>demo/src/lib/selftest.tsx</code> 的异步断言，不是失败）；<code>typecheck</code> 通过；<code>lint</code> 0 error / 68 warning（几乎全为 <code>no-explicit-any</code>）。</div>
+    <div>方法：按 <code>props.data → 五段领域槽 → 插件 hook → callbacks</code> 的调用链阅读；重点逐行核对三个日期相关点（<code>Countdown</code> 的 <code>Date.now()</code>、<code>RewardHistory</code> 的 <code>toLocaleDateString()</code>、<code>DayCell.date</code> 的时区口径）。安全与 React 专项分别套用 security-best-practices 与 vercel-react-best-practices。未修改任何源码 / 配置 / 测试。</div>
+  </footer>
+
+</div>
+</body>
+</html>

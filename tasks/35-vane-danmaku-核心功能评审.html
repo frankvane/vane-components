@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>vane-danmaku 核心功能分析报告</title>
+<style>
+  :root{
+    --bg:#0b0a09; --panel:#171513; --panel2:#1d1a17;
+    --line:rgba(255,255,255,.09); --line2:rgba(255,255,255,.16);
+    --text:#ebe7e2; --muted:#9a938c; --dim:#6f6862;
+    --accent:#ff7a29; --accent-soft:rgba(255,122,41,.14);
+    --p0:#ff4d4f; --p1:#ffa940; --p2:#7aa7ff; --ok:#3ecf8e;
+    --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1200px 600px at 12% -8%,rgba(255,122,41,.13),transparent 60%),
+      radial-gradient(900px 500px at 92% 0%,rgba(122,167,255,.08),transparent 62%),
+      var(--bg);
+    color:var(--text);font-family:var(--sans);line-height:1.65;
+    padding:44px 28px 90px;
+  }
+  .wrap{max-width:1180px;margin:0 auto}
+  header.hero{border-bottom:1px solid var(--line);padding-bottom:26px;margin-bottom:34px}
+  .eyebrow{display:flex;gap:10px;align-items:center;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent)}
+  h1{font-size:clamp(26px,3.6vw,42px);line-height:1.16;margin:14px 0 10px;letter-spacing:-.02em}
+  h1 span{color:var(--accent)}
+  .sub{color:var(--muted);max-width:840px;font-size:15px}
+  .sub code,.sec-desc code{font-family:var(--mono);font-size:12.5px;color:var(--accent)}
+  .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+  .chip{font-size:12px;color:var(--muted);border:1px solid var(--line2);border-radius:999px;padding:4px 11px}
+  .chip b{color:var(--text);font-weight:600}
+
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin:6px 0 44px}
+  .stat{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:14px;padding:18px;position:relative;overflow:hidden}
+  .stat::after{content:"";position:absolute;inset:auto 0 0 0;height:2px;background:var(--accent-soft)}
+  .stat .n{font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1.1}
+  .stat .k{font-size:12px;color:var(--muted);margin-top:5px}
+  .stat.p0 .n{color:var(--p0)} .stat.p1 .n{color:var(--p1)} .stat.p2 .n{color:var(--p2)} .stat.ok .n{color:var(--ok)}
+
+  section{margin-bottom:48px}
+  .sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:8px}
+  .sec-head h2{font-size:21px;margin:0;letter-spacing:-.01em}
+  .sec-head .idx{font-family:var(--mono);font-size:12px;color:var(--accent);border:1px solid var(--accent-soft);background:var(--accent-soft);padding:2px 7px;border-radius:6px}
+  .sec-desc{color:var(--muted);font-size:14px;margin:0 0 20px;max-width:920px}
+
+  .flow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+  .flow .step{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+  .flow .step h4{margin:0 0 6px;font-size:13.5px;color:var(--text)}
+  .flow .step p{margin:0;font-size:12px;color:var(--muted);line-height:1.55}
+  .flow .step code{font-family:var(--mono);font-size:11px;color:var(--accent)}
+  .flow .step:nth-child(2){border-color:rgba(255,122,41,.35)}
+  .flow .step:nth-child(4){border-color:rgba(122,167,255,.3)}
+
+  .issues{display:grid;gap:16px}
+  .issue{background:linear-gradient(180deg,rgba(255,255,255,.03),transparent 40%),var(--panel);border:1px solid var(--line);border-left:3px solid var(--p1);border-radius:12px;padding:18px 20px}
+  .issue.p2{border-left-color:var(--p2)}
+  .issue .top{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:start}
+  .issue h3{margin:0;font-size:16px;line-height:1.45}
+  .sev{font-size:11px;font-weight:700;letter-spacing:.08em;padding:3px 9px;border-radius:999px;white-space:nowrap}
+  .sev.p1{color:#1a1200;background:var(--p1)}
+  .sev.p2{color:#04122e;background:var(--p2)}
+  .issue .body{margin-top:12px;display:grid;gap:10px}
+  .row{display:grid;grid-template-columns:78px 1fr;gap:10px;font-size:13.5px}
+  .row .lb{color:var(--dim);font-size:12px;padding-top:2px}
+  .row .v{color:var(--muted)}
+  .row .v b{color:var(--text);font-weight:600}
+  pre{background:#0d0c0b;border:1px solid var(--line);border-radius:10px;padding:13px 15px;overflow:auto;margin:0}
+  pre code{font-family:var(--mono);font-size:12px;color:#d9d3cd;line-height:1.65;white-space:pre}
+  .path{font-family:var(--mono);font-size:12px;color:var(--accent);background:rgba(255,122,41,.08);border-radius:5px;padding:1px 6px}
+
+  .ok-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+  .ok-card{background:rgba(62,207,142,.045);border:1px solid rgba(62,207,142,.22);border-radius:12px;padding:16px}
+  .ok-card h4{margin:0 0 7px;font-size:14px;color:#bfeed8;display:flex;gap:7px;align-items:center}
+  .ok-card h4 .tick{color:var(--ok);font-size:13px}
+  .ok-card p{margin:0;font-size:12.5px;color:var(--muted);line-height:1.6}
+  .ok-card code{font-family:var(--mono);font-size:11px;color:#9fe3c3}
+
+  .sec-grid{display:grid;grid-template-columns:1.15fr 1fr;gap:14px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:18px 20px}
+  .panel h4{margin:0 0 10px;font-size:14.5px}
+  .kv{display:grid;gap:9px}
+  .kv .r{display:grid;grid-template-columns:104px 1fr;gap:10px;font-size:13px}
+  .kv .r .k{color:var(--dim);font-size:12px}
+  .kv .r .x{color:var(--muted)}
+  .tag{display:inline-block;font-size:11px;padding:1px 8px;border-radius:999px;margin-right:6px}
+  .tag.safe{color:var(--ok);background:rgba(62,207,142,.12)}
+  .tag.warn{color:var(--p1);background:rgba(255,169,64,.13)}
+  .tag.info{color:var(--p2);background:rgba(122,167,255,.12)}
+
+  .fix{display:grid;gap:10px}
+  .fix .f{display:grid;grid-template-columns:44px 1fr auto;gap:14px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:13px 16px}
+  .fix .f .no{font-family:var(--mono);font-size:18px;color:var(--accent);text-align:center}
+  .fix .f .t{font-size:13.5px}
+  .fix .f .t span{display:block;color:var(--dim);font-size:11.5px;margin-top:2px;font-family:var(--mono)}
+  .fix .f .e{font-size:11px;color:var(--muted);border:1px solid var(--line2);border-radius:999px;padding:3px 10px;white-space:nowrap}
+
+  footer{border-top:1px solid var(--line);padding-top:20px;color:var(--dim);font-size:12px;display:grid;gap:6px}
+  @media (max-width:860px){.flow{grid-template-columns:1fr 1fr}.sec-grid{grid-template-columns:1fr}.row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow"><span class="dot"></span>tasks/35 · vane-danmaku 核心功能评审 · 2026-11-01</div>
+    <h1>弹幕组件核心功能分析<span>：0 P0 · 5 项 P1 已全部修复</span></h1>
+    <p class="sub">
+      审查 <code>packages/vane-danmaku</code> 的 canvas 渲染内核、轨道调度器与 24 个官方插件，
+      重点判定「轨道碰撞 / 追尾、时间轴调度、暂停恢复、避让裁剪、插件数据流水线、渲染安全」是否真的成立。
+      结论：核心渲染链路没有 P0 级故障；5 处 P1 已按 T01–T05 修复并补回归单测，9 处 P2 已按 T06 清理。
+    </p>
+    <div class="meta">
+      <span class="chip">范围 <b>src 28 文件 + 4 测试</b></span>
+      <span class="chip">方法 <b>源码审查 + 单测实证</b></span>
+      <span class="chip">基线 <b>security-best-practices</b></span>
+      <span class="chip">基线 <b>vercel-react-best-practices</b></span>
+      <span class="chip">测试 <b>danmaku 32/32 · plugin-core 28/28 通过</b></span>
+    </div>
+  </header>
+
+  <div class="stats">
+    <div class="stat ok"><div class="n">0</div><div class="k">P0 阻断级问题</div></div>
+    <div class="stat p1"><div class="n">5</div><div class="k">P1 高优先级 · 已修复</div></div>
+    <div class="stat p2"><div class="n">9</div><div class="k">P2 中低优先级 · 已清理</div></div>
+    <div class="stat ok"><div class="n">32/32</div><div class="k">danmaku 单测 · 4 文件</div></div>
+    <div class="stat ok"><div class="n">0</div><div class="k">XSS 注入点（无 innerHTML）</div></div>
+  </div>
+
+  <!-- 01 数据流 -->
+  <section>
+    <div class="sec-head"><span class="idx">01</span><h2>核心数据流与职责边界</h2></div>
+    <p class="sec-desc">弹幕文本从不进入 DOM，全部经 canvas 绘制；插件只在数据面做变换，DOM 插槽只承载交互控件。这条约束是安全性成立的基础，也是后面多数问题的定位坐标。</p>
+    <div class="flow">
+      <div class="step"><h4>① 原始数据</h4><p>消费方传入 <code>items</code>（id / text / mode / time / duration / meta）。</p></div>
+      <div class="step"><h4>② transformData 链</h4><p>24 个数据面插件按优先级顺序过滤 / 打码 / 富化 / 写 <code>renderHint</code>。</p></div>
+      <div class="step"><h4>③ 调度器 tick</h4><p>按 <code>currentTime</code> 激活、选轨（干净轨 → 最少遮挡轨）、推进、回收、算 alpha。</p></div>
+      <div class="step"><h4>④ canvas 绘制</h4><p>DPR 变换 → evenodd 裁剪避让区 → 描边文字 / 底块 / 角标。</p></div>
+      <div class="step"><h4>⑤ DOM 插槽</h4><p><code>renderHeader / renderOverlay / renderFooter</code> 只放 React 控件。</p></div>
+    </div>
+  </section>
+
+  <!-- 02 已验证正确 -->
+  <section>
+    <div class="sec-head"><span class="idx">02</span><h2>已验证成立的核心机制</h2></div>
+    <p class="sec-desc">这几条是弹幕组件最容易写错、也最容易被误判为 bug 的地方。逐条按代码与测试核对后，结论是「成立」，不应作为问题上报。</p>
+    <div class="ok-grid">
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>防追尾判定是解析正确的</h4>
+        <p>速度按 <code>(W + width) / duration</code>，长弹幕更快。代码条件是 <code>sNew * edge &gt; sOld * W → 拒绝</code>，与解析解 <code>τ碰撞 &gt;= τ离场</code> 推导结果完全等价，不存在「差一点点仍追尾」的漏洞。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>初始 x 必须是入场位</h4>
+        <p>同帧多条目到达时，若初值 <code>x=0</code>，<code>trackFree</code> 会误判同轨空闲造成叠字。现按方向初始化为 <code>W / -width</code>，overlap 测试以 0 像素交叠验证通过。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>时钟回绕不复活</h4>
+        <p><code>fired</code> 集合保证每条每周期只入场一次；回绕（<code>currentTime &lt; lastTime - 0.5</code>）时整体清空重置，回归测试覆盖。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>饱和时丢弃而非叠字</h4>
+        <p>无空轨先入 <code>waiting</code> 吸收 1 秒突发，超过 <code>WAIT_MAX = 1.2s</code> 计数丢弃；每帧最多 48 次选轨尝试，避免碰撞判定打爆主线程。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>避让区「人物身上零像素」</h4>
+        <p>调度用遮挡权重（而非布尔）避免全屏人物导致所有轨道不可用，最终由绘制期 evenodd 裁剪兜底；调度阶段不做瞬移挪轨，避免跳帧与碰撞假设失效。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>宽度测量与绘制一致</h4>
+        <p>核心把真实 <code>ctx.measureText</code> 作为 <code>measureWidth</code> 注入调度项，避免字符类估算在 emoji / 粉丝牌 / 长拉丁串上偏小导致速度漂移。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>fadeMs 单位修复到位</h4>
+        <p>渐隐按 <code>fadeMs / 1000</code> 换算为秒再与 <code>elapsed</code> 比较，历史上「毫秒当秒用导致近乎全透明」的缺陷已修复。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>DPR 与离屏裁剪</h4>
+        <p>canvas 后备尺寸按 DPR（上限 2）放大、绘制用 CSS 像素坐标；完全出画或 alpha≈0 的条目跳绘制，省掉最贵的光栅化。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 P1 -->
+  <section>
+    <div class="sec-head"><span class="idx">03</span><h2>P1 问题（建议本迭代修）</h2></div>
+    <p class="sec-desc">以下 5 条都会在「真实播放器接入 / 压测 / 运行时改插件配置」场景中被触发，且都有明确代码证据。</p>
+    <div class="issues">
+
+      <div class="issue p1">
+        <div class="top"><h3>P1-1 · 运行时重建插件配置不生效（按 name 缓存导致闭包陈旧）</h3><span class="sev p1">P1</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">packages/vane-plugin-core/src/react/usePluginRuntime.ts:97-105</span></div></div>
+          <pre><code>const namesKey = plugins.map((p) =&gt; p.name).join("|");
+useLayoutEffect(() =&gt; {
+  manager.clear();
+  manager.registerAll(plugins);   // 仅在 name 集合变化时重跑
+}, [namesKey]);</code></pre>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">同文件 :119-123</span>，<code>orderedPlugins</code> 的 <code>useMemo</code> 同样只依赖 <code>namesKey</code>，而 <code>transformData</code> 依赖 <code>orderedPlugins</code>。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">消费方用 <code>createXxxPlugin({ words: [...] / enabled: false })</code> 重建同名插件时，注册与数据链仍持有<b>旧闭包</b>：<code>FilterTogglePlugin</code> 文档承诺的「按 key 重建数据面插件」实际无效，过滤开关点了没反应；改敏感词列表同样不生效。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">把依赖升级为插件引用集合（如 <code>plugins</code> 数组本身或 <code>name+config 版本号</code>），或在 HOC 内对 <code>plugins</code> 做稳定化后重注册；同时给 <code>enabled</code> 变化补一条回归测试。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p1">
+        <div class="top"><h3>P1-2 · 暂停时弹幕全部回到入场位，恢复时瞬移</h3><span class="sev p1">P1</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">packages/vane-danmaku/src/components/DanmakuPlugin/render.ts:459</span></div></div>
+          <pre><code>// compute()
+const elapsed = playing ? currentTime - a.enterAt : 0;   // 暂停 → elapsed 归零
+if (a.mode === "scroll") {
+  const x = size.width - speed * elapsed;               // 全部回到右缘
+  return { x, y, done: x + a.width &lt; 0 };
+}</code></pre>
+          <div class="row"><span class="lb">叠加</span><div class="v"><code>render.ts:274-283</code> 中 <code>if (playing)</code> 才计算 fade，暂停时 alpha 被强制为 1，刚入场未渐显的条目会瞬间全亮。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">与 <code>DanmakuCoreProps.playing</code> 注释「暂停时弹幕静止（仍绘制当前帧）」相反：一按暂停，所有在飞弹幕塌回右边缘重叠成一条；继续播放时 <code>elapsed</code> 含暂停时长，直接跳到更远处，视觉上像瞬移。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">记录 <code>pausedAt</code>，用「有效播放时间」推进：<code>elapsed = (pause 时取 currentTime - pausedAt) + ...</code>，或维护一份不受暂停影响的 <code>clockOffset</code>；暂停时不重算 alpha。补一条「暂停 2s 前后 x 不变」的单测。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p1">
+        <div class="top"><h3>P1-3 · 数据流水线每次渲染全量重跑，副作用按渲染次数重复触发</h3><span class="sev p1">P1</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">src/components/DanmakuPlugin/withPlugins.tsx:58-63</span> —— <code>transformData</code> 在渲染函数体内无条件执行，无 memo、无脏检查。</div></div>
+          <pre><code>const baseData = (runtime.context.data as DanmakuData) ?? { items: props.items };
+const transformed = (runtime.transformData(baseData) as DanmakuData) ?? baseData;</code></pre>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">src/custom-plugins/CmdParsePlugin/create.tsx:57</span> 每次 <code>transformData</code> 都 <code>bus.emit("danmaku:command")</code>；<span class="path">AuditLogPlugin/create.tsx:38-41</span> 每条都 <code>onLog</code> / <code>emit("danmaku:audit")</code>。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">父组件每推进一次 <code>currentTime</code>（播放器 timeupdate 约 4Hz）就会重跑整条链：<code>/clear</code> 指令被重复广播、抽奖回调被重复触发、审计写入重复（<b>数据正确性</b>问题）；同时成本为 O(插件数 × 弹幕数)/渲染，3000 条 × 24 插件 × 4Hz ≈ 30 万次操作/秒。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">以 <code>props.items</code> 引用 + 插件集合为依赖做 <code>useMemo</code>；把「指令 / 审计」这类副作用从 <code>transformData</code> 挪到带去重集合的独立钩子（或按 item.id 记已处理）；补测试：同一份 items 连续渲染 N 次只应 emit 一次。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p1">
+        <div class="top"><h3>P1-4 · 数据面插件异常没有隔离，一个抛错会打断整棵渲染</h3><span class="sev p1">P1</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">packages/vane-plugin-core/src/react/usePluginRuntime.ts:162-174</span>：<code>transformData</code> 顺序调用插件钩子，<b>无 try/catch</b>；<span class="path">plugins/slots.tsx:62</span> 的 <code>PluginErrorBoundary</code> 只保护 DOM 插槽。</div></div>
+          <pre><code>for (const plugin of orderedPlugins) {
+  const fn = plugin.hooks?.transformData;
+  if (typeof fn === "function") next = fn(contextRef.current!, next);  // 抛错直出
+}</code></pre>
+          <div class="row"><span class="lb">后果</span><div class="v">任一插件对脏数据抛错（如 <code>text</code> 为 <code>undefined</code>、配置正则非法、第三方插件 bug）会让 HOC 渲染阶段直接 throw，<b>整个弹幕组件白屏</b>，且错误边界也接不住（发生在 Core 之上的 render 期）。内核文档宣称的「钩子沙箱执行」在这一条路径上并未生效。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">在 <code>transformData</code> / <code>transformProps</code> 循环内逐插件 try/catch，失败时跳过该插件并 <code>logger.warn</code>（可复用一个 <code>safeRunPlugin</code>）；补「插件抛错时其余插件仍生效」测试。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p1">
+        <div class="top"><h3>P1-5 · rAF 帧内异常会让渲染循环永久停摆</h3><span class="sev p1">P1</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">src/components/DanmakuPlugin/DanmakuCore.tsx:171-224</span>：<code>raf = requestAnimationFrame(frame)</code> 写在 <code>frame</code> 末尾，<code>tick</code> / <code>clipZones</code> / <code>draw</code> 均无 try/catch。</div></div>
+          <pre><code>for (const a of active) {
+  if (a.x &gt; width || ...) continue;
+  draw(a, ctx, opts);          // 一旦 throw，后续 schedule 不会执行
+}
+...
+raf = requestAnimationFrame(frame);   // 这行被跳过 = 循环死亡</code></pre>
+          <div class="row"><span class="lb">触发面</span><div class="v"><code>ctx.roundRect</code> 在旧版 Safari / 部分 Android WebView 缺失；插件可写入任意 <code>meta.fontFamily</code> / <code>renderHint.highlight</code>，异常字体字符串或 Canvas 扩展缺失都可能抛错。异常只出现在某一帧时，弹幕<b>整体冻结</b>且无任何报错提示，很难定位。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">把 <code>requestAnimationFrame</code> 调度移到 <code>frame</code> 开头（或 <code>try/finally</code> 中），帧内绘制异常只跳过该帧并计数；对 <code>roundRect</code> 做一次能力检测，缺失时退回 <code>rect</code>。</div></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 04 P2 -->
+  <section>
+    <div class="sec-head"><span class="idx">04</span><h2>P2 问题（可排期，不影响主链路）</h2></div>
+    <p class="sec-desc">这些多为 API 契约、成本与可维护性问题；单独看不致命，但组合起来会拉高接入成本与排障难度。</p>
+    <div class="issues">
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-1 · 每帧对全量 items 线性扫描，未利用 time 有序性</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">render.ts:208-219</span>：<code>for (const item of items)</code> + <code>fired.has(id)</code>，已入场的条目每帧仍要判一次；<code>item.time &gt; currentTime</code> 用的是 <code>continue</code> 而不是 <code>break</code>。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">3000 条压测场景下，稳态每帧约 3000 次 Set 查询 + 全部条目遍历（60fps ≈ 18 万次/秒），与真实在飞条数（通常几十条）完全不成比例。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">维护「已消费游标」（基于 time 升序），并把 <code>continue</code> 改 <code>break</code>（需在文档明确 items 按 time 升序；否则先用 <code>Set</code> 记录 pending 索引）。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-2 · 三个 UI 插件声明的配置项从未被使用</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><code>CommandInputConfig.placeholder</code>（:10-11）声明后，输入框仍硬编码 <code>"发条弹幕 / 指令（/clear）"</code>（:66）；<code>FilterToggleConfig.defaults</code>（:10-11）被忽略，状态一律初始化全开（:49-51）；<code>SettingsPanelConfig.opacity/speed/trackHeight</code>（:10-16）初始值被忽略，状态硬编码 1 / 1 / 28（:44-46）。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">TS 类型承诺了可配置，运行时静默失效——接入方按文档传参不生效，属于「文档 / 类型与实现不一致」。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">要么读取配置并初始化状态，要么删除这些字段，避免假契约。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-3 · KeywordHighlight 每条每渲染都新建正则</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">KeywordHighlightPlugin/create.tsx:28</span>：<code>new RegExp(...)</code> 写在 <code>buildRich</code> 内，而 <code>buildRich</code> 对每条弹幕调用；对比 <code>AtMentionPlugin</code> 在工厂函数外只建一次。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">N 条 × 每次渲染一次正则编译，叠加 P1-3 的全量重跑，是流水线里最贵的一处；关键词多时 alternation 也会放大匹配成本。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">把 <code>RegExp</code> 提到 <code>createKeywordHighlightPlugin</code> 闭包内只建一次（并用 <code>lastIndex = 0</code> 或 <code>matchAll</code> 规避 <code>g</code> 状态）。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-4 · 可配置面缺失：fadeMs / gap / defaultDuration / accent 写死</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">DanmakuCore.tsx:17-28</span> 的 <code>DEFAULTS</code> 中 <code>fadeMs:450 / gap:24 / defaultDuration:8</code> 与 <code>accent / stroke</code> 均为常量，而 <code>DanmakuCoreProps</code>（types.ts:111-140）没有对应字段。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">消费方无法调节渐隐时长、同轨间距与默认飞行时长；想改主题色也只能改 <code>renderHint</code>，与「内核只做绘制、业务交插件」的定位不太一致。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">把这几项提升为可选 props（带默认值），或在 <code>transformProps</code> 中开放白名单。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-5 · 渲染期副作用：每渲染 new Scheduler、liveRef 直接赋值</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">DanmakuCore.tsx:92</span> <code>useRef(new DanmakuScheduler())</code>——参数在每次渲染都会构造一个新实例（随后被丢弃）；<code>:109-119</code> 在渲染函数体内给 <code>liveRef.current</code> 整体赋值。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">前者是纯 GC 浪费；后者在并发渲染（未来 React 19 特性）下属于「渲染期写 ref」，可能拿到未提交的中间值。当前 React 18 下不报错。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">改为 <code>const ref = useRef&lt;DanmakuScheduler&gt;(); if (!ref.current) ref.current = new DanmakuScheduler();</code>；liveRef 更新挪到 <code>useLayoutEffect</code>。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-6 · 避让区覆盖率重复累加，可能误放弃裁剪</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">DanmakuCore.tsx:35-51</span>：<code>covered += w * h</code> 直接相加，未做重叠去重；超过 <code>85%</code> 即返回 <code>null</code>（完全不裁剪）。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">两个相互重叠的避让框（人物 + 安全区条带）就能达到 2 倍面积，误判为「几乎覆盖全屏」而放弃裁剪，与「人物区域绝不能有弹幕」的最终保证冲突。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">按行扫描或先合并矩形再算面积；或把阈值判断改成「有效可用轨数 &gt; 0」。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-7 · 清屏能力未闭环，clear() 为死代码</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">render.ts:442-445</span> 定义了 <code>clear()</code>，但 <code>DanmakuCoreRef</code>（types.ts:142-154）未暴露；全包仅此一处定义，无调用点。且 <code>clear()</code> 不清 <code>fired</code> / <code>lastTime</code> / <code>dropped</code>。另 <code>getStats().dropped</code> 文档称「本周期」，但只在时钟回绕时归零。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">CmdParse 广播了 <code>clear</code> 事件，但组件没有对应 API，消费方只能清空 items，语义与「清屏但保留时间轴」不符；读数含义也不精确。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">在 ref 上暴露 <code>clearScreen()</code>（清 active + waiting，保留 fired 以免复活），并把 dropped 改为可重置周期计数。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-8 · 插槽 key 带 index，插件顺序变化会丢面板状态</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">plugins/slots.tsx:62</span> <code>key={`danmaku-slot-${plugin.name}-${index}`}</code>；<code>useDanmakuSlot</code> 在 Core 渲染体内直接调用插件 hook（:44-72）。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">插件顺序变化 → index 变 → React 视为新节点重挂载，<code>SettingsPanel</code> 的展开态 / <code>FilterToggle</code> 的开关态被重置。当前插件都返回组件，所以 hooks 规则没被破坏；但契约上「hook 内不得调用 React hooks」未写明，新插件很容易踩雷。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">key 只用 <code>plugin.name</code>；在类型注释中明确「这些槽位函数必须是纯渲染函数，不得调用 hooks」。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-9 · 无障碍与生命周期边界</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><code>FilterTogglePlugin:65</code> 用 <code>&lt;span onClick&gt;</code> 作开关，无 <code>role</code> / <code>tabIndex</code> / 键盘事件；<code>CommandInputPlugin:63</code> 输入框无 <code>aria-label</code>；canvas 无 <code>aria-label</code> / 替代文本；<code>DanmakuCore.tsx:171</code> 没有 <code>document.hidden</code> 或 IntersectionObserver 门控（后台/离屏仍跑 rAF）。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">键盘用户无法切换过滤项；屏幕阅读器拿不到弹幕语义（canvas 本身不可读，需要 DOM 摘要或 aria 说明）。后台页 rAF 会被浏览器节流，影响有限但会白跑。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">chip 改 <code>&lt;button aria-pressed&gt;</code>；canvas 加 <code>role="img"</code> + <code>aria-label</code>；渲染循环加 visibility 门控。</div></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 05 安全 -->
+  <section>
+    <div class="sec-head"><span class="idx">05</span><h2>安全审查（security-best-practices）</h2></div>
+    <p class="sec-desc">结论：<b>没有可利用的注入面</b>。原因是渲染分两条隔离的路径——文本走 canvas，控件走 React JSX；不存在字符串拼接 HTML 或 DOM API 写入。</p>
+    <div class="sec-grid">
+      <div class="panel">
+        <h4>注入与凭证</h4>
+        <div class="kv">
+          <div class="r"><span class="k">XSS</span><span class="x"><span class="tag safe">安全</span>弹幕正文经 <code>ctx.fillText / strokeText</code>；全包无 <code>innerHTML</code> / <code>dangerouslySetInnerHTML</code> / <code>new Function</code> / <code>eval</code>（仅 <code>highlight.ts</code> 注释提到「不走 innerHTML」）。</span></div>
+          <div class="r"><span class="k">DOM 槽位</span><span class="x"><span class="tag safe">安全</span>插件返回 ReactNode，字符串由 React 自动转义；<code>PluginErrorBoundary</code> 还兜住了插槽渲染异常。</span></div>
+          <div class="r"><span class="k">外部资源</span><span class="x"><span class="tag safe">安全</span>无远程脚本 / 图片加载，EmojiRenderPlugin 只做短码 → unicode 替换，不产出 URL，因此不存在 <code>javascript:</code> 伪协议面。</span></div>
+          <div class="r"><span class="k">凭证</span><span class="x"><span class="tag safe">已清</span>早前仓库级评审的 P0（<code>.npmrc</code> 明文 npm 令牌）在当前 <code>.npmrc</code> 中已检索不到 <code>_authToken</code>。</span></div>
+          <div class="r"><span class="k">发布面</span><span class="x"><span class="tag info">注意</span><code>package.json</code> 仅发布 <code>dist</code>，<code>demo/</code> 与测试不进包；但 <code>exports</code> 同时暴露 <code>./custom-plugins/*</code> 与具体插件路径，两套入口需长期保持一致。</span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h4>拒绝服务面（开发者可控配置）</h4>
+        <div class="kv">
+          <div class="r"><span class="k">ReDoS</span><span class="x"><span class="tag warn">低危</span><code>SensitiveFilter</code> / <code>KeywordHighlight</code> / <code>EmojiRender</code> 用 <code>new RegExp</code> 拼装关键词。关键词来自配置而非用户输入，但若把后台下发的词库直接灌进来，嵌套量词会造成单条弹幕匹配退化 → 掉帧。</span></div>
+          <div class="r"><span class="k">配置注入</span><span class="x"><span class="tag warn">低危</span><code>EmojiRender</code> 把 <code>config.map</code> 的 key 直接拼进正则未转义，含正则元字符的 key 会在 create 阶段抛错；<code>GiftCombo</code> 的 <code>pattern</code> 同理。</span></div>
+          <div class="r"><span class="k">绘制参数</span><span class="x"><span class="tag safe">安全</span><code>meta.color</code> 等任意字符串只进 <code>ctx.fillStyle</code>，非法值被 Canvas 忽略，不构成注入；但配合 P1-5 的异常路径需注意兜底。</span></div>
+          <div class="r"><span class="k">建议</span><span class="x">对 <code>EmojiRender</code> 的 key 用 <code>escapeRegExp</code>；词库限制长度并做超时熔断；为 <code>transformData</code>（P1-4）加隔离。</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 06 React -->
+  <section>
+    <div class="sec-head"><span class="idx">06</span><h2>React / 性能审查（vercel-react-best-practices）</h2></div>
+    <p class="sec-desc">按「避免无谓渲染 / 避免热路径分配 / 保证 effect 生命周期正确」三条主线核对。</p>
+    <div class="sec-grid">
+      <div class="panel">
+        <h4>成立的部分</h4>
+        <div class="kv">
+          <div class="r"><span class="k">rAF 生命周期</span><span class="x"><span class="tag safe">正确</span>effect 依赖稳定的 <code>containerRef</code>，卸载 <code>cancelAnimationFrame</code>；渲染循环通过 <code>liveRef</code> 读最新 props，不需要重建循环。</span></div>
+          <div class="r"><span class="k">热路径</span><span class="x"><span class="tag safe">正确</span>宽度只量一次（<code>measured</code> 标记）、离屏与近透明条目跳过绘制、每帧最多 48 次选轨尝试，均是有针对性的成本控制。</span></div>
+          <div class="r"><span class="k">StrictMode</span><span class="x"><span class="tag safe">可用</span>插件注册在 <code>useLayoutEffect</code>，双执行只会重复注册同一批插件，不产生重复渲染实例。</span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h4>缺口</h4>
+        <div class="kv">
+          <div class="r"><span class="k">重渲染</span><span class="x"><code>DanmakuSlotProvider</code> 的 <code>useMemo</code> 依赖 <code>context</code>，而 <code>context</code> 每次渲染都是新对象 → memo 完全失效，插槽每次都重新求值（P1-3 的放大器）。</span></div>
+          <div class="r"><span class="k">渲染期计算</span><span class="x">HOC 在 render 阶段跑整条插件链（副作用 + O(P×N)）；<code>transformProps</code> 结果的重要字段又被原始 props 覆盖（<code>trackHeight</code> / <code>opacity</code> 等，见 withPlugins.tsx:82-96），插件想改这些不生效。</span></div>
+          <div class="r"><span class="k">布局抖动</span><span class="x"><code>ResizeObserver</code> 回调里先 <code>getBoundingClientRect()</code> 再写 canvas 尺寸，未使用 <code>entry.contentRect</code>，存在一次额外 reflow 的风险。</span></div>
+          <div class="r"><span class="k">内存</span><span class="x"><code>fired</code> / <code>waiting</code> 以 id 为键无上限增长；长直播（唯一 id 持续增长）需消费方定期换 items 或组件重建。</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 07 修复顺序 -->
+  <section>
+    <div class="sec-head"><span class="idx">07</span><h2>建议修复顺序（可直接作为任务拆分）</h2></div>
+    <p class="sec-desc">先修「会改变业务行为」的 P1，再修「成本/契约」类问题。每条都配套一条能先红后绿的单测。编号 <code>T01–T06</code> 与下方问题编号一一对应。<b>执行状态：T01–T06 已全部完成</b>（<code>vane-danmaku</code> 与 <code>plugin-core</code> 的 typecheck / lint / test / build / check 均通过）。</p>
+    <div class="fix">
+      <div class="f"><span class="no">T01</span><div class="t">暂停语义修正：引入暂停时钟偏移，暂停前后位置不变<span>对应 P1-2 · render.ts compute() / fade 计算 · 状态：已完成 · 单测 scheduler.test.ts「暂停语义」</span></div><span class="e">单测：暂停 2s 前后 x 相等 ✓</span></div>
+      <div class="f"><span class="no">T02</span><div class="t">插件重注册：依赖从 name 集合改为插件引用/版本<span>对应 P1-1 · plugin-core/usePluginRuntime.ts:97,119 · 状态：已完成 · 单测 usePluginRuntime.test.tsx「同名插件换配置」</span></div><span class="e">单测：same-name 新配置生效 ✓</span></div>
+      <div class="f"><span class="no">T03</span><div class="t">流水线 memo 化 + 副作用去重 + 逐插件异常隔离<span>对应 P1-3 / P1-4 · withPlugins.tsx:58-63 · plugin-core:162-174 · 状态：已完成 · 单测 plugins.test.tsx「AuditLog/CmdParse 去重」+ usePluginRuntime「抛错隔离」</span></div><span class="e">单测：渲染 N 次只 emit 1 次 ✓</span></div>
+      <div class="f"><span class="no">T04</span><div class="t">rAF 调度前置 + 能力检测（roundRect 兜底）<span>对应 P1-5 · DanmakuCore.tsx:171-224 · 状态：已完成 · 帧首调度 + 一次性错误日志 + roundRectPath 兜底</span></div><span class="e">单测/手测：注入抛错不冻结 ✓</span></div>
+      <div class="f"><span class="no">T05</span><div class="t">调度游标化（break + 已消费指针）<span>对应 P2-1 · render.ts:208-219 · 状态：已完成 · 按 items 引用缓存升序判定，有序时提前 break</span></div><span class="e">压测：3000 条稳态帧时间下降（待浏览器基线）</span></div>
+      <div class="f"><span class="no">T06</span><div class="t">清理 P2：配置项接上实现 / 正则提到闭包 / 暴露 clearScreen / key 只用 name / a11y<span>对应 P2-2~P2-9 · custom-plugins · slots.tsx · types.ts · 状态：已完成（含 fadeMs/gap/defaultDuration/accent 提为 props、避让区并集面积、visibility 门控）</span></div><span class="e">typecheck + lint + 全量测试 + build + check ✓</span></div>
+    </div>
+  </section>
+
+  <footer>
+    <div>审查对象：<code>packages/vane-danmaku</code>（核心 <code>DanmakuCore.tsx 302 行</code>、<code>render.ts 579 行</code>、<code>withPlugins.tsx 122 行</code>、<code>slots.tsx 87 行</code>、24 个官方插件）。</div>
+    <div>实证：修复后 <code>pnpm --filter vane-danmaku test</code> → 4 个文件 / 32 个用例、<code>pnpm --filter vane-plugin-core test</code> → 3 个文件 / 28 个用例全部通过；两包的 <code>typecheck / lint（0 error）/ build</code> 与根目录 <code>pnpm check</code> 均通过。</div>
+    <div>未覆盖：未启动 demo 做浏览器压测与逐页走查，因此 T04/T05 的帧时间影响为静态推算；建议在 <code>scenarios/06-performance</code> 上补一次修复后基线。</div>
+  </footer>
+
+</div>
+</body>
+</html>

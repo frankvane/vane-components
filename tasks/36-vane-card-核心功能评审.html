@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>vane-card 核心功能评审报告</title>
+<style>
+  :root{
+    --bg:#0b0a09; --panel:#171513; --panel2:#1d1a17;
+    --line:rgba(255,255,255,.09); --line2:rgba(255,255,255,.16);
+    --text:#ebe7e2; --muted:#9a938c; --dim:#6f6862;
+    --accent:#ff7a29; --accent-soft:rgba(255,122,41,.14);
+    --p0:#ff4d4f; --p1:#ffa940; --p2:#7aa7ff; --ok:#3ecf8e;
+    --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1200px 600px at 12% -8%,rgba(255,122,41,.13),transparent 60%),
+      radial-gradient(900px 500px at 92% 0%,rgba(122,167,255,.08),transparent 62%),
+      var(--bg);
+    color:var(--text);font-family:var(--sans);line-height:1.65;
+    padding:44px 28px 90px;
+  }
+  .wrap{max-width:1180px;margin:0 auto}
+  header.hero{border-bottom:1px solid var(--line);padding-bottom:26px;margin-bottom:34px}
+  .eyebrow{display:flex;gap:10px;align-items:center;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent)}
+  h1{font-size:clamp(26px,3.6vw,42px);line-height:1.16;margin:14px 0 10px;letter-spacing:-.02em}
+  h1 span{color:var(--accent)}
+  .sub{color:var(--muted);max-width:840px;font-size:15px}
+  .sub code,.sec-desc code{font-family:var(--mono);font-size:12.5px;color:var(--accent)}
+  .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+  .chip{font-size:12px;color:var(--muted);border:1px solid var(--line2);border-radius:999px;padding:4px 11px}
+  .chip b{color:var(--text);font-weight:600}
+
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin:6px 0 44px}
+  .stat{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:14px;padding:18px;position:relative;overflow:hidden}
+  .stat::after{content:"";position:absolute;inset:auto 0 0 0;height:2px;background:var(--accent-soft)}
+  .stat .n{font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1.1}
+  .stat .k{font-size:12px;color:var(--muted);margin-top:5px}
+  .stat.p0 .n{color:var(--p0)} .stat.p1 .n{color:var(--p1)} .stat.p2 .n{color:var(--p2)} .stat.ok .n{color:var(--ok)}
+
+  section{margin-bottom:48px}
+  .sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:8px}
+  .sec-head h2{font-size:21px;margin:0;letter-spacing:-.01em}
+  .sec-head .idx{font-family:var(--mono);font-size:12px;color:var(--accent);border:1px solid var(--accent-soft);background:var(--accent-soft);padding:2px 7px;border-radius:6px}
+  .sec-desc{color:var(--muted);font-size:14px;margin:0 0 20px;max-width:920px}
+
+  .flow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+  .flow .step{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+  .flow .step h4{margin:0 0 6px;font-size:13.5px;color:var(--text)}
+  .flow .step p{margin:0;font-size:12px;color:var(--muted);line-height:1.55}
+  .flow .step code{font-family:var(--mono);font-size:11px;color:var(--accent)}
+  .flow .step:nth-child(2){border-color:rgba(255,122,41,.35)}
+  .flow .step:nth-child(4){border-color:rgba(122,167,255,.3)}
+
+  .issues{display:grid;gap:16px}
+  .issue{background:linear-gradient(180deg,rgba(255,255,255,.03),transparent 40%),var(--panel);border:1px solid var(--line);border-left:3px solid var(--p1);border-radius:12px;padding:18px 20px}
+  .issue.p0{border-left-color:var(--p0)}
+  .issue.p2{border-left-color:var(--p2)}
+  .issue .top{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:start}
+  .issue h3{margin:0;font-size:16px;line-height:1.45}
+  .sev{font-size:11px;font-weight:700;letter-spacing:.08em;padding:3px 9px;border-radius:999px;white-space:nowrap}
+  .sev.p0{color:#2a0000;background:var(--p0)}
+  .sev.p1{color:#1a1200;background:var(--p1)}
+  .sev.p2{color:#04122e;background:var(--p2)}
+  .issue .body{margin-top:12px;display:grid;gap:10px}
+  .row{display:grid;grid-template-columns:78px 1fr;gap:10px;font-size:13.5px}
+  .row .lb{color:var(--dim);font-size:12px;padding-top:2px}
+  .row .v{color:var(--muted)}
+  .row .v b{color:var(--text);font-weight:600}
+  pre{background:#0d0c0b;border:1px solid var(--line);border-radius:10px;padding:13px 15px;overflow:auto;margin:0}
+  pre code{font-family:var(--mono);font-size:12px;color:#d9d3cd;line-height:1.65;white-space:pre}
+  .path{font-family:var(--mono);font-size:12px;color:var(--accent);background:rgba(255,122,41,.08);border-radius:5px;padding:1px 6px}
+
+  .ok-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+  .ok-card{background:rgba(62,207,142,.045);border:1px solid rgba(62,207,142,.22);border-radius:12px;padding:16px}
+  .ok-card h4{margin:0 0 7px;font-size:14px;color:#bfeed8;display:flex;gap:7px;align-items:center}
+  .ok-card h4 .tick{color:var(--ok);font-size:13px}
+  .ok-card p{margin:0;font-size:12.5px;color:var(--muted);line-height:1.6}
+  .ok-card code{font-family:var(--mono);font-size:11px;color:#9fe3c3}
+
+  .sec-grid{display:grid;grid-template-columns:1.15fr 1fr;gap:14px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:18px 20px}
+  .panel h4{margin:0 0 10px;font-size:14.5px}
+  .kv{display:grid;gap:9px}
+  .kv .r{display:grid;grid-template-columns:104px 1fr;gap:10px;font-size:13px}
+  .kv .r .k{color:var(--dim);font-size:12px}
+  .kv .r .x{color:var(--muted)}
+  .tag{display:inline-block;font-size:11px;padding:1px 8px;border-radius:999px;margin-right:6px}
+  .tag.safe{color:var(--ok);background:rgba(62,207,142,.12)}
+  .tag.warn{color:var(--p1);background:rgba(255,169,64,.13)}
+  .tag.info{color:var(--p2);background:rgba(122,167,255,.12)}
+
+  .fix{display:grid;gap:10px}
+  .fix .f{display:grid;grid-template-columns:44px 1fr auto;gap:14px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:13px 16px}
+  .fix .f .no{font-family:var(--mono);font-size:18px;color:var(--accent);text-align:center}
+  .fix .f .t{font-size:13.5px}
+  .fix .f .t span{display:block;color:var(--dim);font-size:11.5px;margin-top:2px;font-family:var(--mono)}
+  .fix .f .e{font-size:11px;color:var(--muted);border:1px solid var(--line2);border-radius:999px;padding:3px 10px;white-space:nowrap}
+
+  footer{border-top:1px solid var(--line);padding-top:20px;color:var(--dim);font-size:12px;display:grid;gap:6px}
+  @media (max-width:860px){.flow{grid-template-columns:1fr 1fr}.sec-grid{grid-template-columns:1fr}.row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow"><span class="dot"></span>tasks/36 · vane-card 核心功能评审 · 2026-11-01</div>
+    <h1>商品卡片核心功能分析<span>：1 P0 · 5 项 P1 · 8 项 P2</span></h1>
+    <p class="sub">
+      审查 <code>packages/vane-card</code> 的核心渲染链（<code>CardCore</code> → <code>withPlugins</code> → 插件总线 → <code>composeSlots</code>）、
+      22 个官方插件与 38 个复合组件，重点判定「规格选择 → 价格 / 库存 / 主图派生 → 下单数量 → 事件回写」这条主链路是否真的成立。
+      结论：链路骨架（总线、订阅、错误隔离）是可靠的，但<b>派生键的清写、规格匹配口径、两套状态源</b>三处让「选规格改价」在最常见场景下不成立；
+      并且有一条 P0 会让未带库存字段的商品卡首帧就变成「已售罄」。
+    </p>
+    <div class="meta">
+      <span class="chip">范围 <b>src 104 文件 / 6151 行</b></span>
+      <span class="chip">方法 <b>调用链审查 + 单测实证</b></span>
+      <span class="chip">基线 <b>security-best-practices</b></span>
+      <span class="chip">基线 <b>vercel-react-best-practices</b></span>
+      <span class="chip">测试 <b>vane-card 13 文件 / 187 用例通过</b></span>
+    </div>
+  </header>
+
+  <div class="stats">
+    <div class="stat p0"><div class="n">1</div><div class="k">P0 阻断级问题</div></div>
+    <div class="stat p1"><div class="n">5</div><div class="k">P1 高优先级 · 待修</div></div>
+    <div class="stat p2"><div class="n">8</div><div class="k">P2 中低优先级</div></div>
+    <div class="stat ok"><div class="n">187/187</div><div class="k">单测用例 · 13 文件</div></div>
+    <div class="stat ok"><div class="n">0</div><div class="k">XSS 注入点</div></div>
+  </div>
+
+  <!-- 01 数据流 -->
+  <section>
+    <div class="sec-head"><span class="idx">01</span><h2>核心数据流与职责边界</h2></div>
+    <p class="sec-desc">
+      卡片有两条并行入口：<b>插件体系</b>（<code>withPlugins(CardCore, { plugins })</code>，状态在 <code>usePluginRuntime</code> 的 state + <code>PluginBus</code>）与
+      <b>复合组件体系</b>（<code>ProductCard</code> 的 <code>useProductCard()</code> context）。两者都读写同一份 <code>data</code>，但状态互不可见——这是 P1-4 的根因，也是后面几条价格问题的定位坐标。
+    </p>
+    <div class="flow">
+      <div class="step"><h4>① 数据接入</h4><p>消费方传 <code>data</code>（price / variants / inventory / image）与 <code>plugins</code>；<code>ProductCard</code> 再按插件名记忆 Core。</p></div>
+      <div class="step"><h4>② 上下文与状态</h4><p><code>extendContext</code> 叠加 <code>cardId/data/size/bus</code>；运行时 state = <code>isVisible/isHovered/cart…</code>。</p></div>
+      <div class="step"><h4>③ 派生键</h4><p>SKU 选择写 <code>skuVariant / skuPrice / skuImage</code>，数量写 <code>quantity</code>，券写 <code>couponApplied</code>。</p></div>
+      <div class="step"><h4>④ 渲染</h4><p><code>composeSlots</code> 五段（before → children → overlay → after → footer）+ 价格区领域槽。</p></div>
+      <div class="step"><h4>⑤ 交互回写</h4><p>控件 <code>bus.setData</code>；<code>setupForceUpdateOnBusKeys</code> 订阅后 forceUpdate 重渲染。</p></div>
+    </div>
+  </section>
+
+  <!-- 02 已验证 -->
+  <section>
+    <div class="sec-head"><span class="idx">02</span><h2>已验证成立的核心机制</h2></div>
+    <p class="sec-desc">以下几条是最容易误报的地方：按代码与回归用例逐条核对后结论是「成立」，不应作为问题上报（也是评审中排除误报的依据）。</p>
+    <div class="ok-grid">
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>总线只在值变化时 emit</h4>
+        <p><code>PluginBus.setData</code> 用 <code>prev !== value</code> 去重，<code>on()</code> 返回可用的 <code>off</code>；<code>setupForceUpdateOnBusKeys</code> 在订阅后主动补一次 <code>forceUpdate</code>，因此「首帧写入派生键」能立刻反映到首屏。回归：<code>test/bus-protocol.test.tsx</code>。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>首屏变体价已写入派生键</h4>
+        <p><code>SKUPlugin.onMount</code> 在命中变体后同时写 <code>skuPrice</code> / <code>skuImage</code>（<code>SKUPlugin/create.tsx:92-101</code>），不需要用户先切一次规格；<code>plugins-c.test.tsx</code> 的「选中变体的图优先于 data.image」正是靠这一点。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>价格重算与事件发布一致</h4>
+        <p><code>PriceCalculator.onMount</code> 订阅 <code>skuPrice / quantity / couponApplied</code>，<code>recalc</code> 内 <code>emit("price:change")</code> + <code>forceUpdate</code>（<code>PriceCalculatorPlugin/create.tsx:66-98</code>），单价/小计/合计口径在同一处计算，测试有端到端用例。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>插件清理函数被内核回收</h4>
+        <p><code>onMount</code> 返回值（<code>off1/off2/off3</code>、<code>ResizeObserver</code>、<code>IntersectionObserver</code>）由内核 <code>PluginManager.clear()</code> 逆序执行；<code>InventoryPlugin:44-45</code>、<code>QuantityPlugin:170-181</code>、<code>CouponRecommendPlugin:56-70</code> 都正确返回 cleanup。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>插槽故障隔离</h4>
+        <p><code>composeSlots</code> 与包内 <code>renderDomainSlot</code> 都逐插件 <code>try/catch</code> + <code>PluginErrorBoundary</code>（<code>plugins/slots.tsx:65-84</code>），一个插件 render 抛错只丢自己那段，不会白屏。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>可见性与尺寸契约</h4>
+        <p><code>CardCore</code> 只建一次 <code>IntersectionObserver</code>、卸载 <code>disconnect</code>（<code>CardCore.tsx:188-207</code>）；<code>useImperativeHandle</code> 暴露 <code>getContainer/forceUpdate/getSize</code>（:222-233），<code>core-ref.test.tsx</code> 覆盖。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>两套排序规则一致</h4>
+        <p>内核 <code>composeSlots</code> 与包内 <code>renderDomainSlot</code> 都是「config.order 升序 → priority 降序」，<code>ActionsPlugin</code> 用 order=20 把按钮结构性排在最后（<code>ActionsPlugin:113-115</code>），测试断言价格区顺序。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>复合组件的「变体精确匹配」本身是对的</h4>
+        <p><code>product.ts:96-116</code> 用属性集大小相等 + 逐项相等做完全匹配，注释明确解释了「只选一部分时回退商品级价格，而不是拿错价」。这条没错——错的是插件侧用了另一套语义（P1-2）。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 P0 -->
+  <section>
+    <div class="sec-head"><span class="idx">03</span><h2>P0 问题（阻断核心功能）</h2></div>
+    <p class="sec-desc">只有一条，但它命中「类型上完全合法、文档明确允许」的默认用法，触发后整张卡不可交互。</p>
+    <div class="issues">
+
+      <div class="issue p0">
+        <div class="top"><h3>P0-1 · 缺省库存被当成 0：未传 inventory 的商品卡首帧「已售罄」，并且整卡点击被蒙层吞掉</h3><span class="sev p0">P0</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">packages/vane-card/src/custom-plugins/InventoryPlugin/create.tsx:23-30</span> —— 「未知」被折算成 <code>0</code>。</div></div>
+          <pre><code>function resolveInventory(context): number {
+  const variant = context.bus?.getData?.(BusKeys.skuVariant);
+  if (typeof variant?.stock === "number") return variant.stock;
+  const inventory = (context.data as any)?.inventory;
+  return typeof inventory === "number" ? inventory : 0;   // ← 没字段 = 0 = 售罄
+}</code></pre>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">同文件 :47-68</span> —— <code>soldOut = showOverlayWhenSoldOut &amp;&amp; inventory &lt;= 0</code>，覆盖层 <code>position:absolute; inset:0; zIndex:9</code>，没有 <code>pointer-events:none</code>。</div></div>
+          <pre><code>const soldOut = showOverlayWhenSoldOut &amp;&amp; inventory &lt;= 0;
+...
+&lt;div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.5)",
+              display:"flex", zIndex:9 }}&gt;已售罄&lt;/div&gt;</code></pre>
+          <div class="row"><span class="lb">证据 3</span><div class="v"><span class="path">packages/vane-card/src/components/CardPlugin/types/product.ts:25-26, 44-45</span> —— 公开类型明确是可选的，并写明语义：<code>stock</code>「缺失表示未知」、<code>inventory?</code>「总体库存（无变体时用）」。</div></div>
+          <div class="row"><span class="lb">证据 4</span><div class="v"><span class="path">packages/vane-card/src/components/CardPlugin/core/CardCore.tsx:248</span> 容器是 <code>position:relative</code>，overlay 段在 <code>children</code> 之后渲染，故蒙层在命中测试最上层、覆盖整卡（含规格按钮与加购按钮）。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">任何只传 <code>price / title / image</code>（或不含库存字段）的商品卡，首帧即被半透明黑蒙层覆盖并显示「已售罄」；用户点规格、点加购、点图片全部无效。同时 <code>lowStock</code> 分支（:50）永远走不到。187 个用例全绿是因为 <code>test/plugins-c.test.tsx:124-157</code> 只覆盖了 <code>inventory:50 / 3</code> 与「变体 stock=0」三种<b>有数据</b>场景，没有「字段缺失」用例。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">把 <code>resolveInventory</code> 返回类型改为 <code>number | undefined</code>：变体 stock 有值 → 用它；<code>data.inventory</code> 有值 → 用它；<b>都没有 → 不判售罄也不判紧张，直接 <code>return null</code></b>。蒙层加 <code>pointer-events:none</code>（只保留视觉），售罄状态应通过 <code>ActionsPlugin</code> / 数量步进器禁用按钮表达。补单测：<code>{ title, price }</code> 无库存字段 → 不出现「已售罄」。</div></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 04 P1 -->
+  <section>
+    <div class="sec-head"><span class="idx">04</span><h2>P1 问题（真实接入必踩 / 核心交互失效）</h2></div>
+    <p class="sec-desc">这 5 条都发生在「选了规格，价格/库存/主图却没跟着变」这个核心承诺上，或让插件配置在运行时静默失效。</p>
+    <div class="issues">
+
+      <div class="issue p1">
+        <div class="top"><h3>P1-1 · ProductCard 只按插件名记忆 Core：同名插件换配置永不生效</h3><span class="sev p1">P1</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">packages/vane-card/src/components/CardPlugin/compound/ProductCard.tsx:69-77</span></div></div>
+          <pre><code>const pluginKey = plugins?.map((p) =&gt; p.name).join("|") ?? "";
+const Core = useMemo(() =&gt; {
+  if (!pluginKey) return CardCore;
+  return withPlugins(CardCore, { plugins: plugins ?? [] });
+}, [pluginKey]);   // ← 只依赖名字，同名即不重建</code></pre>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">packages/vane-card/src/components/CardPlugin/plugins/withPlugins.tsx:66-69</span> —— 闭包在 HOC 工厂里就把 <code>plugins</code> 固定下来了（<code>const { plugins } = normalized</code>），之后 props 里的新数组不会被读到。</div></div>
+          <div class="row"><span class="lb">证据 3</span><div class="v"><span class="path">packages/vane-card/test/compound.test.tsx:222-224</span> —— 现有用例「内联 plugins 数组不会导致卡片重挂」正好把这一行为固化成了契约。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">最典型的写法 <code>plugins={[createSKUPlugin({ attributes, variants: data.variants })]}</code>（配置由异步到达的 <code>data</code> 派生）在首帧把 <code>variants/attributes</code> 定成 <code>[]</code>；数据到达后 <code>pluginKey</code> 不变 → Core 不重建 → 规格选择器永远空白。同理：改券列表、改库存阈值、改 <code>renderIn</code> 都静默不生效，表现为「控件点了没反应」。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">把记忆键从「名字签名」升级为「名字 + 配置指纹」（例如 <code>JSON.stringify(p.config)</code> 的稳定哈希，或由调用方显式传 <code>configVersion</code>）；若要保留「不重挂」的收益，可在 HOC 内部用 <code>useRef</code> 保存最后一次 <code>plugins</code>，在引用变化时通过 <code>runtime</code> 的热替换接口更新配置而不卸载树。至少补一条「同名插件换 config 后变体可选中」的测试。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p1">
+        <div class="top"><h3>P1-2 · 两套 matchVariant 语义相反：插件侧部分匹配，复合组件侧完全匹配</h3><span class="sev p1">P1</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">packages/vane-card/src/custom-plugins/SKUPlugin/create.tsx:27-32</span> —— 只要「已选的每个属性」都能在变体上找到就命中（允许变体多属性）。</div></div>
+          <pre><code>return variants.find((v) =&gt; keys.every((k) =&gt; v.attrs[k] === selection[k]));
+// selection = { 颜色:"红" }，变体 attrs = { 颜色:"红", 尺码:"S" } → 命中</code></pre>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">packages/vane-card/src/components/CardPlugin/types/product.ts:95-116</span> —— 复合组件要求属性集<b>大小相等</b>，注释还专门解释了为什么必须完全匹配。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">双属性商品（颜色 + 尺码）下，用户只选了颜色，插件就命中数组里第一条该颜色变体并把它的 <b>price / stock / image</b> 写进总线；再选尺码时 <code>find</code> 仍返回同一条 → <b>价格完全不随第二个属性变化</b>。同时复合组件 <code>Price</code>（<code>Price.tsx:17-18</code>）走完全匹配，两个体系会显示两个不同价格。数组顺序不同还会出现「每次刷新价格不一样」。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">共用一个 <code>matchVariantExact</code>（从 <code>types/product</code> 导出），插件再用它判断「当前选择是否构成完整组合」；部分匹配只用于计算「哪些选项已无货可禁用」，不用于写价格。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p1">
+        <div class="top"><h3>P1-3 · 派生键只写不清 + SKUPlugin 不自订阅：切到不匹配/无价规格后价格与库存滞留</h3><span class="sev p1">P1</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">packages/vane-card/src/custom-plugins/SKUPlugin/create.tsx:113-133</span> —— footer 分支只在 <code>matched</code> 存在且 <code>price</code> 是数字时才写；不匹配时<b>什么都不做</b>，<code>skuPrice/skuImage/skuVariant</code> 保持上一次的值。</div></div>
+          <pre><code>const matched = matchVariant(variants, next);
+if (matched) {
+  context.bus?.setData?.(BusKeys.skuVariant, matched);
+  if (typeof matched.price === "number") context.bus?.setData?.(BusKeys.skuPrice, matched.price);
+  if (matched.image) context.bus?.setData?.(BusKeys.skuImage, matched.image);
+}   // ← 没有 else：旧值不会清</code></pre>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">同文件 :149-169</span> —— overlay 分支只写 <code>skuVariant</code>（:156），完全不写 <code>skuPrice</code> / <code>skuImage</code>，于是 <code>renderIn:"overlay"</code> 时价格与主图永远停在首屏或上一规格。</div></div>
+          <div class="row"><span class="lb">证据 3</span><div class="v"><span class="path">同文件 :4-6</span> 只 import 了 <code>types / BusKeys / React</code>，全文件<b>没有</b> <code>setupForceUpdateOnBusKeys</code>；对比 <code>QuantityPlugin:175-178</code> 明确订阅了 <code>quantity + skuVariant</code>，<code>InventoryPlugin:44-45</code> 订阅了 <code>skuVariant</code>。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">① 用户从「红/有货」切到「绿/缺货」：<code>matchVariant</code> 未命中（或命中无 stock 的新变体）→ <code>skuVariant</code> 仍是红 → 库存覆盖层不出现，用户以为有货；② <code>PriceCalculator</code>（:69-70）读到的 <code>skuPrice</code> 还是红的价，与选中的绿不符；③ 只装 SKUPlugin（不装 PriceCalculator）时，选择器点击后没有任何订阅者 forceUpdate → 选中态高亮都不刷新。测试 <code>bus-protocol</code> 覆盖了「键冻结 / 变体价写入」，但没有「从不匹配回到匹配 / 从有价到无价」的清写场景。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">选择变化时先统一 <code>setData(skuVariant, undefined)</code>、<code>setData(skuPrice, undefined)</code>、<code>setData(skuImage, undefined)</code>，再按匹配结果写回（<code>PluginBus</code> 用 <code>prev !== value</code> 判定，<code>undefined</code> 会正常 emit）；并在 <code>SKUPlugin.onMount</code> 返回 <code>setupForceUpdateOnBusKeys(context, [BusKeys.skuSelection, BusKeys.skuVariant])</code>。补测试：切到无价变体后 <code>skuPrice</code> 应为 undefined、界面回到 <code>data.price</code>。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p1">
+        <div class="top"><h3>P1-4 · 两套状态源并行：复合组件的选规格 / 数量与插件价格互不可见</h3><span class="sev p1">P1</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">packages/vane-card/src/components/CardPlugin/compound/components/VariantSelector.tsx:12, 40-45</span> —— 选中写的是 <code>ProductCard</code> 的 React state。</div></div>
+          <pre><code>const onSelect = (name, val) =&gt;
+  setState((s) =&gt; ({ ...s, attributes: { ...(s.attributes ?? {}), [name]: val } }));
+// 只改 useProductCard().state，不动 bus.skuSelection</code></pre>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">packages/vane-card/src/components/CardPlugin/compound/components/Price.tsx:14-18</span> —— 价格从 <code>state.attributes</code> + <code>data.variants</code> 本地推导，完全不读 <code>skuPrice</code>。</div></div>
+          <div class="row"><span class="lb">证据 3</span><div class="v"><span class="path">packages/vane-card/src/custom-plugins/PriceCalculatorPlugin/create.tsx:100-103</span> —— 插件侧价格只读 <code>bus.getData(BusKeys.skuPrice) ?? data.price</code>，不知道 <code>state.attributes</code> 存在。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">「复合组件 + 价格插件」同时使用时必然出现两套价格：在 <code>&lt;VariantSelector&gt;</code> 里选「蓝」，<code>&lt;Price&gt;</code> 旁边的 <code>PriceCalculator</code> 合计与划线价仍是默认值；在 <code>SKUPlugin</code> 里选「蓝」，<code>&lt;Price&gt;</code> 的主价格仍是商品级价。数量同理：<code>QuantityStepper</code> 改 <code>state.quantity</code>，<code>PriceCalculator</code> 的 <code>quantity</code> 仍读总线。这不是「两个可选方案」，而是同时可用时状态分叉。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">明确唯一真源（建议总线，因为它已被 5 个插件消费）：<code>VariantSelector</code> / <code>QuantityStepper</code> 改为写 <code>bus.skuSelection</code> / <code>bus.quantity</code>；<code>ProductCard</code> 增加一个订阅总线的桥接（<code>onStateChange</code> 或 <code>useEffect</code> 里监听 skuSelection → setState），并让 <code>Price</code> 优先读 <code>skuPrice</code>。至少在文档里标注「复合组件与插件状态不互通」。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p1">
+        <div class="top"><h3>P1-5 · 优惠券 discountType 被整体忽略：百分比券按金额扣减，可用性判断只看 data.price</h3><span class="sev p1">P1</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">packages/vane-card/src/components/CardPlugin/compound/components/CouponBar.tsx:9-10</span> 声明了 <code>discountType: "amount" | "percentage"</code>，但 <code>:72-78</code> 只用于显示（<code>${discount}折</code>），<b>没有任何计算使用它</b>。</div></div>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><code>PriceCalculatorPlugin:74</code> 与 <code>OrderSummaryPlugin:68</code> 都把 <code>discount</code> 当金额：<code>total = Math.max(0, subtotal - appliedCoupon.discount)</code>、<code>couponCut = Math.min(discount, subtotal)</code>。</div></div>
+          <pre><code>// PriceCalculatorPlugin/create.tsx:74
+const total = Math.max(0, subtotal - (appliedCoupon?.discount ?? 0));
+// CouponPlugin/create.tsx:8-13 的注释：discount 是「金额或百分比（简单用金额）」</code></pre>
+          <div class="row"><span class="lb">证据 3</span><div class="v"><code>CouponBar.tsx:56-58</code> 用 <code>data?.price</code>（商品级价）算 <code>totalAmount</code>，忽略变体价；<code>:61-66</code> 已把不满足门槛的券过滤掉，于是 <code>:133</code> 的 <code>isUnavailable</code> 分支是<b>死代码</b>。</div></div>
+          <div class="row"><span class="lb">证据 4</span><div class="v"><code>CouponRecommendPlugin/create.tsx:32-36</code> 的 <code>pickBestCoupon</code> 直接比较 <code>c.discount</code> 大小，同样没有类型概念。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">「8 折券」若按 <code>discount:0.8</code> 表达，结算直接减 0.8 元；若按 <code>discount:8</code> 表达，减 8 元。两种都错，且<b>没有任何一层能修正</b>。门槛判断用商品级价，选中更贵的变体时本应不可用的券被判为可用。这是金额正确性问题，不只是展示问题。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">抽出唯一的 <code>computeDiscount(subtotal, coupon)</code>：<code>amount</code> → <code>min(value, subtotal)</code>，<code>percentage</code> → <code>subtotal * (1 - value/10)</code>（并明确「折」与「%」的字段语义）；<code>CouponInfo</code> 与插件 <code>Coupon</code> 合并成同一类型；门槛判断改用 <code>subtotal</code>（含变体价）。<code>PriceCalculator / OrderSummary / CouponRecommend / CouponBar</code> 四处统一调用。</div></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 05 P2 -->
+  <section>
+    <div class="sec-head"><span class="idx">05</span><h2>P2 问题（契约 / 成本 / 生命周期，可排期）</h2></div>
+    <p class="sec-desc">单独看不致命，但会抬高接入成本：插件作者按类型写代码不生效、渲染期副作用在并发下不安全、异常后槽位再也回不来。</p>
+    <div class="issues">
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-1 · <code>transformData</code> 钩子有声明、无执行：卡片数据流水线是空的</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">packages/vane-card/src/components/CardPlugin/plugins/types.ts:143</span> 声明 <code>transformData?: (context, data: T) =&gt; T</code>；全包 grep <code>transformData</code> 只有 <b>2 处命中</b>（types.ts:119 注释 + :143 声明），<code>withPlugins.tsx</code> 与 <code>usePluginRuntime</code> 里都没有调用点。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">插件作者按类型/文档实现 <code>transformData</code>（过滤下架商品、改写价格字段、打脱敏标签）后<b>永远不执行</b>，且没有任何报错；卡片是本仓库唯一有该钩子声明却不接入的数据面，与 comment 侧（<code>withCommentPlugins:108-117</code> 真接入）形成不一致。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">要么在 HOC 里补 <code>runtime.transformData(props.data)</code> 并让 <code>context.data</code> / 渲染都读变换结果（注意与 P2-2 一起做），要么从 <code>CardPluginHooks</code> 里删掉，避免假契约。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-2 · 渲染期跑插件链 + 写 ref；<code>extendContext</code> 每次渲染新建 context</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">packages/vane-card/src/components/CardPlugin/plugins/withPlugins.tsx:164-165</span> —— <code>transformProps</code> 与 <code>transformedPropsRef.current = </code> 都在渲染函数体内。</div></div>
+          <pre><code>const transformedProps = runtime.transformProps(props) as CardCoreProps&lt;T&gt;;
+transformedPropsRef.current = transformedProps;   // 渲染期写 ref</code></pre>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">同文件 :99-141</span> —— <code>extendContext</code> 的依赖是 <code>[props]</code>，父组件每次重渲染都是新 props 对象 → <code>useCallback</code> 恒失效 → 内核 <code>context</code> 的 <code>useMemo</code> 也恒失效；并且 <code>:129-137</code> 每次 <code>Object.defineProperties</code> 重建 3 个 getter。</div></div>
+          <div class="row"><span class="lb">证据 3</span><div class="v"><span class="path">packages/vane-card/src/components/CardPlugin/core/CardCore.tsx:185-186</span> —— <code>onVisibilityChangeRef.current = onVisibilityChange</code> 同样在渲染期赋值。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">React 18 下不报错，但在并发渲染 / StrictMode 双调用中可能读到未提交的中间 props，且每个父级 setState 都会触发整条插件链重跑。这是 P1-1「换配置不生效」被掩盖的同一片土壤。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">把 <code>transformedProps</code> 收进 <code>useMemo([props, runtime.orderedPlugins])</code>，ref 赋值放 <code>useLayoutEffect</code>；<code>extendContext</code> 改依赖具体字段（<code>props.cardId / props.data</code>），或在 HOC 内对 props 做浅稳定化。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-3 · 价格区槽位每次重挂：Provider memo 恒失效 + key 带 index</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">packages/vane-card/src/components/CardPlugin/plugins/slots.tsx:38-41</span> 的 <code>useMemo([orderedPlugins, context])</code> 中 <code>context</code> 由 P2-2 每渲染新建；<span class="path">:54-85</span> 的 <code>renderDomainSlot</code> 每次 <code>[...plugins].filter().sort()</code> 产生新数组，并给每个片段 <code>key={`card-slot-${name}-${index}`}</code>（:73）。消费方 <code>Price.tsx:26-30</code> / <code>CouponBar.tsx:208-213</code> 用 <code>index</code> 做 key 再包一层。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">价格区插件片段在父级每次重渲染时都是新节点（state 丢失、DOM 重建）；对一个带内部状态的 future 价格区插件（比如"显示税后价"开关）会每次点击后复位。当前片段都是无状态标记，所以只体现为白做的 diff。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">key 只用 <code>plugin.name</code>；<code>orderedPlugins</code> 在 HOC 里 <code>useMemo</code> 稳定；<code>renderDomainSlot</code> 的结果按 <code>orderedPlugins</code> + 数据版本 memo。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-4 · CardCore 的首帧闭包：onMount / onUnmount / 可见性回调被 <code>[]</code> 依赖冻结</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">packages/vane-card/src/components/CardPlugin/core/CardCore.tsx:210-219</span> —— <code>useEffect(..., [])</code> 里调用 <code>onMount()</code> / 返回 <code>onUnmount()</code>，捕获的是<b>首次渲染</b>传入的那一对回调。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">而 <code>withPlugins:215-220</code> 每次渲染都新建 <code>enhancedProps.onMount/onUnmount</code>（闭包 <code>transformedProps</code>）。消费方若把 <code>onMount</code> 写成依赖 props 的函数，后续 props 变化不会被读到，卸载时调用的也是首帧闭包（可能引用已过期的 cardId / 回调）。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">用 ref 保存最新回调（<code>onMountRef.current = onMount</code> 在 <code>useLayoutEffect</code> 里），effect 里读 <code>ref.current</code>；或由 HOC 层保证这两个回调引用稳定。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-5 · ActionsPlugin 双击竞态：两次快速点击读同一份闭包 state，等于只点了一次</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">packages/vane-card/src/custom-plugins/ActionsPlugin/create.tsx:37-46</span></div></div>
+          <pre><code>const handleCartClick = () =&gt; {
+  const newState = !state.cart;          // state 来自渲染时的闭包
+  bus?.emit("cart:change", { ... isAdded: newState });
+  context.setState({ cart: newState });  // 非函数式更新
+};</code></pre>
+          <div class="row"><span class="lb">后果</span><div class="v">同一帧内连点两次，两次都算出 <code>true</code> 并 emit 两次「已加入」，但用户预期是「加入 → 移出」。与 <code>rerender-functional-setstate</code> 规则冲突；购物车这种幂等敏感操作会被下游计数错。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">改用函数式 <code>setState(prev =&gt; { const next = !prev.cart; ... return { cart: next } })</code>，emit 放到 effect 或 updater 返回后再发（updater 保持纯函数的既有约定）。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-6 · GalleryPlugin：index 越界崩溃、渲染期写总线、<code>window.open</code> 未校验 scheme</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">packages/vane-card/src/custom-plugins/GalleryPlugin/create.tsx:44, 54, 58</span> —— <code>const current = slides[index]</code> 后直接 <code>current.type</code>，<code>index</code> 只在用户操作时取模，<b>不随 slides 变短钳制</b>。</div></div>
+          <pre><code>const current = slides[index];            // index 可能 &gt;= slides.length
+background: current.type === "image" ...  // → TypeError: Cannot read 'type' of undefined</code></pre>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">同文件 :205-206</span> —— <code>renderHeader</code> 里直接 <code>context.bus?.setData?.("media.videoInGallery", true)</code>，属于渲染期副作用（每次渲染都写总线）。</div></div>
+          <div class="row"><span class="lb">证据 3</span><div class="v"><span class="path">同文件 :65</span> <code>window.open(current.src, "_blank")</code>，<code>current.src</code> 来自 <code>data.images</code> / 配置，未做 scheme 白名单；<span class="path">:68</span> 加载失败硬编码回填 <code>/404.jpg</code>（相对路径可能 404）。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">父组件把 <code>data.images</code> 从 2 张改成 1 张后，组件仍是同一个实例（index 停在 1）→ 渲染抛错；而 <code>PluginErrorBoundary</code> 一旦捕获就<b>永久返回 null</b>（<code>packages/plugin-core/src/sandbox/PluginErrorBoundary.tsx:30-33</code> 没有重置逻辑），图库整块消失直到整卡重挂。渲染期 <code>setData</code> 还可能触发订阅者 forceUpdate，形成「渲染 → setState → 渲染」的回环风险。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v"><code>index</code> 用 <code>Math.min(index, slides.length - 1)</code> 或 <code>useEffect</code> 在 <code>slides.length</code> 变化时复位；<code>media.*</code> 写入挪到 <code>useEffect</code>；<code>window.open</code> 前做 <code>isSafeUrl</code>（只允许 http/https/blob）；error 回填改为可配置或省略。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-7 · ImagePlugin 换图后状态不复位：图裂过一次，换新图仍显示图裂</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">packages/vane-card/src/custom-plugins/ImagePlugin/create.tsx:41-48</span> 的 <code>useState&lt;"loading"|"loaded"|"failed"&gt;("loading")</code> 没有随 <code>src</code> 重置的 effect；<span class="path">:50-68</span> 的 <code>failed</code> 分支直接 <b>return 掉整个 img</b>，不再有机会加载新图。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">切变体时 <code>src</code> 从坏图换成好图，组件仍停在 <code>failed</code> → 永久显示 <code>errorFallback</code>；反之从好图换成坏图时 <code>status</code> 仍是 <code>loaded</code>，新图加载期间不显示 placeholder，失败后还会留下 alt 空白。P0 修复后库存字段不再误判，这条会成为「换规格主图不更新」的观感来源。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v"><code>useEffect(() =&gt; setStatus("loading"), [src])</code>（或 <code>key={src}</code> 重挂内部 img）；failed 分支仍保留 <code>img</code> 的 <code>onError</code> 以便新 src 触发 <code>onLoad</code> 时恢复。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-8 · QuantityPlugin 输入防抖定时器卸载不清理</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">packages/vane-card/src/custom-plugins/QuantityPlugin/create.tsx:49, 104-116</span> —— <code>timerRef</code> 只在新输入时 <code>clearTimeout</code>，没有卸载清理 effect。</div></div>
+          <pre><code>timerRef.current = window.setTimeout(() =&gt; {
+  const n = Number(val);
+  if (Number.isFinite(n)) setQ(n);   // 卸载后仍会写 bus.setData(quantity)
+}, 150);</code></pre>
+          <div class="row"><span class="lb">后果</span><div class="v">卡片在输入后 150ms 内卸载（列表滚动复用时常见），定时器仍会执行 <code>setQ</code> → 往已卸载实例的 bus 写数据；如果跨实例共享 bus（自定义实现），会把旧卡的数量写到新卡。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">加 <code>useEffect(() =&gt; () =&gt; { if (timerRef.current) window.clearTimeout(timerRef.current) }, [])</code>，或在 <code>onChange</code> 里用 <code>useRef</code> 分离「挂载中」标记。</div></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 06 安全 -->
+  <section>
+    <div class="sec-head"><span class="idx">06</span><h2>安全审查（security-best-practices）</h2></div>
+    <p class="sec-desc">结论：<b>没有可利用的注入面</b>。所有商品字段都由 React JSX 渲染或进入样式属性，不存在字符串拼 HTML；风险集中在「外部跳转」与「第三方插件输出」两个边界。</p>
+    <div class="sec-grid">
+      <div class="panel">
+        <h4>注入与凭证</h4>
+        <div class="kv">
+          <div class="r"><span class="k">XSS</span><span class="x"><span class="tag safe">安全</span>全包无 <code>dangerouslySetInnerHTML</code> / <code>new Function</code> / <code>eval</code>；<code>data.title</code>、<code>sku.sku</code>、<code>coupon.code</code> 全部走 JSX 文本节点（React 自动转义）。</span></div>
+          <div class="r"><span class="k">唯一 innerHTML</span><span class="x"><span class="tag safe">安全</span><code>A11yToolbar.tsx:20</code> 的 <code>style.innerHTML</code> 注入的是模块级<b>静态常量 CSS</b>，不含任何外部输入。</span></div>
+          <div class="r"><span class="k">图片地址</span><span class="x"><span class="tag info">注意</span><code>&lt;img src&gt;</code> 接受任意字符串：<code>javascript:</code> 在 img 上不会执行，但 <code>data:</code>/<code>blob:</code> 会绕过内容策略；建议在接入层做域名白名单。</span></div>
+          <div class="r"><span class="k">凭证</span><span class="x"><span class="tag safe">安全</span>包内无 token / cookie / localStorage 读写；Analytics 只上报事件，不读浏览器凭据。</span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h4>外部跳转与插件面</h4>
+        <div class="kv">
+          <div class="r"><span class="k">window.open</span><span class="x"><span class="tag warn">低危</span><code>GalleryPlugin/create.tsx:65</code> 与 <code>ReturnPolicy.tsx:84</code> 直接 <code>window.open(url, "_blank")</code>，未校验 scheme。若 <code>images/video/policyLink</code> 来自后台富文本，<code>javascript:</code> URL 可在点击时执行（新窗口 opener 场景）。</span></div>
+          <div class="r"><span class="k">第三方插件</span><span class="x"><span class="tag info">注意</span>插件的 <code>renderXxx</code> 返回 <code>ReactNode</code>，即使第三方插件返回 HTML 字符串也会被转义；但 <code>onMount</code> 拿到 <code>getContainer()</code> 后可任意 DOM 操作——这是能力而非漏洞，接入第三方插件时需信任边界。</span></div>
+          <div class="r"><span class="k">数据外发</span><span class="x"><span class="tag info">注意</span><code>AnalyticsPlugin</code> 上报 <code>cardId</code>、点击坐标、停留时长；属行为数据，需在隐私政策中说明并支持关闭。</span></div>
+          <div class="r"><span class="k">建议</span><span class="x">抽 <code>openExternal(url)</code>：仅 <code>http/https</code> 通过，其余 <code>console.warn</code> 并忽略；同时给 <code>&lt;img&gt;</code> 加 CSP 约束。</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 07 React -->
+  <section>
+    <div class="sec-head"><span class="idx">07</span><h2>React / 性能审查（vercel-react-best-practices）</h2></div>
+    <p class="sec-desc">按「避免无谓渲染 / 不在渲染期做副作用 / effect 生命周期正确」三条主线核对。</p>
+    <div class="sec-grid">
+      <div class="panel">
+        <h4>成立的部分</h4>
+        <div class="kv">
+          <div class="r"><span class="k">观察者生命周期</span><span class="x"><span class="tag safe">正确</span><code>CardCore</code> 的 IO 只建一次且卸载 <code>disconnect</code>；<code>withPlugins:196-207</code> 的 <code>ResizeObserver</code> 也正确 <code>observe/disconnect</code>（依赖稳定的 <code>execute</code>）。</span></div>
+          <div class="r"><span class="k">订阅回收</span><span class="x"><span class="tag safe">正确</span>所有订阅型插件都用 <code>setupForceUpdateOnBusKeys</code> 并返回它的 cleanup；<code>PriceCalculator:87-97</code> 也手动 off 了 3 个监听。</span></div>
+          <div class="r"><span class="k">组件身份稳定</span><span class="x"><span class="tag safe">正确</span><code>ImagePlugin</code> 的 <code>CardImage</code> 提到模块级（<code>create.tsx:38-39</code>），不在 render 里造组件；<code>AnimationPlugin</code> 的 <code>Countdown</code> 同样如此。</span></div>
+          <div class="r"><span class="k">CSS 计算</span><span class="x"><span class="tag safe">正确</span><code>CardCore:145-155</code> 的 padding 归一化用 <code>useMemo([padding])</code>，不会每次生成新对象。</span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h4>缺口</h4>
+        <div class="kv">
+          <div class="r"><span class="k">渲染期副作用</span><span class="x"><code>withPlugins:164-165</code> 渲染期跑 <code>transformProps</code> + 写 ref；<code>CardCore:185-186</code> 渲染期写 ref；<code>GalleryPlugin:205-206</code> 渲染期写 bus。</span></div>
+          <div class="r"><span class="k">memo 失效</span><span class="x"><code>extendContext</code> 依赖 <code>[props]</code> → 内核 context 与 <code>CardSlotProvider</code> 的 memo 全部恒失效，等于每渲染重算整条插件链。</span></div>
+          <div class="r"><span class="k">状态分叉</span><span class="x">复合组件（<code>useState</code>）与插件（<code>bus</code> + runtime state）两套真源，违反「单一数据源」，是 P1-4 的直接原因。</span></div>
+          <div class="r"><span class="k">定时器</span><span class="x"><code>QuantityPlugin:104-116</code> 防抖定时器无清理；<code>AnimationPlugin</code> 已正确处理，可作为模板。</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 08 修复顺序 -->
+  <section>
+    <div class="sec-head"><span class="idx">08</span><h2>建议修复顺序（可直接作为任务拆分）</h2></div>
+    <p class="sec-desc">先修「阻断 / 算错钱」的 P0 与 P1，再处理契约与生命周期。每条都配套一条能先红后绿的单测；编号 <code>T01–T08</code> 与问题编号一一对应。本次评审为只读，未执行修复。</p>
+    <div class="fix">
+      <div class="f"><span class="no">T01</span><div class="t">库存未知 ≠ 售罄；蒙层不吞点击<span>对应 P0-1 · InventoryPlugin/create.tsx:23-30, 47-68 · 单测：无 inventory 字段时无「已售罄」</span></div><span class="e">P0 · 必修</span></div>
+      <div class="f"><span class="no">T02</span><div class="t">插件记忆键 = 名字 + 配置指纹<span>对应 P1-1 · ProductCard.tsx:72-77 · 单测：同名插件换 variants 后可选中</span></div><span class="e">P1 · 接入必踩</span></div>
+      <div class="f"><span class="no">T03</span><div class="t">统一 matchVariant 口径（完全匹配）+ 派生键先清后写 + SKU 自订阅<span>对应 P1-2 / P1-3 · SKUPlugin:27-32, 113-169 · product.ts:102-116</span></div><span class="e">P1 · 价格正确性</span></div>
+      <div class="f"><span class="no">T04</span><div class="t">复合组件与插件打通单一状态源<span>对应 P1-4 · VariantSelector:40-45 / Price.tsx:17-18 / PriceCalculator:100-103</span></div><span class="e">P1 · 交互一致性</span></div>
+      <div class="f"><span class="no">T05</span><div class="t">优惠券模型 type+value，四处统一 computeDiscount<span>对应 P1-5 · CouponBar:9-10, 56-78 · PriceCalculator:74 · OrderSummary:68 · CouponRecommend:32-36</span></div><span class="e">P1 · 金额正确性</span></div>
+      <div class="f"><span class="no">T06</span><div class="t">数据流水线与渲染期副作用清理<span>对应 P2-1 / P2-2 · types.ts:143 · withPlugins.tsx:99-141, 164-165 · CardCore:185-186</span></div><span class="e">P2 · 契约/并发</span></div>
+      <div class="f"><span class="no">T07</span><div class="t">槽位 key / 首帧闭包 / Actions 双击<span>对应 P2-3 / P2-4 / P2-5 · slots.tsx:38-41, 73 · CardCore:210-219 · ActionsPlugin:37-46</span></div><span class="e">P2 · 状态丢失</span></div>
+      <div class="f"><span class="no">T08</span><div class="t">图库越界 / 换图复位 / 防抖清理 / 外链校验<span>对应 P2-6 / P2-7 / P2-8 + 安全 · GalleryPlugin:44, 65, 205-206 · ImagePlugin:41-48 · QuantityPlugin:104-116</span></div><span class="e">P2 · 稳定性</span></div>
+    </div>
+  </section>
+
+  <footer>
+    <div>审查对象：<code>packages/vane-card</code>（<code>CardCore.tsx 267 行</code>、<code>withPlugins.tsx 271 行</code>、<code>plugins/slots.tsx 95 行</code>、<code>ProductCard.tsx 88 行</code>、22 个 <code>custom-plugins</code>、38 个 compound 组件、<code>types/product.ts</code>）。</div>
+    <div>实证：<code>pnpm --filter vane-card test</code> → 13 个文件 / 187 个用例全部通过；<code>pnpm --filter vane-card typecheck</code> → 通过（exit 0）；<code>pnpm --filter vane-card lint</code> → 0 error / 197 warning（多为 <code>no-explicit-any</code>）。未修改任何源码 / 配置 / 测试。</div>
+    <div>未覆盖：未启动 demo 做真实浏览器走查与压测，未跑 build；38 个复合组件与 22 个插件按调用链抽读而非逐个通读（未覆盖到的部分：Address / ShippingEstimator / PricePerUnit 等展示类组件，以及 Analytics / Hover / Responsive / State 等非主链路插件）；happy-dom 无布局引擎，命中测试与几何相关结论为静态推断。</div>
+    <div>说明：本报告中「P0-1 蒙层拦截点击」的结论基于 <code>CardCore.tsx:248</code> 的 <code>position:relative</code> + overlay 段绝对定位且无 <code>pointer-events:none</code>；真实浏览器下同一结论成立，但建议在 demo 上复核一次。</div>
+  </footer>
+
+</div>
+</body>
+</html>

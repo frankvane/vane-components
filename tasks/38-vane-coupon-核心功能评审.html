@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>vane-coupon 核心功能分析报告</title>
+<style>
+  :root{
+    --bg:#0b0a09; --panel:#171513; --panel2:#1d1a17;
+    --line:rgba(255,255,255,.09); --line2:rgba(255,255,255,.16);
+    --text:#ebe7e2; --muted:#9a938c; --dim:#6f6862;
+    --accent:#ff7a29; --accent-soft:rgba(255,122,41,.14);
+    --p0:#ff4d4f; --p1:#ffa940; --p2:#7aa7ff; --ok:#3ecf8e;
+    --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1200px 600px at 12% -8%,rgba(255,122,41,.13),transparent 60%),
+      radial-gradient(900px 500px at 92% 0%,rgba(122,167,255,.08),transparent 62%),
+      var(--bg);
+    color:var(--text);font-family:var(--sans);line-height:1.65;
+    padding:44px 28px 90px;
+  }
+  .wrap{max-width:1180px;margin:0 auto}
+  header.hero{border-bottom:1px solid var(--line);padding-bottom:26px;margin-bottom:34px}
+  .eyebrow{display:flex;gap:10px;align-items:center;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent)}
+  h1{font-size:clamp(26px,3.6vw,42px);line-height:1.16;margin:14px 0 10px;letter-spacing:-.02em}
+  h1 span{color:var(--accent)}
+  .sub{color:var(--muted);max-width:840px;font-size:15px}
+  .sub code,.sec-desc code{font-family:var(--mono);font-size:12.5px;color:var(--accent)}
+  .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+  .chip{font-size:12px;color:var(--muted);border:1px solid var(--line2);border-radius:999px;padding:4px 11px}
+  .chip b{color:var(--text);font-weight:600}
+
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin:6px 0 44px}
+  .stat{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:14px;padding:18px;position:relative;overflow:hidden}
+  .stat::after{content:"";position:absolute;inset:auto 0 0 0;height:2px;background:var(--accent-soft)}
+  .stat .n{font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1.1}
+  .stat .k{font-size:12px;color:var(--muted);margin-top:5px}
+  .stat.p0 .n{color:var(--p0)} .stat.p1 .n{color:var(--p1)} .stat.p2 .n{color:var(--p2)} .stat.ok .n{color:var(--ok)}
+
+  section{margin-bottom:48px}
+  .sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:8px}
+  .sec-head h2{font-size:21px;margin:0;letter-spacing:-.01em}
+  .sec-head .idx{font-family:var(--mono);font-size:12px;color:var(--accent);border:1px solid var(--accent-soft);background:var(--accent-soft);padding:2px 7px;border-radius:6px}
+  .sec-desc{color:var(--muted);font-size:14px;margin:0 0 20px;max-width:920px}
+
+  .flow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+  .flow .step{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+  .flow .step h4{margin:0 0 6px;font-size:13.5px;color:var(--text)}
+  .flow .step p{margin:0;font-size:12px;color:var(--muted);line-height:1.55}
+  .flow .step code{font-family:var(--mono);font-size:11px;color:var(--accent)}
+  .flow .step:nth-child(2){border-color:rgba(255,122,41,.35)}
+  .flow .step:nth-child(4){border-color:rgba(122,167,255,.3)}
+
+  .issues{display:grid;gap:16px}
+  .issue{background:linear-gradient(180deg,rgba(255,255,255,.03),transparent 40%),var(--panel);border:1px solid var(--line);border-left:3px solid var(--p1);border-radius:12px;padding:18px 20px}
+  .issue.p0{border-left-color:var(--p0)}
+  .issue.p2{border-left-color:var(--p2)}
+  .issue .top{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:start}
+  .issue h3{margin:0;font-size:16px;line-height:1.45}
+  .sev{font-size:11px;font-weight:700;letter-spacing:.08em;padding:3px 9px;border-radius:999px;white-space:nowrap}
+  .sev.p0{color:#2b0000;background:var(--p0)}
+  .sev.p1{color:#1a1200;background:var(--p1)}
+  .sev.p2{color:#04122e;background:var(--p2)}
+  .issue .body{margin-top:12px;display:grid;gap:10px}
+  .row{display:grid;grid-template-columns:78px 1fr;gap:10px;font-size:13.5px}
+  .row .lb{color:var(--dim);font-size:12px;padding-top:2px}
+  .row .v{color:var(--muted)}
+  .row .v b{color:var(--text);font-weight:600}
+  pre{background:#0d0c0b;border:1px solid var(--line);border-radius:10px;padding:13px 15px;overflow:auto;margin:0}
+  pre code{font-family:var(--mono);font-size:12px;color:#d9d3cd;line-height:1.65;white-space:pre}
+  .path{font-family:var(--mono);font-size:12px;color:var(--accent);background:rgba(255,122,41,.08);border-radius:5px;padding:1px 6px}
+
+  .ok-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+  .ok-card{background:rgba(62,207,142,.045);border:1px solid rgba(62,207,142,.22);border-radius:12px;padding:16px}
+  .ok-card h4{margin:0 0 7px;font-size:14px;color:#bfeed8;display:flex;gap:7px;align-items:center}
+  .ok-card h4 .tick{color:var(--ok);font-size:13px}
+  .ok-card p{margin:0;font-size:12.5px;color:var(--muted);line-height:1.6}
+  .ok-card code{font-family:var(--mono);font-size:11px;color:#9fe3c3}
+
+  .sec-grid{display:grid;grid-template-columns:1.15fr 1fr;gap:14px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:18px 20px}
+  .panel h4{margin:0 0 10px;font-size:14.5px}
+  .kv{display:grid;gap:9px}
+  .kv .r{display:grid;grid-template-columns:104px 1fr;gap:10px;font-size:13px}
+  .kv .r .k{color:var(--dim);font-size:12px}
+  .kv .r .x{color:var(--muted)}
+  .tag{display:inline-block;font-size:11px;padding:1px 8px;border-radius:999px;margin-right:6px}
+  .tag.safe{color:var(--ok);background:rgba(62,207,142,.12)}
+  .tag.warn{color:var(--p1);background:rgba(255,169,64,.13)}
+  .tag.info{color:var(--p2);background:rgba(122,167,255,.12)}
+
+  .fix{display:grid;gap:10px}
+  .fix .f{display:grid;grid-template-columns:44px 1fr auto;gap:14px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:13px 16px}
+  .fix .f .no{font-family:var(--mono);font-size:18px;color:var(--accent);text-align:center}
+  .fix .f .t{font-size:13.5px}
+  .fix .f .t span{display:block;color:var(--dim);font-size:11.5px;margin-top:2px;font-family:var(--mono)}
+  .fix .f .e{font-size:11px;color:var(--muted);border:1px solid var(--line2);border-radius:999px;padding:3px 10px;white-space:nowrap}
+
+  footer{border-top:1px solid var(--line);padding-top:20px;color:var(--dim);font-size:12px;display:grid;gap:6px}
+  @media (max-width:860px){.flow{grid-template-columns:1fr 1fr}.sec-grid{grid-template-columns:1fr}.row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow"><span class="dot"></span>tasks/38 · vane-coupon 核心功能评审 · 2026-11-01</div>
+    <h1>优惠券组件核心功能分析<span>：0 P0 · 5 项 P1 · 8 项 P2</span></h1>
+    <p class="sub">
+      审查 <code>packages/vane-coupon</code> 的 <code>CouponCore</code>、券领域 <code>withPlugins</code> HOC、内核 state 契约与 14 个官方插件，
+      重点判定「领取状态机、有效期判定、已抢空 / 限领 / 过期联动、门槛与可用性展示是否一致」。
+      结论：<b>渲染与相位流转成立，但真实数据下的可用性门控不成立</b>——已抢完、超限领、过期这三种最常见的「不可领」状态都没有接到领取按钮上；
+      另有 1 处插件重建后初始化不执行的问题。全部问题已按证据列出，不含推断。
+    </p>
+    <div class="meta">
+      <span class="chip">范围 <b>src 38 文件 / 2079 行（审阅核心 + 11 个插件实现）</b></span>
+      <span class="chip">方法 <b>调用链精读 + 单测取证</b></span>
+      <span class="chip">基线 <b>security-best-practices</b></span>
+      <span class="chip">基线 <b>vercel-react-best-practices</b></span>
+      <span class="chip">测试 <b>3 文件 / 33 用例通过</b></span>
+    </div>
+  </header>
+
+  <div class="stats">
+    <div class="stat ok"><div class="n">0</div><div class="k">P0 阻断 / 金额错算</div></div>
+    <div class="stat p1"><div class="n">5</div><div class="k">P1 规则门控失效</div></div>
+    <div class="stat p2"><div class="n">8</div><div class="k">P2 契约 / 性能 / 可维护性</div></div>
+    <div class="stat ok"><div class="n">33/33</div><div class="k">coupon 单测 · 3 文件</div></div>
+    <div class="stat ok"><div class="n">0</div><div class="k">XSS 注入点（无 innerHTML）</div></div>
+  </div>
+
+  <!-- 01 数据流 -->
+  <section>
+    <div class="sec-head"><span class="idx">01</span><h2>核心数据流与职责边界</h2></div>
+    <p class="sec-desc">
+      券领域把「可变行为」全部压进内核 state，Core 只读 props 渲染面额区与标题。这个分层的代价是：
+      <b>任何规则判定都必须由插件写进 state，再由消费方或 ClaimState 读 state 才生效</b>；
+      只要某条规则没有写 state，展示与门控就会分叉——本轮 5 条 P1 全部产生于这条链路。
+    </p>
+    <div class="flow">
+      <div class="step"><h4>① 券面数据</h4><p>宿主传入 <code>coupon</code>（amount / threshold / validTo / total / claimed / quota / stackable）。</p></div>
+      <div class="step"><h4>② 内核 state</h4><p><code>phase</code>、<code>validity</code>、<code>countdown</code>、<code>quotaReached</code>、<code>claimedAt</code>，写入即触发 context 重建。</p></div>
+      <div class="step"><h4>③ 事件钩子</h4><p><code>onMount / onPropsChange / onPhaseChange / onValidityChange</code> 计算并写 state。</p></div>
+      <div class="step"><h4>④ 分段插槽</h4><p>before（角标）→ 本体 → after（有效期 / 规则）→ footer（领取按钮）→ overlay。</p></div>
+      <div class="step"><h4>⑤ Core 拼装</h4><p>面额 + 门槛、标题、挂载标记；<b>不参与任何可用性判定</b>。</p></div>
+    </div>
+  </section>
+
+  <!-- 02 已验证 -->
+  <section>
+    <div class="sec-head"><span class="idx">02</span><h2>已验证成立的核心机制</h2></div>
+    <p class="sec-desc">这些是阅读时最容易被误判成 bug 的部分，逐条对照代码与单测后确认成立，不应作为问题上报。</p>
+    <div class="ok-grid">
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>相位流转与终态保护是成立的</h4>
+        <p><code>TERMINAL_PHASES</code> 把 used / soldout / expired 固定为终态，<code>gatePhase</code> 对终态直接返回 null，不会被后续有效期判定打回。<code>transition</code> 值相同不写，避免自激重渲染。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>领取失败/异常回退正确</h4>
+        <p>失败与 <code>catch</code> 都回退 <code>available</code> 并调用 <code>onClaimError</code>；<code>claim</code> 未配置时视为成功，符合纯展示场景的文档承诺。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>绝对有效期边界解析正确</h4>
+        <p><code>notStarted = ts &lt; validFrom</code>、<code>expired = ts &gt; validTo</code>，端点当刻仍算有效；<code>remainingMs</code> 用 <code>Math.max(0, …)</code> 不会出负数，区间文案由 <code>fmtDate</code> 稳定格式化。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>相对有效期的 claimedAt 锚定生效</h4>
+        <p>领取成功时 <code>phase</code> 与 <code>claimedAt</code> 同批 <code>setState</code>，随后 <code>onPhaseChange</code> 在 effect 内执行，<code>evaluate</code> 读到的已是新 state，文案从「领取后 N 天」切换为「YYYY.MM.DD 领取，N 天内有效」。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>写 state 前做结构化比较</h4>
+        <p><code>sameValidity</code> 用 <code>JSON.stringify</code> 比较，ClaimState 用 <code>context.state?.phase === next</code> 早退；重复评估不会造成 state 抖动。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>规则折叠与空数据安全</h4>
+        <p><code>rules ?? []</code> 空数组直接 <code>return null</code>；按条数 <code>slice</code> 而非 line-clamp；按钮带 <code>aria-expanded</code>，展开态写 <code>rulesExpanded</code> 供宿主复位。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>插件渲染异常被隔离</h4>
+        <p>内核 <code>renderPluginSlot</code> 对每个插件单独 try/catch 再包 <code>PluginErrorBoundary</code>，一个坏插件只丢自己那一段；单测「一个插件渲染抛错不影响其他插件的插槽输出」通过。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>门槛文案回退正确</h4>
+        <p><code>thresholdText</code> 优先覆盖；<code>threshold &gt; 0</code> 生成「满 X 可用」，0 / undefined 归为「无门槛」；cash / discount 两种面额的货币符号与单位分支正确。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 P1 -->
+  <section>
+    <div class="sec-head"><span class="idx">03</span><h2>P1 问题（真实接入必然踩到）</h2></div>
+    <p class="sec-desc">
+      这 5 条的共同点：<b>组件显示的状态与它实际允许的行为不一致</b>。前三条都是「券已经不可领，按钮仍是「立即领取」」，
+      第四条是运行时换插件配置后初始化不再执行，第五条是可用性判定整体缺位。
+    </p>
+    <div class="issues">
+
+      <div class="issue p1">
+        <div class="top"><h3>P1-1 · 「已抢完」只画进度条，领取按钮照常可领（soldout 不读 total/claimed）</h3><span class="sev p1">P1</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">packages/vane-coupon/src/custom-plugins/ProgressPlugin/create.tsx:38-50</span>——进度条已经算到「已抢完」</div></div>
+          <pre><code>const total = config.total ?? c.total;
+const claimed = config.claimed ?? c.claimed;
+const remaining = Math.max(0, total - claimed);
+let text = `已抢 ${pct}%`;
+if (remaining === 0) {
+  text = "已抢完";          // 展示层：券已没了
+}</code></pre>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">packages/vane-coupon/src/custom-plugins/ClaimStatePlugin/create.tsx:68-77</span>——门控只看插件创建的 <code>config.stock</code>，完全不读 <code>coupon.total / claimed</code>（<code>CouponData</code> 也没有 stock 字段）</div></div>
+          <pre><code>const gatePhase = (context) =&gt; {
+  const current = context.phase;
+  if (TERMINAL_PHASES.has(current)) return null;
+  const validity = context.state?.validity ?? null;
+  if (validity?.expired) return "expired";
+  if (typeof config.stock === "number" &amp;&amp; config.stock &lt;= 0) return "soldout";
+  return null;
+};</code></pre>
+          <div class="row"><span class="lb">后果</span><div class="v">限量券把 <code>total=1000 / claimed=1000</code> 下发时，卡片上写着「已抢完」，按钮仍是可点击的「立即领取」；点击才走 <code>gatePhase</code>，而它返回 null，直接发起领取请求。服务端拒绝后 UI 回退 <code>available</code>，用户会反复点。素材库 demo（<code>07-progress</code> / <code>scenarios/02-limited-rush</code>）正好是这个配置。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">把「已抢完」收敛成单一事实：Progress 或 ClaimState 在 <code>total &gt; 0 &amp;&amp; claimed &gt;= total</code> 时写 <code>state.phase = "soldout"</code>，并让 <code>gatePhase</code> 读它；或者直接让 gatePhase 读 <code>context.coupon.total/claimed</code>，不要依赖 config.stock。补测试：claimed=total 时按钮 disabled。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p1">
+        <div class="top"><h3>P1-2 · 每人限领超限不门控：quotaReached 写了 state，但没有任何消费者</h3><span class="sev p1">P1</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">packages/vane-coupon/src/custom-plugins/QuotaPlugin/create.tsx:36,43,49</span>——注释与 description 都承诺「供领取按钮门控」</div></div>
+          <pre><code>description: "…超限写 state.quotaReached 供领取按钮门控",
+onMount:      (context) =&gt; { if (reached) context.setState({ quotaReached: true }); },
+onPropsChange:(context) =&gt; { context.setState({ quotaReached: reached }); }</code></pre>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">packages/vane-coupon/src/custom-plugins/ClaimStatePlugin/create.tsx:68-77, 129-136</span>——<code>gatePhase</code> 与点击前二次守卫都只查 <code>validity.expired</code> 与 <code>config.stock</code>；全包检索 <code>quotaReached</code> 仅出现在 QuotaPlugin 自身（grep 结果 5 处，均无读取）。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">用户已领满（<code>purchasedCount &gt;= quota</code>）时，卡片显示「已达限领上限」的红色提示条，下面的领取按钮仍是「立即领取」且可点击；点击后进入 <code>claiming → claimed</code>（本地乐观成功），实际服务端按限领拒绝，本地已把券标成「已领取/展示券码」（CopyCode 只在 claimed/used 显示）。这是<b>规则判定与展示直接矛盾</b>，也影响埋点（Analytics 会记录一次成功相位变化）。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">ClaimState 在 <code>gatePhase</code> 内读 <code>context.state.quotaReached</code>（或读 <code>coupon.quota</code> 与已领数），命中时返回一个不可领态（建议新增 <code>quota-limited</code>，或直接用 <code>soldout/used</code> 的文案覆盖机制）；同时让点击守卫复用同一函数。补测试：purchased=quota 时按钮 disabled 且不触发 claim。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p1">
+        <div class="top"><h3>P1-3 · 过期不随时间收敛：页面停留跨过 validTo 后仍可领取</h3><span class="sev p1">P1</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">packages/vane-coupon/src/custom-plugins/ValidityPlugin/create.tsx:108-113, 123-132</span>——<code>evaluate</code> 只在三个事件钩子里调用，<b>没有定时器</b></div></div>
+          <pre><code>hooks: {
+  onMount:        (context) =&gt; { evaluate(context); },
+  onPropsChange:  (context) =&gt; { evaluate(context); },
+  onPhaseChange:  (context) =&gt; { evaluate(context); },
+}</code></pre>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">同文件 :49-67</span> 的 <code>expired = ts &gt; coupon.validTo</code> 依赖调用时刻的 <code>now()</code>；state 里的 <code>validity</code> 一旦写入就不再刷新。唯一带定时器的是 <code>CountdownPlugin</code>，且它只服务于 <code>startAt</code>（开抢），不覆盖 <code>validTo</code>。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">券详情页/悬浮卡片长时间停留（大促页面很常见）跨过截止时间后：有效期文案仍显示「2026.11.01 前」，按钮仍是「立即领取」；点击时 <code>gatePhase</code> 读的是<b>陈旧</b>的 <code>state.validity.expired=false</code>，所以连点击守卫也失效，直接发请求。埋点同样按成功路径记录。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">ValidityPlugin 在 absolute 模式下按剩余时间挂一个 <code>setTimeout</code>（或复用 Countdown 的 tick 链）到点重算并写 state；同时 <code>gatePhase</code> 在点击时用 <code>now()</code> 重算一次，而不是只信 state。补测试：注入 <code>now</code> 跨过 validTo 后按钮进入 expired。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p1">
+        <div class="top"><h3>P1-4 · 运行时重建同名插件后，新实例的 onMount 永远不执行</h3><span class="sev p1">P1</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">packages/vane-coupon/src/components/CouponPlugin/withPlugins.tsx:80-83</span>——HOC 只在挂载时跑一次钩子链</div></div>
+          <pre><code>useEffect(() =&gt; {
+  void execute("onMount");
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [execute]);</code></pre>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">packages/plugin-core/src/react/usePluginRuntime.ts:100-117</span> + <span class="path">packages/plugin-core/src/manager/PluginManager.ts:111-129</span>——插件引用变化时 <code>manager.clear()</code>（先执行旧实例的 cleanup）再 <code>registerAll</code>，但钩子链不会再跑</div></div>
+          <pre><code>useLayoutEffect(() =&gt; {
+  manager.clear();              // 倒计时 clearTimeout、键盘监听移除…
+  manager.registerAll(stablePlugins);
+}, [stablePlugins]);</code></pre>
+          <div class="row"><span class="lb">后果</span><div class="v">宿主在运行时换配置（例如轮询把 <code>stock</code> 从 10 改成 0、把 <code>startAt</code> 改成新的开抢时间、换一份 <code>claim</code> 回调）时，会创建新的插件对象触发起重注册：旧 <code>Countdown</code> 的 <code>setTimeout</code> 被 cleanup 清掉，<b>新实例的 <code>onMount</code> 不会再启动倒计时</b>；<code>Validity</code> 与 <code>ClaimState</code> 也不再初始化 state（卡片停留在旧的 phase/validity）。文档承诺的「按 key 重建插件」在这条路径上只完成了一半。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">在 <code>stablePlugins</code> 变化的 layout effect 里，对本次新注册的实例执行一次 <code>onMount</code>（可按插件引用 diff 只跑新增/替换项）；或给内核加 <code>onRegister</code> 钩子。补测试：同名插件换配置后倒计时 timer 重新挂载。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p1">
+        <div class="top"><h3>P1-5 · 可用性判定整体缺位：门槛 / 商品范围 / 互斥 / 叠加只有字段与文案</h3><span class="sev p1">P1</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">packages/vane-coupon/src/components/CouponPlugin/plugins/types.ts:25-62</span> 声明了 <code>threshold / stackable / quota / channels</code>，但全包检索这些字段<b>只出现在渲染钩子</b>：<code>stackable</code> 仅 <code>StackPlugin:44-60</code>，<code>channels</code> 仅 <code>ChannelPlugin:28-29</code>，<code>threshold</code> 仅 <code>CouponCore.tsx:63-67</code> 生成一句文案。不存在 <code>isUsable / applicable / matchOrder</code> 之类判定函数，也没有「券适用范围（category / sku 白名单）」与「互斥组」字段。</div></div>
+          <pre><code>// CouponCore.tsx:63-67 —— threshold 的唯一用途是文案
+const thresholdText =
+  coupon.thresholdText ??
+  (coupon.threshold &amp;&amp; coupon.threshold &gt; 0
+    ? `满${coupon.threshold}可用`
+    : "无门槛");</code></pre>
+          <div class="row"><span class="lb">后果</span><div class="v">券列表/结算页接入时会自然地把「组件显示的券」当成「当前订单可用的券」：组件会照常展示「满 199 可用」的券，即使购物车只有 99 元；「可叠加」角标来自上游字段，组件不做叠加冲突校验；包内也没有商品范围字段可表达。金额与门槛没有任何判定出口，<b>消费方必然在组件之外重写一套规则，且两套规则会漂移</b>——这正是「券的可用性判定与展示不一致」的根源。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">补一个纯函数模块（如 <code>coupon/eligibility.ts</code>）：<code>isEligible(coupon, order)</code> 判定门槛 / 有效期 / 商品范围 / 互斥组，并把结果写进 <code>state.eligible</code> 供 ClaimState 与宿主复用；数据模型补 <code>scope</code>（sku/category）、<code>exclusiveGroup</code>、<code>stackingRule</code>。至少要在 README/类型注释中明确「本包不做可用性判定」，避免假契约。</div></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 04 P2 -->
+  <section>
+    <div class="sec-head"><span class="idx">04</span><h2>P2 问题（可排期，不影响主链路）</h2></div>
+    <p class="sec-desc">契约、成本与可维护性问题；单独看不致命，组合起来会拉高接入与排障成本。</p>
+    <div class="issues">
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-1 · 领取按钮没有重入锁，异步成功后也不校验挂载</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">packages/vane-coupon/src/custom-plugins/ClaimStatePlugin/create.tsx:129-152</span>：<code>handleClick</code> 用渲染时闭包的 <code>phase</code> 判断，<code>transition(…, "claiming")</code> 之后没有读取最新 <code>context.state.phase</code> 的二次守卫；<code>await</code> 之后直接 <code>setState({ phase: "claimed" })</code>。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">双击/键盘连按（原生按钮在重渲染前仍可点）会发起两次领取；卸载后 <code>await</code> 返回仍会写 state（React 18 不报错，但会浪费一次更新并可能触发已卸载组件的回调）。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">用 <code>context.state.phase !== "available"</code> 作为点击守卫，或用 ref 锁 + <code>finally</code> 释放；异步后用 <code>isMountedRef</code> 判断。订单类组件建议把「请求 id」对齐，防止后发先至覆盖。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-2 · RemindPlugin 依赖 idle 相位，但默认相位是 available，插件默认永不渲染</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">withPlugins.tsx:49</span> <code>phase: (state.phase ?? "available")</code>；<span class="path">RemindPlugin/create.tsx:35</span> <code>if (context.phase !== "idle") return null</code>。ClaimState 未配 <code>initialPhase</code> 时不会写 phase，于是 Remind 永远走不到 idle。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">接入方按 demo 只装 <code>createRemindPlugin()</code> 时会觉得「插件没生效」；必须额外创建 ClaimState 并传 <code>initialPhase: "idle"</code> 才能出现，文档没写这个隐含依赖。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">Remind 改为按 <code>countdown &gt; 0</code> 或 <code>validity.notStarted</code> 渲染；或在 Remind 的 doc.json 明确「需 initialPhase: idle」。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-3 · 面额 / 门槛不做格式化与合法性校验，0 与 NaN 都被吞成「无门槛」</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">CouponCore.tsx:95-105</span> 直接渲染 <code>{coupon.amount}</code>；<span class="path">:63-67</span> 用 <code>coupon.threshold &amp;&amp; coupon.threshold &gt; 0</code> 判定。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">接口下发字符串金额（<code>"10.00"</code>）能显示但类型不成立；<code>10.5</code> 显示为「¥10.5」而非两位小数；<code>NaN</code>（如折扣券 amount 计算失败）既不报错也不进入兜底，直接渲染出「NaN」；<code>threshold: NaN / 负数</code> 会被静默归类为「无门槛」，属于会误导用户的展示降级。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">加一个 <code>formatAmount</code>（cash 固定两位、discount 去掉多余 0），并对非有限值走兜底文案；门槛判定改用 <code>Number.isFinite</code> 且区分「非法数据」与「无门槛」。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-4 · context 每次渲染重建，四个插槽每次渲染全量求值</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">withPlugins.tsx:43-59</span> 的 <code>extendContext</code> 依赖 <code>[props]</code>，而 <code>props</code> 由父组件传入、通常是新对象；<span class="path">plugin-core/src/react/usePluginRuntime.ts:138-157</span> 的 <code>useMemo</code> 依赖 <code>extendContext</code>，因此 <code>context</code> 每次渲染都是新引用。</div></div>
+          <pre><code>const extendContext = useCallback((base: any): any =&gt; { … }, [props]);
+const context = useMemo(() =&gt; extendContext ? extendContext(ctx) : ctx,
+                       [props, data, state, deviceInfo, bus, extendContext]);</code></pre>
+          <div class="row"><span class="lb">后果</span><div class="v">任何父组件重渲染（哪怕 coupon 数据完全没变）都会让 <code>renderPluginSlot</code> 在 <code>:128-143</code> 重新调用 14 个插件的渲染钩子，并对每段做排序和 ErrorBoundary 重建；在券列表里 N 张卡 × M 个插件时是平方级成本。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">把 <code>extendContext</code> 的依赖改为 <code>[props.coupon, props.data]</code> 这类稳定原语，并对 <code>slots</code> 做 <code>useMemo</code>（依赖 <code>orderedPlugins + ctx</code>）；或让内核暴露 <code>stableContext</code>。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-5 · onPropsChange 在每次父渲染都触发，Quota 无条件写 state 造成额外一帧</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">withPlugins.tsx:88-95</span> 以 <code>props</code> 引用比较；<span class="path">QuotaPlugin/create.tsx:47-51</span> 在 <code>onPropsChange</code> 里无条件 <code>setState({ quotaReached: reached })</code>（即使值没变）。</div></div>
+          <pre><code>const prev = prevPropsRef.current;
+if (prev !== props) { prevPropsRef.current = props; void execute("onPropsChange", prev, props); }
+// Quota:
+context.setState({ quotaReached: reached });   // 新对象 → 必然触发一次重渲染</code></pre>
+          <div class="row"><span class="lb">后果</span><div class="v">父组件每渲染一次 → 一次异步钩子链 + 一次 <code>setState</code> → 组件再渲染一次（state 对象变化）；再叠加 P2-4 的 context 重建，列表页的更新成本被放大。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">Quota 写入前比较 <code>state.quotaReached === reached</code>；HOC 用浅比较（或由消费方保证 props 引用稳定）后再触发 <code>onPropsChange</code>。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-6 · 插槽 key 带 index，且 useImperativeHandle 依赖缺失（lint 已报）</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">packages/plugin-core/src/react/slots.tsx:44</span> <code>key={`vane-slot-${plugin.name}-${index}`}</code>；<span class="path">CouponCore.tsx:51</span> 的 <code>useImperativeHandle</code> 依赖只有 <code>[phase]</code>，<code>containerRef</code> 未列入（eslint 报 warning）。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">插件数组顺序变化（动态启停/换配置）会让 index 变，React 视为新节点重挂载，插件内部 UI 态（规则展开、复制成功提示）被重置；ref 在外部容器 ref 切换时拿到的 <code>getContainer</code> 可能指向旧节点。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">key 只保留 <code>plugin.name</code>（同名插件本就互斥，见 P2-8）；补 <code>containerRef</code> 到依赖数组。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-7 · CopyCodePlugin 的定时器与异步无清理，且兜底 API 已废弃</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">CopyCodePlugin/create.tsx:60-75</span></div></div>
+          <pre><code>context.setState({ codeCopied: ok });
+if (ok) config.onCopied?.(code);
+window.setTimeout(() =&gt; context.setState({ codeCopied: false }), 1600);</code></pre>
+          <div class="row"><span class="lb">后果</span><div class="v">卸载后仍会有一次 <code>setState</code>；连续点击会叠加多个定时器，使「已复制」提示提前消失；<code>document.execCommand("copy")</code> 在现代浏览器已废弃，在严格 CSP / 无用户手势下会失败且无提示（<code>onCopied</code> 不触发，按钮文案回到「复制」）。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">把 timer 存在 ref 并在 <code>onUnmount</code> 清理；兜底失败时给出可感知的提示（或 <code>onError</code>）；文档标注需要用户手势。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-8 · 插件 config 里声明的槽位与真实渲染钩子不一致；Channel 用 label 作 key</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">ClaimStatePlugin/create.tsx:62</span>、<span class="path">SharePlugin/create.tsx:21</span>、<span class="path">RemindPlugin/create.tsx:24</span> 都把 <code>slotPosition</code> 写成 <code>"after"</code>，但实际实现的是 <code>renderFooter</code>（footer 槽不看 slotPosition）；<span class="path">ChannelPlugin/create.tsx:33-37</span> <code>key={label}</code>。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">配置元数据（doc.json / 插件市场）展示的槽位与实际位置不符，接入方按 <code>slotPosition</code> 推断布局会出错；同一券出现重复渠道标签（如两个「仅 APP」）时 React 报 duplicate key 并可能丢标签。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">footer 类插件统一声明 <code>slotPosition: "footer"</code>（或把该字段标注为仅 header 生效）；Channel key 改为 <code>`${label}-${i}`</code>。</div></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 05 安全 -->
+  <section>
+    <div class="sec-head"><span class="idx">05</span><h2>安全审查（security-best-practices）</h2></div>
+    <p class="sec-desc">结论：<b>没有可利用的注入面</b>。券数据全程走 React JSX 文本，唯一的直接 DOM 操作是复制兜底（写 <code>textarea.value</code>，不解析 HTML），没有 <code>innerHTML</code> / <code>dangerouslySetInnerHTML</code> / <code>eval</code> / <code>new Function</code>（全包 grep 0 命中）。</p>
+    <div class="sec-grid">
+      <div class="panel">
+        <h4>注入与外部输入</h4>
+        <div class="kv">
+          <div class="r"><span class="k">XSS</span><span class="x"><span class="tag safe">安全</span><code>title / rules / channels / history.action / code</code> 全部由 JSX 转义；无危险 DOM 写入。</span></div>
+          <div class="r"><span class="k">链接</span><span class="x"><span class="tag warn">低危</span><code>DetailLinkPlugin</code> 把 <code>config.href</code> 直接给 <code>&lt;a href&gt;</code>（:50-63），带 <code>target="_blank" rel="noreferrer"</code>。若 href 来自后台活动配置而非代码常量，需白名单 <code>https?:</code>；React 会拦截 <code>javascript:</code> 并告警，但 <code>data:</code> 仍可打开。</span></div>
+          <div class="r"><span class="k">复制兜底</span><span class="x"><span class="tag safe">安全</span>隐藏 textarea 通过 <code>ta.value = text</code> 赋值，不拼接 HTML；<code>execCommand</code> 已废弃但无注入风险。</span></div>
+          <div class="r"><span class="k">埋点外发</span><span class="x"><span class="tag warn">低危</span><code>AnalyticsPlugin</code> 只上报 <code>couponId / phase / message</code>（:39-57），不含用户数据；但 <code>CouponData</code> 带 <code>[key: string]: any</code> 索引签名（types.ts:61），宿主若把整份 coupon 丢进日志，可能把后台附带字段（内部备注、库存策略）一起外发。</span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h4>凭证与配置面</h4>
+        <div class="kv">
+          <div class="r"><span class="k">凭证</span><span class="x"><span class="tag safe">未发现</span>包内无 token / key / cookie 读写；<code>package.json</code> 仅发布 <code>dist</code>，demo 与测试不进包。</span></div>
+          <div class="r"><span class="k">请求</span><span class="x"><span class="tag safe">宿主职责</span>组件自身不发网络请求，<code>claim</code> / <code>onShare</code> / <code>onEvent</code> 都由宿主注入；CSRF / 鉴权不在本包边界。</span></div>
+          <div class="r"><span class="k">存储</span><span class="x"><span class="tag safe">安全</span>券包不读写 localStorage / sessionStorage / URL，不存在跨域数据残留。</span></div>
+          <div class="r"><span class="k">建议</span><span class="x">对 <code>DetailLink.href</code> 加协议白名单；为 <code>CouponData</code> 收敛索引签名，避免整份对象进埋点。</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 06 React -->
+  <section>
+    <div class="sec-head"><span class="idx">06</span><h2>React / 性能审查（vercel-react-best-practices）</h2></div>
+    <p class="sec-desc">按「状态单一来源 / 避免无谓渲染 / effect 生命周期正确」三条主线核对。<code>rerender-dependencies</code>、<code>rerender-memo</code>、<code>advanced-init-once</code> 是主要失分项。</p>
+    <div class="sec-grid">
+      <div class="panel">
+        <h4>成立的部分</h4>
+        <div class="kv">
+          <div class="r"><span class="k">状态单一来源</span><span class="x"><span class="tag safe">正确</span>相位 / 有效期 / 展开态全部落在内核 <code>state</code>（<code>setState</code> 由 <code>useState</code> 驱动），插件不各自持有副本，不存在双向同步。</span></div>
+          <div class="r"><span class="k">effect 守卫</span><span class="x"><span class="tag safe">正确</span>相位与有效期 effect 用 <code>prevRef</code> 判首次，避免首帧误触发 <code>onPhaseChange</code>；有效期首次产出即触发，符合「挂载即过期」的场景。</span></div>
+          <div class="r"><span class="k">渲染纯净</span><span class="x"><span class="tag safe">正确</span>所有 <code>renderHeader / renderFooter</code> 只读 context，不写 state；写 state 都在事件钩子里。</span></div>
+          <div class="r"><span class="k">清理</span><span class="x"><span class="tag safe">正确</span>内核在卸载布局 effect 中先 <code>onUnmount</code> 再 <code>clear()</code>，并逆序执行 <code>onMount</code> 返回的 cleanup（<code>PluginManager.ts:111-129</code>）。</span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h4>缺口</h4>
+        <div class="kv">
+          <div class="r"><span class="k">依赖失稳</span><span class="x"><code>extendContext</code> 依赖 <code>[props]</code>（withPlugins:59），context 每次渲染换引用 → 所有插槽重算（P2-4）。lint 亦提示 <code>exhaustive-deps</code>。</span></div>
+          <div class="r"><span class="k">派生未 memo</span><span class="x"><code>thresholdText</code>、<code>slots</code> 对象均在渲染体内新建；插槽未 <code>useMemo</code>，ErrorBoundary 每帧重建。</span></div>
+          <div class="r"><span class="k">事件钩子过频</span><span class="x"><code>onPropsChange</code> 以引用比较，父组件内联 props 时每次渲染都跑一遍插件链（P2-5）。</span></div>
+          <div class="r"><span class="k">初始化语义</span><span class="x"><code>onMount</code> 用空依赖 + eslint-disable（withPlugins:80-83），StrictMode 下会执行两次（<code>coupon:mount</code> 埋点翻倍）；插件重建时又完全不执行（P1-4）。</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 07 修复顺序 -->
+  <section>
+    <div class="sec-head"><span class="idx">07</span><h2>建议修复顺序（可直接作为任务拆分）</h2></div>
+    <p class="sec-desc">先修「会改变领券业务结果」的门控，再修初始化与可用性 API，最后清 P2。每条都配一条能先红后绿的单测；编号 <code>T01–T06</code> 与问题编号一一对应。</p>
+    <div class="fix">
+      <div class="f"><span class="no">T01</span><div class="t">把「已抢完」收敛成 soldout，并让 gatePhase 读 total/claimed<span>对应 P1-1 · ProgressPlugin:38-50 / ClaimStatePlugin:68-77 · 单测：claimed=total 时按钮 disabled 且不调 claim</span></div><span class="e">单测先红后绿</span></div>
+      <div class="f"><span class="no">T02</span><div class="t">限领超限门控：gatePhase 读 quotaReached，并复用同一守卫<span>对应 P1-2 · QuotaPlugin:36,49 · ClaimStatePlugin:68-77,129-136 · 单测：purchased=quota 时不可领</span></div><span class="e">单测先红后绿</span></div>
+      <div class="f"><span class="no">T03</span><div class="t">过期时钟：absolute 模式下挂到点 timer + 点击时重算<span>对应 P1-3 · ValidityPlugin:108-132 · 单测：注入 now 跨过 validTo 后 phase=expired</span></div><span class="e">单测：时钟注入</span></div>
+      <div class="f"><span class="no">T04</span><div class="t">插件重建后对新实例执行 onMount（倒计时/初始化恢复）<span>对应 P1-4 · withPlugins:80-83 · usePluginRuntime:110-117 · 单测：换 stock 后 countdown timer 存在</span></div><span class="e">单测：重建即初始化</span></div>
+      <div class="f"><span class="no">T05</span><div class="t">新增 eligibility 纯函数 + scope/exclusiveGroup 字段<span>对应 P1-5 · types.ts:25-62 · CouponCore:63-67 · 单测：门槛/范围/互斥 6 个用例</span></div><span class="e">新增纯函数单测</span></div>
+      <div class="f"><span class="no">T06</span><div class="t">清理 P2：重入锁 / Remind 条件 / 金额格式化 / memo / key / 槽位元数据 / 复制清理<span>对应 P2-1~P2-8 · 状态：待排期</span></div><span class="e">lint 0 error 保持</span></div>
+    </div>
+  </section>
+
+  <!-- 08 未覆盖 -->
+  <section>
+    <div class="sec-head"><span class="idx">08</span><h2>未覆盖范围</h2></div>
+    <p class="sec-desc">以下内容本轮无法确证，不作为结论上报，供下一轮补齐。</p>
+    <div class="sec-grid">
+      <div class="panel">
+        <h4>未验证项</h4>
+        <div class="kv">
+          <div class="r"><span class="k">浏览器</span><span class="x">未启动 demo 逐页走查：<code>13-copy-code</code> 在 http 内网下 <code>execCommand</code> 能否成功、<code>scenarios/02-limited-rush</code> 的实际点击表现均未实测。</span></div>
+          <div class="r"><span class="k">服务端口径</span><span class="x">未确认 <code>total/claimed</code> 与 <code>config.stock</code> 的业务边界（已抢完究竟以哪一方为准），也未验证领取接口的幂等与限领实现。</span></div>
+          <div class="r"><span class="k">内核沙箱</span><span class="x"><code>executeHook</code> 全走 <code>runHookInSandbox</code>（<code>Promise.resolve().then</code>），所有生命周期钩子实际异步执行；本轮未测其对 <code>claimedAt</code> 时序与超时（3s）行为的影响。</span></div>
+          <div class="r"><span class="k">SSR</span><span class="x">未验证服务端渲染（组件本身无 window 依赖，但未跑 Next/RSC 场景）。</span></div>
+          <div class="r"><span class="k">并发</span><span class="x">未验证 React 19 / StrictMode 双执行下的埋点重复与 cleanup 顺序。</span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h4>已确认不在本包职责</h4>
+        <div class="kv">
+          <div class="r"><span class="k">请求与鉴权</span><span class="x"><code>claim</code> 的实际网络调用由宿主实现，CSRF、限流、幂等不在包内。</span></div>
+          <div class="r"><span class="k">金额结算</span><span class="x">包内不做最终应付计算（无 price / discount 计算模块），因此「浮点金额错算」只能在宿主侧审查。</span></div>
+          <div class="r"><span class="k">发布</span><span class="x">未执行 <code>pnpm build</code> 与体积预算核对（<code>vane.sizeBudgetKb = 8</code>）。</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div>审查对象：<code>packages/vane-coupon</code>（<code>CouponCore.tsx 130 行</code>、<code>withPlugins.tsx 172 行</code>、<code>plugins/types.ts 204 行</code>、<code>tokens.ts 235 行</code>、11 个插件实现 + 3 个 doc.json 桶）。</div>
+    <div>实证：<code>pnpm --filter vane-coupon test</code> → 3 个文件 / 33 用例全部通过；<code>typecheck</code> 通过；<code>lint</code> → 0 error / 54 warning（含 <code>CouponCore.tsx:51 useImperativeHandle</code> 与 <code>withPlugins.tsx:44 any</code>）。</div>
+    <div>说明：本报告仅新建此 HTML 文件，未修改任何源码、配置或测试；行号基于当前工作区文件。</div>
+  </footer>
+
+</div>
+</body>
+</html>

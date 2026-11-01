@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>vane-comment 核心功能评审报告</title>
+<style>
+  :root{
+    --bg:#0b0a09; --panel:#171513; --panel2:#1d1a17;
+    --line:rgba(255,255,255,.09); --line2:rgba(255,255,255,.16);
+    --text:#ebe7e2; --muted:#9a938c; --dim:#6f6862;
+    --accent:#ff7a29; --accent-soft:rgba(255,122,41,.14);
+    --p0:#ff4d4f; --p1:#ffa940; --p2:#7aa7ff; --ok:#3ecf8e;
+    --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1200px 600px at 12% -8%,rgba(255,122,41,.13),transparent 60%),
+      radial-gradient(900px 500px at 92% 0%,rgba(122,167,255,.08),transparent 62%),
+      var(--bg);
+    color:var(--text);font-family:var(--sans);line-height:1.65;
+    padding:44px 28px 90px;
+  }
+  .wrap{max-width:1180px;margin:0 auto}
+  header.hero{border-bottom:1px solid var(--line);padding-bottom:26px;margin-bottom:34px}
+  .eyebrow{display:flex;gap:10px;align-items:center;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent)}
+  h1{font-size:clamp(26px,3.6vw,42px);line-height:1.16;margin:14px 0 10px;letter-spacing:-.02em}
+  h1 span{color:var(--accent)}
+  .sub{color:var(--muted);max-width:840px;font-size:15px}
+  .sub code,.sec-desc code{font-family:var(--mono);font-size:12.5px;color:var(--accent)}
+  .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+  .chip{font-size:12px;color:var(--muted);border:1px solid var(--line2);border-radius:999px;padding:4px 11px}
+  .chip b{color:var(--text);font-weight:600}
+
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin:6px 0 44px}
+  .stat{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:14px;padding:18px;position:relative;overflow:hidden}
+  .stat::after{content:"";position:absolute;inset:auto 0 0 0;height:2px;background:var(--accent-soft)}
+  .stat .n{font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1.1}
+  .stat .k{font-size:12px;color:var(--muted);margin-top:5px}
+  .stat.p0 .n{color:var(--p0)} .stat.p1 .n{color:var(--p1)} .stat.p2 .n{color:var(--p2)} .stat.ok .n{color:var(--ok)}
+
+  section{margin-bottom:48px}
+  .sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:8px}
+  .sec-head h2{font-size:21px;margin:0;letter-spacing:-.01em}
+  .sec-head .idx{font-family:var(--mono);font-size:12px;color:var(--accent);border:1px solid var(--accent-soft);background:var(--accent-soft);padding:2px 7px;border-radius:6px}
+  .sec-desc{color:var(--muted);font-size:14px;margin:0 0 20px;max-width:920px}
+
+  .flow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+  .flow .step{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+  .flow .step h4{margin:0 0 6px;font-size:13.5px;color:var(--text)}
+  .flow .step p{margin:0;font-size:12px;color:var(--muted);line-height:1.55}
+  .flow .step code{font-family:var(--mono);font-size:11px;color:var(--accent)}
+  .flow .step:nth-child(2){border-color:rgba(255,122,41,.35)}
+  .flow .step:nth-child(4){border-color:rgba(122,167,255,.3)}
+
+  .issues{display:grid;gap:16px}
+  .issue{background:linear-gradient(180deg,rgba(255,255,255,.03),transparent 40%),var(--panel);border:1px solid var(--line);border-left:3px solid var(--p1);border-radius:12px;padding:18px 20px}
+  .issue.p0{border-left-color:var(--p0)}
+  .issue.p2{border-left-color:var(--p2)}
+  .issue .top{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:start}
+  .issue h3{margin:0;font-size:16px;line-height:1.45}
+  .sev{font-size:11px;font-weight:700;letter-spacing:.08em;padding:3px 9px;border-radius:999px;white-space:nowrap}
+  .sev.p0{color:#2a0000;background:var(--p0)}
+  .sev.p1{color:#1a1200;background:var(--p1)}
+  .sev.p2{color:#04122e;background:var(--p2)}
+  .issue .body{margin-top:12px;display:grid;gap:10px}
+  .row{display:grid;grid-template-columns:78px 1fr;gap:10px;font-size:13.5px}
+  .row .lb{color:var(--dim);font-size:12px;padding-top:2px}
+  .row .v{color:var(--muted)}
+  .row .v b{color:var(--text);font-weight:600}
+  pre{background:#0d0c0b;border:1px solid var(--line);border-radius:10px;padding:13px 15px;overflow:auto;margin:0}
+  pre code{font-family:var(--mono);font-size:12px;color:#d9d3cd;line-height:1.65;white-space:pre}
+  .path{font-family:var(--mono);font-size:12px;color:var(--accent);background:rgba(255,122,41,.08);border-radius:5px;padding:1px 6px}
+
+  .ok-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+  .ok-card{background:rgba(62,207,142,.045);border:1px solid rgba(62,207,142,.22);border-radius:12px;padding:16px}
+  .ok-card h4{margin:0 0 7px;font-size:14px;color:#bfeed8;display:flex;gap:7px;align-items:center}
+  .ok-card h4 .tick{color:var(--ok);font-size:13px}
+  .ok-card p{margin:0;font-size:12.5px;color:var(--muted);line-height:1.6}
+  .ok-card code{font-family:var(--mono);font-size:11px;color:#9fe3c3}
+
+  .sec-grid{display:grid;grid-template-columns:1.15fr 1fr;gap:14px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:18px 20px}
+  .panel h4{margin:0 0 10px;font-size:14.5px}
+  .kv{display:grid;gap:9px}
+  .kv .r{display:grid;grid-template-columns:104px 1fr;gap:10px;font-size:13px}
+  .kv .r .k{color:var(--dim);font-size:12px}
+  .kv .r .x{color:var(--muted)}
+  .tag{display:inline-block;font-size:11px;padding:1px 8px;border-radius:999px;margin-right:6px}
+  .tag.safe{color:var(--ok);background:rgba(62,207,142,.12)}
+  .tag.warn{color:var(--p1);background:rgba(255,169,64,.13)}
+  .tag.info{color:var(--p2);background:rgba(122,167,255,.12)}
+
+  .fix{display:grid;gap:10px}
+  .fix .f{display:grid;grid-template-columns:44px 1fr auto;gap:14px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:13px 16px}
+  .fix .f .no{font-family:var(--mono);font-size:18px;color:var(--accent);text-align:center}
+  .fix .f .t{font-size:13.5px}
+  .fix .f .t span{display:block;color:var(--dim);font-size:11.5px;margin-top:2px;font-family:var(--mono)}
+  .fix .f .e{font-size:11px;color:var(--muted);border:1px solid var(--line2);border-radius:999px;padding:3px 10px;white-space:nowrap}
+
+  footer{border-top:1px solid var(--line);padding-top:20px;color:var(--dim);font-size:12px;display:grid;gap:6px}
+  @media (max-width:860px){.flow{grid-template-columns:1fr 1fr}.sec-grid{grid-template-columns:1fr}.row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow"><span class="dot"></span>tasks/37 · vane-comment 核心功能评审 · 2026-11-01</div>
+    <h1>评论区核心功能分析<span>：0 P0 · 3 项 P1 · 7 项 P2</span></h1>
+    <p class="sub">
+      审查 <code>packages/vane-comment</code> 的列表壳 <code>CommentCore</code>、<code>withCommentPlugins</code> 数据流水线、17 个官方插件与 <code>presets/social</code>，
+      重点判定「楼中楼层级、审核脱敏、评论发布、排序/筛选/计数、点赞与置顶回写」是否真的成立。
+      结论：<b>数据流水线与排序这条主干是可靠的</b>（transformData 真接入、纯函数排序、key 稳定、单向数据流）；
+      问题集中在<b>楼中楼深度控制失效</b>（会递归到栈溢出）、<b>审核脱敏被嵌套回复与 text 回退绕过</b>、<b>发布按钮无提交态</b>三处。
+    </p>
+    <div class="meta">
+      <span class="chip">范围 <b>src 48 文件 / 2863 行</b></span>
+      <span class="chip">方法 <b>调用链审查 + 浏览器级自测</b></span>
+      <span class="chip">基线 <b>security-best-practices</b></span>
+      <span class="chip">基线 <b>vercel-react-best-practices</b></span>
+      <span class="chip">测试 <b>1 文件 / 1 用例（内部 24 条断言）通过</b></span>
+    </div>
+  </header>
+
+  <div class="stats">
+    <div class="stat ok"><div class="n">0</div><div class="k">P0 阻断级问题</div></div>
+    <div class="stat p1"><div class="n">3</div><div class="k">P1 高优先级 · 待修</div></div>
+    <div class="stat p2"><div class="n">7</div><div class="k">P2 中低优先级</div></div>
+    <div class="stat ok"><div class="n">24/24</div><div class="k">自测断言（渲染/楼中楼/点赞/排序/审核）</div></div>
+    <div class="stat ok"><div class="n">0</div><div class="k">XSS 注入点</div></div>
+  </div>
+
+  <!-- 01 数据流 -->
+  <section>
+    <div class="sec-head"><span class="idx">01</span><h2>核心数据流与职责边界</h2></div>
+    <p class="sec-desc">
+      评论区是典型的「受控列表」：组件不做本地列表状态，所有增删改都通过 <code>props</code> 回调交给消费方（演示站 <code>Harness</code> 就是自己 <code>setComments</code> 后重渲染）。
+      数据在 <code>withCommentPlugins</code> 里走「变换 → 排序」两步后才交给 <code>CommentCore</code>，逐条渲染再经领域槽交给插件。
+    </p>
+    <div class="flow">
+      <div class="step"><h4>① 数据接入</h4><p><code>props.comments ?? props.data</code>；<code>runtime</code> 的 <code>data</code> 也取同一份原始列表。</p></div>
+      <div class="step"><h4>② transformData</h4><p>按 priority 顺序跑：Moderation（脱敏/隐藏）→ Filter（筛选）→ Search（检索）。</p></div>
+      <div class="step"><h4>③ sortComments</h4><p>纯函数、<code>[...data]</code> 副本；newest / oldest / mostLiked / hottest / custom。</p></div>
+      <div class="step"><h4>④ 列表渲染</h4><p><code>CommentCore</code> 用 <code>key={comment.id}</code> 渲染，逐条读 <code>renderCommentActions / renderNested</code>。</p></div>
+      <div class="step"><h4>⑤ 交互回写</h4><p>点赞/回复/发布/置顶只调用 <code>context.props.onXxx</code>，由消费方更新数据后重新下发。</p></div>
+    </div>
+  </section>
+
+  <!-- 02 已验证 -->
+  <section>
+    <div class="sec-head"><span class="idx">02</span><h2>已验证成立的核心机制</h2></div>
+    <p class="sec-desc">这 8 条最容易在评审里被误判成 bug，逐条核对代码与自测断言后结论是「成立」，不应上报。</p>
+    <div class="ok-grid">
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>transformData 是真接入的（与 card 不同）</h4>
+        <p><code>withCommentPlugins.tsx:108-117</code> 显式调用 <code>runtime.transformData(baseData)</code>，并把结果写回 <code>props.data</code> 与 <code>props.comments</code>（:119-124）。Moderation / Filter / Search 都靠它生效，自测「审核：敏感词被脱敏」断言通过。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>comments 覆盖顺序统一</h4>
+        <p>历史上「只填 data 而消费方传了 comments 导致排序失效」的坑已修：<code>withCommentPlugins:119-124</code> 同时覆盖两个字段，<code>CommentCore.tsx:43-44</code> 读 <code>comments ?? data ?? []</code>，两条路径拿到同一份排好序的列表。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>排序是纯函数且不改入参</h4>
+        <p><code>sort.ts:16</code> 用 <code>const arr = [...data]</code> 复制后排序，<code>mode === "custom"</code> 直接返回原数组（:15）；自测用 newest / oldest 分别断言首条作者，证明排序真的驱动了渲染。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>列表 key 稳定</h4>
+        <p><code>CommentCore.tsx:107-109</code> 用 <code>key={c.id}</code>，排序后只是位置变化，不复用错节点；<code>ThreadView</code> 的展开态、<code>ReplyTrigger</code> 的输入框位置都随 id 保留。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>单向数据流，组件不改 comments</h4>
+        <p>LikePlugin 只调 <code>onLike(id,next)</code>（<code>LikePlugin:28-35</code>）、ThreadPlugin 只调 <code>onReply</code>（:285-291）、RichComposer 只调 <code>onSubmit</code>（:86-95）。自测的 Harness 真改 state 后，点赞计数能从 <code>0</code> 变 <code>1</code>，说明链路闭环。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>逐条插槽有异常隔离</h4>
+        <p><code>plugins/slots.tsx:71-92</code> 对每个插件单独 <code>try/catch</code>，再包一层 <code>PluginErrorBoundary</code>；某个插件渲染抛错只丢自己那个按钮，不会拖垮整条评论。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>无 HTML 注入面</h4>
+        <p><code>content.tsx:8-51</code> 把 text / emoji / image / mention 全部渲染成 React 节点（mention 也只是 <code>{`@${name}`}</code> 文本），全包无 <code>dangerouslySetInnerHTML</code>，评论正文不经过任何 HTML 解析。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>默认排序只在缺失时播种</h4>
+        <p><code>SortPlugin:76-84</code> 仅当 <code>state.sortMode</code> 与 <code>props.defaultSortMode</code> 都为空才写 <code>defaultMode</code>，不会覆盖消费方传入的默认模式；<code>extendContext:50-53</code> 的兜底顺序与之一致。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 P1 -->
+  <section>
+    <div class="sec-head"><span class="idx">03</span><h2>P1 问题（核心交互 / 真实接入必踩）</h2></div>
+    <p class="sec-desc">三条都发生在「楼中楼能不能正确显示」与「发布能不能可靠提交」上；现有自测只覆盖两层嵌套与成功路径，因此全绿也不代表这三条不成立。</p>
+    <div class="issues">
+
+      <div class="issue p1">
+        <div class="top"><h3>P1-1 · ThreadPlugin 的 depth 恒为 1：maxDepth 形同虚设，深层/循环 replies 会递归到栈溢出</h3><span class="sev p1">P1</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">packages/vane-comment/src/custom-plugins/ThreadPlugin/create.tsx:69</span> —— 限深判断依赖传入的 <code>depth</code>。</div></div>
+          <pre><code>const nestedSlot = useCommentSlot("renderNested", reply);
+const deeper = depth &lt; maxDepth ? nestedSlot : [];   // depth 必须递增才有意义</code></pre>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">同文件 :161-169</span> —— <code>&lt;ReplyNode depth={depth}&gt;</code> 只是把同一层深度继续往下传。</div></div>
+          <div class="row"><span class="lb">证据 3</span><div class="v"><span class="path">同文件 :316-325</span> —— <code>renderNested</code> 每次都给 <code>ThreadView</code> 写死 <code>depth={1}</code>，而 <code>ReplyNode</code> 又是通过 <code>useCommentSlot("renderNested")</code> 重新进入这个钩子。</div></div>
+          <pre><code>renderNested: (context, comment) =&gt;
+  comment.replies?.length ? (
+    &lt;ThreadView comment={comment} depth={1} maxDepth={maxDepth} ... /&gt;   // ← 恒为 1
+  ) : null,</code></pre>
+          <div class="row"><span class="lb">后果</span><div class="v">递归链是 <code>CommentItem → renderNested → ThreadView(depth=1) → ReplyNode(depth=1) → useCommentSlot("renderNested") → ThreadView(depth=1)…</code>，<b>depth 永远停在 1</b>，<code>depth &lt; maxDepth</code> 恒为真：① <code>maxDepth:3</code> 的配置完全不生效，10 层嵌套会全部展开渲染；② 若数据里出现自引用/环形 replies（后端去重 bug、缓存对象复用、构造测试数据时都可能），递归无终止 → <code>RangeError: Maximum call stack size exceeded</code>，整段回复区被 <code>PluginErrorBoundary</code> 兜成 <code>null</code>（<code>packages/plugin-core/src/sandbox/PluginErrorBoundary.tsx:30-33</code> 且不会自愈），用户看到「回复突然全没了」且无报错。演示站只造了两层数据，自测「楼中楼：含嵌套回复（≥2）」不会暴露。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">把深度作为 payload 一起传：<code>useCommentSlot("renderNested", { comment: reply, depth: depth + 1 })</code>，并让 <code>renderNested</code> 读 payload 的 <code>depth</code> 而不是写死 1；或在 <code>ReplyNode</code> 里直接渲染 <code>reply.replies</code>（<code>depth + 1</code>），不再绕回插件钩子。补测试：6 层嵌套在 <code>maxDepth:3</code> 下只渲染 3 层。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p1">
+        <div class="top"><h3>P1-2 · ModerationPlugin 只脱敏顶层 content：嵌套回复与 text 回退路径可绕过审核</h3><span class="sev p1">P1</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">packages/vane-comment/src/custom-plugins/ModerationPlugin/create.tsx:56-59</span> —— 只对顶层评论的 <code>content</code> 调 <code>maskNodes</code>，没有递归 <code>replies</code>，也没有处理 <code>c.text</code>。</div></div>
+          <pre><code>return arr.map((c) =&gt; ({
+  ...c,
+  content: maskNodes(c.content ?? [], words),   // replies / text 未处理
+}));</code></pre>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">packages/vane-comment/src/components/CommentPlugin/CommentCore.tsx:226-228</span> —— 正文渲染有纯文本回退：<code>comment.content?.length ? renderCommentContent(comment.content) : comment.text</code>。</div></div>
+          <div class="row"><span class="lb">证据 3</span><div class="v"><span class="path">packages/vane-comment/src/custom-plugins/ThreadPlugin/create.tsx:90-94</span> —— 嵌套回复同样走 <code>reply.content?.length ? renderCommentContent(reply.content) : reply.text</code>。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">① 楼中楼里的「加微信 / 广告」原样显示——审核对最常被滥用的位置完全失效；② 历史数据或简化接入只传 <code>text</code> 时，<code>content</code> 为空数组，<code>maskNodes</code> 拿到空数组 → 完全没脱敏，然后 <code>CommentCore</code> 回退渲染原始 <code>text</code>；③ <code>hidePending</code> 也只过滤顶层，<code>pending / deleted</code> 的回复仍会在 <code>ReplyNode</code> 里出现（:70, 88-89 只做了「已删除」文案，pending 没有特殊处理）。自测只造了顶层 <code>content</code>（<code>demo/src/lib/selftest.tsx</code>「审核：敏感词被脱敏（广告/加微信 不再出现）」），所以通过。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">抽 <code>maskComment(comment, words)</code>：递归处理 <code>replies</code>，并对 <code>text</code> 做同样的字符串替换；更好的做法是把脱敏放到渲染出口（<code>renderCommentContent</code> 内部或统一的 <code>safeText()</code>），这样无论哪条渲染路径都绕不过去。补测试：嵌套回复里的敏感词也必须变成 <code>**</code>。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p1">
+        <div class="top"><h3>P1-3 · RichComposer 发布无提交态：失败丢草稿、快速双击重复提交</h3><span class="sev p1">P1</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">packages/vane-comment/src/custom-plugins/RichComposerPlugin/create.tsx:86-95</span> —— 同步调用 <code>onSubmit</code> 后立刻清空，不等待、不判返回值、不捕获异常。</div></div>
+          <pre><code>const submit = () =&gt; {
+  if (!canSubmit) return;
+  context.props.onSubmit?.(preview);   // 可能是 async / 可能抛错
+  setText("");
+  setImages([]);                       // 草稿已不可恢复
+};</code></pre>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">同文件 :248-264</span> —— 按钮 <code>disabled={!canSubmit}</code>，只依赖同步的内容判断，没有任何 <code>submitting</code> 状态。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">真实接入的 <code>onSubmit</code> 一定是网络请求：① 请求失败（限流 / 未登录 / 审核拒绝）时草稿已被清空，用户只看到内容消失，无法重试；② <code>onSubmit</code> 返回 Promise 期间按钮仍可点，快速双击会提交两条相同评论（也正是 P1-2 脱敏之外最容易被用户投诉的行为）；③ 图片以 DataURL 塞进内容，失败重发时体积更大。自测 Harness 的 <code>onSubmit</code> 是同步 <code>setComments</code>，所以从未进入失败/双击分支。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">加 <code>const [submitting, setSubmitting]</code>：<code>await Promise.resolve(onSubmit(...))</code> 成功后再清空，失败 <code>catch</code> 保留草稿并给提示；按钮 <code>disabled={!canSubmit || submitting}</code>，文案切到「发布中…」。若 <code>onSubmit</code> 契约确实是同步（仅回调），则在类型上明确并要求消费方不能 Promise，同时在文档说明重试语义。</div></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 04 P2 -->
+  <section>
+    <div class="sec-head"><span class="idx">04</span><h2>P2 问题（契约 / 成本 / 生命周期）</h2></div>
+    <p class="sec-desc">这些不影响「能不能点」，但会在长列表、弱网、多次排序后逐步暴露，并抬高第三方插件的接入成本。</p>
+    <div class="issues">
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-1 · 每次渲染全量重跑流水线并重建新数组，逐条插槽再遍历一次插件</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">packages/vane-comment/src/components/CommentPlugin/withPlugins.tsx:108-117</span> —— <code>transformData</code> + <code>sortComments</code> 写在渲染函数体内，无 memo、无脏检查。</div></div>
+          <pre><code>const baseData = (runtime.context.data as any[]) ?? [];
+const transformed = runtime.transformData(baseData) ?? baseData;   // 每次渲染全量
+const sortedComments = sortComments(transformed, mode);            // 每次渲染新数组</code></pre>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">同文件 :136-139</span> —— <code>const domainContext = { ...runtime.context, comments: sortedComments }</code> 每次渲染都是新对象，<code>CommentSlotProvider</code> 的 <code>useMemo([orderedPlugins, context])</code>（<code>plugins/slots.tsx:42-45</code>）因此恒失效。</div></div>
+          <div class="row"><span class="lb">证据 3</span><div class="v"><code>CommentCore.tsx:155-156</code> 每条评论都调用两次 <code>useCommentSlot</code>，而 <code>renderCommentSlot</code>（<code>slots.tsx:60-71</code>）每次都要 <code>[...plugins].filter().sort()</code>。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">点一次排序（或父级任意 state 变化）都会：全量脱敏/过滤 + 全量排序 + N 条评论 × 2 次「复制数组 + filter + sort + 逐插件渲染」。1000 条评论 × 17 插件 ≈ 3.4 万次函数调用/次渲染，且无虚拟化（:107-110 全量 map）。评论少时无感，运营后台的长列表会明显卡。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">用 <code>useMemo([props.comments, props.data, orderedPlugins, state.filter, state.query, sortMode])</code> 缓存 <code>transformed</code> / <code>sortedComments</code> / <code>domainContext</code>；<code>renderCommentSlot</code> 的排序结果按 <code>orderedPlugins</code> 缓存；长列表接 <code>content-visibility:auto</code> 或按需分页。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-2 · 领域上下文里的 <code>context.data</code> 仍是原始列表：注释承诺「统一套用」与实现不一致</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">packages/vane-comment/src/components/CommentPlugin/withPlugins.tsx:7-9</span> 的文件头注释写着「plugin-core 提供了 transformData 但运行时不会自动套到 context.data，<b>这里统一套用</b>」。</div></div>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">同文件 :108-117, 136-139</span> —— 实际只覆盖了下发给 <code>CommentCore</code> 的 <code>comments</code> 与 <code>domainContext.comments</code>；<code>{ ...runtime.context }</code> 里 <code>data</code> 字段保持原样（<code>runtime.context.data</code> 来自原始 <code>props.comments ?? props.data</code>，<code>:66</code>）。</div></div>
+          <div class="row"><span class="lb">对照</span><div class="v"><code>CountPlugin:21</code> 读的是 <code>context.comments</code>，所以计数正确（能随筛选变化）；但任何读 <code>context.data</code> 的插件拿到的是未过滤、未脱敏、未排序的列表。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">第三方插件按「context.data 是当前可见列表」的直觉写逻辑（导出、批量操作、二次过滤）会看到被 Moderation 隐藏的 pending 评论和未脱敏文本，形成审核旁路与数据泄漏；同一个 <code>context</code> 里 <code>data</code> 与 <code>comments</code> 语义分裂，是维护期的隐性坑。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">在 <code>domainContext</code> 里把 <code>data</code> 也替换为 <code>sortedComments</code>（或在类型注释里明确 <code>data</code> = 原始、<code>comments</code> = 可见），并统一在文档与 <code>CommentPluginContext</code> 注释里写明。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-3 · Pin / Favorite 用本地 state 初始化一次，与 props 不再同步</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">packages/vane-comment/src/custom-plugins/PinPlugin/create.tsx:27-31</span> 与 <span class="path">FavoritePlugin/create.tsx:27-31</span> 都是 <code>useState(!!comment.pinned)</code> / <code>useState(!!comment.favorited)</code>，点击时先本地切换再回调。</div></div>
+          <pre><code>const [pinned, setPinned] = useState(!!comment.pinned);
+const handle = () =&gt; { const next = !pinned; setPinned(next); onPin?.(comment.id, next); };</code></pre>
+          <div class="row"><span class="lb">后果</span><div class="v">服务端拒绝置顶（权限不足 / 网络失败）时消费方不会回传新 <code>pinned</code>，按钮仍停在「📌取消置顶」，而 <code>CommentCore:197-209</code> 的置顶标从未出现——同一个状态在两处显示相反结论。列表重新下发（轮询/刷新）时按钮也不会跟随新 props，除非组件重挂。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">改为「受控 + 乐观回退」：<code>useEffect(() =&gt; setPinned(!!comment.pinned), [comment.pinned])</code> 让 props 为准；或直接不使用本地 state，靠消费方回传（与 LikePlugin 的 <code>liked = !!comment.liked</code> 一致）。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-4 · Copy / Share 复制失败仍提示「已复制」，且复位定时器不清理</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">packages/vane-comment/src/custom-plugins/CopyPlugin/create.tsx:34-41</span></div></div>
+          <pre><code>try { await navigator.clipboard?.writeText(plainText(comment)); } catch { /* 静默 */ }
+setCopied(true);                              // ← 失败也报成功
+window.setTimeout(() =&gt; setCopied(false), 1500);   // ← 无卸载清理</code></pre>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">packages/vane-comment/src/custom-plugins/SharePlugin/create.tsx:24-31</span> 同一模式；另外 <code>navigator.clipboard?.</code> 在 http 非 localhost 环境下是 <code>undefined</code>，可选链会静默跳过。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">内网 http 部署 / 浏览器拒绝写剪贴板时，用户看到「已复制」但粘贴为空；卸载后 <code>setTimeout</code> 仍会执行 <code>setCopied(false)</code>，产生对已卸载组件的 setState 警告。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">只在 <code>await</code> 成功后 <code>setCopied(true)</code>，失败提示「复制失败，请手动选择」；定时器用 <code>useEffect</code> 清理，或改用 <code>useRef</code> + 卸载时 <code>clearTimeout</code>。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-5 · 点赞爆裂动画定时器不清理；同时点赞数与本地反馈完全依赖消费方</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">packages/vane-comment/src/custom-plugins/LikePlugin/create.tsx:28-35</span> —— <code>window.setTimeout(() =&gt; setBurst(false), 450)</code> 没有清理。</div></div>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">同文件 :25-26</span> —— <code>const liked = !!comment.liked; const count = comment.likeCount;</code> 全部来自 props，组件不做任何乐观更新。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">消费方忘记实现 <code>onLike</code> 或请求失败时，点赞按钮<b>完全没反应</b>（连高亮都不变），用户会认为组件坏了；卸载后定时器仍触发 setState。自测里 Harness 实现了 <code>onLike</code> 并真改 state，所以「计数变化」断言通过——这也说明契约本身是「必须由消费方落地」。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">在文档与类型注释中明确 LikePlugin 是无状态受控组件；可选地提供 <code>optimisticLike</code> 配置（内部维护 450ms 的临时态，props 到达后以 props 为准）。定时器加 <code>useEffect</code> 清理。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-6 · 相对时间只算一次，长驻页面里「刚刚」永远不变</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">packages/vane-comment/src/components/CommentPlugin/content.tsx:54-67</span> —— <code>formatRelativeTime(ts, now = Date.now())</code> 在渲染时求值；调用点 <code>CommentCore.tsx:210-211</code>、<code>ThreadPlugin:83-85</code> 都不带 <code>now</code>，也没有任何定时器驱动重渲染。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">评论区常驻（信息流浮层、直播弹幕式详情页）时，一条 59 秒前的评论会一直显示「刚刚」，几小时后仍是旧文案；用户会以为列表没刷新。对「时间感」敏感的产品是可见缺陷。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">提供一个低频 tick（如 60s 一次，仅当组件可见时），把 <code>now</code> 通过 <code>TimestampPlugin</code> / 上下文下发；或至少让 <code>TimestampPlugin</code> 承担自动刷新，Core 内的相对时间仅在父级重渲染时更新（并在文档说明）。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-7 · 富编辑图片走 DataURL 且无类型/大小/数量约束</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">packages/vane-comment/src/custom-plugins/RichComposerPlugin/create.tsx:103-111</span> —— <code>FileReader.readAsDataURL(file)</code> 把整个文件读成 base64 字符串塞进 <code>images</code> state。</div></div>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">同文件 :230-234</span> —— <code>accept="image/*"</code> 只约束文件选择器，用户拖拽/改扩展名都能绕过；没有任何 <code>file.size</code> / MIME 判断，也没有张数上限。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">一张 10MB 照片经 base64 膨胀约 13MB 常驻内存，并随 <code>onSubmit</code> 一次性提交；长会话/多次选择会累积，移动端直接 OOM。DataURL 还会进入评论内容（<code>content.tsx:24-39</code> 渲染为 <code>&lt;img src=data:…&gt;</code>），服务端若不二次校验，等于接受任意内联媒体。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">在 <code>onFile</code> 里做三层校验：MIME 白名单（image/jpeg,png,gif,webp）、<code>maxSize</code>（如 5MB）、<code>maxCount</code>（如 9 张）；更好的做法是交给消费方上传拿到 URL（插件只负责收集 File），并在文档写明服务端必须再校验。</div></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 05 安全 -->
+  <section>
+    <div class="sec-head"><span class="idx">05</span><h2>安全审查（security-best-practices）</h2></div>
+    <p class="sec-desc">结论：<b>没有可利用的代码注入面</b>；但「审核可绕过」是内容合规风险，需要单列。</p>
+    <div class="sec-grid">
+      <div class="panel">
+        <h4>注入与输出</h4>
+        <div class="kv">
+          <div class="r"><span class="k">XSS</span><span class="x"><span class="tag safe">安全</span>评论正文全部走 React 节点渲染（<code>content.tsx:8-51</code>），mention 也只输出文本；全包无 <code>dangerouslySetInnerHTML</code> / <code>innerHTML</code> / <code>eval</code>。</span></div>
+          <div class="r"><span class="k">图片节点</span><span class="x"><span class="tag info">注意</span>image 类型直接使用 <code>node.url</code> 作为 <code>src</code>：<code>data:</code> / <code>blob:</code> 都能通过，且不校验来源；<code>javascript:</code> 在 <code>img</code> 上不执行，但仍建议白名单。</span></div>
+          <div class="r"><span class="k">剪贴板</span><span class="x"><span class="tag safe">安全</span>Copy / Share 只写剪贴板，不读取；链接用 <code>location.origin + pathname</code>，不含用户输入。</span></div>
+          <div class="r"><span class="k">凭证</span><span class="x"><span class="tag safe">安全</span>包内无 token / cookie / localStorage 访问；登录态完全由 <code>onLogin</code> / <code>LoginPromptPlugin</code> 交给消费方。</span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h4>内容合规与第三方能力</h4>
+        <div class="kv">
+          <div class="r"><span class="k">审核绕过</span><span class="x"><span class="tag warn">需修</span>P1-2：嵌套回复与 <code>text</code> 回退不脱敏。涉及 UGC 合规，不能只靠「前端遮一下」——服务端仍须独立审核。</span></div>
+          <div class="r"><span class="k">大对象</span><span class="x"><span class="tag warn">低危</span>P2-7：DataURL 无大小上限，属于前端可触发的内存放大面（用户自己就能把自己页面撑爆）。</span></div>
+          <div class="r"><span class="k">第三方插件</span><span class="x"><span class="tag info">注意</span>插件 <code>onMount</code> 能拿到容器并可任意 DOM 操作；<code>renderXxx</code> 返回字符串会被 React 转义，但 <code>renderFooter</code> 可返回任意 JSX（含外链）。接入第三方插件需明确信任边界。</span></div>
+          <div class="r"><span class="k">建议</span><span class="x">脱敏改成「渲染出口统一处理 + 服务端二次校验」；图片加域名白名单与体积上限；在 README 明确第三方插件的信任假设。</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 06 React -->
+  <section>
+    <div class="sec-head"><span class="idx">06</span><h2>React / 性能审查（vercel-react-best-practices）</h2></div>
+    <p class="sec-desc">按「受控组件的单一数据源 / 避免无谓渲染 / effect 与定时器生命周期」三条主线核对。</p>
+    <div class="sec-grid">
+      <div class="panel">
+        <h4>成立的部分</h4>
+        <div class="kv">
+          <div class="r"><span class="k">受控设计</span><span class="x"><span class="tag safe">正确</span>组件不维护评论列表状态，所有写操作都回传给消费方，避免了「内部列表与服务端列表分叉」这类最难排查的问题。</span></div>
+          <div class="r"><span class="k">key 与复用</span><span class="x"><span class="tag safe">正确</span><code>key={comment.id}</code>（<code>CommentCore:108</code>），排序只换位置不换身份；插件返回的节点也有稳定 <code>key</code>（<code>slots.tsx:79-81</code>）。</span></div>
+          <div class="r"><span class="k">纯函数</span><span class="x"><span class="tag safe">正确</span><code>sortComments</code> 用副本排序、<code>renderCommentContent</code> 无副作用、<code>maskNodes</code> 返回新对象；数据流水线本身是纯的（只是缺 memo）。</span></div>
+          <div class="r"><span class="k">错误隔离</span><span class="x"><span class="tag safe">正确</span>逐条槽的异常被限制在单个按钮/单条回复（<code>slots.tsx:71-92</code>），P1-1 的栈溢出也不会让整个评论区白屏，只丢回复区。</span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h4>缺口</h4>
+        <div class="kv">
+          <div class="r"><span class="k">memo 失效</span><span class="x">P2-1：<code>domainContext</code> 每次新对象 → <code>CommentSlotProvider</code> 的 memo 恒失效，N 条评论 × 每渲染两次 <code>renderCommentSlot</code>。</span></div>
+          <div class="r"><span class="k">全量流水线</span><span class="x">每次父级重渲染都重跑 transformData + sort（含脱敏字符串替换），成本随插件数与列表长度线性增长。</span></div>
+          <div class="r"><span class="k">定时器</span><span class="x">Like（:31-34）/ Copy（:41）/ Share（:31）的 <code>setTimeout</code> 都没有卸载清理；<code>RichComposer</code> 无异步状态，不需要定时器但没有提交态。</span></div>
+          <div class="r"><span class="k">层级递归</span><span class="x">P1-1 的 depth 不递增使限深失效，渲染成本与数据深度成正比，而本应有 <code>maxDepth</code> 截断。</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 07 修复顺序 -->
+  <section>
+    <div class="sec-head"><span class="idx">07</span><h2>建议修复顺序（可直接作为任务拆分）</h2></div>
+    <p class="sec-desc">先修「会崩 / 会漏审核 / 会丢用户草稿」的 P1，再修成本与生命周期。每条都配套一条能先红后绿的单测；编号 <code>T01–T05</code> 与问题编号一一对应。本次评审为只读，未执行修复。</p>
+    <div class="fix">
+      <div class="f"><span class="no">T01</span><div class="t">楼中楼深度真正递增，maxDepth 生效<span>对应 P1-1 · ThreadPlugin/create.tsx:69, 161-169, 316-325 · 单测：6 层嵌套在 maxDepth:3 下只渲染 3 层</span></div><span class="e">P1 · 防栈溢出</span></div>
+      <div class="f"><span class="no">T02</span><div class="t">脱敏覆盖 replies 与 text 回退路径<span>对应 P1-2 · ModerationPlugin:56-59 · CommentCore:226-228 · ThreadPlugin:90-94 · 单测：嵌套回复敏感词也被遮蔽</span></div><span class="e">P1 · 合规</span></div>
+      <div class="f"><span class="no">T03</span><div class="t">发布按钮加 submitting 态，失败保留草稿<span>对应 P1-3 · RichComposerPlugin:86-95, 248-264 · 单测：onSubmit 抛错后 textarea 仍有内容</span></div><span class="e">P1 · 数据不丢</span></div>
+      <div class="f"><span class="no">T04</span><div class="t">流水线 memo 化 + domainContext/data 口径统一<span>对应 P2-1 / P2-2 · withPlugins.tsx:108-139 · slots.tsx:42-45 · 单测：同一 props 连续渲染不再重复跑 transformData</span></div><span class="e">P2 · 性能/契约</span></div>
+      <div class="f"><span class="no">T05</span><div class="t">本地态同步、定时器清理、图片校验、时间刷新<span>对应 P2-3 ~ P2-7 · Pin/Favorite:27-31 · Copy:34-41 · Share:24-31 · Like:28-35 · RichComposer:103-111 · content.tsx:54-67</span></div><span class="e">P2 · 稳定性</span></div>
+    </div>
+  </section>
+
+  <footer>
+    <div>审查对象：<code>packages/vane-comment</code>（<code>CommentCore.tsx</code>、<code>withPlugins.tsx 159 行</code>、<code>plugins/slots.tsx 113 行</code>、<code>content.tsx</code>、<code>sort.ts 44 行</code>、17 个 <code>custom-plugins</code>、<code>presets/social/index.ts</code>）。</div>
+    <div>实证：<code>pnpm --filter vane-comment test</code> → 1 个文件 / 1 个用例通过（内部复用 <code>demo/src/lib/selftest.tsx</code> 的 <code>runSelfTest()</code>，约 24 条真实挂载 + 真实点击断言）；<code>pnpm --filter vane-comment typecheck</code> → 通过（exit 0）；<code>pnpm --filter vane-comment lint</code> → 0 error / 115 warning（多为 <code>no-explicit-any</code>）。未修改任何源码 / 配置 / 测试。</div>
+    <div>未覆盖：未启动 demo 做真实浏览器走查，未跑 build；17 个插件中按调用链精读 Thread / RichComposer / Moderation / Filter / Search / Sort / Count / Pin / Favorite / Copy / Share / Like，其余（Report / Reaction / Location / Timestamp / LoginPrompt）只核对接口与渲染位置；happy-dom 无布局引擎，几何相关结论不适用。</div>
+    <div>说明：自测以「两层嵌套 + 顶层 content + 同步 onSubmit」为主路径，这正是 P1-1 / P1-2 / P1-3 全部通过的原因；建议修复时为这三条各补一条反例用例，再接入一条 3 层以上的真实数据回归。</div>
+  </footer>
+
+</div>
+</body>
+</html>

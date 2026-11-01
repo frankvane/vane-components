@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>vane-sku 核心功能分析报告</title>
+<style>
+  :root{
+    --bg:#0b0a09; --panel:#171513; --panel2:#1d1a17;
+    --line:rgba(255,255,255,.09); --line2:rgba(255,255,255,.16);
+    --text:#ebe7e2; --muted:#9a938c; --dim:#6f6862;
+    --accent:#ff7a29; --accent-soft:rgba(255,122,41,.14);
+    --p0:#ff4d4f; --p1:#ffa940; --p2:#7aa7ff; --ok:#3ecf8e;
+    --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1200px 600px at 12% -8%,rgba(255,122,41,.13),transparent 60%),
+      radial-gradient(900px 500px at 92% 0%,rgba(122,167,255,.08),transparent 62%),
+      var(--bg);
+    color:var(--text);font-family:var(--sans);line-height:1.65;
+    padding:44px 28px 90px;
+  }
+  .wrap{max-width:1180px;margin:0 auto}
+  header.hero{border-bottom:1px solid var(--line);padding-bottom:26px;margin-bottom:34px}
+  .eyebrow{display:flex;gap:10px;align-items:center;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent)}
+  h1{font-size:clamp(26px,3.6vw,42px);line-height:1.16;margin:14px 0 10px;letter-spacing:-.02em}
+  h1 span{color:var(--accent)}
+  .sub{color:var(--muted);max-width:840px;font-size:15px}
+  .sub code,.sec-desc code{font-family:var(--mono);font-size:12.5px;color:var(--accent)}
+  .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+  .chip{font-size:12px;color:var(--muted);border:1px solid var(--line2);border-radius:999px;padding:4px 11px}
+  .chip b{color:var(--text);font-weight:600}
+
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin:6px 0 44px}
+  .stat{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:14px;padding:18px;position:relative;overflow:hidden}
+  .stat::after{content:"";position:absolute;inset:auto 0 0 0;height:2px;background:var(--accent-soft)}
+  .stat .n{font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1.1}
+  .stat .k{font-size:12px;color:var(--muted);margin-top:5px}
+  .stat.p0 .n{color:var(--p0)} .stat.p1 .n{color:var(--p1)} .stat.p2 .n{color:var(--p2)} .stat.ok .n{color:var(--ok)}
+
+  section{margin-bottom:48px}
+  .sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:8px}
+  .sec-head h2{font-size:21px;margin:0;letter-spacing:-.01em}
+  .sec-head .idx{font-family:var(--mono);font-size:12px;color:var(--accent);border:1px solid var(--accent-soft);background:var(--accent-soft);padding:2px 7px;border-radius:6px}
+  .sec-desc{color:var(--muted);font-size:14px;margin:0 0 20px;max-width:920px}
+
+  .flow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+  .flow .step{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+  .flow .step h4{margin:0 0 6px;font-size:13.5px;color:var(--text)}
+  .flow .step p{margin:0;font-size:12px;color:var(--muted);line-height:1.55}
+  .flow .step code{font-family:var(--mono);font-size:11px;color:var(--accent)}
+  .flow .step:nth-child(2){border-color:rgba(255,122,41,.35)}
+  .flow .step:nth-child(4){border-color:rgba(122,167,255,.3)}
+
+  .issues{display:grid;gap:16px}
+  .issue{background:linear-gradient(180deg,rgba(255,255,255,.03),transparent 40%),var(--panel);border:1px solid var(--line);border-left:3px solid var(--p1);border-radius:12px;padding:18px 20px}
+  .issue.p0{border-left-color:var(--p0)}
+  .issue.p2{border-left-color:var(--p2)}
+  .issue .top{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:start}
+  .issue h3{margin:0;font-size:16px;line-height:1.45}
+  .sev{font-size:11px;font-weight:700;letter-spacing:.08em;padding:3px 9px;border-radius:999px;white-space:nowrap}
+  .sev.p0{color:#2b0000;background:var(--p0)}
+  .sev.p1{color:#1a1200;background:var(--p1)}
+  .sev.p2{color:#04122e;background:var(--p2)}
+  .issue .body{margin-top:12px;display:grid;gap:10px}
+  .row{display:grid;grid-template-columns:78px 1fr;gap:10px;font-size:13.5px}
+  .row .lb{color:var(--dim);font-size:12px;padding-top:2px}
+  .row .v{color:var(--muted)}
+  .row .v b{color:var(--text);font-weight:600}
+  pre{background:#0d0c0b;border:1px solid var(--line);border-radius:10px;padding:13px 15px;overflow:auto;margin:0}
+  pre code{font-family:var(--mono);font-size:12px;color:#d9d3cd;line-height:1.65;white-space:pre}
+  .path{font-family:var(--mono);font-size:12px;color:var(--accent);background:rgba(255,122,41,.08);border-radius:5px;padding:1px 6px}
+
+  .ok-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+  .ok-card{background:rgba(62,207,142,.045);border:1px solid rgba(62,207,142,.22);border-radius:12px;padding:16px}
+  .ok-card h4{margin:0 0 7px;font-size:14px;color:#bfeed8;display:flex;gap:7px;align-items:center}
+  .ok-card h4 .tick{color:var(--ok);font-size:13px}
+  .ok-card p{margin:0;font-size:12.5px;color:var(--muted);line-height:1.6}
+  .ok-card code{font-family:var(--mono);font-size:11px;color:#9fe3c3}
+
+  .sec-grid{display:grid;grid-template-columns:1.15fr 1fr;gap:14px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:18px 20px}
+  .panel h4{margin:0 0 10px;font-size:14.5px}
+  .kv{display:grid;gap:9px}
+  .kv .r{display:grid;grid-template-columns:104px 1fr;gap:10px;font-size:13px}
+  .kv .r .k{color:var(--dim);font-size:12px}
+  .kv .r .x{color:var(--muted)}
+  .tag{display:inline-block;font-size:11px;padding:1px 8px;border-radius:999px;margin-right:6px}
+  .tag.safe{color:var(--ok);background:rgba(62,207,142,.12)}
+  .tag.warn{color:var(--p1);background:rgba(255,169,64,.13)}
+  .tag.info{color:var(--p2);background:rgba(122,167,255,.12)}
+
+  .fix{display:grid;gap:10px}
+  .fix .f{display:grid;grid-template-columns:44px 1fr auto;gap:14px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:13px 16px}
+  .fix .f .no{font-family:var(--mono);font-size:18px;color:var(--accent);text-align:center}
+  .fix .f .t{font-size:13.5px}
+  .fix .f .t span{display:block;color:var(--dim);font-size:11.5px;margin-top:2px;font-family:var(--mono)}
+  .fix .f .e{font-size:11px;color:var(--muted);border:1px solid var(--line2);border-radius:999px;padding:3px 10px;white-space:nowrap}
+
+  footer{border-top:1px solid var(--line);padding-top:20px;color:var(--dim);font-size:12px;display:grid;gap:6px}
+  @media (max-width:860px){.flow{grid-template-columns:1fr 1fr}.sec-grid{grid-template-columns:1fr}.row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow"><span class="dot"></span>tasks/43 · vane-sku 核心功能评审 · 2026-11-01</div>
+    <h1>SKU 规格选择核心功能分析<span>：3 项 P0 · 3 项 P1 · 8 项 P2</span></h1>
+    <p class="sub">
+      审查 <code>packages/vane-sku</code> 的 <code>SkuSelectorCore</code>、纯函数矩阵 <code>matrix.ts</code>、SKU 领域 <code>withPlugins</code> HOC 与 12 个官方插件，
+      重点判定「属性组合匹配、禁用推导、库存与价格计算、默认选中与切换回退、单选约束、受控/非受控同步、异步数据收敛」。
+      结论：<b>禁用推导与单选约束的纯函数内核成立</b>，但 <b>selection 缺少入口校验、数量 state 不与库存联动、数据形状缺失会直接白屏</b>——
+      这三条会让核心链路在真实接入中「选不了、超卖、看不见」。
+    </p>
+    <div class="meta">
+      <span class="chip">范围 <b>src 34 文件 / 1589 行（核心 3 文件 + 12 插件）</b></span>
+      <span class="chip">方法 <b>调用链精读 + 单测取证</b></span>
+      <span class="chip">基线 <b>security-best-practices</b></span>
+      <span class="chip">基线 <b>vercel-react-best-practices</b></span>
+      <span class="chip">测试 <b>5 文件 / 42 用例通过</b></span>
+    </div>
+  </header>
+
+  <div class="stats">
+    <div class="stat p0"><div class="n">3</div><div class="k">P0 阻断 / 超卖 / 白屏</div></div>
+    <div class="stat p1"><div class="n">3</div><div class="k">P1 规则判定失效</div></div>
+    <div class="stat p2"><div class="n">8</div><div class="k">P2 契约 / 性能 / 可维护性</div></div>
+    <div class="stat ok"><div class="n">42/42</div><div class="k">sku 单测 · 5 文件</div></div>
+    <div class="stat ok"><div class="n">0</div><div class="k">XSS 注入点（无 innerHTML）</div></div>
+  </div>
+
+  <!-- 01 数据流 -->
+  <section>
+    <div class="sec-head"><span class="idx">01</span><h2>核心数据流与职责边界</h2></div>
+    <p class="sec-desc">
+      SKU 领域把「选择态」放进内核 state，把「禁用集 / 命中变体」作为渲染期派生值由 HOC 注入 context。
+      这条链路的风险点很集中：<b>selection 是唯一可变输入，派生值每次渲染重算</b>——入口一旦脏，整块矩阵就跟着脏。
+    </p>
+    <div class="flow">
+      <div class="step"><h4>① 规格数据</h4><p>宿主传入 <code>attributes</code>（属性 / optionId）与 <code>variants</code>（attrValues / price / stock / quota）。</p></div>
+      <div class="step"><h4>② 派生计算</h4><p><code>extendContext</code> 调 <code>buildAvailability</code>（禁用集）与 <code>matchVariant</code>（命中变体）。</p></div>
+      <div class="step"><h4>③ Core 渲染</h4><p>按 <code>disabledMap</code> 置灰按钮，读 <code>selection</code> 画选中态，摘要拼接 <code>variant</code>。</p></div>
+      <div class="step"><h4>④ 写回 state</h4><p><code>selectOption</code> 覆盖/删除属性键 → <code>base.setState({ selection })</code>。</p></div>
+      <div class="step"><h4>⑤ 事件扩散</h4><p><code>onSkuChange</code> + <code>sku:change</code> + <code>onChange</code> + <code>onValidSkuChange</code>；持久化 / URL / 埋点各插件订阅。</p></div>
+    </div>
+  </section>
+
+  <!-- 02 已验证 -->
+  <section>
+    <div class="sec-head"><span class="idx">02</span><h2>已验证成立的核心机制</h2></div>
+    <p class="sec-desc">这些最容易被误判成 bug，逐条对照代码与单测后确认成立，不作为问题上报。</p>
+    <div class="ok-grid">
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>禁用推导的「临时代入」语义正确</h4>
+        <p><code>tentative = { ...selection, [attr.name]: option.id }</code>，再用 <code>keys.every</code> 查是否存在任意变体匹配；只替换当前属性、保留其余已选约束，正是「选它之后还有没有活路」的定义。4 个纯函数用例覆盖。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>缺货变体的 ignoreOutOfStock 语义成立</h4>
+        <p><code>effectiveVariants</code> 在默认 <code>true</code> 时过滤 <code>stock === 0</code>，只有缺货变体的选项会被置灰；显式传 <code>false</code> 时缺货变体参与推导。两个方向都有单测断言。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>未选全 / 组合不存在都返回 null</h4>
+        <p><code>matchVariant</code> 先逐属性检查 <code>selection[attr.name]</code>，缺一即 null，再用 <code>keys.every</code> 精确匹配；<code>blue+l</code> 这类不存在的组合返回 null，摘要显示「无可售组合」。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>再点同值取消 + 整段清空</h4>
+        <p><code>selectOption</code> 在 <code>selection[attrName] === optionId</code> 时删除该键，否则覆盖；<code>clearSelection</code> 直接写 <code>{}</code>。单测「再点一次同值 = 取消」与 ResetBar 用例均通过。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>单选约束天然成立</h4>
+        <p><code>SkuSelection</code> 以属性名为键（一个属性只能存一个 optionId），没有数组/多值路径，因此单选是数据结构保证的，不依赖 UI 互斥逻辑。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>首帧不触发 onChange</h4>
+        <p><code>prevSelRef</code> 初值 <code>null</code>，effect 里 <code>if (prev === null || prev === selection) return</code>；挂载时不会回调宿主，避免把「初始化」当成用户操作。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>禁用态可读性已按对比度修正</h4>
+        <p>禁用态不再叠 <code>opacity</code>，改为 <code>#f2f3f5</code> 底 + <code>#6f757b</code> 字 + <code>not-allowed</code>（<code>SkuSelectorCore.tsx:127-129</code>），避免白卡上「灰到看不见」。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>插槽渲染异常被逐插件隔离</h4>
+        <p>内核 <code>renderPluginSlot</code> 对每个插件单独 try/catch 并包 <code>PluginErrorBoundary</code>；一个价格插件抛错只丢自己那一段，核心规格按钮仍在。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 P0 -->
+  <section>
+    <div class="sec-head"><span class="idx">03</span><h2>P0 问题（阻断 / 超卖 / 白屏）</h2></div>
+    <p class="sec-desc">
+      三条都落在核心链路上：<b>选不了（矩阵死锁）、买多了（数量错误）、看不见（渲染崩溃）</b>。
+      每条都给出触发路径与可直接落测的建议，不含推断。
+    </p>
+    <div class="issues">
+
+      <div class="issue p0">
+        <div class="top"><h3>P0-1 · 非法 / 陈旧 selection 会让全部规格按钮同时置灰，且无法点回来自救</h3><span class="sev p0">P0</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">packages/vane-sku/src/components/SkuPlugin/matrix.ts:63-69</span>——只要 selection 里有一个属性值不在任何变体的 <code>attrValues</code> 中，该行所有候选的 tentative 都匹配不到</div></div>
+          <pre><code>const tentative = { ...selection, [attr.name]: option.id };
+const keys = Object.keys(tentative);
+const exists =
+  keys.length &gt; 0 &amp;&amp;
+  pool.some((v) =&gt; keys.every((k) =&gt; v.attrValues[k] === tentative[k]));
+if (!exists) disabled.add(option.id);   // 其余属性的脏值把整行拖死</code></pre>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">withPlugins.tsx:82</span> 用 <code>defaultSelection</code> 作为初值；<span class="path">UrlSyncPlugin/create.tsx:59-62</span> 与 <span class="path">StatePersistencePlugin/create.tsx:45-53</span> 把 URL / localStorage 里的<b>任意键值</b>直接 <code>setState({ selection })</code>，不校验属性名与 optionId 是否存在。</div></div>
+          <pre><code>// UrlSyncPlugin :33-35
+for (const [k, v] of q.entries()) {
+  if (k.startsWith(prefix)) sel[k.slice(prefix.length)] = v;   // 值原样写入
+}
+// StatePersistencePlugin :51-53
+const parsed = JSON.parse(raw) as SkuSelection;
+if (parsed &amp;&amp; typeof parsed === "object" &amp;&amp; Object.keys(parsed).length) {
+  context.setState({ selection: parsed });                     // 同样不校验
+}</code></pre>
+          <div class="row"><span class="lb">证据 3</span><div class="v"><span class="path">SkuSelectorCore.tsx:107-118</span> 用 <code>disabled</code> 真正禁用按钮，而「再点同值取消」的通道（<span class="path">withPlugins.tsx:60-67</span>）挂在 <code>onClick</code> 上——按钮一灰，取消路径同时失效。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">换商品后残留的 localStorage（<code>StatePersistencePlugin:35</code> 固定单 key）、旧分享链接里的 <code>?sku_颜色=xxx</code>、或后台改版把 optionId 换掉——任一场景都会让<b>所有属性的所有选项同时置灰</b>；因为无法点击，用户无法把脏值改掉，页面只剩「请选择规格/已选 颜色:xxx（回落显示原始 id）」。只有宿主额外装了 ResetBar 或拿 ref 才能恢复，属于核心功能死锁。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">在写 <code>selection</code> 的唯一入口做归一化：按 <code>attributes</code> 的 optionId 白名单 + <code>variants</code> 的 attrValues 过滤掉非法键值（UrlSync / StatePersistence / defaultSelection 三处复用同一个 <code>normalizeSelection</code>）；同时让已选中的按钮即使在 <code>disabledMap</code> 里也可点击「取消」。补单测：非法 defaultSelection 下至少保留可点的取消路径。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p0">
+        <div class="top"><h3>P0-2 · quantity 只做「展示层 clamp」，state 里的数量可以超过库存 / 限购</h3><span class="sev p0">P0</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">packages/vane-sku/src/custom-plugins/QuantityPlugin/create.tsx:47-50</span>——上限只用来算 <code>current</code>（渲染值），不写回 state；<code>onMount</code>（:32-35）之后再没有写入点，插件也没有 <code>onSkuChange</code> 钩子。</div></div>
+          <pre><code>const current =
+  typeof context.state?.quantity === "number"
+    ? Math.min(context.state.quantity as number, upper)   // 只影响显示
+    : Math.min(defaultValue, upper);</code></pre>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">QuantityPlugin/create.tsx:52-56</span> 只有用户点 +/− 时才写回 clamp 后的值；<span class="path">:9</span> 注释与 <code>doc.json</code> 都声明「数量写进内核 state（key: quantity），宿主加购按钮直接读」。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">用户在库存 10 的规格上选到 5 件，再切到库存 2 的规格：UI 显示 2、加号禁用（看起来已经收敛），但 <code>state.quantity</code> 仍是 <b>5</b>；宿主按文档读 state 直接加购 5 件 —— 库存 2、限购 2 都会被突破，是最典型的<b>超卖/金额错算</b>路径。切回无变体（<code>renderHeader :39</code> 返回 null）时 state 也不会被清理。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">把「数量上限」收敛为单一事实：新增 <code>onSkuChange</code>（或 <code>onValidityChange</code>）在变体/库存变化时写回 <code>Math.min(state.quantity, upper)</code>，并在变体为空时清成 1；或改为「受控数量 + 提交前校验」。补单测：库存从 10 切到 2 后 <code>state.quantity === 2</code>。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p0">
+        <div class="top"><h3>P0-3 · attributes / variants 形状缺失直接在渲染期抛 TypeError，无错误边界 → 白屏</h3><span class="sev p0">P0</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">packages/vane-sku/src/components/SkuPlugin/matrix.ts:61,67</span> 假设 <code>attr.options</code> 与 <code>v.attrValues</code> 一定存在；<span class="path">SkuSelectorCore.tsx:107</span> 直接 <code>attr.options.map</code>。</div></div>
+          <pre><code>for (const option of attr.options) {                    // options 缺失 → TypeError
+  const tentative = { ...selection, [attr.name]: option.id };
+  const keys = Object.keys(tentative);
+  const exists = keys.length &gt; 0 &amp;&amp;
+    pool.some((v) =&gt; keys.every((k) =&gt; v.attrValues[k] === tentative[k]));  // attrValues 缺失 → TypeError
+}</code></pre>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">withPlugins.tsx:40-41</span> 的 <code>?? []</code> 只兜住顶层 null / undefined，不兜数组元素的内部字段；<span class="path">packages/plugin-core/src/react/slots.tsx:44-50</span> 的 <code>PluginErrorBoundary</code> 只包插件插槽，<b>HOC 与 Core 都没有边界</b>，而异常发生在 <code>extendContext</code>（<code>withPlugins:46-75</code>），早于任何插槽。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">接口少下发一个 <code>options</code>（属性被后台停用后只留 name）、或某条变体漏了 <code>attrValues</code>，渲染期 TypeError 直接抛到 React 根节点，宿主整页白屏；插件隔离完全帮不上，因为它不在插件渲染路径上。空数组本身是安全的（<code>buildAvailability</code> 会把所有选项置灰），危险的是<b>元素内部字段 undefined</b>。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">加一层 <code>normalizeSkuData(attributes, variants)</code>：<code>options ?? []</code>、<code>attrValues ?? {}</code>、过滤重复 name/sku；HOC 外层再包一个 <code>PluginErrorBoundary</code> 提供降级 UI。补单测：<code>{ name: "颜色" }</code> 与 <code>{ sku: "x" }</code> 不抛异常。</div></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 04 P1 -->
+  <section>
+    <div class="sec-head"><span class="idx">04</span><h2>P1 问题（真实接入必然踩到）</h2></div>
+    <p class="sec-desc">
+      这 3 条不会让页面白屏，但会让<b>业务判定与展示分叉</b>：缺货组合被当成「有效 SKU」、父组件无法控制选择、限购上限没有扣已购。
+    </p>
+    <div class="issues">
+
+      <div class="issue p1">
+        <div class="top"><h3>P1-1 · matchVariant 完全不看 stock，onValidSkuChange 对缺货变体照样触发</h3><span class="sev p1">P1</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">packages/vane-sku/src/components/SkuPlugin/matrix.ts:80-94</span>——<code>variants.find</code> 只看属性值相等，<b>没有 stock 条件</b>；只有 <code>buildAvailability</code> 内部通过 <code>effectiveVariants</code>（:33-40）过滤了缺货变体。</div></div>
+          <pre><code>const keys = Object.keys(selection);
+return (
+  variants.find((v) =&gt; keys.every((k) =&gt; v.attrValues[k] === selection[k])) ??
+  null
+);   // stock === 0 仍会返回</code></pre>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">withPlugins.tsx:126</span> <code>if (variant) props.onValidSkuChange?.(variant)</code> 只判非空；<span class="path">SkuSelectorCore.tsx:156-160</span> 摘要也会渲染 <code>¥price · 库存 0</code>。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">异步库存到达是常态（先返回商品基础信息、再轮询库存）：用户先选好组合，库存随后变成 0 时，<code>variant</code> 仍是命中对象，<code>onValidSkuChange</code> 仍把「有效 SKU」抛给宿主；叠加 <code>ignoreOutOfStock=true</code> 时按钮已灰，但摘要与回调仍宣告「可买」，宿主据此展示加购按钮。StockStatus 能显示「暂时缺货」，却无法阻止宿主加购。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">把「可售」定义收敛到一处：<code>isPurchasable(variant, { ignoreOutOfStock })</code>，<code>onValidSkuChange</code> 只在可售时触发；或给 <code>matchVariant</code> 增加可选参数复用 <code>effectiveVariants</code>。补单测：<code>stock: 0</code> 的命中变体不触发 onValidSkuChange。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p1">
+        <div class="top"><h3>P1-2 · 没有受控 selection：异步 / 父级重置写不回组件</h3><span class="sev p1">P1</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">packages/vane-sku/src/components/SkuPlugin/plugins/types.ts:75-110</span> 的 props 只有 <code>defaultSelection</code>（:82-83）与 <code>onChange</code>（:90），<b>没有 value / selection 受控入口</b>。</div></div>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">withPlugins.tsx:81-82</span> 注释明确「选择态初值只生效一次（useState 语义）」；<span class="path">:119-128</span> 的 effect 只向外发事件（onSkuChange / bus / onChange / onValidSkuChange），从不把 props 写回 state。</div></div>
+          <pre><code>initialState: { selection: props.defaultSelection ?? {} },   // 只喂给 useState 一次
+// 之后：props 变化 → 仅触发 onPropsChange 钩子，selection 不变</code></pre>
+          <div class="row"><span class="lb">后果</span><div class="v">服务端预选（<code>defaultSelection</code> 随订单/活动接口到达）、切换商品复用同一个组件实例、关闭弹窗后宿主想重置、或「选配套餐」按钮由父组件写入规格——全部无效；只能靠 <code>key</code> 强制重挂载或 ref 之外的黑招。异步数据先空后有也是同一问题：attributes 到达前 selection 为空，到达后无法由父指定。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">增加受控模式：<code>selection?: SkuSelection</code> + <code>onSelectionChange</code>（受控时 state 以 props 为准，effect 同步写回）；或至少让 <code>defaultSelection</code> 的引用变化触发一次 <code>setState</code>。补单测：更新 defaultSelection 后选中态与摘要同步变化。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p1">
+        <div class="top"><h3>P1-3 · 限购只判「是否超限」，数量上限没有扣掉已购件数</h3><span class="sev p1">P1</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">packages/vane-sku/src/custom-plugins/QuantityPlugin/create.tsx:43-44</span>——<code>byQuota</code> 直接取 <code>v.quota</code>（每人<b>总</b>限购件数），不是「剩余可购」。</div></div>
+          <pre><code>const byStock = typeof v.stock === "number" ? v.stock : Infinity;
+const byQuota = typeof v.quota === "number" ? v.quota : Infinity;
+const upper = Math.min(byStock, byQuota, config.max ?? Infinity);   // 未减 purchasedCount</code></pre>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">packages/vane-sku/src/custom-plugins/QuotaPlugin/create.tsx:29-33</span> 只产出布尔 <code>canPurchase = purchased &lt; quota</code>，不产出剩余件数；<span class="path">:68-69</span> 的提示条也只展示「已购 N」。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">限购 2 件、已购 1 件时，<code>canPurchase=true</code>、数量上限仍是 2 → 用户可以再加 2 件，合计 3 件；宿主若只按 <code>canPurchase</code> 门控，会直接放行。这是<b>购买规则被绕过</b>，属于金额/数量口径问题。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">Quota 暴露 <code>remaining = Math.max(0, quota - purchased)</code>，Quantity 的 <code>upper</code> 取 <code>min(stock, remaining, max)</code>；<code>canPurchase</code> 由 <code>remaining &gt; 0</code> 派生，两处共用同一函数。补单测：purchased=1 / quota=2 时 data-max=1。</div></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 05 P2 -->
+  <section>
+    <div class="sec-head"><span class="idx">05</span><h2>P2 问题（可排期，不影响主链路）</h2></div>
+    <p class="sec-desc">契约、成本与可维护性问题；组合起来会显著拉高接入与排障成本。</p>
+    <div class="issues">
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-1 · 已选中的缺货 / 不可达组合无法主动取消（禁用按钮挡住 toggle-off）</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">SkuSelectorCore.tsx:117-118</span> <code>disabled={disabled}</code> 时 <code>onClick</code> 不会触发；而「再点同值 = 取消」的实现就在这个 <code>onClick</code> 里（<span class="path">withPlugins.tsx:60-67</span>）。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">选项一旦被禁用推导置灰（例如库存变为 0），用户无法通过再点一次把它取消，只能整体 ResetBar（若未安装则完全卡住）；P0-1 的脏值场景正是被这一点放大成死锁。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">已选中的选项始终可点（禁用的只是「未选中且不可达」的候选）；或在按钮上提供显式移除。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-2 · 价格区间把缺货变体算进去，且价格 / 区间都不做格式化</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">packages/vane-sku/src/custom-plugins/PriceRangePlugin/create.tsx:36-44</span> 只按已选属性过滤，<b>不排除 <code>stock === 0</code></b>；<span class="path">:56-59</span> 直接拼 <code>min / max</code>。PriceLink（<span class="path">PriceLinkPlugin/create.tsx:49-52</span>）与摘要（<span class="path">SkuSelectorCore.tsx:159</span>）同样直接插值。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">展示「¥199 – ¥229」时可能只有 199 有货，区间是虚假的；<code>10.5</code> 显示为「¥10.5」而非两位小数，<code>NaN</code> 会直接渲染成「NaN」。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">价格区间复用 <code>effectiveVariants</code>（与禁用推导同一口径）；抽出 <code>formatPrice</code> 固定两位小数并对非有限值兜底。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-3 · 重复 attr.name / option.id 无任何校验，会串选中态与 React key</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">SkuSelectorCore.tsx:100,112</span> 用 <code>key={attr.name}</code> 与 <code>key={opt.id}</code>；<span class="path">matrix.ts:55-73</span> 的 <code>disabledMap</code> 以属性名为键，重复 name 会互相覆盖。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">后台配置出现两个「颜色」或同一属性下重复 id 时，React 报 duplicate key 并可能丢行；<code>selection</code> 以 name 为键会同时点亮两个同名属性，看起来像「多选」——这正是单选约束在数据层被打破的形态。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">在归一化层校验 name / option.id 唯一性（开发环境 warn + 生产去重）；key 加索引前缀作为兜底。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-4 · 每次渲染全量 O(A·O·V) 重算，插槽与 context 全量重建</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">withPlugins.tsx:46-75</span> 的 <code>extendContext</code> 依赖 <code>[props, attributes, variants]</code>；<span class="path">:40-41</span> 的 <code>?? []</code> 在入参缺省时每次渲染都新建数组，依赖必然变化；<span class="path">:131-146</span> 的四个插槽每次渲染重新调用 <code>renderPluginSlot</code>；<span class="path">usePluginRuntime.ts:138-157</span> 的 context <code>useMemo</code> 依赖 <code>extendContext</code>。</div></div>
+          <pre><code>const extendContext = useCallback((base: any): any =&gt; {
+  const { disabledMap } = buildAvailability(attributes, variants, selection, {...}); // O(A·O·V)
+  ...
+}, [props, attributes, variants]);</code></pre>
+          <div class="row"><span class="lb">后果</span><div class="v">父组件任何一次重渲染（哪怕数据完全没变）都会重跑整张矩阵、重建 context 并让 12 个插件渲染钩子重算；SKU 面板常挂在商品详情页（轮询库存、倒计时、购物车角标都在触发父渲染），成本被持续放大。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">用 <code>useMemo</code> 以 <code>[attributes, variants, selection, ignoreOutOfStock]</code> 缓存 <code>buildAvailability</code> / <code>matchVariant</code>；插槽结果同样 memo；<code>?? []</code> 提到模块级常量（<code>rerender-memo / rerender-dependencies / js-index-maps</code>）。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-5 · UrlSync 不校验键值、无 popstate；StatePersistence 单 key 不按商品分区</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">UrlSyncPlugin/create.tsx:29-37,59-62</span> 原样读取任意 <code>sku_*</code> 参数并写 state，且只监听写入、未监听 <code>popstate</code>（前进后退后 UI 不还原）；<span class="path">StatePersistencePlugin/create.tsx:35,45-57</span> 默认单键 <code>"vane-sku:selection"</code>，不区分商品/SKU 面板。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">多商品页或换商品后，A 商品的选中态会被还原到 B 商品（直接触发 P0-1 的全灰死锁）；同一页两个 SKU 面板共享一个存储键会互相覆盖；用户后退时 URL 变了但组件没变，分享链接与屏幕内容不一致。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">存储键加入商品/场景维度（<code>key</code> 必填或自动拼 <code>skuId</code>），读取时走 <code>normalizeSelection</code>；UrlSync 增加 <code>popstate</code> 监听并复用同一校验。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-6 · 插件实例重建后 onMount 不再执行（KeyboardNav 监听直接丢失）</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">withPlugins.tsx:98-101</span>——<code>onMount</code> 只随 <code>execute</code> 跑一次（空依赖 + eslint-disable）；<span class="path">usePluginRuntime.ts:110-117</span> 在插件数组变化时先 <code>manager.clear()</code>（执行旧 cleanup）再 <code>registerAll</code>；<span class="path">KeyboardNavPlugin/create.tsx:32-39,82-84</span> 的 keydown 监听只在 <code>onMount</code> 里挂。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">宿主为下发新配置（限购数、埋点开关、价格策略）而重建插件数组时，旧监听被移除、新实例的 <code>onMount</code> 不执行 → 键盘漫游在运行中静默失效；UrlSync / StatePersistence 的初始还原也只会发生在首次挂载。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">插件引用变化时对新注册实例补跑一次 <code>onMount</code>（按引用 diff 只跑新增/替换项），或给内核加 <code>onRegister</code>。补单测：换插件数组后 keydown 仍生效。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-7 · 键盘漫游「方向键即选中」，且缺 roving tabindex / 组语义</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">KeyboardNavPlugin/create.tsx:62-68,77-80</span> 找到下一个按钮后直接 <code>next.focus(); next.click()</code>——移动焦点等于改变选择；<span class="path">:36-39</span> 过滤掉 disabled 后按实际下标取列，列位置会漂移。<span class="path">SkuSelectorCore.tsx:111-118</span> 只有 <code>aria-pressed</code>，无 <code>role="radiogroup" / aria-label</code>。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">屏幕阅读器用户与键盘用户无法「只浏览不选择」；方向键每次移动都会触发 <code>onChange</code>、埋点、持久化与价格请求，误操作成本高；跨属性下移时列位置按过滤后的列表 clamp，落点不可预期。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">改为 roving tabindex：方向键只移动焦点，Enter/Space 才 <code>click()</code>；属性行加 <code>role="radiogroup" aria-label={attr.name}</code>，选项用 <code>role="radio" aria-checked</code>。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-8 · useImperativeHandle 依赖缺失、onPropsChange 引用比较、labelOf 渲染期重建</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">SkuSelectorCore.tsx:49-62</span> <code>useImperativeHandle</code> 依赖只有 <code>[selection, variant]</code>，<code>containerRef</code> 未列入（eslint 已报 warning）；<span class="path">withPlugins.tsx:107-113</span> 用 <code>prev !== props</code> 判断，父组件内联 props 时每次渲染都触发 <code>onPropsChange</code>；<span class="path">SkuSelectorCore.tsx:72-73</span> <code>labelOf</code> 在渲染体内定义并每次 <code>find</code>。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">外部容器 ref 切换时 <code>getContainer()</code> 可能仍指向旧节点（KeyboardNav 依赖它取根节点）；每次父渲染都跑一遍 12 个插件的 <code>onPropsChange</code> 钩子链；选项多时摘要拼接产生 O(属性×选项) 的重复查找。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">补齐 <code>containerRef</code> 依赖；HOC 对 props 做浅比较后再触发 <code>onPropsChange</code>；把 <code>labelOf</code> 提到模块级或预建 <code>Map&lt;attrName, Map&lt;optionId, label&gt;&gt;</code>。</div></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 06 安全 -->
+  <section>
+    <div class="sec-head"><span class="idx">06</span><h2>安全审查（security-best-practices）</h2></div>
+    <p class="sec-desc">结论：<b>没有可利用的注入面</b>。规格文案、价格、SKU 编码全部走 JSX 文本，未发现 <code>innerHTML</code> / <code>dangerouslySetInnerHTML</code> / <code>eval</code> / <code>new Function</code>（全包 grep 0 命中）。风险集中在「外部输入被当成可信选择」与「图片 URL 不受控」，均为低危。</p>
+    <div class="sec-grid">
+      <div class="panel">
+        <h4>注入与外部输入</h4>
+        <div class="kv">
+          <div class="r"><span class="k">XSS</span><span class="x"><span class="tag safe">安全</span><code>attr.name / opt.label / sku / label</code> 全部由 JSX 转义；无危险 DOM 写入。</span></div>
+          <div class="r"><span class="k">URL 参数</span><span class="x"><span class="tag warn">低危</span><code>UrlSyncPlugin</code> 把查询串原样变成 <code>selection</code>（:33-35）。不构成注入，但会把任意字符串带进渲染与后续请求，是 P0-1 的直接放大器——应视为不可信输入做白名单。</span></div>
+          <div class="r"><span class="k">本地存储</span><span class="x"><span class="tag warn">低危</span><code>StatePersistencePlugin</code> 对 <code>JSON.parse</code> 结果只做 <code>typeof === "object"</code> 检查（:51-52），键值不校验；同源脚本可写 localStorage，同样属于不可信输入。</span></div>
+          <div class="r"><span class="k">图片</span><span class="x"><span class="tag warn">低危</span><code>&lt;img src={opt.image}&gt;</code>（SkuSelectorCore:134-140）接受任意 URL：外链追踪像素、http 混合内容、超长 URL 均不受限；无 XSS（<code>img</code> 不解析 HTML）。</span></div>
+          <div class="r"><span class="k">埋点</span><span class="x"><span class="tag warn">低危</span><code>AnalyticsPlugin</code> 上报完整 <code>selection / variant</code>（含 sku、price、stock，:39-46）。无用户身份字段，但属业务敏感数据，脱敏/采样由宿主负责。</span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h4>凭证与运行边界</h4>
+        <div class="kv">
+          <div class="r"><span class="k">凭证</span><span class="x"><span class="tag safe">未发现</span>包内无 token / key / cookie 读写；发布仅 <code>dist</code>，demo 与测试不进包。</span></div>
+          <div class="r"><span class="k">存储降级</span><span class="x"><span class="tag safe">正确</span><code>safeStorage</code> 用 try/catch 包住 localStorage/sessionStorage 访问（:22-30），隐私模式静默降级；读写也各自 try/catch。</span></div>
+          <div class="r"><span class="k">SSR</span><span class="x"><span class="tag safe">守卫存在</span>UrlSync / StatePersistence 均检查 <code>typeof window === "undefined"</code>；无顶层 window 访问。</span></div>
+          <div class="r"><span class="k">请求</span><span class="x"><span class="tag safe">宿主职责</span>组件自身不发网络请求；加购、库存轮询、鉴权与 CSRF 不在包内边界。</span></div>
+          <div class="r"><span class="k">建议</span><span class="x">对 <code>opt.image</code> 加协议/域名白名单；<code>selection</code> 归一化层同时充当安全边界（P0-1 / P2-5）。</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 07 React -->
+  <section>
+    <div class="sec-head"><span class="idx">07</span><h2>React / 性能审查（vercel-react-best-practices）</h2></div>
+    <p class="sec-desc">按「状态单一来源 / 派生值缓存 / effect 生命周期正确」三条主线核对。主要失分项是 <code>rerender-memo</code>、<code>rerender-dependencies</code>、<code>advanced-init-once</code>。</p>
+    <div class="sec-grid">
+      <div class="panel">
+        <h4>成立的部分</h4>
+        <div class="kv">
+          <div class="r"><span class="k">状态单一来源</span><span class="x"><span class="tag safe">正确</span><code>selection</code> 只在 <code>base.setState</code> 里写，插件不持有副本；禁用集与命中变体都是渲染期派生，没有双向同步。</span></div>
+          <div class="r"><span class="k">事件后置</span><span class="x"><span class="tag safe">正确</span><code>onSkuChange</code> 在 effect 里触发，不在渲染期 <code>setState</code>；首次挂载用 <code>prevSelRef = null</code> 明确跳过。</span></div>
+          <div class="r"><span class="k">渲染纯净</span><span class="x"><span class="tag safe">正确</span>所有 <code>renderHeader / renderOverlay</code> 只读 context；Quota / Analytics 的写 state 都在生命周期钩子。</span></div>
+          <div class="r"><span class="k">清理注册</span><span class="x"><span class="tag safe">正确</span>KeyboardNav 的 <code>onMount</code> 返回 cleanup 函数（:84），内核 <code>clear()</code> 逆序执行，卸载时监听不泄漏。</span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h4>缺口</h4>
+        <div class="kv">
+          <div class="r"><span class="k">依赖失稳</span><span class="x"><code>extendContext</code> 依赖整个 <code>props</code>（withPlugins:74），父组件内联时每次渲染换引用 → context 与四个插槽全部重算（P2-4）。</span></div>
+          <div class="r"><span class="k">派生未缓存</span><span class="x"><code>buildAvailability / matchVariant</code> 每次渲染全量 O(A·O·V)，没有 <code>useMemo</code>，也没有按 attrName/optionId 建 Map（<code>js-index-maps</code>）。</span></div>
+          <div class="r"><span class="k">事件钩子过频</span><span class="x"><code>onPropsChange</code> 以引用比较（withPlugins:107-113），父渲染即触发整条插件钩子链（P2-8）。</span></div>
+          <div class="r"><span class="k">ref 依赖</span><span class="x"><code>useImperativeHandle</code> 缺 <code>containerRef</code>（SkuSelectorCore:61，lint warning）；<code>onMount</code> 空依赖 + eslint-disable（withPlugins:98-101）。</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 08 修复顺序 -->
+  <section>
+    <div class="sec-head"><span class="idx">08</span><h2>建议修复顺序（可直接作为任务拆分）</h2></div>
+    <p class="sec-desc">先让「选不了 / 超卖 / 白屏」三条 P0 归零，再补规则判定，最后清 P2。每条都配一条能先红后绿的单测；编号 <code>T01–T07</code> 与问题编号一一对应。</p>
+    <div class="fix">
+      <div class="f"><span class="no">T01</span><div class="t">selection 入口归一化 + 已选项允许取消<span>对应 P0-1 / P2-1 · matrix.ts:63-69 · UrlSync:59-62 · StatePersistence:51-53 · 单测：脏 defaultSelection 可恢复</span></div><span class="e">单测先红后绿</span></div>
+      <div class="f"><span class="no">T02</span><div class="t">数量随变体/库存写回 clamp，变体为空时清 1<span>对应 P0-2 · QuantityPlugin:47-56 · 单测：库存 10→2 后 state.quantity=2</span></div><span class="e">单测先红后绿</span></div>
+      <div class="f"><span class="no">T03</span><div class="t">数据归一化 + HOC 级 ErrorBoundary 降级<span>对应 P0-3 · matrix.ts:61,67 · SkuSelectorCore:107 · 单测：缺失 options/attrValues 不抛</span></div><span class="e">单测：异常输入</span></div>
+      <div class="f"><span class="no">T04</span><div class="t">统一可售判定，onValidSkuChange 只对可售变体触发<span>对应 P1-1 · matrix.ts:80-94 · withPlugins:126 · 单测：stock=0 不回调</span></div><span class="e">单测先红后绿</span></div>
+      <div class="f"><span class="no">T05</span><div class="t">增加受控 selection，或让 defaultSelection 变化可同步<span>对应 P1-2 · types.ts:82-90 · withPlugins:81-82 · 单测：父级更新后选中态同步</span></div><span class="e">新增受控契约</span></div>
+      <div class="f"><span class="no">T06</span><div class="t">限购扣减：upper = min(stock, quota − purchased, max)<span>对应 P1-3 · QuantityPlugin:43-44 · QuotaPlugin:29-33 · 单测：purchased=1/quota=2 时 max=1</span></div><span class="e">单测：限购边界</span></div>
+      <div class="f"><span class="no">T07</span><div class="t">清 P2：价格口径 / 重复键校验 / memo / 存储与 URL 契约 / 键盘 a11y / ref 依赖<span>对应 P2-2~P2-8 · 状态：待排期</span></div><span class="e">lint 0 error 保持</span></div>
+    </div>
+  </section>
+
+  <!-- 09 未覆盖 -->
+  <section>
+    <div class="sec-head"><span class="idx">09</span><h2>未覆盖范围</h2></div>
+    <p class="sec-desc">以下内容本轮无法确证，不作为结论上报，供下一轮补齐。</p>
+    <div class="sec-grid">
+      <div class="panel">
+        <h4>未验证项</h4>
+        <div class="kv">
+          <div class="r"><span class="k">浏览器走查</span><span class="x">未启动 demo 逐页实测 <code>13-keyboard</code> / <code>14-persistence</code> / <code>15-url-sync</code> / <code>16-analytics</code> 的真实交互；键盘与 popstate 行为仅静态判定。</span></div>
+          <div class="r"><span class="k">服务端口径</span><span class="x">未确认 <code>stock</code> 是否实时下发、<code>quota</code> 是否包含已购、是否存在预留库存/虚拟库存；P1-3 的「超限」以 <code>purchasedCount</code> 为准。</span></div>
+          <div class="r"><span class="k">异步时序</span><span class="x">未实测「先空后满」的 attributes/variants 到达顺序对 selection 与 <code>onMount</code> 还原的影响，也未测库存轮询把变体对象整体替换时的 effect 触发次数。</span></div>
+          <div class="r"><span class="k">StrictMode / SSR</span><span class="x">未验证 React 19 StrictMode 双执行下 <code>onMount</code> 埋点翻倍与 cleanup 顺序；未跑 Next/RSC 场景。</span></div>
+          <div class="r"><span class="k">存储环境</span><span class="x">未实测隐私模式 / 配额超限 / 多标签页并发写入下的持久化行为。</span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h4>已确认不在本包职责</h4>
+        <div class="kv">
+          <div class="r"><span class="k">库存权威</span><span class="x">最终可售与扣减以服务端为准；组件内的 <code>stock</code> 只是展示快照，包内不做库存预留或事务。</span></div>
+          <div class="r"><span class="k">下单金额</span><span class="x">包内不做应付计算、优惠叠加或含税价；价格仅透传 <code>variant.price / originalPrice</code>。</span></div>
+          <div class="r"><span class="k">发布</span><span class="x">未执行 <code>pnpm build</code> 与体积预算核对（<code>vane.sizeBudgetKb = 7</code>，子路径 2KB）。</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div>审查对象：<code>packages/vane-sku</code>（<code>matrix.ts 104 行</code>、<code>withPlugins.tsx 178 行</code>、<code>SkuSelectorCore.tsx 184 行</code>、<code>plugins/types.ts 177 行</code>、12 个插件实现 + 12 份 doc.json）。</div>
+    <div>实证：<code>pnpm --filter vane-sku test</code> → 5 个文件 / 42 用例全部通过；<code>typecheck</code> 通过；<code>lint</code> → 0 error / 36 warning（含 <code>SkuSelectorCore.tsx:61 useImperativeHandle</code> 与 <code>withPlugins.tsx:74 exhaustive-deps</code>）。</div>
+    <div>说明：本报告仅新建此 HTML 文件，未修改任何源码、配置或测试；行号基于当前工作区文件。</div>
+  </footer>
+
+</div>
+</body>
+</html>

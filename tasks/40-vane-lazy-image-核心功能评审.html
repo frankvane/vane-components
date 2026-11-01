@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>vane-lazy-image 核心功能评审报告</title>
+<style>
+  :root{
+    --bg:#0b0a09; --panel:#171513; --panel2:#1d1a17;
+    --line:rgba(255,255,255,.09); --line2:rgba(255,255,255,.16);
+    --text:#ebe7e2; --muted:#9a938c; --dim:#6f6862;
+    --accent:#ff7a29; --accent-soft:rgba(255,122,41,.14);
+    --p0:#ff4d4f; --p1:#ffa940; --p2:#7aa7ff; --ok:#3ecf8e;
+    --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1200px 600px at 12% -8%,rgba(255,122,41,.13),transparent 60%),
+      radial-gradient(900px 500px at 92% 0%,rgba(122,167,255,.08),transparent 62%),
+      var(--bg);
+    color:var(--text);font-family:var(--sans);line-height:1.65;
+    padding:44px 28px 90px;
+  }
+  .wrap{max-width:1180px;margin:0 auto}
+  header.hero{border-bottom:1px solid var(--line);padding-bottom:26px;margin-bottom:34px}
+  .eyebrow{display:flex;gap:10px;align-items:center;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent)}
+  h1{font-size:clamp(26px,3.6vw,42px);line-height:1.16;margin:14px 0 10px;letter-spacing:-.02em}
+  h1 span{color:var(--accent)}
+  .sub{color:var(--muted);max-width:860px;font-size:15px}
+  .sub code,.sec-desc code{font-family:var(--mono);font-size:12.5px;color:var(--accent)}
+  .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+  .chip{font-size:12px;color:var(--muted);border:1px solid var(--line2);border-radius:999px;padding:4px 11px}
+  .chip b{color:var(--text);font-weight:600}
+
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin:6px 0 44px}
+  .stat{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:14px;padding:18px;position:relative;overflow:hidden}
+  .stat::after{content:"";position:absolute;inset:auto 0 0 0;height:2px;background:var(--accent-soft)}
+  .stat .n{font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1.1}
+  .stat .k{font-size:12px;color:var(--muted);margin-top:5px}
+  .stat.p0 .n{color:var(--p0)} .stat.p1 .n{color:var(--p1)} .stat.p2 .n{color:var(--p2)} .stat.ok .n{color:var(--ok)}
+
+  section{margin-bottom:48px}
+  .sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:8px}
+  .sec-head h2{font-size:21px;margin:0;letter-spacing:-.01em}
+  .sec-head .idx{font-family:var(--mono);font-size:12px;color:var(--accent);border:1px solid var(--accent-soft);background:var(--accent-soft);padding:2px 7px;border-radius:6px}
+  .sec-desc{color:var(--muted);font-size:14px;margin:0 0 20px;max-width:920px}
+
+  .flow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+  .flow .step{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+  .flow .step h4{margin:0 0 6px;font-size:13.5px;color:var(--text)}
+  .flow .step p{margin:0;font-size:12px;color:var(--muted);line-height:1.55}
+  .flow .step code{font-family:var(--mono);font-size:11px;color:var(--accent)}
+  .flow .step:nth-child(2){border-color:rgba(255,122,41,.35)}
+  .flow .step:nth-child(4){border-color:rgba(122,167,255,.3)}
+
+  .issues{display:grid;gap:16px}
+  .issue{background:linear-gradient(180deg,rgba(255,255,255,.03),transparent 40%),var(--panel);border:1px solid var(--line);border-left:3px solid var(--p1);border-radius:12px;padding:18px 20px}
+  .issue.p2{border-left-color:var(--p2)}
+  .issue.p0{border-left-color:var(--p0)}
+  .issue .top{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:start}
+  .issue h3{margin:0;font-size:16px;line-height:1.45}
+  .sev{font-size:11px;font-weight:700;letter-spacing:.08em;padding:3px 9px;border-radius:999px;white-space:nowrap}
+  .sev.p0{color:#2a0000;background:var(--p0)}
+  .sev.p1{color:#1a1200;background:var(--p1)}
+  .sev.p2{color:#04122e;background:var(--p2)}
+  .issue .body{margin-top:12px;display:grid;gap:10px}
+  .row{display:grid;grid-template-columns:78px 1fr;gap:10px;font-size:13.5px}
+  .row .lb{color:var(--dim);font-size:12px;padding-top:2px}
+  .row .v{color:var(--muted)}
+  .row .v b{color:var(--text);font-weight:600}
+  pre{background:#0d0c0b;border:1px solid var(--line);border-radius:10px;padding:13px 15px;overflow:auto;margin:0}
+  pre code{font-family:var(--mono);font-size:12px;color:#d9d3cd;line-height:1.65;white-space:pre}
+  .path{font-family:var(--mono);font-size:12px;color:var(--accent);background:rgba(255,122,41,.08);border-radius:5px;padding:1px 6px}
+
+  .ok-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+  .ok-card{background:rgba(62,207,142,.045);border:1px solid rgba(62,207,142,.22);border-radius:12px;padding:16px}
+  .ok-card h4{margin:0 0 7px;font-size:14px;color:#bfeed8;display:flex;gap:7px;align-items:center}
+  .ok-card h4 .tick{color:var(--ok);font-size:13px}
+  .ok-card p{margin:0;font-size:12.5px;color:var(--muted);line-height:1.6}
+  .ok-card code{font-family:var(--mono);font-size:11px;color:#9fe3c3}
+
+  .sec-grid{display:grid;grid-template-columns:1.15fr 1fr;gap:14px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:18px 20px}
+  .panel h4{margin:0 0 10px;font-size:14.5px}
+  .kv{display:grid;gap:9px}
+  .kv .r{display:grid;grid-template-columns:104px 1fr;gap:10px;font-size:13px}
+  .kv .r .k{color:var(--dim);font-size:12px}
+  .kv .r .x{color:var(--muted)}
+  .kv .r .x b{color:var(--text);font-weight:600}
+  .tag{display:inline-block;font-size:11px;padding:1px 8px;border-radius:999px;margin-right:6px}
+  .tag.safe{color:var(--ok);background:rgba(62,207,142,.12)}
+  .tag.warn{color:var(--p1);background:rgba(255,169,64,.13)}
+  .tag.bad{color:var(--p0);background:rgba(255,77,79,.14)}
+  .tag.info{color:var(--p2);background:rgba(122,167,255,.12)}
+
+  .fix{display:grid;gap:10px}
+  .fix .f{display:grid;grid-template-columns:44px 1fr auto;gap:14px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:13px 16px}
+  .fix .f .no{font-family:var(--mono);font-size:18px;color:var(--accent);text-align:center}
+  .fix .f .t{font-size:13.5px}
+  .fix .f .t span{display:block;color:var(--dim);font-size:11.5px;margin-top:2px;font-family:var(--mono)}
+  .fix .f .e{font-size:11px;color:var(--muted);border:1px solid var(--line2);border-radius:999px;padding:3px 10px;white-space:nowrap}
+
+  footer{border-top:1px solid var(--line);padding-top:20px;color:var(--dim);font-size:12px;display:grid;gap:6px}
+  @media (max-width:860px){.flow{grid-template-columns:1fr 1fr}.sec-grid{grid-template-columns:1fr}.row{grid-template-columns:1fr}.fix .f{grid-template-columns:36px 1fr}.fix .f .e{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow"><span class="dot"></span>tasks/40 · vane-lazy-image 核心功能评审 · 2026-11-01</div>
+    <h1>图片懒加载组件核心功能分析<span>：4 P0 · 8 P1 · 10 P2</span></h1>
+    <p class="sub">
+      审查 <code>packages/vane-lazy-image</code> 的 <code>LazyLoadImageCore</code> 状态机、<code>ObserverPool</code> 观察器池、
+      <code>withPlugins</code> 插件桥与 60 个官方插件。重点判定「视口触发 / 状态机可重入 / 占位与布局稳定 / 错误回退链 /
+      卸载清理 / 图片 URL 注入」是否真的成立。结论：共享 IO、门控、异常隔离等骨架是成立的；
+      但<b>换图失效</b>与<b>无上限 CDN 重试</b>会在真实业务里直接露出错误图片或打出无限请求。
+    </p>
+    <div class="meta">
+      <span class="chip">范围 <b>src 285 文件 / 17,663 行</b></span>
+      <span class="chip">插件 <b>custom-plugins 254 文件 / 14,085 行</b></span>
+      <span class="chip">方法 <b>源码审查 + 单测/类型/静态检查取证</b></span>
+      <span class="chip">基线 <b>security-best-practices</b></span>
+      <span class="chip">基线 <b>vercel-react-best-practices</b></span>
+      <span class="chip">测试 <b>7 文件 / 46 用例通过</b></span>
+    </div>
+  </header>
+
+  <div class="stats">
+    <div class="stat p0"><div class="n">4</div><div class="k">P0 阻断 / 错误展示 / 安全</div></div>
+    <div class="stat p1"><div class="n">8</div><div class="k">P1 真实接入必踩</div></div>
+    <div class="stat p2"><div class="n">10</div><div class="k">P2 契约 / 性能 / 可维护性</div></div>
+    <div class="stat ok"><div class="n">46/46</div><div class="k">单测通过 · 7 个文件</div></div>
+    <div class="stat ok"><div class="n">✓</div><div class="k">typecheck 通过</div></div>
+    <div class="stat p1"><div class="n">0 / 346</div><div class="k">lint error / warning</div></div>
+  </div>
+
+  <!-- 01 数据流 -->
+  <section>
+    <div class="sec-head"><span class="idx">01</span><h2>核心数据流与职责边界</h2></div>
+    <p class="sec-desc">图片加载只有一条真实路径：插件在「渲染期」改写 props，在「门控期」决定是否放行，在「事件期」改写 DOM 或上报状态；而状态的唯一权威是 Core 内部的 reducer。下面的 P0 几乎都发生在「事件期」与「权威状态」脱钩的地方。</p>
+    <div class="flow">
+      <div class="step"><h4>① props 进入 HOC</h4><p><code>withPlugins</code> 在 render 内跑 <code>transformProps</code>（DataSaver / Responsive / BlurUp 等改写 src 与 style）。</p></div>
+      <div class="step"><h4>② 视口判定</h4><p><code>ObserverPool</code> 按 <code>root|rootMargin|threshold</code> 复用实例，回调写 <code>inView</code>。</p></div>
+      <div class="step"><h4>③ 门控 + 加载链</h4><p><code>onBeforeLoad</code> 返回 false 抛 <code>LLI_PLUGIN_GATE</code>；<code>onLoad</code> 可返回替代 src（FetchLoader 等）。</p></div>
+      <div class="step"><h4>④ reducer 状态机</h4><p><code>idle → loading → loaded | error</code>，<code>displaySrc</code> 是唯一渲染源。</p></div>
+      <div class="step"><h4>⑤ img 事件回流</h4><p><code>onLoad / onError</code> → dispatch；插件再执行 <code>onLoadSuccess / onLoadError</code>。</p></div>
+    </div>
+  </section>
+
+  <!-- 02 已验证正确 -->
+  <section>
+    <div class="sec-head"><span class="idx">02</span><h2>已验证成立的核心机制</h2></div>
+    <p class="sec-desc">这些是最容易被误判为 bug、但核对代码后确实成立的部分，不应作为问题上报；修复时应保持其语义。</p>
+    <div class="ok-grid">
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>IO 实例共享与 root 身份</h4>
+        <p><code>ObserverPool</code> 用 <code>WeakMap&lt;Element, string&gt;</code> 给 root 分配稳定 id，key 为 <code>root-rN|rootMargin|threshold</code>；相同配置的 N 张图共用 1 个 observer，root 被 GC 后 id 自动释放。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>观察器在卸载时确实释放</h4>
+        <p><code>useIntersectionObserver</code> 的 effect 返回 <code>unobserve()</code>，<code>unobserve</code> 内部同时 <code>observer.unobserve</code> 与删除回调和 elementToKey 映射；不是只 break 掉的假清理。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>插件按对象引用重注册</h4>
+        <p><code>plugin-core</code> 用 <code>pluginsSnapshotRef</code> 逐项比较引用（而非 name 字符串），同名换配置能生效，内联数组也不会每次渲染重注册。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>单插件异常被隔离</h4>
+        <p><code>transformProps / transformData</code> 对每个插件单独 try/catch，抛错只跳过该插件并 warn；对比 danmaku 早期版本的 P1-4 已修复。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>门控不污染错误态</h4>
+        <p><code>LLI_PLUGIN_GATE</code> 被 Core 单独识别：不 dispatch error、不 dispatch loading，占位保持原样，避免「防抖插件一拦就红屏」。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>loaded 不重设 displaySrc，不闪白</h4>
+        <p><code>LOAD_SUCCESS</code> 只改 status 并保留 <code>displaySrc</code>；且 img 在 loading 阶段就已渲染，成功时只切 opacity，避免卸载重挂导致的二次请求与闪烁。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>URL 全部走 new URL / searchParams</h4>
+        <p>DataSaver、CDNFallback、Responsive、MemoryPressure 的查询参数改写都用 <code>URL</code> + <code>searchParams.set</code>，并对非法输入 try/catch；不存在字符串拼接出 query 的注入面。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>卸载中止 + objectURL 回收</h4>
+        <p>Core 卸载 abort 在途 controller；FetchLoader 的 <code>onUnmount</code> 同时 abortInFlight 与 revokeObjectURL；CachePrewarm 也在卸载时 revoke 自己创建的对象 URL。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 P0 -->
+  <section>
+    <div class="sec-head"><span class="idx">03</span><h2>P0 问题（崩溃 / 错误图片 / 安全，须本迭代修）</h2></div>
+    <p class="sec-desc">四条都能在常规接入方式下被触发；前两条组合起来会让「换图」彻底失效，第三条在弱网/挂 CDN 时表现为无限网络请求。</p>
+    <div class="issues">
+
+      <div class="issue p0">
+        <div class="top"><h3>P0-1 · loaded / loading 态换 src 被守卫直接 return，图片永远不更新</h3><span class="sev p0">P0</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">src/components/LazyLoadImagePlugin/LazyLoadImageCore.tsx:326-334</span>，<code>startLoad</code> 的两个前置守卫对「已加载 / 加载中」直接返回，且发生在 abort 之前。</div></div>
+          <pre><code>const startLoad = useCallback(async () =&gt; {
+  if (state.status === "loading" || state.status === "loaded") return;   // :328
+  if (state.status === "error" &amp;&amp; lastAttemptSrcRef.current === src) return;
+  lastAttemptSrcRef.current = src;
+  if (abortControllerRef.current) abortControllerRef.current.abort();   // 走不到
+  ...
+}, [src, ..., state.status]);</code></pre>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">同文件 :384-392</span> 触发 effect 依赖 <code>startLoad</code>（因而 src 变化会重跑），但重跑后仍被同一守卫挡住；Core 内<b>没有</b>任何「src 变化 → RESET / abort」的 effect（全文只有 15 处 src 引用，无监听）。</div></div>
+          <div class="row"><span class="lb">证据 3</span><div class="v"><span class="path">src/components/LazyLoadImagePlugin/withPlugins.tsx:158-165</span> HOC 对 src 变化只执行 <code>onSrcChange</code> 钩子，既不调用 <code>reset()</code> 也不调用 <code>reload()</code>。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">轮播 / 头像 / 虚拟列表复用节点时，<b>已加载或加载中</b>的组件换 <code>src</code> 会一直显示旧图；旧请求完成后 <code>LOAD_SUCCESS</code> 把状态钉在 loaded，新图再也没有机会。只有 error 态换 src 才能侥幸重新加载。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">在 <code>useEffect([src])</code> 中 abort 在途请求并 <code>dispatch RESET</code>，或让守卫比较 <code>state.displaySrc !== src</code> 而非只看 status；补一条「loaded 后换 src 应发起新请求」的回归测试。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p0">
+        <div class="top"><h3>P0-2 · img 的 onLoad / onError 不校验请求身份，旧请求事件覆盖新状态</h3><span class="sev p0">P0</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">LazyLoadImageCore.tsx:526-545</span> 两个处理器都是「事件一到就 dispatch」，既不看 <code>e.currentTarget.currentSrc</code>，也没有请求令牌或 src 比对。</div></div>
+          <pre><code>onLoad={() =&gt; {
+  ...
+  dispatch({ type: "LOAD_SUCCESS" });                 // 不携带 src
+  onLoadSuccess?.(state.displaySrc || undefined);     // state 闭包里的旧值
+}}
+onError={() =&gt; {
+  const err = new Error("Image load error");
+  dispatch({ type: "LOAD_ERROR", payload: { error: err } });
+}}</code></pre>
+          <div class="row"><span class="lb">放大器</span><div class="v"><code>FallbackImagePlugin/create.ts:14-23</code>、<code>CDNFallbackPlugin/create.ts:42-46</code>、<code>RetryOnErrorPlugin/create.ts:17-20</code> 都是<b>直接改 <code>img.src</code></b>，不经 reducer；此时 DOM 的 src 与 <code>state.displaySrc</code> 已经分叉，后续事件无从辨别属于哪次请求。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">快速换图 / 回退链重试时，旧 URL 的迟到 <code>onLoad</code> 会把新状态置为 loaded 并回调 <code>onLoadSuccess(旧 src)</code>，出现「状态说成功、画面是另一张图」；<code>onError</code> 也可能把已成功的新图打回 error。与 P0-1 组合后，最终展示的往往是最早那张图。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">给每次加载分配 <code>requestId</code>，并写入 <code>img.dataset.lliSrc</code>；onLoad/onError 里比较 <code>e.currentTarget.currentSrc</code> 与当前期望 src，不匹配直接忽略；<code>LOAD_SUCCESS</code> 携带 src 并校验。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p0">
+        <div class="top"><h3>P0-3 · CDN 回退无次数上限：每次失败都改写 img.src，形成无限重试循环</h3><span class="sev p0">P0</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">src/custom-plugins/CDNFallbackPlugin/create.ts:35-47</span></div></div>
+          <pre><code>onLoadError: (context) =&gt; {
+  if (!bases.length) return true;
+  const prev = Number(context.sharedData?.get("cdn-index") ?? 0);
+  const next = (prev + 1) % bases.length;          // 只会轮转，永不停止
+  context.sharedData?.set("cdn-index", next);
+  const img = context.imageRef?.current;
+  if (img) {
+    const altSrc = swapBase(context.src, bases[next]);
+    img.src = `${altSrc}${...}&amp;cdnFallback=${Date.now()}`;   // 每次强制 cache-bust
+  }
+  return true;
+}</code></pre>
+          <div class="row"><span class="lb">后果</span><div class="v">所有 CDN 都 404 / 挂掉时，每次 error 都换一个新 URL 再试，没有任何 attempt / max / 停止条件：无限请求、无限日志、持续耗电；<code>Date.now()</code> 还让每轮必然击穿 CDN 与浏览器缓存。若同时启用 RetryOnError，两套机制会并发改写同一个 <code>img.src</code>（<code>RetryOnError:14-20</code> 的 setTimeout 也未被跟踪）。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">记录 <code>cdn-attempts</code> 并在 <code>&gt;= bases.length + 1</code> 时返回 <code>false</code> 让错误继续传播；去掉 <code>Date.now()</code> cache-bust（或仅在首次尝试使用）；与 retry 插件互斥（文档 + 运行时检测）。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p0">
+        <div class="top"><h3>P0-4 · SVG 占位符把配置字符串当 HTML 注入（唯一 XSS sink）</h3><span class="sev p0">P0</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">src/custom-plugins/SvgPlaceholderPlugin/create.tsx:54-56</span> <code>svgContent</code> 支持字符串或函数返回值，完全不做校验。</div></div>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">同文件 :75-78</span></div></div>
+          <pre><code>&lt;div
+  style={{ width: "60%", height: "60%" }}
+  dangerouslySetInnerHTML={{ __html: svgContent }}
+/&gt;</code></pre>
+          <div class="row"><span class="lb">范围</span><div class="v">全包 grep <code>dangerouslySetInnerHTML | .innerHTML | eval( | new Function</code> 仅命中这一处；<code>SkeletonPlugin</code> 注入的 <code>&lt;style&gt;</code> 是静态字符串，不构成注入。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">当占位 SVG 来自 CMS / 运营配置 / 远端模板（很常见的「可配置占位图」用法）时，<code>&lt;svg onload=...&gt;</code> 或 <code>&lt;img src=x onerror=...&gt;</code> 会执行脚本，属于典型的存储型 XSS。开发者写死常量时无风险，因此是<b>条件性 P0</b>，但公共 API 不该保留无防护的 HTML 注入点。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">只接受 ReactNode 或经 DOMPurify（SVG profile）清洗后的字符串；或在类型注释中把它标记为「仅可信常量」，并在 dev 环境对 <code>&lt;script / on*</code> 做一次告警。</div></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 04 P1 -->
+  <section>
+    <div class="sec-head"><span class="idx">04</span><h2>P1 问题（真实接入必然踩到）</h2></div>
+    <p class="sec-desc">多为「默认值 / 环境差异 / 钩子链语义」造成的失效，单看是边角，接入后会直接表现为「不加载 / 不刷新 / 缓存不生效」。</p>
+    <div class="issues">
+
+      <div class="issue p1">
+        <div class="top"><h3>P1-1 · 空 src 会永久停在 loading，没有任何出口</h3><span class="sev p1">P1</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">LazyLoadImageCore.tsx:359-362</span> 空串照常 dispatch <code>LOAD_START</code>；<span class="path">:506</span> 渲染条件是 <code>{state.displaySrc &amp;&amp; ...}</code>，空串为假 → <b>不渲染 img</b>，因此永远不会触发 onLoad/onError。</div></div>
+          <pre><code>const finalSrc = maybeCached || src;
+dispatch({ type: "LOAD_START", payload: { src: finalSrc } });   // src === "" 也照发
+...
+{state.displaySrc &amp;&amp; (&lt;img src={state.displaySrc} ... /&gt;)}   // "" 被跳过</code></pre>
+          <div class="row"><span class="lb">后果</span><div class="v">列表里常见的「暂无图片 / 异步尚未回填」会得到一个永久 spinner（<code>:484-502</code> 的 Loading 提示），既不报错也无法通过 <code>onLoadError</code> 通知业务；父组件容易误以为是网络问题。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">在 <code>startLoad</code> 开头对 <code>!src.trim()</code> 直接 dispatch RESET（或进入独立 empty 态）；同时把 <code>{state.displaySrc &amp;&amp; ...}</code> 换成显式 status 判断。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p1">
+        <div class="top"><h3>P1-2 · 没有 IntersectionObserver 的环境直接抛 TypeError，无降级</h3><span class="sev p1">P1</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">ObserverPool.ts:203-204</span> 只判断 <code>observers.has(key)</code>，随后 <code>new IntersectionObserver(...)</code>，没有 <code>typeof IntersectionObserver</code> 检测，也没有 catch。</div></div>
+          <pre><code>if (!this.observers.has(key)) {
+  const observer = new IntersectionObserver(               // 旧 WebView / 无 polyfill 直接 throw
+    (entries) =&gt; { ... },
+    { root: config.root || null, rootMargin: ..., threshold: ... }
+  );</code></pre>
+          <div class="row"><span class="lb">叠加</span><div class="v"><span class="path">LazyLoadImageCore.tsx:173-201</span> 该调用发生在 <code>useEffect</code> 里，抛错会沿 React 提交阶段上抛；<code>shouldUseIntersectionObserver</code>（<code>:276-285</code>）只看 LCP/eager，不看环境能力。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">SSR 本身安全（effect 不执行），但一旦在不支持 IO 的内嵌 WebView / 老 Safari（含无 polyfill 的测试环境）hydration，整个组件树抛错，错误边界之外的页面一起白屏；lazy 图也不会退化为立即加载。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">在 <code>observe()</code> 入口检测能力：缺失时立即 <code>callback(true)</code> 并返回 noop（等价 eager），或提供 <code>scroll + resize</code> 兜底；Core 侧再补一条 <code>supportsIO</code> 判定。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p1">
+        <div class="top"><h3>P1-3 · 默认 unobserveOnVisible=true：leave 永不回调，isIntersecting 永真</h3><span class="sev p1">P1</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">LazyLoadImageCore.tsx:148-153</span> 默认值 <code>unobserveOnVisible = true</code>，并原样传给 <code>observeElement</code>（<code>:182-193</code>）。</div></div>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">ObserverPool.ts:219-224</span> 一旦首次 isIntersecting，就同步 <code>unobserve</code> 该元素；之后元素离开视口不再有任何回调。</div></div>
+          <pre><code>cb.callback(entry.isIntersecting);
+if (cb.unobserveOnVisible &amp;&amp; entry.isIntersecting) {
+  this.unobserve(entry.target as Element);     // 第一次可见即退订
+}</code></pre>
+          <div class="row"><span class="lb">后果</span><div class="v"><code>withPlugins.tsx:246-249</code> 的 <code>handleLeaveViewport</code> 永远不会执行；<code>inView</code> 保持 true，<code>isIntersecting</code> 恒真。依赖「离开视口」的三个官方插件（<code>MemoryPressureAbortPlugin:78-86</code>、<code>ViewportDebouncePlugin:35-40</code>、<code>UserBehaviorPlugin</code> 的补订阅）在默认配置下语义失效；<code>ViewportDebounce</code> 的 INVIEW 也永远停在 true。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">默认改为 false（懒加载在 loaded 后主动 unobserve 即可，不必复用「首次可见」语义）；或拆成两个开关：<code>stopObservingOnLoad</code> 与 <code>leaveTracking</code>，后者供需要 leave 的插件显式打开。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p1">
+        <div class="top"><h3>P1-4 · root 变化不进 optionsKey，切换滚动容器后仍观察旧 root</h3><span class="sev p1">P1</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">LazyLoadImageCore.tsx:165-171</span> 序列化 key 明确排除 root；<span class="path">:173-201</span> effect 只依赖 <code>optionsKey</code>，而实际传给 IO 的 root 来自 <code>optionsRef.current</code>（<code>:188</code>）。</div></div>
+          <pre><code>const optionsKey = useMemo(() =&gt; JSON.stringify({
+  rootMargin, threshold, unobserveOnVisible,   // root 被故意排除
+}), [rootMargin, threshold, unobserveOnVisible]);</code></pre>
+          <div class="row"><span class="lb">后果</span><div class="v">抽屉 / Tab / Modal 场景中，把 <code>root</code> 从 window 换成内部滚动容器（或容器 ref 从 null 变为真实元素）时，effect 不重跑：元素仍然绑在旧 root 上，表现为「明明在容器里可见却永不加载」或「离开容器仍判可见」。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">把 root 加入依赖（对象身份变化才重建，成本可接受）；或用与 ObserverPool 相同的 root 稳定 id 参与 key，避免每次渲染新对象导致抖动。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p1">
+        <div class="top"><h3>P1-5 · 门控中止后同一视口周期内不再重触发</h3><span class="sev p1">P1</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">ViewportDebouncePlugin/create.ts:42-62</span> 进入视口后轮询；若期间离开且未到 maxWait，返回 false。</div></div>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">LazyLoadImageCore.tsx:363-372</span> 收到 <code>LLI_PLUGIN_GATE</code> 后仅 <code>return</code>，不 dispatch、不改状态；触发 effect 依赖 <code>[inView, startLoad, shouldUseIO]</code>（<code>:392</code>），在 inView 保持 true 时不会再调用。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">快速滚动过去再停下（元素仍停在视口内）时，门控判定「离开」而中止；由于 <code>inView</code> 没有从 true 变 false 再变 true 的跳变（默认 <code>unobserveOnVisible=true</code>，见 P1-3），组件会停在 idle，<b>图一直不加载</b>，也没有 Loading 提示（<code>:484</code> 只在 loading 显示）。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">门控中止后设置一个内部 <code>gateEpoch</code>（setState）让 effect 重新尝试，或用定时器按 maxWait 后自动重试；同时让 <code>ViewportDebounce</code> 在「未离开但未稳定」时返回 true 而不是 false。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p1">
+        <div class="top"><h3>P1-6 · FetchLoader 总是返回值 → 短路 onLoad 链；3s 沙箱超时又让慢图失败后二次下载</h3><span class="sev p1">P1</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">packages/plugin-core/src/manager/PluginManager.ts:105-106</span> 钩子返回非 undefined / 非 true 的值就立刻结束整条链。</div></div>
+          <pre><code>if (result === false) return false;
+if (result !== undefined &amp;&amp; result !== true) return result;   // 第一个替代 src 直接短路</code></pre>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">FetchLoaderPlugin/create.ts:306-316</span> <b>catch 里也 return url</b>，所以 onLoad 永远返回字符串：FetchLoader 之后的 CacheIDB / ConcurrencyControl / MemoryPressure 的 <code>onLoad</code> 全部不执行。</div></div>
+          <div class="row"><span class="lb">证据 3</span><div class="v"><span class="path">PluginSandbox.ts:17-31</span> 默认 <code>timeout = 3000</code>，<code>Promise.race</code> 超时 reject；<span class="path">PluginManager.ts:76-86</span> 对所有钩子默认启用沙箱。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">① 排在 FetchLoader 之后的缓存 / 并发 / 降载插件形同虚设；② 图片在弱网下超过 3s，整个 <code>onLoad</code> 被判超时 → Core 用原始 src 发起 <code>&lt;img&gt;</code> 请求，而 fetch 仍在后台跑完并生成一个永远没人用的 objectURL：<b>同一张图下载两次</b>，且超时后必然进入 error 路径（首屏大图在 3G 下几乎必现）。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">FetchLoader 只应在命中时返回值，失败/超时返回 undefined；把 <code>onLoad</code> 这类网络钩子的沙箱超时提升（或允许插件声明 <code>timeout: 0</code> 关闭），并将「超时视为失败」改为「超时后继续等、仅记录告警」。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p1">
+        <div class="top"><h3>P1-7 · performance-first 预设自相矛盾：缓存永不命中 + 每次成功都二次 fetch</h3><span class="sev p1">P1</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">src/presets/performance-first/index.ts:6-13</span> 顺序为 FetchLoader → CacheIDB → ConcurrencyControl → …；按 P1-6 的短路语义，CacheIDB 的 <code>onLoad</code> 永远轮不到。</div></div>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">CacheIDBPlugin/create.ts:211-268</span> <code>onLoadSuccess</code> 发现 sharedData 没有 <code>fetch-loader:blob</code> 时，<b>主动再 <code>fetch(context.src)</code> 写 IDB</b>。</div></div>
+          <pre><code>let blob = context.sharedData?.get("fetch-loader:blob") as Blob | undefined;
+if (!blob &amp;&amp; !fetchingKeys.has(context.src)) {
+  const res = await fetch(context.src, { cache: "force-cache", signal: controller.signal });
+  ...
+}</code></pre>
+          <div class="row"><span class="lb">后果</span><div class="v">全包检索 <code>fetch-loader:blob</code> / <code>fetch-loader:object-url</code> 只出现在 CacheIDB 内，FetchLoader 从不写入 → 命中分支恒假。结果是：FetchLoader 下载一次、CacheIDB 又下载一次（命中 <code>force-cache</code> 时可能走 HTTP 缓存，但仍是完整请求链路），而 IDB 命中永远不会被用来替换 src —— 这个「性能优先」预设实际上比不用更慢。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">调整顺序（CacheIDB 在 FetchLoader 之前，命中直接返回对象 URL 并跳过 fetch）；或让 FetchLoader 把 blob 写入 <code>sharedData</code> 供 CacheIDB 复用；同时给预设补一条「二次访问只发生 0 次网络请求」的集成测试。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p1">
+        <div class="top"><h3>P1-8 · ScrollIdle 全局表用 container 作强引用 key，cleanup 定义了却从不调用</h3><span class="sev p1">P1</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">ScrollIdlePlugin/create.ts:21-33</span> 模块级 <code>Map&lt;"window" | HTMLElement, State&gt;</code>，key 直接是容器元素；<span class="path">:62-84</span> 为每个容器挂 <code>scroll/wheel/touchmove</code> 三个监听并写入 <code>state.cleanup</code>；<span class="path">:110</span> 导出只返回 <code>ensure / waitForIdle</code>，<b>cleanup 没有任何调用点</b>。</div></div>
+          <pre><code>const ScrollIdleWatcher = (() =&gt; {
+  const map = new Map&lt;TargetKey, {... cleanup?: () =&gt; void }&gt;();
+  ...
+  return { ensure, waitForIdle };   // cleanup 从未被外部调用
+})();</code></pre>
+          <div class="row"><span class="lb">后果</span><div class="v">列表滚动容器反复挂载/卸载（Tab 切换、路由切换）时，每个旧容器都被 Map 强引用且监听仍挂在它上面：DOM 与整棵子树无法 GC，滚动一次还会触发所有历史容器的 handler。属于真实的内存泄漏，不是理论问题。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">暴露 <code>release(target)</code> 并在插件 <code>onUnmount</code> 中调用；容器 key 改用 <code>WeakMap</code>，或在 cleanup 里同时 <code>map.delete(target)</code>。</div></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 05 P2 -->
+  <section>
+    <div class="sec-head"><span class="idx">05</span><h2>P2 问题（契约 / 性能 / 可维护性）</h2></div>
+    <p class="sec-desc">不影响主链路成立，但会持续拉高接入成本与排障难度；建议随 P1 一起排期。</p>
+    <div class="issues">
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-1 · 默认没有占位比例：CLS 与「模糊图不可见」同时存在</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">LazyLoadImageCore.tsx:439-469</span> 容器默认 <code>height:"auto"</code>；img 默认 <code>height:"auto"</code>（<code>:546-555</code>），加载前容器高度为 0（或仅占位文字高度），加载完成后被自然高度撑开。</div></div>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">AspectRatioSpacerPlugin/create.ts:8-23</span> 需要显式启用，且默认 ratio 4/3 与真实图片比例无关；<span class="path">BlurUpPlugin/create.ts:17-43</span> 给 img 加 <code>filter: blur()</code>，但 Core 只在 loaded 时把 opacity 置 1（<code>:552</code>），模糊阶段整张 img 是透明的 → 看不到「先模糊后清晰」。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">首屏图片加载完成时兄弟节点被下推（CLS 直接计入 Core Web Vitals）；BlurUp 与 Skeleton/SVG 叠加时还会互相遮挡；接入方以为「内置模糊占位」，实际只有空白。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">给 Core 增加可选 <code>aspectRatio</code> / <code>width+height</code>，默认用 <code>aspect-ratio</code> 占位；BlurUp 改为在 loading 阶段把 opacity 设为 1 并配合占位层，或明确文档说明它只作用于已解码图。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-2 · Skeleton 每个实例都往 DOM 里插一份全局 keyframes</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">SkeletonPlugin/create.tsx:57-70</span> 每渲染一个骨架屏就在组件树里塞一个 <code>&lt;style&gt;</code>（不是 <code>@keyframes</code> 去重），注释写「局部作用域」但 <code>@keyframes</code> 本质是全局。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">列表 200 张图 → 200 份重复 CSS，动画名全局冲突（后加载的覆盖前者），且每次重渲染都重新解析样式文本。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">在模块加载时只注入一次（<code>if (!document.getElementById("lli-skeleton-style")) ...</code>），或改用 <code>background-position</code> CSS 变量 + 已有样式表。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-3 · HoverPrefetch 的 image 目标在 onMount 时还拿不到 img；preload link 只加不删</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">HoverPrefetchPlugin/create.ts:102-111</span> <code>onMount</code> 里取 <code>imageRef.current</code>；但 Core 只有在 <code>state.displaySrc</code> 存在时才渲染 <code>&lt;img&gt;</code>（<code>LazyLoadImageCore.tsx:506</code>），idle 阶段 ref 恒为 null → <code>if (!el) return</code>，<code>target:"image"</code> 的监听永远绑不上。</div></div>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">同文件 :28-41</span> <code>addPreload</code> 只 append 到 <code>document.head</code>，<code>onUnmount</code>（<code>:113-119</code>）只移除事件监听与清空 Set，不删 link。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">配置 <code>target:"image"</code> 时功能完全失效且无任何告警；预取链接随浏览会话累积，长列表会留下大量无用的 preload 提示给浏览器。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">target=image 改为延迟绑定（imgRef 回调 / effect 轮询一次）；onUnmount 按 id 清理本插件插入的 link。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-4 · Responsive 的 srcset 只在成功后补、且 src 已是 blob:，造成二次下载</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">ResponsivePlugin/create.ts:42-56</span> 只在 <code>onLoadSuccess</code> 里 <code>setAttribute("srcset", ...)</code>，用的 base 是 <code>context.src</code>（原图 URL）；而此时 FetchLoader 已把显示 src 换成 <code>blob:</code>（<code>FetchLoaderPlugin/create.ts:298-305</code>）。</div></div>
+          <pre><code>onLoadSuccess: (context) =&gt; {
+  const base = context.src;
+  const parts = variants.map((v) =&gt; `${v.src ?? buildSrc(base, v.width)} ${v.width}w`);
+  img.setAttribute("srcset", parts.join(", "));
+}</code></pre>
+          <div class="row"><span class="lb">后果</span><div class="v">第一次加载走 fetch；成功后浏览器看到 srcset，可能再按 DPR/宽度发起一次图片请求，把「省流量」变成「多下载」；src 变化时也没有更新 srcset 的入口（<code>onSrcChange</code> 是空实现，<code>:57-61</code>）。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">在 <code>transformProps</code> 阶段就写入 srcset/sizes（核心需透传这两个属性），且当 displaySrc 是 blob:/data: 时跳过 srcset；<code>onSrcChange</code> 里重建。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-5 · RetryOnError 的重试计数跨 src 累积，定时器也不可取消</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">RetryOnErrorPlugin/create.ts:34-39</span> 计数存 <code>sharedData</code>（生命周期内不随 src 重置），<span class="path">:10-21</span> <code>setTimeout</code> 未保存句柄，<code>onUnmount</code> 也没有清理。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">换图后 <code>retry-count</code> 仍为旧值，新图第一次失败就显示「重试失败」；组件卸载后定时器仍会执行 <code>img.src = ...</code>，对已卸载（但 ref 未置空）的节点发起请求，并可能触发 React 之外的状态副作用。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">计数以 <code>src</code> 为 key 或写 <code>retry:&lt;src&gt;</code>；保存 timer id 并在 <code>onUnmount</code>/<code>onSrcChange</code> 中 clear。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-6 · CacheMemory / CachePrewarm 的 blob: 策略互斥，预热结果永远用不上</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">CacheMemoryPlugin/create.ts:122-125</span> 命中直接返回 undefined（拒绝 blob: 是为了避免引用已 revoke 的 URL）；<span class="path">CachePrewarmPlugin/create.tsx:57-60</span> 预热写进内存的恰恰是 <code>URL.createObjectURL(blob)</code>。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v"><code>offline-first</code> 预设里 CachePrewarm 的「进视口即预热」把对象 URL 放进 MemoryCache，而真正读它时被主动丢弃 → 预热只增加一次 fetch + 一个对象 URL 的生命周期负担。若 revoke 发生在读取前，还会得到失效 URL。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">内存缓存统一存 Blob（读取时再 createObjectURL 并由 Core 归还），或让 Prewarm 只写 IDB；两条路径只保留一条。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-7 · useLCPPreload 把 src 拼进 CSS 选择器，未转义</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">src/hooks/useLCPPreload.ts:69-80</span></div></div>
+          <pre><code>const existingLink = document.querySelector(
+  `link[rel="preload"][href="${src}"]`
+) as HTMLLinkElement;</code></pre>
+          <div class="row"><span class="lb">后果</span><div class="v">src 含 <code>"</code> / <code>[</code> / <code>]</code>（签名 URL、带引号的 CDN 参数）时抛 <code>DOMException: not a valid selector</code>，整个 effect 中断，预加载失效甚至打断同批 effect；已存在的 link 也永远不会被清理（<code>:77-80</code> 直接 return）。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">改为遍历 <code>document.querySelectorAll('link[rel="preload"]')</code> 比较 <code>.href</code>；或 <code>CSS.escape(src)</code> 后再拼接。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-8 · ObserverPool 单例定时器不停；重复观察时只删掉第一个回调</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">ObserverPool.ts:130-154</span> 构造时启动 <code>setInterval(..., 60000)</code>，只有 <code>disconnectAll()</code> 会停止；作为模块单例，应用生命周期内一直跑。</div></div>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">:303-306</span> <code>Array.from(callbacks).find(...)</code> 只删除第一个同元素回调；<span class="path">:309</span> 随后删除 elementToKey，下一次 <code>unobserve</code> 在 <code>:293</code> 直接 return → 剩余回调无法再被移除。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">同一元素被重复观察（StrictMode 双执行、root 变化重建）时，旧回调残留在 <code>observerCallbacks</code> 集合中，每次相交都会重复执行（多次 setState / 多次 enter 钩子）；定时器在测试与 SSR 环境还需要手动 <code>disconnectAll</code> 才能不阻止进程退出。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v"><code>unobserve</code> 删除<b>全部</b> <code>cb.element === element</code> 的回调并同步 <code>elementCount</code>；定时器改为惰性启动（有元素时才启动，空闲后 stop）。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-9 · GlobalContext 的全局监听在模块单例上永不移除</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">src/utils/GlobalContext.ts:42-74</span> <code>initListeners()</code> 挂 <code>connection.change</code> + <code>online/offline</code> + <code>resize</code>，没有任何 <code>removeEventListener</code> 或 <code>dispose</code>。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">作为进程级单例，生产环境可接受；但在微前端 / 多次创建 Root / 测试环境里会重复注册（若模块被重新求值），监听器叠加并持有旧回调，无法回收。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">提供 <code>globalContext.dispose()</code> 并在文档注明单例边界；<code>connection</code> 的 handler 与 resize 的 timer 也要能清理。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-10 · 默认 rootMargin 为 0px：没有任何提前量，首屏边缘图必然「先白后图」</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">LazyLoadImageCore.tsx:148-153</span> 默认 <code>rootMargin = "0px"</code>、<code>threshold = 0</code>，所以元素像素真正进入视口的那一刻才开始 fetch/赋值 src。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">滚动到边界时，加载与网络 RTT 全部发生在用户已经能看到空占位之后，体感是「懒加载很慢」；与 <code>loading="lazy"</code> 的浏览器原生提前量叠加后行为也不一致。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">默认给出 <code>rootMargin: "200px 0px"</code>（或按容器高度的一半）作为可覆盖默认；在 README 说明与原生 lazy 的差异。</div></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 06 安全 -->
+  <section>
+    <div class="sec-head"><span class="idx">06</span><h2>安全审查（security-best-practices）</h2></div>
+    <p class="sec-desc">结论：注入面很小但<b>不是零</b>——唯一 HTML 注入点是 SVG 占位符；URL 侧没有字符串拼接，但也没有协议/域名白名单。数据出站方面，错误上报插件会把图片地址与堆栈发往配置端点。</p>
+    <div class="sec-grid">
+      <div class="panel">
+        <h4>注入与 URL</h4>
+        <div class="kv">
+          <div class="r"><span class="k">XSS</span><span class="x"><span class="tag bad">P0</span><code>SvgPlaceholderPlugin/create.tsx:77</code> 的 <code>dangerouslySetInnerHTML</code> 是全包唯一 sink；配置来源不可信即存储型 XSS（P0-4）。</span></div>
+          <div class="r"><span class="k">其他 HTML</span><span class="x"><span class="tag safe">安全</span>grep <code>innerHTML / eval / new Function</code> 无其他命中；Skeleton 注入的 <code>&lt;style&gt;</code> 为静态常量。</span></div>
+          <div class="r"><span class="k">URL 拼接</span><span class="x"><span class="tag safe">安全</span>DataSaver / CDNFallback / Responsive / MemoryPressure 均用 <code>new URL</code> + <code>searchParams</code>，并对失败回退，无拼接注入。</span></div>
+          <div class="r"><span class="k">协议白名单</span><span class="x"><span class="tag warn">低危</span>未限制 scheme / host：<code>data:</code>、<code>blob:</code>、任意外域都会原样进入 <code>img.src</code>；<code>javascript:</code> 在 <code>&lt;img&gt;</code> 上不会执行（现代浏览器），但会把非预期请求/数据带出。建议只放行 <code>http(s)/data:image/blob:</code>。</span></div>
+          <div class="r"><span class="k">选择器注入</span><span class="x"><span class="tag warn">低危</span><code>useLCPPreload.ts:73-75</code> 用 src 拼 <code>querySelector</code>，特殊字符抛异常（P2-7）；<code>preloadBadge.tsx:13</code> 的 prefix 为代码常量，安全。</span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h4>数据出站与拒绝服务</h4>
+        <div class="kv">
+          <div class="r"><span class="k">错误上报</span><span class="x"><span class="tag warn">注意</span><code>ErrorTrackingPlugin/create.tsx</code> 把 <code>src</code>、<code>stack</code>、网络与设备信息 POST 到 <code>reportEndpoint</code>。签名 URL 可能含 token；需在文档中要求过滤 query 并征得同意。</span></div>
+          <div class="r"><span class="k">下载插件</span><span class="x"><span class="tag info">信息</span><code>DownloadButtonPlugin/create.tsx</code> 直接 <code>fetch(src)</code> → blob → <code>a.download</code>；跨域需 CORS，失败路径需确认不会把错误吞掉。</span></div>
+          <div class="r"><span class="k">无限请求</span><span class="x"><span class="tag bad">P0</span>CDNFallback 无上限重试（P0-3）本身构成客户端 DoS / 流量放大；<code>Date.now()</code> cache-bust 让 CDN 缓存完全失效。</span></div>
+          <div class="r"><span class="k">插件沙箱</span><span class="x"><span class="tag info">双刃</span>3s 超时可防止插件钩子卡死宿主（正向），但对 FetchLoader 这类网络钩子会误杀（P1-6）。</span></div>
+          <div class="r"><span class="k">凭证</span><span class="x"><span class="tag safe">安全</span>src 内无硬编码 token；本包未发现提交到仓库的密钥。示例 URL 均为占位域。</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 07 React / 性能 -->
+  <section>
+    <div class="sec-head"><span class="idx">07</span><h2>React / 性能审查（vercel-react-best-practices）</h2></div>
+    <p class="sec-desc">骨架在「生命周期正确 / 清理到位」上做得不错；主要缺口是 <b>effect 依赖语义</b>（root 排除、state.status 进入依赖导致的自动重试兼容）与 <b>渲染期副作用</b>。</p>
+    <div class="sec-grid">
+      <div class="panel">
+        <h4>成立的部分</h4>
+        <div class="kv">
+          <div class="r"><span class="k">监听清理</span><span class="x"><span class="tag safe">正确</span>IO 观察、progress 订阅、全局上下文订阅、HoverPrefetch 事件都在 effect cleanup 或 onUnmount 中显式解除（P1-8 的 ScrollIdle 是例外）。</span></div>
+          <div class="r"><span class="k">卸载中止</span><span class="x"><span class="tag safe">正确</span>Core <code>useEffect(() =&gt; () =&gt; abort(), [])</code>（<code>:395-402</code>）；FetchLoader 的 <code>onUnmount</code> 同时 abort + revoke。</span></div>
+          <div class="r"><span class="k">memo 使用</span><span class="x"><span class="tag safe">基本正确</span>容器样式 / finalLoading / finalFetchPriority 都有 useMemo 且依赖完整；plugin-core 的 context 依赖 props/data/state 等真实输入。</span></div>
+          <div class="r"><span class="k">状态更新</span><span class="x"><span class="tag safe">正确</span>reducer 是纯函数，LOAD_SUCCESS 保留 displaySrc，避免 loaded 时换元素造成二次请求（<code>:54-59</code>）。</span></div>
+          <div class="r"><span class="k">重复请求抑制</span><span class="x"><span class="tag safe">设计合理</span>img 在 loading 阶段即挂载（<code>:504-506</code>），成功后只切 opacity，符合「避免卸载重挂」的建议。</span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h4>缺口</h4>
+        <div class="kv">
+          <div class="r"><span class="k">effect 依赖</span><span class="x"><code>optionsKey</code> 故意排除 root（P1-4）；<code>startLoad</code> 依赖 <code>state.status</code> 使触发 effect 在每次状态流转时重跑——这是「error 自动重试」补丁的副作用，也让 P0-1 的守卫更难绕开。建议用 ref 读 status，触发 effect 只依赖 <code>[inView, src, shouldUseIO]</code>。</span></div>
+          <div class="r"><span class="k">渲染期写 ref</span><span class="x"><code>plugin-core/usePluginRuntime.ts:159</code> 在 render 体内执行 <code>contextRef.current = context</code>；并发渲染下可能读到未提交的中间 context（与 danmaku 同一类问题）。</span></div>
+          <div class="r"><span class="k">无谓 effect</span><span class="x"><code>LazyLoadImageCore.tsx:160-162</code> 每次渲染都对 <code>optionsRef</code> 重新赋值（无依赖数组）；可合并到 layout effect 或用 <code>useLatest</code>。</span></div>
+          <div class="r"><span class="k">渲染期计算</span><span class="x">HOC 在 render 内跑整条 <code>transformProps</code> 链（<code>withPlugins.tsx:252-253</code>），无 memo；插件多时每次重渲染都重复构造 style/src 对象。建议以 <code>[props, plugins]</code> 做 useMemo。</span></div>
+          <div class="r"><span class="k">图片解码</span><span class="x">DecodeAfterIdle 只设置 <code>decoding="async"</code>，并未真正在 idle 调 <code>img.decode()</code>；对首屏大图的实际收益有限（需浏览器实测）。</span></div>
+          <div class="r"><span class="k">布局抖动</span><span class="x">AspectRatioSpacer 在 <code>onMount</code> 里直接写 <code>container.style.aspectRatio</code>（<code>:15-21</code>），首帧先以 0 高度绘制再被 effect 修正，会引入一次额外布局。</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 08 修复顺序 -->
+  <section>
+    <div class="sec-head"><span class="idx">08</span><h2>建议修复顺序（可直接作为任务拆分）</h2></div>
+    <p class="sec-desc">先修「会改变业务行为」的 P0，再修默认值与钩子链语义，最后清理 P2。每条都应先补一条能先红后绿的测试；编号 <code>T01–T08</code> 与正文问题对应。</p>
+    <div class="fix">
+      <div class="f"><span class="no">T01</span><div class="t">src 变化 → abort + RESET，守卫改为比较 src<span>对应 P0-1 · LazyLoadImageCore.tsx:326-334 / 384-392 · 单测：loaded 后换 src 必须发起新请求</span></div><span class="e">P0 · 阻断</span></div>
+      <div class="f"><span class="no">T02</span><div class="t">请求身份校验（requestId / dataset.lliSrc）与事件归属<span>对应 P0-2 · LazyLoadImageCore.tsx:526-545 · 单测：旧 URL 的 onLoad 不得改变新状态</span></div><span class="e">P0 · 错误图片</span></div>
+      <div class="f"><span class="no">T03</span><div class="t">CDN 回退加上限与终止条件，去掉 cache-bust<span>对应 P0-3 · CDNFallbackPlugin/create.ts:35-47 · 单测：全 CDN 失败只请求 N+1 次</span></div><span class="e">P0 · 无限循环</span></div>
+      <div class="f"><span class="no">T04</span><div class="t">SVG 占位符 sanitize / 改成 ReactNode 输入<span>对应 P0-4 · SvgPlaceholderPlugin/create.tsx:54-78 · 单测：onload/onerror 属性被剥离</span></div><span class="e">P0 · XSS</span></div>
+      <div class="f"><span class="no">T05</span><div class="t">IO 能力检测降级 + root 进入依赖 + unobserve 语义拆分<span>对应 P1-2 / P1-3 / P1-4 · ObserverPool.ts:203-224 · Core:148-201</span></div><span class="e">P1 · 触发正确性</span></div>
+      <div class="f"><span class="no">T06</span><div class="t">空 src 出口 + 门控中止重试（gateEpoch）+ 默认 rootMargin<span>对应 P1-1 / P1-5 / P2-10 · Core:359-392、484-506</span></div><span class="e">P1 · 不加载</span></div>
+      <div class="f"><span class="no">T07</span><div class="t">钩子链：FetchLoader 失败返回 undefined、网络钩子超时可配置、预设顺序调整<span>对应 P1-6 / P1-7 · FetchLoader:306-341、PluginSandbox:17-31、performance-first:6-13</span></div><span class="e">P1 · 缓存/二次下载</span></div>
+      <div class="f"><span class="no">T08</span><div class="t">清理 P2：ScrollIdle release、骨架样式单例、srcset 前置、retry 计数、选择器转义、ObserverPool 回调全删<span>对应 P2-1 ~ P2-9 · 各处插件</span></div><span class="e">P2 · 批量</span></div>
+    </div>
+  </section>
+
+  <!-- 09 未覆盖 -->
+  <section>
+    <div class="sec-head"><span class="idx">09</span><h2>未覆盖范围</h2></div>
+    <p class="sec-desc">以下内容没有取得可复现证据，因此<b>没有</b>计入 P0/P1/P2；接入前建议单独验证。</p>
+    <div class="sec-grid">
+      <div class="panel">
+        <h4>未实测</h4>
+        <div class="kv">
+          <div class="r"><span class="k">浏览器压测</span><span class="x">未启动 demo 走查：1000 张图的 IO 池化收益、快速滚动帧率、真实 CLS 数值、慢网 3G 下 FetchLoader 超时率均未量化。</span></div>
+          <div class="r"><span class="k">测试环境差异</span><span class="x">单测跑在 vitest + happy-dom。happy-dom 15.11.7 实现了 <code>IntersectionObserver</code> 但不会触发回调，所以 46 个用例<b>覆盖不到</b>视口触发、src 切换、错误重试与卸载清理的运行时行为（<code>test/withPlugins.test.tsx:54</code> 注释也明确写了「保持 idle 不加载」）。</span></div>
+          <div class="r"><span class="k">SSR 实测</span><span class="x">未在 Next.js RSC / hydration 环境跑过；P1-2 的「无 IO 崩溃」是静态推导，服务端渲染本身不会执行 effect。</span></div>
+          <div class="r"><span class="k">data URL</span><span class="x">只按代码路径判断 <code>data:</code> 可直接进 img（不经 URL 改写时）；大体积 base64 的解码成本与内存峰值未测。</span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h4>子特性未逐行审查</h4>
+        <div class="kv">
+          <div class="r"><span class="k">gallery</span><span class="x"><code>src/gallery</code> 7 个文件 / 475 行未逐行读；gallery 相关测试（<code>gallery-core</code> / <code>gallery-plugins</code> / <code>gallery-inventory</code> / <code>gallery-slots</code>）仅确认通过。</span></div>
+          <div class="r"><span class="k">插件全集</span><span class="x">60 个插件中，只深入审了影响主链路的 20 余个（FetchLoader / CacheIDB / CacheMemory / CachePrewarm / Retry / Fallback / CDN / Responsive / Skeleton / BlurUp / AspectRatio / Hover / Predictive / ScrollIdle / ViewportDebounce / Concurrency / DataSaver / ErrorTracking / DownloadButton / SvgPlaceholder / MemoryPressure）。UI 类与实验类插件未逐行核对。</span></div>
+          <div class="r"><span class="k">体积</span><span class="x">未跑 <code>build</code> 复核 README 声称的 6.9KB / 26.9KB 体积预算；<code>sideEffects:false</code> 的 tree-shaking 效果未实测。</span></div>
+          <div class="r"><span class="k">依赖解析</span><span class="x"><code>resolveDependencyOrder</code> 的环检测与 <code>minVersion</code> 语义未逐行验证；P1-7 只按预设顺序静态推导。</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div>审查对象：<code>packages/vane-lazy-image</code>（<code>src</code> 285 文件 / 17,663 行；<code>custom-plugins</code> 254 文件 / 14,085 行；核心 <code>LazyLoadImageCore.tsx</code> 568 行、<code>ObserverPool.ts</code> 约 340 行、<code>withPlugins.tsx</code> 约 300 行）。</div>
+    <div>取证：<code>pnpm --filter vane-lazy-image test</code> → 7 个文件 / 46 个用例全部通过（14.33s）；<code>typecheck</code> 通过；<code>lint</code> → 0 error / 346 warnings（<code>no-explicit-any</code> / unused-vars 为主）。本次评审未修改任何源码、配置或测试，仅新增本报告文件。</div>
+    <div>方法与基线：先结构扫描，再针对入口、Core 状态机、IO 钩子、缓存/预加载、插件注册与回退链定向审查；安全与 React 性能分别按 <code>security-best-practices</code> 与 <code>vercel-react-best-practices</code> 核对。所有结论均附「文件相对路径 + 行号 + 代码片段」，无法确证项已列入未覆盖范围。</div>
+    <div>建议下一步：按 <code>T01–T04</code> 先落地 P0 并补 4 条回归测试（换图、迟到事件、CDN 上限、SVG 消毒），再处理 <code>T05–T07</code> 的默认值/钩子链语义；<code>T08</code> 可随迭代清理。</div>
+  </footer>
+
+</div>
+</body>
+</html>

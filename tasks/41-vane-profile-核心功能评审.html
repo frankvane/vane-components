@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>vane-profile 核心功能分析报告</title>
+<style>
+  :root{
+    --bg:#0b0a09; --panel:#171513; --panel2:#1d1a17;
+    --line:rgba(255,255,255,.09); --line2:rgba(255,255,255,.16);
+    --text:#ebe7e2; --muted:#9a938c; --dim:#6f6862;
+    --accent:#ff7a29; --accent-soft:rgba(255,122,41,.14);
+    --p0:#ff4d4f; --p1:#ffa940; --p2:#7aa7ff; --ok:#3ecf8e;
+    --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1200px 600px at 12% -8%,rgba(255,122,41,.13),transparent 60%),
+      radial-gradient(900px 500px at 92% 0%,rgba(122,167,255,.08),transparent 62%),
+      var(--bg);
+    color:var(--text);font-family:var(--sans);line-height:1.65;
+    padding:44px 28px 90px;
+  }
+  .wrap{max-width:1180px;margin:0 auto}
+  header.hero{border-bottom:1px solid var(--line);padding-bottom:26px;margin-bottom:34px}
+  .eyebrow{display:flex;gap:10px;align-items:center;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent)}
+  h1{font-size:clamp(26px,3.6vw,42px);line-height:1.16;margin:14px 0 10px;letter-spacing:-.02em}
+  h1 span{color:var(--accent)}
+  .sub{color:var(--muted);max-width:840px;font-size:15px}
+  .sub code,.sec-desc code{font-family:var(--mono);font-size:12.5px;color:var(--accent)}
+  .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+  .chip{font-size:12px;color:var(--muted);border:1px solid var(--line2);border-radius:999px;padding:4px 11px}
+  .chip b{color:var(--text);font-weight:600}
+
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin:6px 0 44px}
+  .stat{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:14px;padding:18px;position:relative;overflow:hidden}
+  .stat::after{content:"";position:absolute;inset:auto 0 0 0;height:2px;background:var(--accent-soft)}
+  .stat .n{font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1.1}
+  .stat .k{font-size:12px;color:var(--muted);margin-top:5px}
+  .stat.p0 .n{color:var(--p0)} .stat.p1 .n{color:var(--p1)} .stat.p2 .n{color:var(--p2)} .stat.ok .n{color:var(--ok)}
+
+  section{margin-bottom:48px}
+  .sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:8px}
+  .sec-head h2{font-size:21px;margin:0;letter-spacing:-.01em}
+  .sec-head .idx{font-family:var(--mono);font-size:12px;color:var(--accent);border:1px solid var(--accent-soft);background:var(--accent-soft);padding:2px 7px;border-radius:6px}
+  .sec-desc{color:var(--muted);font-size:14px;margin:0 0 20px;max-width:920px}
+
+  .flow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+  .flow .step{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+  .flow .step h4{margin:0 0 6px;font-size:13.5px;color:var(--text)}
+  .flow .step p{margin:0;font-size:12px;color:var(--muted);line-height:1.55}
+  .flow .step code{font-family:var(--mono);font-size:11px;color:var(--accent)}
+  .flow .step:nth-child(2){border-color:rgba(255,122,41,.35)}
+  .flow .step:nth-child(4){border-color:rgba(122,167,255,.3)}
+
+  .issues{display:grid;gap:16px}
+  .issue{background:linear-gradient(180deg,rgba(255,255,255,.03),transparent 40%),var(--panel);border:1px solid var(--line);border-left:3px solid var(--p1);border-radius:12px;padding:18px 20px}
+  .issue.p2{border-left-color:var(--p2)}
+  .issue .top{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:start}
+  .issue h3{margin:0;font-size:16px;line-height:1.45}
+  .sev{font-size:11px;font-weight:700;letter-spacing:.08em;padding:3px 9px;border-radius:999px;white-space:nowrap}
+  .sev.p1{color:#1a1200;background:var(--p1)}
+  .sev.p2{color:#04122e;background:var(--p2)}
+  .issue .body{margin-top:12px;display:grid;gap:10px}
+  .row{display:grid;grid-template-columns:78px 1fr;gap:10px;font-size:13.5px}
+  .row .lb{color:var(--dim);font-size:12px;padding-top:2px}
+  .row .v{color:var(--muted)}
+  .row .v b{color:var(--text);font-weight:600}
+  pre{background:#0d0c0b;border:1px solid var(--line);border-radius:10px;padding:13px 15px;overflow:auto;margin:0}
+  pre code{font-family:var(--mono);font-size:12px;color:#d9d3cd;line-height:1.65;white-space:pre}
+  .path{font-family:var(--mono);font-size:12px;color:var(--accent);background:rgba(255,122,41,.08);border-radius:5px;padding:1px 6px}
+
+  .ok-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+  .ok-card{background:rgba(62,207,142,.045);border:1px solid rgba(62,207,142,.22);border-radius:12px;padding:16px}
+  .ok-card h4{margin:0 0 7px;font-size:14px;color:#bfeed8;display:flex;gap:7px;align-items:center}
+  .ok-card h4 .tick{color:var(--ok);font-size:13px}
+  .ok-card p{margin:0;font-size:12.5px;color:var(--muted);line-height:1.6}
+  .ok-card code{font-family:var(--mono);font-size:11px;color:#9fe3c3}
+
+  .sec-grid{display:grid;grid-template-columns:1.15fr 1fr;gap:14px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:18px 20px}
+  .panel h4{margin:0 0 10px;font-size:14.5px}
+  .kv{display:grid;gap:9px}
+  .kv .r{display:grid;grid-template-columns:104px 1fr;gap:10px;font-size:13px}
+  .kv .r .k{color:var(--dim);font-size:12px}
+  .kv .r .x{color:var(--muted)}
+  .tag{display:inline-block;font-size:11px;padding:1px 8px;border-radius:999px;margin-right:6px}
+  .tag.safe{color:var(--ok);background:rgba(62,207,142,.12)}
+  .tag.warn{color:var(--p1);background:rgba(255,169,64,.13)}
+  .tag.info{color:var(--p2);background:rgba(122,167,255,.12)}
+
+  .fix{display:grid;gap:10px}
+  .fix .f{display:grid;grid-template-columns:44px 1fr auto;gap:14px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:13px 16px}
+  .fix .f .no{font-family:var(--mono);font-size:18px;color:var(--accent);text-align:center}
+  .fix .f .t{font-size:13.5px}
+  .fix .f .t span{display:block;color:var(--dim);font-size:11.5px;margin-top:2px;font-family:var(--mono)}
+  .fix .f .e{font-size:11px;color:var(--muted);border:1px solid var(--line2);border-radius:999px;padding:3px 10px;white-space:nowrap}
+
+  footer{border-top:1px solid var(--line);padding-top:20px;color:var(--dim);font-size:12px;display:grid;gap:6px}
+  @media (max-width:860px){.flow{grid-template-columns:1fr 1fr}.sec-grid{grid-template-columns:1fr}.row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow"><span class="dot"></span>tasks/41 · vane-profile 核心功能评审 · 2026-11-01</div>
+    <h1>个人主页组件核心功能分析<span>：0 P0 · 5 项 P1 · 8 项 P2</span></h1>
+    <p class="sub">
+      审查 <code>packages/vane-profile</code>（约 41 文件 / 2299 行，16 个官方插件 + 三段式 Core + 包内领域槽）的
+      「资料展示与回显、数据合并、字段校验、头像与统计降级、空数据态、受控/非受控、异步加载」是否真的成立。
+      结论：<b>这是一个纯展示壳</b>——没有任何编辑、校验、数据合并与异步加载代码；真正成立的只有排版、槽位隔离与页签联动。
+      最严重的一条是 FollowEcho 的乐观态没有回滚通道（失败后按钮永久停在「已关注」）。
+    </p>
+    <div class="meta">
+      <span class="chip">范围 <b>src 16 插件 + Core/HOC/slots</b></span>
+      <span class="chip">方法 <b>调用链阅读 + 单测实证</b></span>
+      <span class="chip">基线 <b>security-best-practices</b></span>
+      <span class="chip">基线 <b>vercel-react-best-practices</b></span>
+      <span class="chip">测试 <b>12/12 通过（2 文件）</b></span>
+      <span class="chip">typecheck <b>通过</b> · lint <b>0 error</b></span>
+    </div>
+  </header>
+
+  <div class="stats">
+    <div class="stat"><div class="n" style="color:var(--ok)">0</div><div class="k">P0 阻断级问题</div></div>
+    <div class="stat p1"><div class="n">5</div><div class="k">P1 高优先级 · 待修</div></div>
+    <div class="stat p2"><div class="n">8</div><div class="k">P2 契约/性能/无障碍 · 待修</div></div>
+    <div class="stat ok"><div class="n">12/12</div><div class="k">单测用例 · 2 文件通过</div></div>
+    <div class="stat ok"><div class="n">0</div><div class="k">危险 DOM / 动态执行点</div></div>
+  </div>
+
+  <!-- 01 数据流 -->
+  <section>
+    <div class="sec-head"><span class="idx">01</span><h2>核心数据流与职责边界</h2></div>
+    <p class="sec-desc">整包只有一条数据流：消费方的 props 进上下文，插件按槽位产出 JSX，Core 负责排版。没有任何一环做「数据合并 / 校验 / 拉取」。这也解释了为什么任务清单里的大部分检查项在代码里找不到实现——不是写得不好，而是根本没有。</p>
+    <div class="flow">
+      <div class="step"><h4>① 消费方 props</h4><p><code>stats / followState / verified / banner / data?</code> 由宿主管；<code>data</code> 是 <code>T</code> 泛型原样透传，无 schema。</p></div>
+      <div class="step"><h4>② extendContext</h4><p>在 <code>usePluginRuntime</code> 的 context 上叠 <code>activeTab</code>（读内核 state）、<code>setActiveTab</code> 与 props 字段。</p></div>
+      <div class="step"><h4>③ 领域槽渲染</h4><p><code>ProfileCore</code> 对 7 个槽各调一次 <code>renderProfileSlot</code>：过滤 → 排序 → 逐个调插件函数。</p></div>
+      <div class="step"><h4>④ 插件产出</h4><p>16 个插件只做「读 ctx + 返回 JSX」，唯一有内部态的是 <code>FollowEcho</code> / <code>QRShare</code>。</p></div>
+      <div class="step"><h4>⑤ 回写</h4><p>交互只回调 <code>onFollow / onStatClick / onChange</code>；真相由消费方改 props 后重渲染，包内无乐观层、无 pending、无 error。</p></div>
+    </div>
+  </section>
+
+  <!-- 02 已验证正确 -->
+  <section>
+    <div class="sec-head"><span class="idx">02</span><h2>已验证成立的核心机制</h2></div>
+    <p class="sec-desc">下面几条是逐条对照代码与单测后确认「确实成立」的，不应作为问题上报；它们也说明这个包的真实能力边界是「可组合的主页排版」，而不是「资料引擎」。</p>
+    <div class="ok-grid">
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>单插件抛错不连坐</h4>
+        <p><code>renderProfileSlot</code> 对每个插件先 <code>try/catch</code> 包住 hook 调用（<code>slots.tsx:69-76</code>），再套一层 <code>PluginErrorBoundary</code>；测试 <code>core-render.test.tsx:75-89</code> 用 <code>throw new Error("boom")</code> 验证：banner 空掉，但 StatRow 仍渲染。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>页签联动是真链路</h4>
+        <p><code>TabSync</code> 点按 → <code>context.setActiveTab</code> → 内核 <code>state</code> 变化 → context 重建 → <code>onTabChange</code> 触发（<code>withPlugins.tsx:113-122</code>）；<code>plugins.test.tsx:32-51</code> 断言内容区文本从 <code>none</code> 变 <code>feeds</code>。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>FollowEcho 的受控重置有效</h4>
+        <p>按钮以 <code>key={state}</code> 挂载（<code>FollowEchoPlugin:96-107</code>），props 的 <code>followState</code> 一变就整颗重挂载拿新初值，不存在 stale 内部态；<code>onPropsChange</code> 只在非 mutual→mutual 时触发 <code>onMutual</code>（测试 :79-89）。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>同名插件换配置可生效</h4>
+        <p>内核按<b>插件对象引用</b>判断是否重注册（<code>plugin-core/src/react/usePluginRuntime.ts:100-117</code>），不再只比 <code>name</code>；上一轮 vane-danmaku 的「同名换配置不生效」在此包已不存在。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>空数据不占位</h4>
+        <p>BioSlot / TagList / SocialLinks / ContactCard / ActivitySummary / StatRow 在空集合时统一返回 <code>null</code>（如 <code>BioSlotPlugin:41</code>、<code>StatRowPlugin:41</code>），不会输出空容器或「undefined」字样。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>槽内排序确定且可预期</h4>
+        <p><code>config.order</code> 升序 → <code>priority</code> 降序（<code>slots.tsx:64-68</code>），与内核 <code>composeSlots</code> 同一规则；BioSlot(12)、SocialLinks(12)、TagList(12) 同区串联的顺序稳定。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>根容器配色成对</h4>
+        <p>Core 根节点同时写 <code>background:"#fff"</code> 与 <code>color:"#1f2328"</code>（<code>ProfileCore.tsx:79-80</code>），深色宿主里不会出现「#080a09 上的 #555」；这与 ADR-13 一致。</p>
+      </div>
+      <div class="ok-card">
+        <h4><span class="tick">✓</span>外部资源全部内联</h4>
+        <p>徽标/图标为内联 SVG 或单字占位（<code>VerifyBadgePlugin:21-36</code>、<code>PRESET</code>），无远程字体/图片依赖；二维码为本地点阵占位（<code>QRSharePlugin:18-31</code>），不引第三方库。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 P1 -->
+  <section>
+    <div class="sec-head"><span class="idx">03</span><h2>P1 问题（建议本迭代修）</h2></div>
+    <p class="sec-desc">这 5 条都会在「真实接入主页」时被触发：要么状态没人能改，要么失败后 UI 说假话，要么关键内容被吞掉。</p>
+    <div class="issues">
+
+      <div class="issue p1">
+        <div class="top"><h3>P1-1 · 关注按钮的乐观态没有回滚通道，失败后永久停在「已关注」</h3><span class="sev p1">P1</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">packages/vane-profile/src/custom-plugins/FollowEchoPlugin/create.tsx:46-52</span></div></div>
+          <pre><code>const [state, setState] = useState&lt;FollowState&gt;(initial);
+const handle = () =&gt; {
+  const next = state === "none" || state === "mutual" ? "following" : "none";
+  setState(next);       // 先改 UI
+  onToggle(next);       // 回调是 (next) =&gt; void，拿不到 Promise
+};</code></pre>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">同文件 :96-107</span> 用 <code>key={state}</code> 让按钮「随 props 重挂载」；<span class="path">:33</span> 注释写「mutual 视为只读」，但 <code>:49</code> 允许 <code>mutual → following</code>（互相矛盾的契约）。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">关注请求失败时，消费方通常把 <code>followState</code> 回写成原值（<code>"none"</code>）——<b>值没变，key 没变，不会重挂载</b>，按钮就停在「已关注」。用户以为自己关注了、实际服务端没有；只有等下一次 props 真的变化或组件重挂载才恢复。同样的窗口内连续点击会重复发请求（无 in-flight 锁）。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">把 <code>onFollow</code> 改为 <code>(next) =&gt; void | Promise&lt;void | {error}&gt;</code>；内部维护 <code>pending</code>（禁用/loading）与 <code>failed</code>（回退到 <code>initial</code>）；或在 props 增加 <code>followStateVersion</code> 让同值也能触发重置。补一条「onFollow reject 后按钮回到原态」的单测。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p1">
+        <div class="top"><h3>P1-2 · 页签状态不可受控，也没有外部设置入口</h3><span class="sev p1">P1</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">packages/vane-profile/src/components/ProfilePlugin/plugins/types.ts:49-50</span>：props 只有 <code>defaultActiveTab?: string | null</code>，<b>没有</b> <code>activeTab</code>、没有 <code>onActiveTabChange</code>。</div></div>
+          <pre><code>// withPlugins.tsx:56-59
+activeTab: (base.state?.activeTab ?? props.defaultActiveTab ?? null),
+setActiveTab: (id) =&gt; base.setState({ activeTab: id }),</code></pre>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">types.ts:83-84</span> 的 ref 只有 <code>getActiveTab()</code>（只读），整包没有对外暴露 <code>setActiveTab</code> 的入口。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">URL 深链（<code>/?tab=works</code>）、刷新后恢复页签、以及「切换到另一个用户后重置页签」三件事都做不到：宿主既读不到变化事件，也改不了状态。<code>defaultActiveTab</code> 在用户点过一次之后失效（<code>state.activeTab</code> 一旦有值就永远优先）。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">加 <code>activeTab?: string | null</code>（受控）与 <code>onActiveTabChange?: (id, prev) =&gt; void</code>；受控时 <code>TabSync</code> 只调回调、不写 state。补一条「受控模式下点页签不改内部态」的单测。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p1">
+        <div class="top"><h3>P1-3 · 启用内容插件后，内核 header / overlay / footer 插件被整体吞掉</h3><span class="sev p1">P1</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">packages/vane-profile/src/components/ProfilePlugin/withPlugins.tsx:138-146</span>：HOC 把 <code>composeSlots(orderedPlugins, context, children)</code> 塞进 <code>enhancedProps.children</code>——内核三槽（含 <code>renderHeader/renderOverlay/renderFooter</code>）都在这个 children 里。</div></div>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">ProfileCore.tsx:148-152</span></div></div>
+          <pre><code>&lt;div className="vp-content-area" style={{ padding: "16px" }}&gt;
+  {contentSlot.length &gt; 0 ? contentSlot : children}
+&lt;/div&gt;</code></pre>
+          <div class="row"><span class="lb">后果</span><div class="v">只要装上 WorksGrid 或 AchievementWall（且当前页签命中，<code>contentSlot.length &gt; 0</code>），<b>整个 children 被丢弃</b>，于是：宿主自己的内容、以及所有走内核 <code>renderHeader</code> / <code>renderOverlay</code> / <code>renderFooter</code> 的插件（例如悬浮提示、页脚）全部消失。表现是「加了作品网格，别的自定义块突然没了」，非常难定位。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">把内核三槽产物在 HOC 里改成独立 prop（如 <code>kernelSlots</code>）并在 Core 中固定渲染；内容区只用 <code>{contentSlot}{children}</code>（或显式 <code>children 优先</code> 的可选开关）。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p1">
+        <div class="top"><h3>P1-4 · 外部链接与头图 URL 全部直出，无协议白名单</h3><span class="sev p1">P1</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">src/custom-plugins/SocialLinksPlugin/create.tsx:77-82</span></div></div>
+          <pre><code>&lt;a key={i} className="vp-social-item" href={link.href}
+   target="_blank" rel="noreferrer noopener"&gt;…&lt;/a&gt;</code></pre>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">ContactCardPlugin/create.tsx:41-47</span> 直接把 <code>site</code> 当 href（仅展示时 <code>replace(/^https?:\/\//)</code> 去掉协议），<code>:82-88</code> 原样输出；<span class="path">BannerSlotPlugin/create.tsx:45-47</span> 把 <code>cover</code> 拼进 CSS：<code>`url(${cover}) center/cover no-repeat`</code>。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">主页资料里的社交链接/官网/头图是<b>用户可编辑内容</b>。当前没有任何协议校验：可写入 <code>javascript:</code>（React 会拦截但对 <code>vbscript:</code> / 自定义 scheme 无力）、<code>data:</code>、任意外站钓鱼页；<code>cover</code> 直接插入 CSS <code>url()</code> 且未加引号，一个含 <code>)</code> 的字符串即可破坏整段样式或注入额外声明。属于「可被用户内容驱动的输出面」，而不是纯展示。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">统一一个 <code>safeHref(url)</code>：<code>new URL()</code> 解析后仅放行 <code>http/https/mailto/tel</code>，其余返回 <code>undefined</code> 并降级为纯文本；<code>cover</code> 用 <code>url("${encodeURI(url)}")</code> 并校验 scheme（或改用 <code>&lt;img&gt;</code> + <code>object-fit</code>）。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p1">
+        <div class="top"><h3>P1-5 · TabSync 工厂在空 tabs 时直接 throw，异步页签数据会崩整棵树</h3><span class="sev p1">P1</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">src/custom-plugins/TabSyncPlugin/create.tsx:51-53</span></div></div>
+          <pre><code>if (!tabs || tabs.length === 0) {
+  throw new Error("[vane-profile] TabSync 至少需要一个 tab");
+}</code></pre>
+          <div class="row"><span class="lb">后果</span><div class="v">页签通常来自异步接口（<code>data.tabs</code>）。消费方若在渲染期构造插件数组（<code>withPlugins(Core, [createTabSyncPlugin({ tabs: data?.tabs ?? [] })])</code> 或 <code>useMemo</code> 依赖 tabs），首帧空数组就会在 <b>React 渲染之前</b>抛出，错误边界接不住（它在 HOC 之外、也不是 React 生命周期内的抛错），直接白屏。工厂也没有 <code>enabled</code> 之类的软关闭开关，调用方只能自己先判断数组长度。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">空 tabs 返回一个 <code>enabled:false</code> 的空插件（或 <code>renderTabBar</code> 返回 <code>null</code>），把「必须至少一个」交给 TS 类型/开发期断言；至少不要在生产代码里 throw。</div></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 04 P2 -->
+  <section>
+    <div class="sec-head"><span class="idx">04</span><h2>P2 问题（可排期，不影响主链路）</h2></div>
+    <p class="sec-desc">契约、成本与可访问性三类；单独看不致命，组合起来会显著抬高接入与排障成本。</p>
+    <div class="issues">
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-1 · 领域槽 key 带 index，插件顺序一变就丢内部状态</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">src/components/ProfilePlugin/plugins/slots.tsx:81</span>：<code>key={`profile-slot-${plugin.name}-${index}`}</code>。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">调整任一插件 <code>order/priority</code>、或增删同槽插件导致 index 位移，会让 <code>QRSharePanel</code> 的展开态、<code>FollowButton</code> 的乐观态被整颗重挂载重置——用户点了关注，换个插件顺序就变回「关注」。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">key 只用 <code>plugin.name</code>（插件名在同槽内应唯一）。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-2 · SlotProvider 的 useMemo 实为无效，宿主每次重渲染都会打穿所有消费者</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">slots.tsx:42-45</span> 依赖 <code>[orderedPlugins, context]</code>；而 <code>plugin-core/src/react/usePluginRuntime.ts:157</code> 的 context 依赖 <code>props</code> 与 <code>extendContext</code>，后者又是 <code>useCallback(..., [props])</code>（<code>withPlugins.tsx:52-69</code>）。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v"><code>props</code> 对象身份一换（宿主 setState 即换），context 必换，memo 必然重算 → Provider value 变化 → 所有 <code>useProfileContext</code> 订阅者与 Core 的 7 个槽全部重跑。Vercel 的 <code>rerender-memo</code> / <code>rerender-derived-state</code> 在这条链上没有落地。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v"><code>extendContext</code> 依赖收敛为具体字段（<code>props.stats, props.followState, ...</code>），或在 HOC 内用 ref 读取最新 props 让 extendContext 恒稳；context 用 <code>useMemo</code> 按「真正参与渲染的字段」拆成两个 provider（结构 / 交互）。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-3 · 每次 Core 渲染做 7 次过滤+排序+全量插件调用</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">slots.tsx:58-79</span>：<code>[...plugins].filter(...).sort(...).map(...)</code>；<code>ProfileCore.tsx:37-43</code> 一次渲染就调 7 遍，<code>useProfileSlot</code> 无缓存。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">插件数为 P 时每帧成本 ≈ 7 × O(P log P) + 7 × P 次 JSX 构造。宿主高频重渲染（如滚动驱动 forceUpdate、父级状态更新）时全部重算；<code>renderContentArea</code> 里的 <code>items.map</code> 也每次都重建整棵网格。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">在 HOC 里按 <code>orderedPlugins</code> 预计算 7 份「槽位插件列表」并 <code>useMemo</code>；Core 只做 map 不做 sort。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-4 · 渲染期写 ref / 渲染期写 ref.current（并发渲染下不安全）</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">withPlugins.tsx:80-83</span> <code>ctxRef.current = runtime.context</code> 写在函数体里；<span class="path">ProfileCore.tsx:47-48</span> <code>activeTabRef.current = ctx?.activeTab ?? null</code>；<span class="path">withPlugins.tsx:122</span> effect 依赖还引用了 <code>ctxRef.current.activeTab</code>。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">React 18 下不报错，但「渲染期写 ref」违反 <code>rerender-use-ref-transient-values</code> 的用法前提（ref 只做瞬态传递，不做提交期语义）；未来开启并发特性时可能读到未提交的中间 state，<code>onTabChange</code> 的旧/新页签可能错位。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">用 <code>useLayoutEffect</code> 同步 <code>ctxRef</code>；<code>onTabChange</code> 直接依赖 <code>ctx?.activeTab</code> 的值（渲染期变量），而不是 ref。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-5 · 声明的 transformData 钩子在本包永不执行</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">withPlugins.tsx:92</span> 只调了 <code>runtime.transformProps(props)</code>；全包检索 <code>transformData</code> 仅命中类型注释（<code>plugins/types.ts:115-116</code>）。插件拿到的 <code>ctx.data</code> 是 <code>props.data</code> 原值（<code>withPlugins.tsx:74-77</code>）。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">插件作者按 <code>PluginHooks</code> 写 <code>transformData</code>（例如「把后端字段归一化成 StatItem」）会静默失效，且没有告警；数据归一化只能写死在每个插件里。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">要么在 HOC 里对 <code>data</code> 跑一次 <code>runtime.transformData</code> 并下发（配 <code>useMemo</code>），要么在类型层把该钩子从领域接口剔除，避免假契约。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-6 · 头像没有任何降级：破图留白、无首字母兜底、alt 为空</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据</span><div class="v"><span class="path">src/custom-plugins/BannerSlotPlugin/create.tsx:70-86</span>：<code>&lt;img src={avatar} alt="" /&gt;</code>，无 <code>onError</code>、无占位/首字母块、无骨架态；<code>:67</code> <code>marginBottom: avatarSize / 2</code> 无论有没有头像都生效。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">头像 404 / 慢加载时是一个 3px 白边的空圆，比没有头像更难看；未设置头像时头图下方固定多出 32px 空白（与「数据行贴着头图」的预期不符）；<code>alt=""</code> 让屏幕阅读器完全跳过身份信息（头像在有名字时通常应给 <code>alt={name}</code> 或至少 <code>role="img"</code>）。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">加 <code>onError</code> 切到「首字母色块」并暴露 <code>avatarFallback</code>；<code>marginBottom</code> 仅在 <code>avatar</code> 存在时生效；提供 <code>avatarAlt</code>。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-7 · 空数据态仍在渲染固定容器（空白条 / 空按钮）</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">ProfileCore.tsx:122-139</span> 的 <code>.vp-meta-area</code> 无条件渲染并带 <code>padding:12px 16px</code>；<span class="path">:85</span> 的 <code>.vp-banner-area</code> 也无条件渲染。</div></div>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">StatRowPlugin:52-56</span>：未传 <code>onStatClick</code> 时仍输出 <code>&lt;button onClick={undefined}&gt;</code>，成为可聚焦但无作用的空按钮；<span class="path">WorksGridPlugin:114-120</span> 的空态用 <code>opacity:0.6</code> 压字。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">「没有任何统计指标」时卡片中部是一条 24px 高的空白带；键盘用户 Tab 会停在一排点不动的按钮上；空态文案对比度低于正文门槛（与 ADR-13 冲突）。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">meta 区在 <code>statRow.length === 0 &amp;&amp; followArea.length === 0</code> 时整块跳过；无 <code>onStatClick</code> 时输出 <code>&lt;span&gt;</code>；空态改用 <code>TEXT_2</code> 级实色而非 opacity。</div></div>
+        </div>
+      </div>
+
+      <div class="issue p2">
+        <div class="top"><h3>P2-8 · 可访问性与示例数据一致性</h3><span class="sev p2">P2</span></div>
+        <div class="body">
+          <div class="row"><span class="lb">证据 1</span><div class="v"><span class="path">TabSyncPlugin:109-131</span>：页签是裸 <code>&lt;button&gt;</code>，无 <code>role="tab" / aria-selected / aria-controls</code>；<span class="path">QRSharePlugin:48-68</span> 的分享按钮无 <code>aria-expanded</code>，浮层无 Esc/外点关闭。</div></div>
+          <div class="row"><span class="lb">证据 2</span><div class="v"><span class="path">QRSharePlugin:106-116</span> <code>navigator.clipboard?.writeText</code> 失败分支是空函数，且 <code>:112</code> 的 <code>setTimeout</code> 无清理；<span class="path">:145</span> 缺省 url 硬编码为 <code>https://vane.dev/u/frankvane</code>——接入方忘传 <code>url</code> 就会把真实用户指向示例站。</div></div>
+          <div class="row"><span class="lb">后果</span><div class="v">屏幕阅读器无法识别「当前选中哪个页签」；http 环境（非安全上下文）复制静默失败、用户以为复制成功；默认分享链接是生产事故级默认值。</div></div>
+          <div class="row"><span class="lb">建议</span><div class="v">页签补齐 <code>role="tablist"</code> 语义；分享浮层补 <code>aria-expanded</code> 与复制失败提示；<code>url</code> 改为必填或读取 <code>props.data.homeUrl</code>（doc 注释承诺了后者但代码没实现）。</div></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 05 安全 -->
+  <section>
+    <div class="sec-head"><span class="idx">05</span><h2>安全审查（security-best-practices）</h2></div>
+    <p class="sec-desc">结论：<b>没有危险 DOM 写入点，但有一个「用户内容驱动的 URL 输出面」</b>。全包无 <code>dangerouslySetInnerHTML / innerHTML / eval / new Function</code>，无 <code>localStorage / cookie / fetch</code>、无 token 处理；风险集中在「把外部 URL 直接交给 <code>href</code> 与 CSS <code>url()</code>」这一族。</p>
+    <div class="sec-grid">
+      <div class="panel">
+        <h4>注入与凭证</h4>
+        <div class="kv">
+          <div class="r"><span class="k">XSS</span><span class="x"><span class="tag safe">安全</span>所有用户数据都进 React 文本节点（自动转义）；检索 0 命中 <code>dangerouslySetInnerHTML / innerHTML / eval / new Function</code>。</span></div>
+          <div class="r"><span class="k">URL 输出</span><span class="x"><span class="tag warn">P1</span>4 处直出：<code>SocialLinksPlugin:80</code>、<code>ContactCardPlugin:44/84</code>、<code>BannerSlotPlugin:45</code>（CSS url）、<code>WorksGridPlugin:99</code>（CSS url）。React 仅拦 <code>javascript:</code>，其余 scheme 与 CSS 注入未被约束。</span></div>
+          <div class="r"><span class="k">外链属性</span><span class="x"><span class="tag safe">安全</span><code>target="_blank"</code> 均带 <code>rel="noreferrer noopener"</code>（<code>SocialLinksPlugin:81-82</code>、<code>ContactCardPlugin:85-87</code>），无 <code>window.opener</code> 劫持面。</span></div>
+          <div class="r"><span class="k">凭证 / 隐私</span><span class="x"><span class="tag safe">安全</span>不读写 storage、不组 token、不发请求；无日志打印用户数据（仅 <code>console.warn</code> 插件名）。</span></div>
+          <div class="r"><span class="k">默认值</span><span class="x"><span class="tag warn">P2</span><code>QRSharePlugin:145</code> 的默认 url 指向示例站点，属「默认值事故」而非安全漏洞，但会让用户资产外流到非预期域名。</span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h4>加固建议</h4>
+        <div class="kv">
+          <div class="r"><span class="k">协议白名单</span><span class="x">抽一个 <code>safeHref()</code>：只放行 <code>http/https/mailto/tel</code>，其他一律降级为纯文本（<code>mailto:</code> 还要校验邮箱字符集，防止 <code>?subject=&amp;body=</code> 注入预置内容）。</span></div>
+          <div class="r"><span class="k">CSS 注入</span><span class="x"><code>cover</code> 不要裸拼 <code>url()</code>：改用 <code>&lt;img src&gt;</code>（走同一白名单）或 <code>url("${encodeURI(url)}")</code>，并校验长度。</span></div>
+          <div class="r"><span class="k">图片</span><span class="x"><code>avatar</code> 同理走白名单；避免 <code>data:</code> 大体积 base64 撑爆首屏。</span></div>
+          <div class="r"><span class="k">依赖面</span><span class="x">包本身零运行时依赖（仅 peer <code>react</code> / <code>vane-plugin-core</code>），无供应链新增风险；发布仅 <code>dist</code>。</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 06 React -->
+  <section>
+    <div class="sec-head"><span class="idx">06</span><h2>React / 性能审查（vercel-react-best-practices）</h2></div>
+    <p class="sec-desc">按「避免无谓渲染 / 避免热路径分配 / effect 与 ref 生命周期」三条线核对。这个包没有 effect 泄漏，也没有监听器未清理（唯一定时器在 QRShare，见 P2-8）；主要缺口是 memo 链路无效与渲染期写 ref。</p>
+    <div class="sec-grid">
+      <div class="panel">
+        <h4>成立的部分</h4>
+        <div class="kv">
+          <div class="r"><span class="k">订阅粒度</span><span class="x"><span class="tag safe">正确</span>内容区通过 <code>useProfileContext</code> 只读 <code>activeTab</code> 等派生值，而不是把整包 props 传下去；页签切换只引起内容区重渲染。</span></div>
+          <div class="r"><span class="k">内部态归属</span><span class="x"><span class="tag safe">正确</span>有状态控件（<code>FollowButton</code> / <code>QRSharePanel</code>）都被拆成独立组件，<code>useState</code> 发生在 React 渲染上下文内，没有「插件函数里调 hook」的规则破坏。</span></div>
+          <div class="r"><span class="k">异常隔离</span><span class="x"><span class="tag safe">正确</span>渲染期 <code>try/catch</code> + 每插件 <code>PluginErrorBoundary</code> 双保险，坏插件只丢自己那一段（测试已验证）。</span></div>
+          <div class="r"><span class="k">生命周期</span><span class="x"><span class="tag safe">正确</span><code>onMount</code> 依赖 <code>[execute]</code>（<code>manager</code> 稳定，<code>withPlugins.tsx:85-98</code>），不会随每次渲染重复触发；<code>onUnmount</code> 由内核 <code>useLayoutEffect</code> 统一执行。</span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h4>缺口</h4>
+        <div class="kv">
+          <div class="r"><span class="k">memo 失效</span><span class="x"><code>SlotProvider</code> 的 value 每次渲染都重新计算（P2-2），<code>useProfileContext</code> 的消费者在宿主任意一次 setState 后全部重渲染。</span></div>
+          <div class="r"><span class="k">槽位成本</span><span class="x">7 次 <code>filter/sort/map</code> 无缓存（P2-3）；<code>orderedPlugins</code> 本身已被内核 memo，但「按槽分组」每次都重做。</span></div>
+          <div class="r"><span class="k">渲染期写 ref</span><span class="x"><code>ctxRef.current</code> / <code>activeTabRef.current</code> 在 render 期赋值（P2-4），且 effect 依赖引用 ref 的当前值（<code>withPlugins.tsx:122</code>），规则上应改为 effect 内同步。</span></div>
+          <div class="r"><span class="k">列表 key</span><span class="x"><code>SocialLinksPlugin:78</code>、<code>TagListPlugin:46</code>、<code>ContactCardPlugin:83/93</code> 用 <code>key={i}</code>；<code>StatRowPlugin:54</code> 用 <code>key={`stat-${i}`}</code> 作为无 id 时的兜底——增删中间项会错配组件状态（当前无内部态，风险低）。</span></div>
+          <div class="r"><span class="k">SSR</span><span class="x">本包无 <code>Date.now()</code> / 随机数，因此 SSR 与客户端输出一致，不存在 hydration mismatch（对比 vane-sign-in 的 Countdown）。</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 07 修复顺序 -->
+  <section>
+    <div class="sec-head"><span class="idx">07</span><h2>建议修复顺序（可直接作为任务拆分）</h2></div>
+    <p class="sec-desc">先修「会改变业务语义」的 P1（T01–T05），再修「契约/成本/无障碍」（T06–T08）。每条都配一条能先红后绿的单测。<b>执行状态：全部待修复</b>（本轮为只读评审，未改动任何源码）。</p>
+    <div class="fix">
+      <div class="f"><span class="no">T01</span><div class="t">关注态回滚：onFollow 支持 Promise + pending 禁用 + 失败回退<span>对应 P1-1 · FollowEchoPlugin:46-52,96-107 · 单测：reject 后按钮文案回到原值</span></div><span class="e">待修复</span></div>
+      <div class="f"><span class="no">T02</span><div class="t">页签受控化：activeTab / onActiveTabChange 受控 props<span>对应 P1-2 · types.ts:49-50 · withPlugins.tsx:56-59 · 单测：受控模式点按不写内部 state</span></div><span class="e">待修复</span></div>
+      <div class="f"><span class="no">T03</span><div class="t">内容区与内核三槽解耦，children 不再被 contentSlot 吞掉<span>对应 P1-3 · ProfileCore.tsx:148-152 · 单测：WorksGrid + renderHeader 插件同时可见</span></div><span class="e">待修复</span></div>
+      <div class="f"><span class="no">T04</span><div class="t">统一 safeHref + 头图/作品封面改安全 URL 处理<span>对应 P1-4 · SocialLinks:80 · ContactCard:44,84 · BannerSlot:45 · WorksGrid:99 · 单测：javascript:/data: 被降级为文本</span></div><span class="e">待修复</span></div>
+      <div class="f"><span class="no">T05</span><div class="t">TabSync 空 tabs 不 throw，改软关闭<span>对应 P1-5 · TabSyncPlugin:51-53 · 单测：tabs=[] 时渲染不抛错</span></div><span class="e">待修复</span></div>
+      <div class="f"><span class="no">T06</span><div class="t">槽位缓存化：按槽预分组 + key 去 index + context 依赖收敛<span>对应 P2-1 / P2-2 / P2-3 · slots.tsx:42,58,81 · withPlugins.tsx:52-69 · 单测：父级空 setState 不触发插件重算（用计数桩）</span></div><span class="e">待修复</span></div>
+      <div class="f"><span class="no">T07</span><div class="t">渲染期写 ref 改挂 effect；transformData 契约二选一（接通或移除）<span>对应 P2-4 / P2-5 · withPlugins.tsx:80-83,122 · ProfileCore.tsx:47-48 · 单测：onTabChange 参数顺序稳定</span></div><span class="e">待修复</span></div>
+      <div class="f"><span class="no">T08</span><div class="t">降级与空态：头像 onError/alt、meta 区空态跳过、空按钮改 span、页签 a11y、分享默认值<span>对应 P2-6 / P2-7 / P2-8 · BannerSlot:67-86 · ProfileCore:122-139 · TabSync:109-131 · QRShare:145</span></div><span class="e">待修复</span></div>
+    </div>
+  </section>
+
+  <!-- 08 未覆盖 -->
+  <section>
+    <div class="sec-head"><span class="idx">08</span><h2>未覆盖范围（本次未确证，不作结论）</h2></div>
+    <p class="sec-desc">下列内容超出只读静态评审能确证的范围，或依赖运行时/外部系统，因此没有给出严重度判定。写报告时已刻意避免把「未验证」写成「有问题」。</p>
+    <div class="panel">
+      <div class="kv">
+        <div class="r"><span class="k">浏览器实测</span><span class="x">未启动 <code>demo</code> 做交互走查：页签吸顶（<code>sticky</code>）在滚动容器内的表现、头像浮层与统计行的视觉重叠、<code>segmented</code> 变体的对比度均未实测（样式类结论只作静态推断）。</span></div>
+        <div class="r"><span class="k">性能基线</span><span class="x">P2-3 的「7 × O(P log P)」是静态推算；未做 React Profiler 或大面积插件数（P&gt;20）的压测，没有帧时间数据。</span></div>
+        <div class="r"><span class="k">「编辑 / 校验 / 合并」</span><span class="x">全包（src + demo）未见资料编辑表单、字段校验规则、草稿合并或受控输入组件；因此这三项<b>无法评审实现质量</b>，只能判定为「能力缺失」。若产品需求包含编辑，应视为范围外新增，而非本包缺陷。</span></div>
+        <div class="r"><span class="k">异步加载竞态</span><span class="x">包内不存在请求代码，无法复现真实竞态；<code>data?: T</code> 为泛型透传，服务端返回结构完全由消费方决定，因此「字段缺失时的表现」只能按插件逐条推断（见 P2-6/P2-7）。</span></div>
+        <div class="r"><span class="k">单测覆盖</span><span class="x"><code>test/core-render.test.tsx</code> 6 例 + <code>test/plugins.test.tsx</code> 6 例，覆盖骨架渲染、Banner 高度、StatRow 文本、VerifyBadge 显隐、FollowEcho 文案、抛错隔离、页签联动、onMutual、meta 契约；<b>没有</b>失败回滚、受控页签、URL 白名单、空态留白相关用例。</span></div>
+        <div class="r"><span class="k">构建产物</span><span class="x">未审查 <code>dist/</code> 与包体积预算（<code>package.json</code> 声明根入口 ≤3.5KB gzip）；未跑 <code>build</code>。</span></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div>审查对象：<code>packages/vane-profile</code>（Core <code>ProfileCore.tsx 160 行</code>、HOC <code>withPlugins.tsx 167 行</code>、领域槽 <code>slots.tsx 111 行</code>、16 个官方插件 + docs/entries）。任务给定规模约 41 文件 / 2299 行。</div>
+    <div>实证：<code>pnpm --filter vane-profile test</code> → 2 个文件 / 12 用例全部通过（其中一条断言会打印 <code>[vane-profile] 插件 BannerSlot 渲染失败 Error: boom</code>，这是抛错隔离用例的预期 stderr，非失败）；<code>typecheck</code> 通过；<code>lint</code> 0 error / 105 warning（几乎全为 <code>no-explicit-any</code> 与测试文件）。</div>
+    <div>方法：按调用链阅读 <code>props → extendContext → renderProfileSlot → 插件 hook → Core 布局</code>；安全与 React 专项分别套用 security-best-practices 与 vercel-react-best-practices。未修改任何源码 / 配置 / 测试。</div>
+  </footer>
+
+</div>
+</body>
+</html>
