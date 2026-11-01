@@ -66,5 +66,13 @@ export const meta = {
 };
 
 export default function Scenario() {
-  return <LiveDanmaku plugins={PLUGINS} items={SAMPLE_BASIC} height={360} />;
+  return (
+    <LiveDanmaku
+      plugins={PLUGINS}
+      items={SAMPLE_BASIC}
+      height={360}
+      topInset={48}
+      bottomInset={56}
+    />
+  );
 }

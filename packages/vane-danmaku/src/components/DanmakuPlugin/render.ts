@@ -12,6 +12,10 @@ export interface RenderOptions {
   gap: number;
   /** 渐显/渐隐时长（秒），缓解「弹幕突然出现/突然消失」 */
   fadeMs: number;
+  /** 顶部安全区（px）：控件浮层（统计条/过滤开关）占用，弹幕不渲染到这里 */
+  topInset: number;
+  /** 底部安全区（px）：指令输入框等控件占用，弹幕不渲染到这里 */
+  bottomInset: number;
   /** 高赞/置顶高亮色 */
   accent: string;
   /** 描边色（提升任意背景可读性） */
@@ -115,7 +119,9 @@ export class DanmakuScheduler {
     this.lastTime = currentTime;
 
     // 1. 激活到达时间的弹幕
-    const trackCount = Math.max(1, Math.floor(size.height / opts.trackHeight));
+    // 有效高度 = 总高 − 顶部/底部安全区（控件浮层占用），弹幕只在安全区之间的带状区流动
+    const effH = Math.max(opts.trackHeight, size.height - opts.topInset - opts.bottomInset);
+    const trackCount = Math.max(1, Math.floor(effH / opts.trackHeight));
     for (const item of items) {
       if (this.active.has(item.id) || item._cmd) continue;
       if (item.time <= currentTime) {
@@ -281,7 +287,8 @@ function compute(
   playing: boolean
 ): { x: number; y: number; done: boolean } {
   const trackHeight = opts.trackHeight;
-  const y = a.track * trackHeight + trackHeight * 0.5;
+  // y 起点计入顶部安全区：弹幕整体下沉到控件浮层之下
+  const y = opts.topInset + a.track * trackHeight + trackHeight * 0.5;
   const elapsed = playing ? currentTime - a.enterAt : 0;
 
   if (a.mode === "scroll") {

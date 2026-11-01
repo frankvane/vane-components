@@ -376,6 +376,8 @@ function MediaPipeOcclusion() {
         items={STREAM as DanmakuItem[]}
         currentTime={currentTime}
         playing
+        topInset={44}
+        bottomInset={64}
         containerStyle={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
       />
       <canvas
@@ -482,6 +484,7 @@ export const meta = {
     },
   ],
   props: ["items={STREAM}", "currentTime={t}", "playing", "avoidZoneProvider"],
+  video: true,
   note:
     "发布包不捆绑 MediaPipe（体积预算不受影响）。这里在 demo 里用 PoseLandmarker 取 33 个骨骼点，算人物外接矩形当避让区；内核每帧同步消费，几帧延迟对人无感。四种输入：示例视频（离线人物镜头）/ 上传视频（离线最稳）/ 摄像头（真实人物）/ 模拟人物（无设备回退）。4K 视频检测前降采样到 480px 宽，开销降一量级。弹幕穿透 = canvas 叠在视频之上、绕开人物框。",
   tone: "dark",

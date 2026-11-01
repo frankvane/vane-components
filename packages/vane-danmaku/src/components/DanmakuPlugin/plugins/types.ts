@@ -133,6 +133,10 @@ export interface DanmakuCoreProps {
   children?: React.ReactNode;
   /** 防遮挡避让区 provider（HOC 从运行时 shared 桥接进来；每帧读取，不阻塞 60fps） */
   avoidZoneProvider?: () => Rect[];
+  /** 顶部安全区（px）：统计条/过滤开关等控件浮层占用，弹幕不渲染到这里 */
+  topInset?: number;
+  /** 底部安全区（px）：指令输入框等控件占用，弹幕不渲染到这里 */
+  bottomInset?: number;
 }
 
 export interface DanmakuCoreRef {

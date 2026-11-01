@@ -44,6 +44,11 @@ export function ScenariosPage() {
             每张卡右边有「最小装配」和「完整源码」两份代码，都能直接复制。
             原子插件只解决一件事，组合之后才是业务看得见的运营位。
           </p>
+          <p className="scn-video-note">
+            想看 <b>真实视频 + 人物骨骼识别 + 弹幕穿透绕人</b>？看「防遮挡」分类下的
+            <b> MediaPipe 实时防遮挡</b>（带 <span className="scn-video-badge">VIDEO</span> 标）。
+            默认在「全部」页签下也能看到。
+          </p>
         </div>
         <div className="page-facts">
           <div>

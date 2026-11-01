@@ -99,6 +99,10 @@ export interface LiveDanmakuProps {
   trackHeight?: number;
   /** 是否显示边框网格（默认 false） */
   showGrid?: boolean;
+  /** 顶部安全区（px）：控件浮层占用，弹幕不渲染到这里 */
+  topInset?: number;
+  /** 底部安全区（px）：控件浮层占用，弹幕不渲染到这里 */
+  bottomInset?: number;
 }
 
 /**
@@ -115,6 +119,8 @@ export function LiveDanmaku({
   opacity = 1,
   trackHeight = 30,
   showGrid,
+  topInset = 0,
+  bottomInset = 0,
 }: LiveDanmakuProps) {
   const [currentTime, setCurrentTime] = useState(0);
   const startRef = useRef(performance.now());
@@ -193,6 +199,8 @@ export function LiveDanmaku({
         opacity={opacity}
         trackHeight={trackHeight}
         avoidZoneProvider={avoidZoneProvider}
+        topInset={topInset}
+        bottomInset={bottomInset}
         containerStyle={{ width: "100%", height: "100%" }}
       />
     </div>

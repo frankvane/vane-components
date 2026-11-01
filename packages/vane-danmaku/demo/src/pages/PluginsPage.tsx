@@ -156,7 +156,14 @@ export function PluginsPage() {
             </div>
 
             <div className="ws-scroll">
-              <LiveDanmaku plugins={plugins} items={SAMPLE_BASIC} height={360} showGrid />
+              <LiveDanmaku
+                plugins={plugins}
+                items={SAMPLE_BASIC}
+                height={360}
+                showGrid
+                topInset={48}
+                bottomInset={56}
+              />
             </div>
           </div>
 

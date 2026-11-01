@@ -40,7 +40,7 @@ function SettingsPanel({
   context: DanmakuPluginContext;
   onChange?: SettingsPanelConfig["onChange"];
 }) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const [opacity, setOpacity] = useState(1);
   const [speed, setSpeed] = useState(1);
   const [trackHeight, setTrackHeight] = useState(28);

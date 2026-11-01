@@ -25,7 +25,10 @@ export function ScenarioCard({ entry }: { entry: ScenarioEntry }) {
         <span className="scn-folio" aria-hidden>
           {file.slice(0, 2)}
         </span>
-        <h3 className="scn-title">{meta.title}</h3>
+        <h3 className="scn-title">
+          {meta.title}
+          {meta.video ? <span className="scn-video-badge">VIDEO</span> : null}
+        </h3>
         <div className="scn-head-meta">
           <code className="scn-id">{file}</code>
           <a className="scn-ref" href={meta.ref.url} target="_blank" rel="noreferrer">

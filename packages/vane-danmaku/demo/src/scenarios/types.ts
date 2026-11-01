@@ -39,6 +39,8 @@ export interface ScenarioMeta {
   note?: string;
   /** 舞台底色 */
   tone?: "dark" | "light";
+  /** 是否含真实视频演示（人物识别 / 骨骼 / 穿透），用于卡片醒目标识 */
+  video?: boolean;
 }
 
 export interface ScenarioModule {

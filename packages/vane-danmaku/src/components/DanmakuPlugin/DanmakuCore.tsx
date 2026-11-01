@@ -23,6 +23,8 @@ const DEFAULTS: Omit<RenderOptions, "accent" | "stroke"> = {
   defaultDuration: 8,
   gap: 24,
   fadeMs: 450,
+  topInset: 0,
+  bottomInset: 0,
 };
 
 /**
@@ -52,6 +54,8 @@ export const DanmakuCore = forwardRef<DanmakuCoreRef, DanmakuCoreProps>(
       containerRefExternal,
       avoidZoneProvider,
       children,
+      topInset = 0,
+      bottomInset = 0,
     } = props;
 
     // 领域 DOM 插槽：控制面板 / 工具条 / 指令输入框等（弹幕主体仍由 canvas 绘制）
@@ -76,6 +80,8 @@ export const DanmakuCore = forwardRef<DanmakuCoreRef, DanmakuCoreProps>(
       baseFontSize,
       opacity,
       avoidZoneProvider,
+      topInset,
+      bottomInset,
     });
     liveRef.current = {
       items,
@@ -85,6 +91,8 @@ export const DanmakuCore = forwardRef<DanmakuCoreRef, DanmakuCoreProps>(
       baseFontSize,
       opacity,
       avoidZoneProvider,
+      topInset,
+      bottomInset,
     };
 
     useImperativeHandle(
@@ -142,6 +150,8 @@ export const DanmakuCore = forwardRef<DanmakuCoreRef, DanmakuCoreProps>(
           opacity: live.opacity,
           accent: "#ff7a29",
           stroke: "rgba(0,0,0,0.85)",
+          topInset: live.topInset,
+          bottomInset: live.bottomInset,
         };
 
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);

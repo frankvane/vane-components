@@ -793,6 +793,33 @@ time {
 .scn-plate {
   margin: 0;
 }
+.scn-video-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 7px;
+  font-family: var(--ff-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #0d1424;
+  background: #5fd3c8;
+  border-radius: 4px;
+  vertical-align: middle;
+}
+.scn-video-note {
+  margin-top: 10px;
+  padding: 8px 12px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--dim);
+  background: rgba(95, 211, 200, 0.08);
+  border: 1px solid rgba(95, 211, 200, 0.32);
+  border-radius: 8px;
+}
+.scn-video-note b {
+  color: var(--ink-0);
+  font-weight: 600;
+}
 .scn-stage {
   padding: var(--s5) var(--s4);
   min-height: 180px;
