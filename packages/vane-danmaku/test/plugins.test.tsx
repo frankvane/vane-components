@@ -14,6 +14,7 @@ import { createSpeedControlPlugin } from "../src/custom-plugins/SpeedControlPlug
 import { createStylePresetPlugin } from "../src/custom-plugins/StylePresetPlugin";
 import { createTrackStrategyPlugin } from "../src/custom-plugins/TrackStrategyPlugin";
 import { createAuditLogPlugin } from "../src/custom-plugins/AuditLogPlugin";
+import { createCmdParsePlugin } from "../src/custom-plugins/CmdParsePlugin";
 
 const ctx = {
   bus: { emit: () => {} },
@@ -172,5 +173,28 @@ describe("数据面插件 transformData", () => {
     const out = run(createAuditLogPlugin({ onLog }), data);
     expect(onLog).toHaveBeenCalledTimes(1);
     expect(out.items).toHaveLength(1);
+  });
+
+  it("AuditLogPlugin 同一 id 重复进入流水线只审计一次", () => {
+    const onLog = vi.fn();
+    const plugin = createAuditLogPlugin({ onLog });
+    const data: DanmakuData = { items: [item({ id: "1", text: "a" })] };
+    // transformData 会随播放时钟反复执行，同一实例必须按 id 去重
+    run(plugin, data);
+    run(plugin, data);
+    expect(onLog).toHaveBeenCalledTimes(1);
+  });
+
+  it("CmdParsePlugin 同一条指令只广播一次且保持不渲染", () => {
+    const emit = vi.fn();
+    const busCtx = { ...ctx, bus: { emit } } as unknown as DanmakuPluginContext;
+    const plugin = createCmdParsePlugin();
+    const data: DanmakuData = { items: [item({ id: "c1", text: "/clear" })] };
+    const transform = plugin.hooks.transformData!;
+    const first = transform(busCtx, data) as DanmakuData;
+    const second = transform(busCtx, data) as DanmakuData;
+    expect(emit).toHaveBeenCalledTimes(1);
+    expect(first.items).toHaveLength(0);
+    expect(second.items).toHaveLength(0);
   });
 });

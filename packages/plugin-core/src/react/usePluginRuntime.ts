@@ -93,16 +93,28 @@ export function usePluginRuntime<TProps = any, TData = any>(
 
   const deviceInfo = useMemo<DeviceInfo>(() => detectDevice(), []);
 
-  // 插件集合变化（按 name 比对，避免内联数组每次渲染都重注册）时重新装配
-  const namesKey = plugins.map((p) => p.name).join("|");
+  // 插件集合变化时重新装配。
+  // 只按 name 比对会漏掉「同名但配置变了」的重建（FilterToggle 传 enabled:false、敏感词换词库…），
+  // 导致注册与数据链一直持有旧闭包。因此以插件对象引用为身份：元素引用不变就复用上次快照，
+  // 既能让同名新配置生效，也避免内联数组每次渲染都触发重注册。
+  const pluginsSnapshotRef = useRef(plugins);
+  const prevPlugins = pluginsSnapshotRef.current;
+  if (
+    prevPlugins.length !== plugins.length ||
+    plugins.some((p, i) => p !== prevPlugins[i])
+  ) {
+    pluginsSnapshotRef.current = plugins;
+  }
+  const stablePlugins = pluginsSnapshotRef.current;
+  const namesKey = stablePlugins.map((p) => p.name).join("|");
   useLayoutEffect(() => {
     manager.clear();
-    manager.registerAll(plugins);
+    manager.registerAll(stablePlugins);
     if (enableDebug) {
       console.debug("[vane/plugin-core] plugins registered:", namesKey);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [namesKey]);
+  }, [stablePlugins]);
 
   // 卸载：先执行 onUnmount 钩子链，再清理管理器。
   // 说明：hook 链在 executeHook 循环内已捕获插件引用，随后的 clear 不会
@@ -117,9 +129,8 @@ export function usePluginRuntime<TProps = any, TData = any>(
   );
 
   const orderedPlugins = useMemo(
-    () => resolveDependencyOrder(plugins),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [namesKey]
+    () => resolveDependencyOrder(stablePlugins),
+    [stablePlugins]
   );
 
   const contextRef = useRef<PluginContext<TProps, TData> | null>(null);
@@ -152,7 +163,16 @@ export function usePluginRuntime<TProps = any, TData = any>(
       let next = input;
       for (const plugin of orderedPlugins) {
         const fn = plugin.hooks?.transformProps;
-        if (typeof fn === "function") next = fn(next);
+        if (typeof fn !== "function") continue;
+        // 单个插件抛错不能连带整棵渲染树：跳过该插件并告警，其余插件继续生效
+        try {
+          next = fn(next);
+        } catch (err) {
+          (contextRef.current?.logger ?? console).warn(
+            `[plugin-core] ${plugin.name}.transformProps 执行失败，已跳过`,
+            err
+          );
+        }
       }
       return next;
     },
@@ -166,7 +186,15 @@ export function usePluginRuntime<TProps = any, TData = any>(
         const fn = plugin.hooks?.transformData as
           | ((ctx: PluginContext<TProps, TData>, d: TData) => TData)
           | undefined;
-        if (typeof fn === "function") next = fn(contextRef.current!, next);
+        if (typeof fn !== "function") continue;
+        try {
+          next = fn(contextRef.current!, next);
+        } catch (err) {
+          (contextRef.current?.logger ?? console).warn(
+            `[plugin-core] ${plugin.name}.transformData 执行失败，已跳过`,
+            err
+          );
+        }
       }
       return next;
     },

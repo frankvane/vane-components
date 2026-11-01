@@ -41,12 +41,16 @@ const SEND: React.CSSProperties = {
   background: "rgba(255,122,41,0.95)",
 };
 
+const DEFAULT_PLACEHOLDER = "发条弹幕 / 指令（/clear）";
+
 function CommandInput({
   context,
   onSend,
+  placeholder = DEFAULT_PLACEHOLDER,
 }: {
   context: DanmakuPluginContext;
   onSend?: CommandInputConfig["onSend"];
+  placeholder?: string;
 }) {
   const [text, setText] = useState("");
 
@@ -63,7 +67,8 @@ function CommandInput({
       <input
         style={INPUT}
         value={text}
-        placeholder="发条弹幕 / 指令（/clear）"
+        aria-label="发送弹幕或指令"
+        placeholder={placeholder}
         onChange={(e) => setText(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === "Enter") send();
@@ -82,7 +87,7 @@ function CommandInput({
  * 追加一条滚动弹幕，或交给 CmdParsePlugin 解析为指令（如 /clear）。
  */
 export function createCommandInputPlugin(
-  _config: CommandInputConfig = {}
+  config: CommandInputConfig = {}
 ): DanmakuPlugin {
   return {
     name: "command-input",
@@ -92,7 +97,11 @@ export function createCommandInputPlugin(
     enabled: true,
     hooks: {
       renderFooter: (context: DanmakuPluginContext) => (
-        <CommandInput context={context} onSend={_config.onSend} />
+        <CommandInput
+          context={context}
+          onSend={config.onSend}
+          placeholder={config.placeholder}
+        />
       ),
     },
   };

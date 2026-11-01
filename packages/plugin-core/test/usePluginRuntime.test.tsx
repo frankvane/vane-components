@@ -1,7 +1,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { act } from "react-dom/test-utils";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { usePluginRuntime } from "../src/react/usePluginRuntime";
 import type { Plugin } from "../src/types";
 
@@ -86,5 +86,46 @@ describe("usePluginRuntime", () => {
     const first = getRuntime().context;
     await rerender();
     expect(getRuntime().context).toBe(first);
+  });
+
+  it("同名插件换配置（新对象引用）后重新注册，不再持有旧闭包", async () => {
+    const make = (tag: string): Plugin => ({
+      name: "same",
+      hooks: {
+        transformData: (_ctx: any, data: any) => ({ ...data, tag }),
+      },
+    });
+    const oldPlugin = make("old");
+    const newPlugin = make("new");
+    const { getRuntime, rerender } = await mount({ plugins: [oldPlugin], props: {} });
+    expect(getRuntime().orderedPlugins[0]).toBe(oldPlugin);
+    expect((getRuntime().transformData({} as any) as any).tag).toBe("old");
+
+    await rerender({ plugins: [newPlugin] });
+    expect(getRuntime().orderedPlugins[0]).toBe(newPlugin);
+    expect((getRuntime().transformData({} as any) as any).tag).toBe("new");
+  });
+
+  it("单插件 transformData 抛错时跳过该插件，其余插件继续生效", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const bad: Plugin = {
+      name: "bad",
+      hooks: {
+        transformData: () => {
+          throw new Error("boom");
+        },
+      },
+    };
+    const good: Plugin = {
+      name: "good",
+      hooks: {
+        transformData: (_ctx: any, data: any) => ({ ...data, ok: true }),
+      },
+    };
+    const { getRuntime } = await mount({ plugins: [bad, good], props: {} });
+    const out = getRuntime().transformData({} as any) as any;
+    expect(out.ok).toBe(true);
+    expect(warn).toHaveBeenCalled();
+    warn.mockRestore();
   });
 });

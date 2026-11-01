@@ -35,19 +35,29 @@ const LABEL: React.CSSProperties = { opacity: 0.8, display: "flex", justifyConte
 
 function SettingsPanel({
   context,
+  opacity: initialOpacity = 1,
+  speed: initialSpeed = 1,
+  trackHeight: initialTrackHeight = 28,
   onChange,
 }: {
   context: DanmakuPluginContext;
+  opacity?: number;
+  speed?: number;
+  trackHeight?: number;
   onChange?: SettingsPanelConfig["onChange"];
 }) {
   const [open, setOpen] = useState(false);
-  const [opacity, setOpacity] = useState(1);
-  const [speed, setSpeed] = useState(1);
-  const [trackHeight, setTrackHeight] = useState(28);
+  const [opacity, setOpacity] = useState(initialOpacity);
+  const [speed, setSpeed] = useState(initialSpeed);
+  const [trackHeight, setTrackHeight] = useState(initialTrackHeight);
 
-  const push = () => {
-    context.bus.emit("danmaku:settings", { opacity, speed, trackHeight });
-    onChange?.({ opacity, speed, trackHeight });
+  const apply = (patch: Partial<{ opacity: number; speed: number; trackHeight: number }>) => {
+    const next = { opacity, speed, trackHeight, ...patch };
+    setOpacity(next.opacity);
+    setSpeed(next.speed);
+    setTrackHeight(next.trackHeight);
+    context.bus.emit("danmaku:settings", next);
+    onChange?.(next);
   };
 
   if (!open) {
@@ -74,21 +84,21 @@ function SettingsPanel({
         <span style={LABEL}>不透明度 <b>{opacity.toFixed(2)}</b></span>
         <input
           type="range" min={0.2} max={1} step={0.05} value={opacity}
-          onChange={(e) => { setOpacity(Number(e.target.value)); push(); }}
+          onChange={(e) => apply({ opacity: Number(e.target.value) })}
         />
       </label>
       <label style={ROW}>
         <span style={LABEL}>速度 <b>{speed.toFixed(2)}×</b></span>
         <input
           type="range" min={0.5} max={2} step={0.1} value={speed}
-          onChange={(e) => { setSpeed(Number(e.target.value)); push(); }}
+          onChange={(e) => apply({ speed: Number(e.target.value) })}
         />
       </label>
       <label style={ROW}>
         <span style={LABEL}>轨道高度 <b>{trackHeight}px</b></span>
         <input
           type="range" min={20} max={48} step={2} value={trackHeight}
-          onChange={(e) => { setTrackHeight(Number(e.target.value)); push(); }}
+          onChange={(e) => apply({ trackHeight: Number(e.target.value) })}
         />
       </label>
     </div>
@@ -110,7 +120,7 @@ const btnStyle: React.CSSProperties = {
  * 由消费方（demo）监听并更新 DanmakuCore 的 props。面板本身不参与 canvas 渲染。
  */
 export function createSettingsPanelPlugin(
-  _config: SettingsPanelConfig = {}
+  config: SettingsPanelConfig = {}
 ): DanmakuPlugin {
   return {
     name: "settings-panel",
@@ -120,7 +130,13 @@ export function createSettingsPanelPlugin(
     enabled: true,
     hooks: {
       renderOverlay: (context: DanmakuPluginContext) => (
-        <SettingsPanel context={context} onChange={_config.onChange} />
+        <SettingsPanel
+          context={context}
+          opacity={config.opacity}
+          speed={config.speed}
+          trackHeight={config.trackHeight}
+          onChange={config.onChange}
+        />
       ),
     },
   };

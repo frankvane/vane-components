@@ -138,3 +138,33 @@ describe("DanmakuScheduler 避让区 / 饱和策略", () => {
     expect(s.droppedCount).toBe(0);
   });
 });
+
+describe("DanmakuScheduler 暂停语义", () => {
+  it("暂停期间位置冻结（不回入场位），恢复后从暂停位置继续", () => {
+    const s = new DanmakuScheduler();
+    const items = makeItems();
+
+    // 推进到 2.7s：s2 已入场并在飞行中
+    s.tick(items, SIZE, 2.5, true, opts, []); // 激活 s2（初始在入场位）
+    const live = s.tick(items, SIZE, 2.7, true, opts, []);
+    const target = live.find((a) => a.item.id === "s2");
+    expect(target).toBeTruthy();
+    const xBefore = target!.x;
+    expect(xBefore).toBeLessThan(SIZE.width); // 已经离开入场位
+
+    // 暂停：外部时钟继续走到 4.7s，位置必须一动不动
+    const p1 = s.tick(items, SIZE, 2.7, false, opts, []);
+    const p2 = s.tick(items, SIZE, 4.7, false, opts, []);
+    expect(p1.find((a) => a.item.id === "s2")!.x).toBeCloseTo(xBefore, 3);
+    expect(p2.find((a) => a.item.id === "s2")!.x).toBeCloseTo(xBefore, 3);
+
+    // 恢复：按 0.1s 继续推进，而不是把暂停的 2s 也算进去（后者会瞬移约 90px 以上）
+    s.tick(items, SIZE, 4.8, true, opts, []); // 恢复帧本身不前进
+    const resumed = s.tick(items, SIZE, 4.9, true, opts, []);
+    const after = resumed.find((a) => a.item.id === "s2");
+    expect(after).toBeTruthy();
+    expect(xBefore - after!.x).toBeGreaterThan(0);
+    expect(xBefore - after!.x).toBeLessThan(150);
+  });
+});
+

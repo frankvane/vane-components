@@ -121,6 +121,14 @@ export interface DanmakuCoreProps {
   baseFontSize?: number;
   /** 全局不透明度 0–1，默认 1 */
   opacity?: number;
+  /** 渐显/渐隐时长（毫秒），默认 450 */
+  fadeMs?: number;
+  /** 同轨最小间隔（px，碰撞检测余量），默认 24 */
+  gap?: number;
+  /** 默认飞行时长（秒，item.duration 缺省时使用），默认 8 */
+  defaultDuration?: number;
+  /** 高亮主题色（高赞环 / 置顶高亮），默认 "#ff7a29" */
+  accent?: string;
   /** 容器 className */
   containerClassName?: string;
   containerStyle?: React.CSSProperties;
@@ -146,9 +154,15 @@ export interface DanmakuCoreRef {
   /** 取 canvas 元素（消费方做截图 / 接 MediaPipe 帧源） */
   getCanvas: () => HTMLCanvasElement | null;
   /**
+   * 清屏：清空在飞与等待中的弹幕，但保留「已激活」记录，
+   * 因此清屏后这些条目不会因为 time 已过而重新飞出来（对应 CmdParse 的 clear 指令）。
+   */
+  clearScreen: () => void;
+  /**
    * 运行时读数（压测 / 监控用）：
    *  · active —— 当前在飞条数（真正逐帧绘制的量，出画即回收，不含未到时间与已离场条目）
-   *  · dropped —— 本周期因画布饱和（无任何空闲轨）被丢弃的条数，饱和时宁可丢弃也不叠字
+   *  · dropped —— 自上次时钟回绕（换轮次）以来因画布饱和（无任何空闲轨）被丢弃的累计条数，
+   *    饱和时宁可丢弃也不叠字
    */
   getStats: () => { active: number; dropped: number };
 }

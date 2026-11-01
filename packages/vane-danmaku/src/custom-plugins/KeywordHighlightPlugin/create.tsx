@@ -19,13 +19,8 @@ function escapeRegExp(s: string): string {
 }
 
 /** 把命中词拆成彩色分段（其余段无 color，沿用整条配色） */
-function buildRich(
-  text: string,
-  keywords: string[],
-  color: string
-): DanmakuRenderHint {
-  if (keywords.length === 0) return {};
-  const re = new RegExp(`(${keywords.map(escapeRegExp).join("|")})`, "gi");
+function buildRich(text: string, re: RegExp, color: string): DanmakuRenderHint {
+  re.lastIndex = 0; // g 标志有状态，复用前必须归零
   const segments: { text: string; color?: string }[] = [];
   let last = 0;
   let matched = false;
@@ -51,6 +46,11 @@ export function createKeywordHighlightPlugin(
 ): DanmakuPlugin {
   const keywords = config.keywords ?? [];
   const color = config.color ?? "#ff7a29";
+  // 关键词固定，正则只编译一次（原来每条弹幕每帧都 new RegExp，是流水线里最贵的一处）
+  const re =
+    keywords.length > 0
+      ? new RegExp(`(${keywords.map(escapeRegExp).join("|")})`, "gi")
+      : null;
 
   return {
     name: "keyword-highlight",
@@ -63,10 +63,10 @@ export function createKeywordHighlightPlugin(
         _context: DanmakuPluginContext,
         data: DanmakuData
       ): DanmakuData => {
-        if (keywords.length === 0) return data;
+        if (!re) return data;
         const items = data.items.map((it) => {
           if (it.renderHint?.rich) return it;
-          const hint = buildRich(it.text, keywords, color);
+          const hint = buildRich(it.text, re, color);
           return hint.rich ? { ...it, renderHint: { ...it.renderHint, ...hint } } : it;
         });
         return { ...data, items };

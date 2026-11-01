@@ -26,6 +26,9 @@ export function createCmdParsePlugin(
 ): DanmakuPlugin {
   const prefixes = config.prefixes ?? ["/", "#"];
   const commands = config.commands ?? { clear: "clear", lottery: "lottery" };
+  // transformData 会随播放时钟推进多次执行；指令是「一次性副作用」，
+  // 必须按 id 去重，否则同一句 /clear 会被广播多次、抽奖被重复触发。
+  const handled = new Set<string>();
 
   return {
     name: "cmd-parse",
@@ -54,6 +57,8 @@ export function createCmdParsePlugin(
             continue;
           }
           const payload = rest.slice(name.length).trim();
+          if (handled.has(it.id)) continue; // 已触发过：保持不渲染，但不再重复发事件
+          handled.add(it.id);
           context.bus.emit("danmaku:command", { type, payload, item: it });
           config.onCommand?.(type, payload, it);
           // 命中指令：不 push → 不渲染

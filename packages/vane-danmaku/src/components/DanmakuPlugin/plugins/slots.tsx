@@ -36,6 +36,11 @@ export function DanmakuSlotProvider({
   return <SlotContext.Provider value={value}>{children}</SlotContext.Provider>;
 }
 
+/**
+ * 渲染某个槽位的插件产物。
+ * 注意：槽位钩子必须是纯渲染函数（只返回 JSX），不得调用 React hooks ——
+ * 它们是在本组件渲染体内被直接调用的；需要状态请在返回的子组件内部管理。
+ */
 function renderDanmakuSlot(
   plugins: DanmakuPlugin<any>[],
   context: DanmakuPluginContext<any>,
@@ -52,14 +57,14 @@ function renderDanmakuSlot(
         (a.config?.order ?? 0) - (b.config?.order ?? 0) ||
         (b.priority ?? 0) - (a.priority ?? 0)
     )
-    .map((plugin, index) => {
+    .map((plugin) => {
       try {
         const node = (
           plugin.hooks as Record<string, (ctx: DanmakuPluginContext<any>) => React.ReactNode>
         )[hook](context);
         if (node === null || node === undefined) return null;
         return (
-          <PluginErrorBoundary key={`danmaku-slot-${plugin.name}-${index}`}>
+          <PluginErrorBoundary key={`danmaku-slot-${plugin.name}`}>
             {node}
           </PluginErrorBoundary>
         );

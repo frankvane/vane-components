@@ -23,6 +23,8 @@ export function createAuditLogPlugin(
 ): DanmakuPlugin {
   const onLog = config.onLog;
   const emit = config.emit ?? false;
+  // transformData 随播放时钟多次执行：按 id 去重，避免同一条弹幕被重复审计/落库
+  const seen = new Set<string>();
 
   return {
     name: "audit-log",
@@ -36,6 +38,8 @@ export function createAuditLogPlugin(
         data: DanmakuData
       ): DanmakuData => {
         for (const it of data.items) {
+          if (seen.has(it.id)) continue;
+          seen.add(it.id);
           onLog?.(it, context);
           if (emit) context.bus.emit("danmaku:audit", { item: it });
         }

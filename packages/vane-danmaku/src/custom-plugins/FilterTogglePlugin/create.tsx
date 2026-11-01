@@ -41,14 +41,17 @@ const CHIP = (on: boolean): React.CSSProperties => ({
 
 function FilterToggle({
   context,
+  defaults,
   onToggle,
 }: {
   context: DanmakuPluginContext;
+  defaults?: string[];
   onToggle?: FilterToggleConfig["onToggle"];
 }) {
-  const [on, setOn] = useState<Record<string, boolean>>(() =>
-    Object.fromEntries(FILTERS.map((f) => [f.key, true]))
-  );
+  const [on, setOn] = useState<Record<string, boolean>>(() => {
+    const enabled = new Set(defaults ?? FILTERS.map((f) => f.key));
+    return Object.fromEntries(FILTERS.map((f) => [f.key, enabled.has(f.key)]));
+  });
 
   const toggle = (key: string) => {
     setOn((prev) => {
@@ -62,9 +65,15 @@ function FilterToggle({
   return (
     <div style={WRAP}>
       {FILTERS.map((f) => (
-        <span key={f.key} style={CHIP(on[f.key])} onClick={() => toggle(f.key)}>
+        <button
+          key={f.key}
+          type="button"
+          aria-pressed={!!on[f.key]}
+          style={CHIP(on[f.key])}
+          onClick={() => toggle(f.key)}
+        >
           {f.label}
-        </span>
+        </button>
       ))}
     </div>
   );
@@ -76,7 +85,7 @@ function FilterToggle({
  * 由消费方（demo）据此重建对应数据面插件（传 enabled）。纯控制层，不碰弹幕流。
  */
 export function createFilterTogglePlugin(
-  _config: FilterToggleConfig = {}
+  config: FilterToggleConfig = {}
 ): DanmakuPlugin {
   return {
     name: "filter-toggle",
@@ -86,7 +95,11 @@ export function createFilterTogglePlugin(
     enabled: true,
     hooks: {
       renderHeader: (context: DanmakuPluginContext) => (
-        <FilterToggle context={context} onToggle={_config.onToggle} />
+        <FilterToggle
+          context={context}
+          defaults={config.defaults}
+          onToggle={config.onToggle}
+        />
       ),
     },
   };

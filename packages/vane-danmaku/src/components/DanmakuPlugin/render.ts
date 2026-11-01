@@ -10,7 +10,7 @@ export interface RenderOptions {
   defaultDuration: number;
   /** 同轨最小间隔（px），碰撞检测余量 */
   gap: number;
-  /** 渐显/渐隐时长（秒），缓解「弹幕突然出现/突然消失」 */
+  /** 渐显/渐隐时长（毫秒），缓解「弹幕突然出现/突然消失」 */
   fadeMs: number;
   /** 顶部安全区（px）：控件浮层（统计条/过滤开关）占用，弹幕不渲染到这里 */
   topInset: number;
@@ -160,6 +160,13 @@ export class DanmakuScheduler {
   private dropped = 0;
   /** 上一帧 currentTime，用于检测时钟回绕（如 LiveDanmaku 的 currentTime % loop） */
   private lastTime = 0;
+  /** 暂停累计偏移：暂停期间外部时钟若继续前进，用它在有效时间里折算掉 */
+  private pauseOffset = 0;
+  /** 暂停开始时的外部时间（null = 播放中） */
+  private pausedAt: number | null = null;
+  /** 最近一次参与调度的 items 引用 + 是否按 time 升序（决定能否提前 break） */
+  private itemsCache: DanmakuItem[] | null = null;
+  private itemsSorted = true;
 
   /** 等待入场的最长秒数：吸收 1 秒级突发，长期饱和即丢弃 */
   static readonly WAIT_MAX = 1.2;
@@ -172,6 +179,24 @@ export class DanmakuScheduler {
   /** 本周期累计丢弃条数（饱和溢出） */
   get droppedCount(): number {
     return this.dropped;
+  }
+
+  /**
+   * 有效播放时间：只在 playing 时前进。
+   * 暂停期间即使外部 currentTime 继续走（播放器常见行为），也要把这段折算掉，
+   * 否则 elapsed 变化会让弹幕瞬移；恢复时再补回偏移，位置与暂停瞬间一致。
+   */
+  private effectiveTime(currentTime: number, playing: boolean): number {
+    if (playing) {
+      if (this.pausedAt !== null) {
+        this.pauseOffset += Math.max(0, currentTime - this.pausedAt);
+        this.pausedAt = null;
+      }
+    } else if (this.pausedAt === null) {
+      this.pausedAt = currentTime;
+    }
+    const frozen = this.pausedAt === null ? 0 : currentTime - this.pausedAt;
+    return currentTime - this.pauseOffset - frozen;
   }
 
   tick(
@@ -189,8 +214,24 @@ export class DanmakuScheduler {
       this.fired.clear();
       this.waiting.clear();
       this.dropped = 0;
+      this.pauseOffset = 0;
+      this.pausedAt = null;
     }
     this.lastTime = currentTime;
+    // 暂停冻结：后续所有激活 / 等待超时 / 位置推进都只看有效时间
+    const now = this.effectiveTime(currentTime, playing);
+
+    // items 是否按 time 升序（按引用缓存）：有序时可直接 break，避免稳态每帧全表扫描
+    if (this.itemsCache !== items) {
+      this.itemsCache = items;
+      this.itemsSorted = true;
+      for (let i = 1; i < items.length; i++) {
+        if (items[i].time < items[i - 1].time) {
+          this.itemsSorted = false;
+          break;
+        }
+      }
+    }
 
     // 1. 激活到达时间的弹幕（每条每周期只激活一次，见 fired 注释）
     // 有效高度 = 总高 − 顶部/底部安全区（控件浮层占用），弹幕只在安全区之间的带状区流动
@@ -206,11 +247,14 @@ export class DanmakuScheduler {
     let attempts = 0;
     const MAX_ATTEMPTS_PER_FRAME = 48;
     for (const item of items) {
+      if (item.time > now) {
+        if (this.itemsSorted) break;
+        continue;
+      }
       if (this.fired.has(item.id) || item._cmd) continue;
-      if (item.time > currentTime) continue;
       // 等太久 = 画面已饱和：直接丢弃并计数（迟到太久再入场会串到下一轮，也必然叠字）
       const since = this.waiting.get(item.id);
-      if (since != null && currentTime - since > DanmakuScheduler.WAIT_MAX) {
+      if (since != null && now - since > DanmakuScheduler.WAIT_MAX) {
         this.fired.add(item.id);
         this.waiting.delete(item.id);
         this.dropped++;
@@ -228,10 +272,10 @@ export class DanmakuScheduler {
         duration: item.duration ?? opts.defaultDuration,
         dir: stay ? 0 : item.mode === "reverse" ? 1 : -1,
       };
-      const track = this.assignTrack(cand, currentTime, size, trackCount, opts, zones);
+      const track = this.assignTrack(cand, now, size, trackCount, opts, zones);
       if (track == null) {
         // 无空轨：排队等下一帧（下一帧依然会走到这里，因为没进 fired）
-        if (since == null) this.waiting.set(item.id, currentTime);
+        if (since == null) this.waiting.set(item.id, now);
         continue;
       }
       this.waiting.delete(item.id);
@@ -245,7 +289,7 @@ export class DanmakuScheduler {
         track,
         mode: item.mode,
         dir: cand.dir,
-        enterAt: currentTime,
+        enterAt: now,
         duration: cand.duration,
         width: cand.width,
         measured: exact > 0,
@@ -264,7 +308,7 @@ export class DanmakuScheduler {
     // 3. 推进位置，回收离场，算渐显/渐隐透明度
     const result: Active[] = [];
     for (const [id, a] of this.active) {
-      const pos = compute(a, currentTime, size, opts, playing);
+      const pos = compute(a, now, size, opts);
       if (pos.done) {
         this.active.delete(id);
         continue;
@@ -272,8 +316,8 @@ export class DanmakuScheduler {
       a.x = pos.x;
       a.y = pos.y;
       let alpha = 1;
-      if (playing) {
-        const elapsed = currentTime - a.enterAt;
+      {
+        const elapsed = now - a.enterAt;
         // fadeMs 是毫秒、elapsed/remain 是秒 —— 必须换算，否则 alpha≈elapsed/450≈0.02 让弹幕近乎全透明
         const fade = Math.max(0.001, opts.fadeMs / 1000);
         if (elapsed < fade) alpha = Math.max(0, elapsed / fade);
@@ -450,13 +494,13 @@ function compute(
   a: Active,
   currentTime: number,
   size: { width: number; height: number },
-  opts: RenderOptions,
-  playing: boolean
+  opts: RenderOptions
 ): { x: number; y: number; done: boolean } {
   const trackHeight = opts.trackHeight;
   // y 起点计入顶部安全区：弹幕整体下沉到控件浮层之下
   const y = opts.topInset + a.track * trackHeight + trackHeight * 0.5;
-  const elapsed = playing ? currentTime - a.enterAt : 0;
+  // currentTime 已是「有效播放时间」（暂停不前进），暂停时 elapsed 不变 → 位置冻结
+  const elapsed = currentTime - a.enterAt;
 
   if (a.mode === "scroll") {
     const total = size.width + a.width;
@@ -473,6 +517,35 @@ function compute(
   // top / bottom / pinned：居中停留
   const x = (size.width - a.width) / 2;
   return { x, y, done: elapsed > a.duration };
+}
+
+/**
+ * 圆角矩形路径：旧版 Safari / 部分 Android WebView 没有 ctx.roundRect，
+ * 直接调用会抛 TypeError 打断整帧。缺失时退化为手绘圆角，保证兼容。
+ */
+function roundRectPath(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number
+): void {
+  if (typeof ctx.roundRect === "function") {
+    ctx.roundRect(x, y, w, h, r);
+    return;
+  }
+  const rr = Math.max(0, Math.min(r, w / 2, h / 2));
+  ctx.moveTo(x + rr, y);
+  ctx.lineTo(x + w - rr, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + rr);
+  ctx.lineTo(x + w, y + h - rr);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - rr, y + h);
+  ctx.lineTo(x + rr, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - rr);
+  ctx.lineTo(x, y + rr);
+  ctx.quadraticCurveTo(x, y, x + rr, y);
+  ctx.closePath();
 }
 
 /** 绘制单条弹幕（粉丝牌 + 描边文字 + 可选高赞环） */
@@ -505,7 +578,7 @@ export function draw(
     ctx.globalAlpha *= 0.22;
     ctx.fillStyle = a.item.renderHint.highlight;
     ctx.beginPath();
-    ctx.roundRect(a.x - 6, cy - fontSize / 2 - 5, totalW + 12, fontSize + 10, 8);
+    roundRectPath(ctx, a.x - 6, cy - fontSize / 2 - 5, totalW + 12, fontSize + 10, 8);
     ctx.fill();
     ctx.restore();
   }
@@ -517,7 +590,8 @@ export function draw(
     ctx.strokeStyle = opts.accent;
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.roundRect(
+    roundRectPath(
+      ctx,
       a.x - pad,
       cy - fontSize / 2 - pad,
       totalW + pad * 2,
@@ -536,7 +610,7 @@ export function draw(
     ctx.save();
     ctx.fillStyle = badge.color;
     ctx.beginPath();
-    ctx.roundRect(cursorX, cy - fontSize / 2, bw, fontSize, 4);
+    roundRectPath(ctx, cursorX, cy - fontSize / 2, bw, fontSize, 4);
     ctx.fill();
     ctx.fillStyle = "#fff";
     ctx.fillText(label, cursorX + BADGE_PAD, cy);

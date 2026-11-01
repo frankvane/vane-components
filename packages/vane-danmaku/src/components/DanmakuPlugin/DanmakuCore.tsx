@@ -2,6 +2,7 @@ import React, {
   forwardRef,
   useEffect,
   useImperativeHandle,
+  useLayoutEffect,
   useRef,
   useState,
 } from "react";
@@ -14,7 +15,7 @@ import {
   type RenderOptions,
 } from "./render";
 
-const DEFAULTS: Omit<RenderOptions, "accent" | "stroke"> = {
+const DEFAULTS: Omit<RenderOptions, "stroke"> = {
   trackHeight: 28,
   fontFamily:
     'system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif',
@@ -23,19 +24,54 @@ const DEFAULTS: Omit<RenderOptions, "accent" | "stroke"> = {
   defaultDuration: 8,
   gap: 24,
   fadeMs: 450,
+  accent: "#ff7a29",
   topInset: 0,
   bottomInset: 0,
 };
+
+/** 矩形并集面积（x 方向扫描 + y 区间合并）：避让框数量通常个位数，开销可忽略 */
+function unionArea(rects: Rect[]): number {
+  const xs = Array.from(new Set(rects.flatMap((r) => [r.x, r.x + r.w])).values()).sort(
+    (a, b) => a - b
+  );
+  let area = 0;
+  for (let i = 0; i < xs.length - 1; i++) {
+    const x0 = xs[i];
+    const x1 = xs[i + 1];
+    const dx = x1 - x0;
+    if (dx <= 0) continue;
+    const mid = (x0 + x1) / 2;
+    const spans = rects
+      .filter((r) => r.x <= mid && r.x + r.w >= mid)
+      .map((r) => [r.y, r.y + r.h] as [number, number])
+      .sort((a, b) => a[0] - b[0]);
+    let coveredY = 0;
+    let start = -Infinity;
+    let end = -Infinity;
+    for (const [s, e] of spans) {
+      if (e <= end) continue;
+      if (s > end) {
+        if (end > start) coveredY += end - start;
+        start = s;
+        end = e;
+      } else {
+        end = Math.max(end, e);
+      }
+    }
+    if (end > start) coveredY += end - start;
+    area += dx * coveredY;
+  }
+  return area;
+}
 
 /**
  * 把避让区裁成「可挖空的洞」：裁到画布内、丢掉退化矩形，并保护一个极端情况 ——
  * 避让区几乎覆盖整屏时（模型框明显异常 / 人物贴满镜头）放弃遮罩，
  * 宁可轻微压人，也不能让整块画布一条弹幕都看不见。
+ * 覆盖率按并集算：重叠的两个框直接相加会翻倍，误判成「覆盖全屏」。
  */
 function clipZones(zones: Rect[], width: number, height: number): Rect[] | null {
   const holes: Rect[] = [];
-  const canvasArea = width * height;
-  let covered = 0;
   for (const z of zones) {
     const x = Math.max(0, z.x);
     const y = Math.max(0, z.y);
@@ -43,10 +79,9 @@ function clipZones(zones: Rect[], width: number, height: number): Rect[] | null 
     const h = Math.min(height, z.y + z.h) - y;
     if (w <= 1 || h <= 1) continue;
     holes.push({ x, y, w, h });
-    covered += w * h;
   }
   if (!holes.length) return null;
-  if (covered > canvasArea * 0.85) return null;
+  if (unionArea(holes) > width * height * 0.85) return null;
   return holes;
 }
 
@@ -68,7 +103,11 @@ export const DanmakuCore = forwardRef<DanmakuCoreRef, DanmakuCoreProps>(
       playing = true,
       trackHeight = DEFAULTS.trackHeight,
       baseFontSize = DEFAULTS.baseFontSize,
-      opacity = 1,
+      opacity = DEFAULTS.opacity,
+      fadeMs = DEFAULTS.fadeMs,
+      gap = DEFAULTS.gap,
+      defaultDuration = DEFAULTS.defaultDuration,
+      accent = DEFAULTS.accent,
       containerClassName,
       containerStyle,
       onMount,
@@ -89,12 +128,16 @@ export const DanmakuCore = forwardRef<DanmakuCoreRef, DanmakuCoreProps>(
     const internalRef = useRef<HTMLDivElement | null>(null);
     const containerRef = containerRefExternal ?? internalRef;
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
-    const schedulerRef = useRef<DanmakuScheduler>(new DanmakuScheduler());
+    // 惰性初始化：useRef 的参数每次渲染都会求值，直接 new 会白构造一个随即被丢弃的实例
+    const schedulerRef = useRef<DanmakuScheduler | null>(null);
+    if (!schedulerRef.current) schedulerRef.current = new DanmakuScheduler();
+    const scheduler = schedulerRef.current;
 
     const [, forceTick] = useState(0);
     const sizeRef = useRef({ width: 0, height: 0, dpr: 1 });
 
-    // 把随渲染变化的值放进 ref，供 rAF 闭包读取最新值
+    // 把随渲染变化的值放进 ref，供 rAF 闭包读取最新值。
+    // 更新放在 layout effect（提交后、绘制前），避免在渲染期写 ref 拿到未提交的中间值。
     const liveRef = useRef({
       items,
       currentTime,
@@ -102,21 +145,31 @@ export const DanmakuCore = forwardRef<DanmakuCoreRef, DanmakuCoreProps>(
       trackHeight,
       baseFontSize,
       opacity,
+      fadeMs,
+      gap,
+      defaultDuration,
+      accent,
       avoidZoneProvider,
       topInset,
       bottomInset,
     });
-    liveRef.current = {
-      items,
-      currentTime,
-      playing,
-      trackHeight,
-      baseFontSize,
-      opacity,
-      avoidZoneProvider,
-      topInset,
-      bottomInset,
-    };
+    useLayoutEffect(() => {
+      liveRef.current = {
+        items,
+        currentTime,
+        playing,
+        trackHeight,
+        baseFontSize,
+        opacity,
+        fadeMs,
+        gap,
+        defaultDuration,
+        accent,
+        avoidZoneProvider,
+        topInset,
+        bottomInset,
+      };
+    });
 
     useImperativeHandle(
       ref,
@@ -128,13 +181,14 @@ export const DanmakuCore = forwardRef<DanmakuCoreRef, DanmakuCoreProps>(
           height: containerRef.current?.offsetHeight ?? 0,
         }),
         getCanvas: () => canvasRef.current,
-        /** 运行时读数：在飞条数（真正参与绘制的量）与本周期饱和丢弃数 */
+        clearScreen: () => scheduler.clear(),
+        /** 运行时读数：在飞条数（真正参与绘制的量）与本轮饱和丢弃数 */
         getStats: () => ({
-          active: schedulerRef.current.activeCount,
-          dropped: schedulerRef.current.droppedCount,
+          active: scheduler.activeCount,
+          dropped: scheduler.droppedCount,
         }),
       }),
-      [containerRef]
+      [containerRef, scheduler]
     );
 
     // 尺寸观测：DPR 缩放 canvas，绘制用 CSS 像素坐标
@@ -168,7 +222,22 @@ export const DanmakuCore = forwardRef<DanmakuCoreRef, DanmakuCoreProps>(
       if (!ctx) return;
 
       let raf = 0;
+      let frameErrorLogged = false;
+      // 先调度下一帧再执行绘制：单帧异常（旧浏览器缺 roundRect / 脏数据）不会让循环永久停摆
       const frame = () => {
+        raf = requestAnimationFrame(frame);
+        // 后台 / 隐藏标签页不绘制（浏览器本就节流 rAF，这里直接跳过省掉光栅化）
+        if (document.hidden) return;
+        try {
+          renderFrame();
+        } catch (err) {
+          if (!frameErrorLogged) {
+            frameErrorLogged = true;
+            console.error("[DanmakuCore] 渲染帧异常，已跳过该帧", err);
+          }
+        }
+      };
+      const renderFrame = () => {
         const { width, height, dpr } = sizeRef.current;
         const live = liveRef.current;
         const opts: RenderOptions = {
@@ -176,7 +245,10 @@ export const DanmakuCore = forwardRef<DanmakuCoreRef, DanmakuCoreProps>(
           trackHeight: live.trackHeight,
           baseFontSize: live.baseFontSize,
           opacity: live.opacity,
-          accent: "#ff7a29",
+          fadeMs: live.fadeMs,
+          gap: live.gap,
+          defaultDuration: live.defaultDuration,
+          accent: live.accent,
           stroke: "rgba(0,0,0,0.85)",
           topInset: live.topInset,
           bottomInset: live.bottomInset,
@@ -189,7 +261,7 @@ export const DanmakuCore = forwardRef<DanmakuCoreRef, DanmakuCoreProps>(
         ctx.clearRect(0, 0, width, height);
 
         const zones: Rect[] = live.avoidZoneProvider ? live.avoidZoneProvider() : [];
-        const active = schedulerRef.current.tick(
+        const active = scheduler.tick(
           live.items,
           { width, height },
           live.currentTime,
@@ -220,11 +292,10 @@ export const DanmakuCore = forwardRef<DanmakuCoreRef, DanmakuCoreProps>(
         ctx.globalAlpha = 1;
         if (holes) ctx.restore();
 
-        raf = requestAnimationFrame(frame);
       };
       raf = requestAnimationFrame(frame);
       return () => cancelAnimationFrame(raf);
-    }, [containerRef]);
+    }, [containerRef, scheduler]);
 
     useEffect(() => {
       if (debug) console.debug("[DanmakuCore] mounted");
@@ -241,6 +312,8 @@ export const DanmakuCore = forwardRef<DanmakuCoreRef, DanmakuCoreProps>(
       >
         <canvas
           ref={canvasRef as React.RefObject<HTMLCanvasElement>}
+          role="img"
+          aria-label="弹幕画布"
           style={{ position: "absolute", inset: 0, pointerEvents: "none" }}
         />
         {/* 顶部工具条（StatsBar / FilterToggle 等） */}

@@ -1,4 +1,4 @@
-import React, { forwardRef, useCallback, useEffect, useRef } from "react";
+import React, { forwardRef, useCallback, useEffect, useMemo, useRef } from "react";
 import { usePluginRuntime } from "vane-plugin-core";
 import type { WithPluginsConfig } from "vane-plugin-core";
 import type {
@@ -54,12 +54,18 @@ export function withDanmakuPlugins<T = any>(
         [runtime.manager]
       );
 
-      // 数据流水线：原始 → transformData → 透传
-      const baseData: DanmakuData = (runtime.context.data as DanmakuData) ?? {
-        items: props.items,
-      };
-      const transformed: DanmakuData =
-        (runtime.transformData(baseData) as DanmakuData) ?? baseData;
+      // 数据流水线：原始 → transformData → 透传。
+      // 必须 memo：transformData 里含插件副作用（指令广播 / 审计），每次渲染重跑会重复触发；
+      // 且成本是 O(插件数 × 弹幕数)，不能随父组件任意次重渲染一起放大。
+      const transformed = useMemo<DanmakuData>(() => {
+        const base: DanmakuData = {
+          items: props.items,
+          now: props.currentTime,
+        };
+        return (runtime.transformData(base) as DanmakuData) ?? base;
+        // runtime 每次渲染都是新对象；真正决定流水线结果的是 items / 时钟 / 插件链 / state
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+      }, [props.items, props.currentTime, runtime.transformData, runtime.state]);
 
       // onMount / onUnmount 钩子链
       useEffect(() => {
@@ -84,9 +90,10 @@ export function withDanmakuPlugins<T = any>(
         items: transformed.items,
         currentTime: props.currentTime,
         playing: props.playing,
-        trackHeight: props.trackHeight,
-        baseFontSize: props.baseFontSize,
-        opacity: props.opacity,
+        // 样式类 props 取 transformProps 结果，让插件能通过 transformProps 改主题/排版
+        trackHeight: transformedProps.trackHeight,
+        baseFontSize: transformedProps.baseFontSize,
+        opacity: transformedProps.opacity,
         containerRefExternal: containerRef,
         avoidZoneProvider,
         debug: transformedProps.debug ?? enableDebug,
