@@ -1,6 +1,6 @@
 {
   "name": "RemindPlugin",
-  "description": "开抢提醒：idle 相位渲染提醒开关，开关态写内核 state.reminded，可被宿主复位。",
+  "description": "开抢提醒：未开抢（idle / 倒计时中 / validFrom 未到）渲染提醒开关，开关态写内核 state.reminded，可被宿主复位。",
   "since": "0.1.0",
   "tags": [
     "coupon",
@@ -28,12 +28,15 @@
     }
   ],
   "features": [
-    "只在 idle 相位渲染（可领取/已领取后提醒无意义）",
+    "渲染条件：phase === idle，或 CountdownPlugin 的 state.countdown > 0，或 validity.notStarted",
     "aria-pressed 无障碍开关语义"
   ],
   "useCases": [
     "定时开抢前预约提醒",
     "补货提醒"
+  ],
+  "notes": [
+    "当前 plugin-core 的 footer 槽按 position \"after\" 过滤，config.slotPosition 暂保持 after（元数据与真实槽位的统一待内核支持）。"
   ],
   "example": "const Coupon = createCouponCard([createRemindPlugin({ onRemind: (on) => api.setReminder(on) })]);"
 }

@@ -1,5 +1,6 @@
 import React from "react";
 import type { CouponPlugin, CouponPluginContext } from "../../components/CouponPlugin/plugins/types";
+import { resolveStock } from "../../components/CouponPlugin/plugins/stock";
 import * as T from "../../components/CouponPlugin/plugins/tokens";
 
 /**
@@ -7,6 +8,9 @@ import * as T from "../../components/CouponPlugin/plugins/tokens";
  *
  * 读 coupon.total / claimed（可用 config 覆盖），渲染进度条 + 「已抢 X%」；
  * 剩余 ≤ urgentPct 时换紧迫色。数据来自接口轮询时，props 变化（onPropsChange）即重算。
+ *
+ * 口径与 ClaimStatePlugin 共用 plugins/stock.ts：stock ≤ 0 与 claimed ≥ total
+ * 取并集，进度条写「已抢完」时领取按钮一定被判 soldout（P1-1）。
  * meta 在同目录 index.ts 挂载。
  */
 export interface ProgressConfig {
@@ -14,6 +18,8 @@ export interface ProgressConfig {
   total?: number;
   /** 已领取数（默认读 coupon.claimed） */
   claimed?: number;
+  /** 剩余库存（宿主侧权威值；与 total/claimed 取并集判售罄） */
+  stock?: number;
   /** 剩余 ≤ N% 标记紧迫，默认 20 */
   urgentPct?: number;
   /** 是否展示「仅剩 N 张」替代百分比，默认 true */
@@ -29,22 +35,24 @@ export function createProgressPlugin(config: ProgressConfig = {}): CouponPlugin 
     name: "progress",
     version: "0.1.0",
     description:
-      "领取进度条：按 total/claimed 渲染已抢百分比进度条，剩余 ≤ N% 换紧迫色，数据轮询即刷新",
+      "领取进度条：按 total/claimed/stock 渲染已抢百分比进度条，剩余 ≤ N% 换紧迫色，数据轮询即刷新",
     priority: 20,
     config: mergedConfig,
     hooks: {
       renderHeader: (context: CouponPluginContext) => {
-        const c = context.coupon;
-        const total = config.total ?? c.total;
-        const claimed = config.claimed ?? c.claimed;
-        if (typeof total !== "number" || total <= 0) return null;
-        if (typeof claimed !== "number" || claimed < 0) return null;
+        const stock = resolveStock(context.coupon, {
+          total: config.total,
+          claimed: config.claimed,
+          stock: config.stock,
+        });
+        if (stock.total === null || stock.total <= 0) return null;
+        if (stock.claimed === null || stock.claimed < 0) return null;
 
-        const pct = Math.min(100, Math.round((claimed / total) * 100));
-        const remaining = Math.max(0, total - claimed);
+        const pct = stock.percent ?? 0;
+        const remaining = stock.remaining ?? 0;
         const urgent = 100 - pct <= urgentPct;
         let text = `已抢 ${pct}%`;
-        if (remaining === 0) {
+        if (stock.soldout) {
           text = "已抢完";
         } else if (urgent && showRemaining) {
           text += ` · 仅剩 ${remaining} 张`;
@@ -57,6 +65,7 @@ export function createProgressPlugin(config: ProgressConfig = {}): CouponPlugin 
             data-testid="coupon-progress"
             data-percent={String(pct)}
             data-urgent={urgent ? "true" : "false"}
+            data-soldout={stock.soldout ? "true" : "false"}
           >
             <div
               style={{

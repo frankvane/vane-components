@@ -18,6 +18,8 @@ export interface ShareConfig {
 
 export function createSharePlugin(config: ShareConfig = {}): CouponPlugin {
   const text = config.text ?? "分享好友";
+  // 注：renderPluginSlot 的 footer 槽以 position "after" 过滤（plugin-core 现状），
+  // 声明 "footer" 会被滤掉，故这里保持 "after"（P2-8 槽位元数据部分待内核支持）。
   const mergedConfig = { slotPosition: "after", order: 10, ...config } as any;
 
   return {

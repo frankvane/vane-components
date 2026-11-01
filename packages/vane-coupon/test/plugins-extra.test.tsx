@@ -115,7 +115,7 @@ describe("CountdownPlugin", () => {
     await waitFor(() => !!cd());
     expect(cd()!.textContent).toContain("距开抢");
 
-    await waitFor(() => fired > 0);
+    await waitFor(() => fired > 0 && !q('[data-testid="coupon-countdown-value"]'));
     expect(q('[data-testid="coupon-countdown-value"]')).toBeNull();
     // 本用例未装 ClaimStatePlugin，相位标在核心根节点上（coupon-claim-btn 是 ClaimState 的 testid）
     const rootEl = () => q('[data-testid="coupon-root"]') as HTMLElement;

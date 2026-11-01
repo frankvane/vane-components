@@ -6,6 +6,7 @@ import React, {
   useState,
 } from "react";
 import type { CouponCoreProps, CouponCoreRef } from "./plugins/types";
+import { AMOUNT_FALLBACK, formatAmount, resolveThreshold } from "./plugins/format";
 import * as T from "./plugins/tokens";
 
 /**
@@ -48,7 +49,8 @@ export const CouponCore = forwardRef<CouponCoreRef, CouponCoreProps>(
         }),
         getPhase: () => phase,
       }),
-      [phase]
+      // containerRef 变化时句柄必须重建，否则 getContainer 会指向旧 ref（已置 null）
+      [phase, containerRef]
     );
 
     useEffect(() => {
@@ -60,11 +62,11 @@ export const CouponCore = forwardRef<CouponCoreRef, CouponCoreProps>(
     }, []);
 
     const isDiscount = coupon.amountType === "discount";
-    const thresholdText =
-      coupon.thresholdText ??
-      (coupon.threshold && coupon.threshold > 0
-        ? `满${coupon.threshold}可用`
-        : "无门槛");
+    // 面额 / 门槛不再直接渲染原始值：非法数据走兜底，cash 固定两位小数
+    const amountText = formatAmount(coupon.amount, coupon.amountType);
+    const amountInvalid = amountText === AMOUNT_FALLBACK;
+    const threshold = resolveThreshold(coupon.threshold);
+    const thresholdText = coupon.thresholdText ?? threshold.text;
 
     return (
       <div
@@ -91,20 +93,30 @@ export const CouponCore = forwardRef<CouponCoreRef, CouponCoreProps>(
 
         <div className="vc-coupon__body" data-testid="coupon-body" style={T.bodyStyle}>
           <div className="vc-coupon__face" style={T.faceStyle}>
-            <div className="vc-coupon__amount" data-testid="coupon-amount" style={T.amountStyle}>
+            <div
+              className="vc-coupon__amount"
+              data-testid="coupon-amount"
+              data-invalid={amountInvalid ? "true" : "false"}
+              style={T.amountStyle}
+            >
               {isDiscount ? (
                 <>
-                  <span className="vc-coupon__amount-value" style={T.amountValueStyle}>{coupon.amount}</span>
+                  <span className="vc-coupon__amount-value" style={T.amountValueStyle}>{amountText}</span>
                   <span className="vc-coupon__amount-unit" style={T.amountUnitStyle}>折</span>
                 </>
               ) : (
                 <>
                   <span className="vc-coupon__amount-currency" style={T.amountCurrencyStyle}>¥</span>
-                  <span className="vc-coupon__amount-value" style={T.amountValueStyle}>{coupon.amount}</span>
+                  <span className="vc-coupon__amount-value" style={T.amountValueStyle}>{amountText}</span>
                 </>
               )}
             </div>
-            <div className="vc-coupon__threshold" data-testid="coupon-threshold" style={T.thresholdStyle}>
+            <div
+              className="vc-coupon__threshold"
+              data-testid="coupon-threshold"
+              data-state={threshold.state}
+              style={T.thresholdStyle}
+            >
               {thresholdText}
             </div>
           </div>

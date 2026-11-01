@@ -26,12 +26,18 @@
       "type": "(code: string) => void",
       "default": "-",
       "description": "复制成功回调"
+    },
+    {
+      "name": "onError",
+      "type": "(reason?: string) => void",
+      "default": "-",
+      "description": "复制失败回调（clipboard 与 execCommand 均失败时触发，reason 为 clipboard-unavailable）"
     }
   ],
   "features": [
     "claimed/used 之外的相位渲染 null",
-    "http 内网环境 execCommand 兜底（对齐 CodeBlock 的复制策略）",
-    "1.6s 后自动还原按钮文案"
+    "http 内网环境 execCommand 兜底（对齐 CodeBlock 的复制策略），两条路径都失败时经 onError 上报",
+    "1.6s 后自动还原按钮文案；连续点击先清旧定时器，卸载时统一清理"
   ],
   "useCases": [
     "口令券",

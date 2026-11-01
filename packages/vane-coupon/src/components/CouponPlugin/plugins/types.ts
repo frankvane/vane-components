@@ -21,6 +21,45 @@ import type {
 
 // ============ 领域数据 ============
 
+/** 券适用范围（商品白名单 / 黑名单） */
+export interface CouponScope {
+  /** 指定 SKU 白名单 */
+  sku?: string[];
+  /** 指定类目白名单 */
+  category?: string[];
+  /** 排除 SKU 黑名单 */
+  excludeSku?: string[];
+}
+
+/** 订单行（eligibility 判定商品范围用） */
+export interface CouponOrderItem {
+  sku?: string;
+  category?: string;
+  /** 行金额（元） */
+  amount?: number;
+  /** 数量，默认 1 */
+  quantity?: number;
+}
+
+/**
+ * 订单上下文：宿主把「当前订单」传进来后，组件才能判定
+ * 门槛 / 有效期 / 商品范围 / 互斥 / 叠加。
+ */
+export interface CouponOrderContext {
+  /** 订单金额（参与优惠计算）；缺省用 items 合计 */
+  amount?: number;
+  /** 订单行 */
+  items?: CouponOrderItem[];
+  /** 已选券（判断互斥组与叠加冲突） */
+  applied?: Array<{ id?: string; exclusiveGroup?: string }>;
+  /** 当前用户已领张数（默认读 coupon.quota 口径） */
+  purchasedCount?: number;
+  /** 相对有效期起算点（无则按「领取后 N 天」文案处理） */
+  claimedAt?: number;
+  /** 判定时刻（epoch ms），默认 Date.now */
+  now?: number;
+}
+
 /** 券面数据：一张优惠券的静态描述 */
 export interface CouponData {
   /** 稳定标识 */
@@ -57,17 +96,46 @@ export interface CouponData {
   code?: string;
   /** 领取/使用记录（HistoryPlugin 数据源，按时间倒序展示） */
   history?: { at: number; action: string }[];
+  /** 券适用范围（eligibility 判定用；未声明视为全场通用） */
+  scope?: CouponScope;
+  /** 互斥组：同组券不可同时使用（如「品类券」「品牌券」） */
+  exclusiveGroup?: string;
   /** 任意业务数据 */
   [key: string]: any;
+}
+
+/** 不可用原因（按判定顺序排列，便于宿主提示） */
+export type CouponEligibilityReason =
+  | "threshold"
+  | "not-started"
+  | "expired"
+  | "scope"
+  | "exclusive"
+  | "stackable"
+  | "quota"
+  | "soldout";
+
+/** eligibility 判定结果（写入 state.eligible，ClaimState 与宿主共用） */
+export interface CouponEligibility {
+  eligible: boolean;
+  reasons: CouponEligibilityReason[];
+  /** 门槛差额（元，不足时为正；无法判定为 null） */
+  thresholdGap: number | null;
+  /** 判定使用的订单金额（无法判定为 null） */
+  amount: number | null;
 }
 
 // ============ 领取状态机 ============
 
 /**
- * 领取相位（7 态）：
+ * 领取相位（8 态）：
  *   idle(未开始) → available(可领取) → claiming(领取中) → claimed(已领取)
  *   failed 不设独立态：领取失败回退 available 并经 onClaimError 上报。
  *   终态：used(已使用) / soldout(已抢空) / expired(已过期)；claimed 半终态（可核销为 used）。
+ *   quota-limited(已达限领上限)：非终态，已领数下调后自动恢复 available。
+ *
+ * 注：quota-limited 是 0.1.x 新增成员。外部若用 `Record<CouponPhase, T>` 穷举，
+ * 升级时需补该键（类型层面破坏性变更，运行时向后兼容）。
  */
 export type CouponPhase =
   | "idle"
@@ -76,7 +144,8 @@ export type CouponPhase =
   | "used"
   | "claimed"
   | "soldout"
-  | "expired";
+  | "expired"
+  | "quota-limited";
 
 // ============ 有效期判定 ============
 
@@ -118,6 +187,11 @@ export interface CouponSlots {
 export interface CouponCoreProps {
   /** 券面数据 */
   coupon: CouponData;
+  /**
+   * 订单上下文：传入后组件才能判定门槛 / 商品范围 / 互斥 / 叠加，
+   * 结果写 state.eligible（EligibilityPlugin）并被领取按钮复用。
+   */
+  order?: CouponOrderContext;
   /** 插槽内容（由 withPlugins 的 renderPluginSlot 组装） */
   slots?: CouponSlots;
   /** 当前领取相位（由 withPlugins 从内核 state 注入，Core 只读；裸核心为 undefined） */
@@ -157,6 +231,12 @@ export interface CouponPluginContext
   setPhase: (phase: CouponPhase) => void;
   /** 有效期判定结果（ValidityPlugin 写入；未安装为 null） */
   validity: CouponValidity | null;
+  /** 订单上下文（props.order 的实时引用；未传为 null） */
+  order: CouponOrderContext | null;
+  /** 可用性判定结果（EligibilityPlugin 写入；无法判定为 null） */
+  eligible: CouponEligibility | null;
+  /** 每人限领是否超限（QuotaPlugin 写入） */
+  quotaReached: boolean;
   /** 规则是否展开（RuleExpandPlugin 使用） */
   rulesExpanded: boolean;
   /** 切换规则展开态 */

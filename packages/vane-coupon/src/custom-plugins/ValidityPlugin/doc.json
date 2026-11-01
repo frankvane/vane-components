@@ -20,12 +20,14 @@
   "features": [
     "absolute：validFrom/validTo 区间展示 + 未开始/已过期判定",
     "relative：未领取显示「领取后 N 天内有效」，已领取从 state.claimedAt 起算",
+    "到点自动复查：按「validFrom 或 validTo + 1ms」挂 setTimeout，页面停留跨过边界后自动收敛（P1-3）",
     "产出 state.validity（changed 才写），ClaimStatePlugin 借 onValidityChange 降级 expired"
   ],
   "useCases": ["固定活动周期的券", "领取后 N 天生效的券"],
   "notes": [
     "渲染 after 槽（priority 23 > RuleExpand 21），显示在规则区上方。",
-    "两种模式都未声明时不渲染也不写 state。"
+    "两种模式都未声明时不渲染也不写 state。",
+    "定时器存 context.shared，onMount 返回清理函数、onUnmount 兜底清理。"
   ],
   "example": "const Coupon = createCouponCard([createValidityPlugin({ urgentDays: 3 })]);"
 }

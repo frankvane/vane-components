@@ -1,6 +1,6 @@
 {
   "name": "ClaimStatePlugin",
-  "description": "领取状态机：7 态相位流转（未开始/可领取/领取中/已领取/已使用/已抢空/已过期），点击触发异步领取，联动有效期与库存自动降级终态。",
+  "description": "领取状态机：8 态相位流转（未开始/可领取/领取中/已领取/已使用/已抢空/已过期/已达限领上限），点击触发异步领取，联动有效期、库存、限领与订单可用性自动门控。",
   "since": "0.1.0",
   "tags": ["coupon", "claim", "state-machine", "footer"],
   "config": [
@@ -8,7 +8,7 @@
       "name": "initialPhase",
       "type": "CouponPhase",
       "default": "-",
-      "description": "初始相位，默认 available（可领取）"
+      "description": "初始相位，默认 available（可领取）；硬门（过期/售罄/超限）优先"
     },
     {
       "name": "claim",
@@ -20,7 +20,37 @@
       "name": "stock",
       "type": "number",
       "default": "-",
-      "description": "剩余库存；≤ 0 自动降级 soldout（已抢光）"
+      "description": "剩余库存；≤ 0 自动降级 soldout（与 total/claimed 取并集）"
+    },
+    {
+      "name": "total",
+      "type": "number",
+      "default": "coupon.total",
+      "description": "发放总量覆盖；claimed ≥ total 时判售罄（与 ProgressPlugin 同口径）"
+    },
+    {
+      "name": "claimed",
+      "type": "number",
+      "default": "coupon.claimed",
+      "description": "已领取数覆盖（与 ProgressPlugin 同口径）"
+    },
+    {
+      "name": "quota",
+      "type": "number",
+      "default": "coupon.quota",
+      "description": "每人限领张数；超限进入 quota-limited"
+    },
+    {
+      "name": "purchasedCount",
+      "type": "number",
+      "default": "order.purchasedCount ?? 0",
+      "description": "当前用户已领张数"
+    },
+    {
+      "name": "now",
+      "type": "() => number",
+      "default": "Date.now",
+      "description": "判定时钟，点击时按它现算过期（不依赖可能陈旧的 state.validity）"
     },
     {
       "name": "onPhaseChange",
@@ -39,17 +69,28 @@
       "type": "Partial<Record<CouponPhase, string>>",
       "default": "-",
       "description": "按钮文案按相位覆盖"
+    },
+    {
+      "name": "ineligibleText",
+      "type": "string",
+      "default": "\"不可用\"",
+      "description": "订单不可用（门槛/范围/互斥/叠加不满足）时的按钮文案"
     }
   ],
   "features": [
-    "7 态状态机：idle / available / claiming / claimed / used / soldout / expired，终态不再响应点击",
-    "读取 state.validity（ValidityPlugin 写入）自动降级 expired；stock ≤ 0 降级 soldout",
+    "8 态状态机：idle / available / claiming / claimed / used / soldout / expired / quota-limited",
+    "库存并集口径：stock ≤ 0 或 claimed ≥ total 都降级 soldout（与 ProgressPlugin 共用 resolveStock）",
+    "限领超限降级 quota-limited（非终态，已领数下调后自动恢复 available）",
+    "过期判定按注入时钟现算；领取期间跨过 validTo 不落成功态",
+    "订单可用性（state.eligible 或 props.order）不满足时按钮显示「不可用」且不可点击",
     "claimedAt 写入内核 state，供相对有效期锚定领取时刻"
   ],
   "useCases": ["领券中心", "营销活动页", "会员权益券"],
   "notes": [
     "渲染 footer 槽（priority 32）；事件钩子写内核 state，不在渲染期 setState。",
-    "expired 只覆盖非终态：已核销（used）的券不会被过期判定打回。"
+    "expired 只覆盖非终态：已核销（used）的券不会被过期判定打回。",
+    "重入锁存于 context.shared，同一事件循环内连点只发起一次领取；卸载后异步返回不再写 state。",
+    "当前 plugin-core 的 footer 槽按 position \"after\" 过滤，config.slotPosition 暂保持 after（元数据与真实槽位的统一待内核支持）。"
   ],
-  "example": "const Coupon = createCouponCard([createClaimStatePlugin({ claim: async () => ({ ok: true }) })]);"
+  "example": "const Coupon = createCouponCard([createClaimStatePlugin({ claim: async () => ({ ok: true }), purchasedCount: 2, quota: 2 })]);"
 }

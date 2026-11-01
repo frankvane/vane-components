@@ -4,6 +4,7 @@
  */
 export * from "./ClaimStatePlugin";
 export * from "./ValidityPlugin";
+export * from "./EligibilityPlugin";
 export * from "./RuleExpandPlugin";
 export * from "./StackPlugin";
 export * from "./ProgressPlugin";

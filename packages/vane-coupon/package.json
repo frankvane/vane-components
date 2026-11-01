@@ -43,6 +43,10 @@
       "types": "./dist/custom-plugins/DetailLinkPlugin/index.d.ts",
       "import": "./dist/custom-plugins/DetailLinkPlugin/index.js"
     },
+    "./custom-plugins/EligibilityPlugin": {
+      "types": "./dist/custom-plugins/EligibilityPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/EligibilityPlugin/index.js"
+    },
     "./custom-plugins/HistoryPlugin": {
       "types": "./dist/custom-plugins/HistoryPlugin/index.d.ts",
       "import": "./dist/custom-plugins/HistoryPlugin/index.js"
@@ -123,8 +127,8 @@
       "accent": "#d03050",
       "bg": "#0b0a09"
     },
-    "sizeBudgetKb": 8,
-    "sizeBudgetNote": "根入口按 ADR-6 只聚合 CouponCore + createCouponCard/withPlugins + 领域类型，4 个插件全走子路径。8KB 是同构参照（vane-sku 根入口 6.5KB）加少量余量的预估，构建实测后校准。"
+    "sizeBudgetKb": 9,
+    "sizeBudgetNote": "根入口按 ADR-6 只聚合 CouponCore + createCouponCard/withPlugins + 领域类型，插件全走子路径。8KB 是同构参照（vane-sku 根入口 6.5KB）加少量余量的预估，构建实测后校准。【2026-11-01 修复批次：8→9KB】可用性判定引擎（门槛/商品范围/互斥/叠加/限领/库存）的纯函数与领域类型并入根入口导出，实测 8.7KB；属修复核心功能（原实现只有字段与文案、没有可用性判定）而非结构退化，据实上调并留 0.3KB 余量。"
   },
   "peerDependencies": {
     "react": ">=16.8.0",

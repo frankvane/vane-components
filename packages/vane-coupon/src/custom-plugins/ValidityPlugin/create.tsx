@@ -4,16 +4,26 @@ import type {
   CouponPluginContext,
   CouponValidity,
 } from "../../components/CouponPlugin/plugins/types";
+import {
+  computeValidity,
+  nextValidityCheckAt,
+  sameValidity,
+  DAY_MS,
+} from "../../components/CouponPlugin/plugins/validity";
 import * as T from "../../components/CouponPlugin/plugins/tokens";
 
 /**
  * ValidityPlugin — 有效期判定（after 槽，priority 23 > RuleExpand 的 21，渲染在规则上方）。
  *
- * 三种判定模式（按声明字段自动选择）：
+ * 三种判定模式（按声明字段自动选择，判定实现见 plugins/validity.ts）：
  *   absolute —— validTo（可配 validFrom）存在时；未开始/已过期/剩余天数
  *   relative —— validDays：未领取显示「领取后 N 天内有效」；已领取从 state.claimedAt
  *               （ClaimStatePlugin 写入）起算
  *   none     —— 都未声明：不渲染、不写 state
+ *
+ * P1-3：页面停留跨过 validTo 后必须自动收敛。每次判定后按「下一次边界」
+ * （validFrom 或 validTo + 1ms）挂一个 setTimeout，到点重算并写 state；
+ * 定时器存在 context.shared，onMount 返回清理函数、onUnmount 兜底清理。
  *
  * 产出写内核 state.validity（changed 才写），供 ClaimStatePlugin 联动降级 expired。
  * 时钟可注入（now），测试与 demo 可控。
@@ -26,13 +36,10 @@ export interface ValidityConfig {
   urgentDays?: number;
 }
 
-const DAY_MS = 24 * 60 * 60 * 1000;
-
-const fmtDate = (ts: number): string => {
-  const d = new Date(ts);
-  const p = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}.${p(d.getMonth() + 1)}.${p(d.getDate())}`;
-};
+/** 定时器句柄存放键（跨渲染读取最新值） */
+const TIMER_KEY = "validity:timer";
+/** setTimeout 上限（超过会溢出成 1ms，长周期改为分段复查） */
+const MAX_TIMEOUT = 2_147_483_647;
 
 export function createValidityPlugin(
   config: ValidityConfig = {}
@@ -41,87 +48,62 @@ export function createValidityPlugin(
   const now = config.now ?? (() => Date.now());
   const mergedConfig = { slotPosition: "after", order: 10, ...config } as any;
 
-  const compute = (context: CouponPluginContext): CouponValidity | null => {
-    const coupon = context.coupon;
-    const ts = now();
-
-    // absolute：以 validTo 为准
-    if (typeof coupon.validTo === "number") {
-      const notStarted =
-        typeof coupon.validFrom === "number" ? ts < coupon.validFrom : false;
-      const expired = ts > coupon.validTo;
-      const remainingMs = Math.max(0, coupon.validTo - ts);
-      const remainingDays = Math.ceil(remainingMs / DAY_MS);
-      const range =
-        typeof coupon.validFrom === "number"
-          ? `${fmtDate(coupon.validFrom)} - ${fmtDate(coupon.validTo)}`
-          : `${fmtDate(coupon.validTo)} 前`;
-      return {
-        mode: "absolute",
-        valid: !expired && !notStarted,
-        expired,
-        notStarted,
-        remainingMs,
-        text: range,
-        urgent: !expired && !notStarted && remainingDays <= urgentDays,
-      };
+  function clearTimer(context: CouponPluginContext): void {
+    const timer = context.shared.get(TIMER_KEY);
+    if (timer !== undefined) {
+      window.clearTimeout(timer as number);
+      context.shared.delete(TIMER_KEY);
     }
+  }
 
-    // relative：以 validDays 为准
-    if (typeof coupon.validDays === "number") {
-      const claimedAt = (context.state?.claimedAt ?? undefined) as
-        | number
-        | undefined;
-      if (typeof claimedAt !== "number") {
-        return {
-          mode: "relative",
-          valid: true,
-          expired: false,
-          notStarted: false,
-          remainingMs: null,
-          text: `领取后 ${coupon.validDays} 天内有效`,
-          urgent: false,
-        };
-      }
-      const end = claimedAt + coupon.validDays * DAY_MS;
-      const expired = ts > end;
-      const remainingMs = Math.max(0, end - ts);
-      const remainingDays = Math.ceil(remainingMs / DAY_MS);
-      return {
-        mode: "relative",
-        valid: !expired,
-        expired,
-        notStarted: false,
-        remainingMs,
-        text: `${fmtDate(claimedAt)} 领取，${coupon.validDays} 天内有效`,
-        urgent: !expired && remainingDays <= urgentDays,
-      };
+  /** 事件钩子共用：计算并按需写入 state，然后按边界重挂定时器 */
+  function evaluate(context: CouponPluginContext): void {
+    const claimedAt = (context.state?.claimedAt ?? undefined) as
+      | number
+      | undefined;
+    const next = computeValidity(context.coupon, {
+      now,
+      urgentDays,
+      claimedAt,
+    });
+    if (next === null) {
+      // none 模式：不写 state、不渲染
+      clearTimer(context);
+      return;
     }
-
-    return null;
-  };
-
-  const sameValidity = (a: any, b: any): boolean =>
-    JSON.stringify(a) === JSON.stringify(b);
-
-  /** 事件钩子共用：计算并按需写入 state */
-  const evaluate = (context: CouponPluginContext): void => {
-    const next = compute(context);
     const current = (context.state?.validity ?? null) as CouponValidity | null;
-    if (next === null) return; // none 模式：不写 state、不渲染
     if (!sameValidity(next, current)) context.setState({ validity: next });
-  };
+    schedule(context);
+  }
+
+  /** 按「下一次需要复查的时间点」挂定时器；已过边界则不再挂 */
+  function schedule(context: CouponPluginContext): void {
+    clearTimer(context);
+    const claimedAt = (context.state?.claimedAt ?? undefined) as
+      | number
+      | undefined;
+    const at = nextValidityCheckAt(context.coupon, claimedAt, now());
+    if (at === null) return;
+
+    const delay = Math.max(0, Math.min(at - now(), MAX_TIMEOUT));
+    const timer = window.setTimeout(() => {
+      context.shared.delete(TIMER_KEY);
+      evaluate(context);
+    }, delay);
+    context.shared.set(TIMER_KEY, timer);
+  }
 
   return {
     name: "validity",
     version: "0.1.0",
     description:
-      "有效期判定：绝对（validFrom/validTo）/ 相对（领取后 N 天）双模式，紧迫态强调、过期写 state 供领取状态机联动",
+      "有效期判定：绝对（validFrom/validTo）/ 相对（领取后 N 天）双模式，紧迫态强调、到期自动复查写 state 供领取状态机联动",
     priority: 23,
     config: mergedConfig,
     hooks: {
       onMount: (context: CouponPluginContext) => {
         evaluate(context);
+        return () => clearTimer(context);
       },
       onPropsChange: (context: CouponPluginContext) => {
         evaluate(context);
@@ -129,6 +111,9 @@ export function createValidityPlugin(
       onPhaseChange: (context: CouponPluginContext) => {
         // 领取动作写入 claimedAt → 相对有效期要重算（从「领取后 N 天」切到锚定 claimedAt）
         evaluate(context);
+      },
+      onUnmount: (context: CouponPluginContext) => {
+        clearTimer(context);
       },
       renderHeader: (context: CouponPluginContext) => {
         const validity = context.validity;
@@ -150,17 +135,11 @@ export function createValidityPlugin(
             <span style={T.fieldLabelStyle}>有效期</span>
             <span style={T.validityTextStyle}>{validity.text}</span>
             {validity.expired ? (
-              <span style={T.chipExpiredStyle}>
-                已过期
-              </span>
+              <span style={T.chipExpiredStyle}>已过期</span>
             ) : validity.urgent && remainingDays !== null ? (
-              <span style={T.chipUrgentStyle}>
-                仅剩 {remainingDays} 天
-              </span>
+              <span style={T.chipUrgentStyle}>仅剩 {remainingDays} 天</span>
             ) : validity.notStarted ? (
-              <span style={T.chipMutedStyle}>
-                未开始
-              </span>
+              <span style={T.chipMutedStyle}>未开始</span>
             ) : null}
           </div>
         );

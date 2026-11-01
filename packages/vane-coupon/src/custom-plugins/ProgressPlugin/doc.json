@@ -22,6 +22,12 @@
       "description": "已领取数"
     },
     {
+      "name": "stock",
+      "type": "number",
+      "default": "-",
+      "description": "剩余库存（宿主侧权威值）；≤ 0 与 claimed ≥ total 取并集判售罄"
+    },
+    {
       "name": "urgentPct",
       "type": "number",
       "default": "20",
@@ -35,9 +41,10 @@
     }
   ],
   "features": [
-    "进度条宽度随 claimed/total 变化",
+    "进度条宽度随 claimed/total 变化（claimed 超过 total 时封顶 100%）",
     "紧迫色 #a54a00（对比度 5.6:1）",
-    "抢完显示「已抢完」"
+    "售罄判定与 ClaimStatePlugin 共用 resolveStock：任一条件成立即写「已抢完」并标记 data-soldout",
+    "无 total / claimed 等可判定数据时不渲染（不臆测进度）"
   ],
   "useCases": [
     "限量抢购券",

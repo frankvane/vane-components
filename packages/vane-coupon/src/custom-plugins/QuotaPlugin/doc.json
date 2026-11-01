@@ -1,6 +1,6 @@
 {
   "name": "QuotaPlugin",
-  "description": "每人限领：读 coupon.quota 与已领数渲染限领提示，超限写 state.quotaReached 供宿主门控领取按钮。",
+  "description": "每人限领：读 coupon.quota 与已领数渲染限领提示，超限写 state.quotaReached 并被领取按钮实际读取（quota-limited 门控）。",
   "since": "0.1.0",
   "tags": [
     "coupon",
@@ -18,20 +18,21 @@
     {
       "name": "purchasedCount",
       "type": "number",
-      "default": "0",
+      "default": "order.purchasedCount ?? 0",
       "description": "当前用户已领张数"
     },
     {
       "name": "onExceed",
-      "type": "() => void",
+      "type": "(quota: number) => void",
       "default": "-",
-      "description": "超限回调"
+      "description": "超限回调（入参为生效的限领张数）"
     }
   ],
   "features": [
     "未声明 quota 视为不限领（渲染 null）",
     "超限提示条红字",
-    "state.quotaReached 写内核 state"
+    "state.quotaReached 只有值变化时才写（避免父渲染空转）",
+    "ClaimStatePlugin 复用 resolveQuota 同一口径，超限时按钮进入 quota-limited（非终态，已领数下调后恢复）"
   ],
   "useCases": [
     "每人限领 N 张的活动券",

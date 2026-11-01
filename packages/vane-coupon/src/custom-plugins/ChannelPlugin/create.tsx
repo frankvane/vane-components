@@ -30,9 +30,9 @@ export function createChannelPlugin(config: ChannelConfig = {}): CouponPlugin {
 
         return (
           <div style={T.badgesStyle} data-testid="coupon-channels">
-            {channels.map((label) => (
+            {channels.map((label, index) => (
               <span
-                key={label}
+                key={`${label}-${index}`}
                 style={T.badgeMutedStyle}
                 data-testid="coupon-channel-badge"
               >

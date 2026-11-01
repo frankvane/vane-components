@@ -1,0 +1,35 @@
+{
+  "name": "EligibilityPlugin",
+  "description": "可用性判定：按订单上下文判定门槛 / 有效期 / 商品范围 / 互斥 / 叠加 / 限领 / 库存，结果写 state.eligible 供领取按钮与宿主复用。",
+  "since": "0.1.0",
+  "tags": [
+    "coupon",
+    "eligibility",
+    "order"
+  ],
+  "config": [
+    {
+      "name": "order",
+      "type": "CouponOrderContext",
+      "default": "props.order",
+      "description": "订单上下文（amount / items / applied / purchasedCount / claimedAt / now）"
+    },
+    {
+      "name": "onEvaluate",
+      "type": "(result: CouponEligibility) => void",
+      "default": "-",
+      "description": "每次判定后回调，入参含 eligible / reasons / thresholdGap"
+    }
+  ],
+  "features": [
+    "门槛按「分」比较，刚好等于视为满足",
+    "商品范围支持 sku / category 白名单与 excludeSku 黑名单",
+    "互斥组冲突与不可叠加冲突判定",
+    "结果写 state.eligible，ClaimState 复用同一口径"
+  ],
+  "useCases": [
+    "结算页按当前购物车判定券是否可用",
+    "券列表标记「差 X 元可用」"
+  ],
+  "example": "const Coupon = createCouponCard([createEligibilityPlugin(), createClaimStatePlugin()]);"
+}

@@ -11,8 +11,9 @@
 
 ## 特性
 
-- **领取状态机**：7 态相位流转（未开始 / 可领取 / 领取中 / 已领取 / 已使用 / 已抢空 / 已过期），终态不回退
-- **有效期双模式**：绝对区间（validFrom/validTo）与相对（领取后 N 天）自动判定，紧迫态强调、过期联动领取状态机
+- **领取状态机**：8 态相位流转（未开始 / 可领取 / 领取中 / 已领取 / 已使用 / 已抢空 / 已过期 / 已达限领上限），终态不回退
+- **展示与门控同口径**：库存（`stock ≤ 0` 或 `claimed ≥ total`）、限领、过期、订单可用性都走同一组纯函数（`stock.ts` / `quota.ts` / `validity.ts` / `eligibility.ts`），不会出现「进度条已抢完但按钮还能领」
+- **有效期双模式**：绝对区间（validFrom/validTo）与相对（领取后 N 天）自动判定，到点自动复查、紧迫态强调、过期联动领取状态机
 - **规则展开**：按条数折叠展开，不用 line-clamp（避免纵向裁切）
 - **叠加角标**：数据驱动的「可叠加 / 不可叠加」标识
 - 插件化架构，核心稳定、能力可无限扩展；Tree-shaking 友好
@@ -70,10 +71,38 @@ import { CouponCard } from "vane-coupon";
 
 | 插件 | 职责 | 子路径 |
 | --- | --- | --- |
-| ClaimStatePlugin | 领取状态机（7 态） | `vane-coupon/custom-plugins/ClaimStatePlugin` |
-| ValidityPlugin | 有效期判定（绝对/相对） | `vane-coupon/custom-plugins/ValidityPlugin` |
+| ClaimStatePlugin | 领取状态机（8 态，库存/限领/过期联动门控） | `vane-coupon/custom-plugins/ClaimStatePlugin` |
+| EligibilityPlugin | 订单可用性判定（门槛/范围/互斥/叠加/限领/库存） | `vane-coupon/custom-plugins/EligibilityPlugin` |
+| ValidityPlugin | 有效期判定（绝对/相对，到点自动复查） | `vane-coupon/custom-plugins/ValidityPlugin` |
+| ProgressPlugin | 领取进度条（与领取门控共用库存口径） | `vane-coupon/custom-plugins/ProgressPlugin` |
+| QuotaPlugin | 每人限领提示（超限写 state 供按钮门控） | `vane-coupon/custom-plugins/QuotaPlugin` |
 | RuleExpandPlugin | 规则展开 / 收起 | `vane-coupon/custom-plugins/RuleExpandPlugin` |
 | StackPlugin | 叠加态角标 | `vane-coupon/custom-plugins/StackPlugin` |
+| RemindPlugin | 开抢提醒（idle / 倒计时中 / validFrom 未到） | `vane-coupon/custom-plugins/RemindPlugin` |
+| CopyCodePlugin | 券码复制（失败经 onError 上报） | `vane-coupon/custom-plugins/CopyCodePlugin` |
+
+### 订单可用性（可选）
+
+传入 `order` 后组件才能判定「当前订单能否用这张券」；不传则只做券面展示与库存/限领/有效期门控：
+
+```tsx
+import { createEligibilityPlugin } from "vane-coupon/custom-plugins/EligibilityPlugin";
+import { createClaimStatePlugin } from "vane-coupon/custom-plugins/ClaimStatePlugin";
+
+const Coupon = createCouponCard([
+  createEligibilityPlugin(),
+  createClaimStatePlugin({ claim: async () => ({ ok: true }) }),
+]);
+
+<Coupon
+  coupon={{ id: "c1", title: "满 199 减 20", amount: 20, threshold: 199 }}
+  order={{ amount: 199, items: [{ sku: "A", amount: 199 }], purchasedCount: 1 }}
+/>;
+```
+
+门槛按「分」比较（刚好等于视为满足），商品范围支持 `scope.sku / scope.category / scope.excludeSku`，互斥用 `exclusiveGroup`，叠加用 `stackable`。判定结果写 `state.eligible`，领取按钮与宿主提示共用同一口径。
+
+> **破坏性变更（类型层面）**：`CouponPhase` 新增 `"quota-limited"`。若外部用 `Record<CouponPhase, T>` 穷举相位，升级时需补该键；运行时向后兼容。
 
 ## 包体积
 

@@ -1,32 +1,40 @@
 import React from "react";
 import type { CouponPlugin, CouponPluginContext } from "../../components/CouponPlugin/plugins/types";
+import { resolveQuota } from "../../components/CouponPlugin/plugins/quota";
 
 /**
  * QuotaPlugin — 每人限领（after 槽）。
  *
  * 读 coupon.quota（config 可覆盖）与已领数，渲染限领提示；
- * 超限写 state.quotaReached 供宿主/其他插件读取（不直接耦合 ClaimState）。
- * 事件钩子写 state，渲染钩子纯读。
+ * 超限写 state.quotaReached 供 ClaimStatePlugin 门控领取按钮（同口径见 plugins/quota.ts）。
+ * 事件钩子写 state，渲染钩子纯读；写入前比较当前值，避免父渲染引发的空转重渲染（P2-5）。
  * meta 在同目录 index.ts 挂载。
  */
 export interface QuotaConfig {
   /** 每人限领张数（默认读 coupon.quota） */
   quota?: number;
-  /** 当前用户已领张数，默认 0 */
+  /** 当前用户已领张数，默认 0（可传 order.purchasedCount） */
   purchasedCount?: number;
   /** 超限回调（入参为生效的限领张数） */
   onExceed?: (quota: number) => void;
 }
 
 export function createQuotaPlugin(config: QuotaConfig = {}): CouponPlugin {
-  const purchased = config.purchasedCount ?? 0;
   const mergedConfig = { slotPosition: "after", order: 10, ...config } as any;
 
-  const resolve = (context: CouponPluginContext) => {
-    const quota = config.quota ?? context.coupon.quota;
-    // 未声明 quota 视为不限领
-    const reached = typeof quota === "number" ? purchased >= quota : false;
-    return { quota, reached };
+  const resolve = (context: CouponPluginContext) =>
+    resolveQuota(context.coupon, {
+      quota: config.quota,
+      purchasedCount:
+        config.purchasedCount ?? context.order?.purchasedCount,
+    });
+
+  /** 仅在判定结果变化时写 state；超限时回调 */
+  const sync = (context: CouponPluginContext): void => {
+    const { quota, reached } = resolve(context);
+    const current = context.state?.quotaReached === true;
+    if (current !== reached) context.setState({ quotaReached: reached });
+    if (reached && quota !== null) config.onExceed?.(quota);
   };
 
   return {
@@ -38,20 +46,14 @@ export function createQuotaPlugin(config: QuotaConfig = {}): CouponPlugin {
     config: mergedConfig,
     hooks: {
       onMount: (context: CouponPluginContext) => {
-        const { quota, reached } = resolve(context);
-        if (reached) {
-          context.setState({ quotaReached: true });
-          config.onExceed?.(quota as number);
-        }
+        sync(context);
       },
       onPropsChange: (context: CouponPluginContext) => {
-        const { quota, reached } = resolve(context);
-        context.setState({ quotaReached: reached });
-        if (reached) config.onExceed?.(quota as number);
+        sync(context);
       },
       renderHeader: (context: CouponPluginContext) => {
-        const { quota, reached } = resolve(context);
-        if (typeof quota !== "number") return null;
+        const { quota, purchased, reached } = resolve(context);
+        if (quota === null) return null;
 
         return (
           <div
