@@ -125,14 +125,12 @@ export function createIDBCachePlugin(
     debug = false,
   } = config;
 
-// 记录由缓存创建的 objectURL，以便在卸载时回收
+  // 记录由缓存创建的 objectURL，以便在卸载时回收
   const createdObjectURLs = new Map<string, string>();
 
   // ⭐ 添加状态追踪，防止重入和重复操作
   const processingKeys = new Set<string>();
   const writingKeys = new Set<string>();
-  // 🔥 添加全局 fetch 追踪，防止循环 fetch
-  const fetchingKeys = new Set<string>();
 
   return {
     name: "cache-idb",
@@ -210,61 +208,37 @@ export function createIDBCachePlugin(
 
         writingKeys.add(context.src);
         try {
-          // ⭐⭐ 关键修复：优先从 sharedData 获取 blob，然后尝试从 context.src 获取
+          // P1-7：优先复用 FetchLoader 写入的 blob，避免二次 network fetch
           let blob = context.sharedData?.get("fetch-loader:blob") as Blob | undefined;
 
-          // 🔥 核心修复：如果 sharedData 中没有 blob，主动从原始 URL fetch
-          if (!blob && !fetchingKeys.has(context.src)) {
-            if (debug) {
-              try {
-                console.debug("[IDBCache] No blob in sharedData, fetching from source:", context.src);
-              } catch {}
-            }
+          // 本次显示的就是本插件从 IDB 解出的 objectURL：内容已在库里，无需再写
+          if (blob && createdObjectURLs.get(context.src) === displaySrc) {
+            blob = undefined;
+          }
 
-            // 🔥 关键保护：标记正在 fetch，防止循环
-            fetchingKeys.add(context.src);
+          // displaySrc 为 blob:（FetchLoader / 本插件产出）时，读取本地 Blob 不产生网络请求
+          if (!blob && displaySrc.startsWith("blob:")) {
+            const localUrl = createdObjectURLs.get(context.src);
+            if (localUrl === displaySrc) {
+              // 已经由 IDB 命中产生，无需重复写库
+              return;
+            }
             try {
-              const controller = new AbortController();
-              const timeout = setTimeout(() => controller.abort(), 5000);
-
-              // 🔥 关键：直接从原始 src fetch，而不是从 displaySrc
-              const res = await fetch(context.src, {
-                cache: "force-cache",
-                signal: controller.signal
-              });
-              clearTimeout(timeout);
-
-              if (res.ok) {
-                blob = await res.blob();
-                if (debug) {
-                  try {
-                    console.debug("[IDBCache] ✅ Fetched blob from source:", {
-                      src: context.src,
-                      size: blob.size,
-                      type: blob.type
-                    });
-                  } catch {}
-                }
-              }
-            } catch (err: any) {
-              if (debug && err?.name !== 'AbortError') {
-                try {
-                  console.warn("[IDBCache] ⚠️ Fetch from source failed:", err);
-                } catch {}
-              }
-            } finally {
-              // 🔥 确保清理 fetching 状态
-              fetchingKeys.delete(context.src);
-            }
-          } else if (fetchingKeys.has(context.src)) {
-            if (debug) {
-              try {
-                console.warn("[IDBCache] ⚠️ Fetch already in progress, skipping:", context.src);
-              } catch {}
+              const res = await fetch(displaySrc);
+              if (res.ok) blob = await res.blob();
+            } catch {
+              // 本地 blob 读取失败：放弃本次写入即可
             }
           }
 
-          // 🔥 如果获取到 blob（无论从哪个来源），都存储 blob
+          // dataURL 可直接转 Blob（无网络请求）
+          if (!blob && displaySrc.startsWith("data:")) {
+            const blobFromDataURL = dataURLToBlob(displaySrc);
+            if (blobFromDataURL) blob = blobFromDataURL;
+          }
+
+          // P1-7：不再对原始 context.src 发起二次 fetch —— 那是完整网络请求，
+          // 会把「性能优先」变成「多下载一次」。没有可复用 blob 时只记录告警。
           if (blob) {
             await idbSet(context.src, blob, { dbName, storeName, debug });
             if (debug) {
@@ -277,36 +251,13 @@ export function createIDBCachePlugin(
               } catch {}
             }
           } else {
-            // 🔥 降级方案：存储字符串（但这不是理想情况）
-            if (displaySrc.startsWith("data:")) {
-              // 尝试将 dataURL 转换为 blob
-              const blobFromDataURL = dataURLToBlob(displaySrc);
-              if (blobFromDataURL) {
-                await idbSet(context.src, blobFromDataURL, { dbName, storeName, debug });
-                if (debug) {
-                  try {
-                    console.debug("[IDBCache] ✅ Stored blob from dataURL");
-                  } catch {}
-                }
-              } else {
-                await idbSet(context.src, displaySrc, { dbName, storeName, debug });
-                if (debug) {
-                  try {
-                    console.warn("[IDBCache] ⚠️ Stored dataURL as string (not ideal)");
-                  } catch {}
-                }
-              }
-            } else {
-              // 存储 URL（最坏情况，下次还需要请求）
-              await idbSet(context.src, displaySrc, { dbName, storeName, debug });
-              if (debug) {
-                try {
-                  console.warn("[IDBCache] ⚠️ Stored URL only, no blob available:", {
-                    src: context.src,
-                    displaySrc
-                  });
-                } catch {}
-              }
+            if (debug) {
+              try {
+                console.warn("[IDBCache] ⚠️ No blob available, skip write:", {
+                  src: context.src,
+                  displaySrc
+                });
+              } catch {}
             }
           }
         } catch {

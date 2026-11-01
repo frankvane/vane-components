@@ -93,7 +93,7 @@ export interface FetchLoaderPluginConfig {
 // Issue #31: 使用常量替代魔法数字
 
 // in-flight 请求缓存
-const inFlight = new LRUCache<string, Promise<string>>(FETCH_LOADER_DEFAULTS.CACHE_SIZE_INFLIGHT);
+const inFlight = new LRUCache<string, Promise<string | undefined>>(FETCH_LOADER_DEFAULTS.CACHE_SIZE_INFLIGHT);
 
 // 控制器缓存，自动中止被淘汰的请求
 const controllers = new LRUCache<string, AbortController>(
@@ -137,11 +137,12 @@ export function createFetchLoaderPlugin(
     retryBackoff = FETCH_LOADER_DEFAULTS.RETRY_BACKOFF,
   } = config;
 
-  const keyFromContext = (context: LazyImageContext) =>
-    cacheKeyFn ? cacheKeyFn(context.src) : context.src;
-
   const abortInFlight = (context: LazyImageContext) => {
-    const key = keyFromContext(context);
+    abortBySrc(context.src);
+  };
+
+  const abortBySrc = (src: string) => {
+    const key = cacheKeyFn ? cacheKeyFn(src) : src;
     const ctrl = controllers.get(key);
     if (ctrl) {
       try { ctrl.abort(); } catch {}
@@ -150,12 +151,28 @@ export function createFetchLoaderPlugin(
   };
 
   const revokeObjectURL = (context: LazyImageContext) => {
-    const key = keyFromContext(context);
+    revokeBySrc(context.src);
+  };
+
+  const revokeBySrc = (src: string) => {
+    const key = cacheKeyFn ? cacheKeyFn(src) : src;
     const created = objectUrls.get(key);
     if (created) {
       try { URL.revokeObjectURL(created); } catch {}
       objectUrls.delete(key);
     }
+  };
+
+  /** 清理 sharedData 中本插件写入的跨插件数据 */
+  const clearShared = (context: LazyImageContext) => {
+    try {
+      if (context.sharedData?.has("fetch-loader:object-url")) {
+        context.sharedData.delete("fetch-loader:object-url");
+      }
+      if (context.sharedData?.has("fetch-loader:blob")) {
+        context.sharedData.delete("fetch-loader:blob");
+      }
+    } catch {}
   };
 
   // Issue #15: 带重试的加载函数
@@ -227,7 +244,7 @@ export function createFetchLoaderPlugin(
     }
   }
 
-  async function loadAsObjectURL(context: LazyImageContext): Promise<string> {
+  async function loadAsObjectURL(context: LazyImageContext): Promise<string | undefined> {
     const url = context.src;
     const key = cacheKeyFn ? cacheKeyFn(url) : url;
 
@@ -248,9 +265,10 @@ export function createFetchLoaderPlugin(
         const res = await fetchWithRetry(url, signal);
 
         if (!res.body) {
-          // 回退：直接返回原始 URL
+          // P1-6：无法流式读取时不要返回原始 URL —— 返回值会短路后续插件链。
+          // 返回 undefined 让 Core/其他插件按原始 src 继续处理。
           controllers.delete(key);
-          return url;
+          return undefined;
         }
 
         // Issue #27: 获取内容长度用于进度计算
@@ -302,18 +320,25 @@ export function createFetchLoaderPlugin(
         objectUrls.set(key, objectURL);
         controllers.delete(key);
 
+        // P1-7：把 blob / objectURL 写入 sharedData，供 CacheIDB 等后续插件复用，
+        // 避免「FetchLoader 下载一次 + CacheIDB 再下载一次」。
+        try {
+          context.sharedData?.set("fetch-loader:blob", blob);
+          context.sharedData?.set("fetch-loader:object-url", objectURL);
+        } catch {}
+
         return objectURL;
       } catch (err: any) {
         controllers.delete(key);
 
         // 如果是中止错误，静默处理
         if (err.name === 'AbortError' || signal.aborted) {
-          return url;
+          return undefined;
         }
 
-        // 其他错误，记录日志但回退到原始 URL
+        // P1-6：失败时返回 undefined（不再返回原始 URL），让后续插件继续执行。
         console.warn(`[FetchLoader] Failed to load ${url}:`, err.message);
-        return url;
+        return undefined;
       } finally {
         inFlight.delete(key);
       }
@@ -325,8 +350,12 @@ export function createFetchLoaderPlugin(
 
   return {
     name: "fetch-loader",
-    version: "1.0.0",
+    version: "1.1.0",
+    description: "fetch 流式加载并返回 objectURL；失败返回 undefined（P1-6）",
     priority: 10, // Issue #7: 高优先级，在其他插件之前执行
+    // P1-6：onLoad 是网络钩子，耗时天然超过内核默认 3s 沙箱；
+    // 关闭沙箱超时（网络超时由 config.timeout 负责），避免「沙箱判超时 + 二次下载」。
+    timeout: 0,
     config,
     hooks: {
       async onLoad(context: LazyImageContext): Promise<string | undefined> {
@@ -339,9 +368,16 @@ export function createFetchLoaderPlugin(
           return undefined;
         }
       },
+      onSrcChange(context: LazyImageContext, oldSrc: string) {
+        // 换图时中止旧请求并回收旧 objectURL / sharedData
+        abortBySrc(oldSrc);
+        revokeBySrc(oldSrc);
+        clearShared(context);
+      },
       onUnmount(context: LazyImageContext) {
         abortInFlight(context);
         revokeObjectURL(context);
+        clearShared(context);
       },
     },
   };

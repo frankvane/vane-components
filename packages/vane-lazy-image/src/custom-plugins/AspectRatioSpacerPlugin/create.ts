@@ -12,12 +12,26 @@ export function createAspectRatioSpacerPlugin(config: AspectRatioSpacerConfig = 
     version: "1.0.0",
     config,
     hooks: {
+      // P2-1：在 transformProps 阶段就写入容器 aspect-ratio，首帧即占位（避免 CLS）。
+      // 调用方通过 containerStyle.aspectRatio 显式覆盖时保持其值。
+      transformProps: (props) => {
+        const prev = (props.containerStyle as any)?.aspectRatio;
+        return {
+          ...props,
+          containerStyle: {
+            ...(props.containerStyle || {}),
+            ...(prev !== undefined ? null : { aspectRatio: String(ratio) }),
+          },
+        } as typeof props;
+      },
       onMount: (context: LazyImageContext) => {
         const container = context.containerRef?.current as HTMLElement | null;
         if (!container) return;
         try {
-          // 使用现代 CSS aspect-ratio 优先保持布局稳定
-          (container as HTMLElement).style.aspectRatio = String(ratio);
+          // 兜底：宿主绕过 transformProps 时仍能保持布局稳定
+          if (!(container as HTMLElement).style.aspectRatio) {
+            (container as HTMLElement).style.aspectRatio = String(ratio);
+          }
         } catch {}
       },
     },

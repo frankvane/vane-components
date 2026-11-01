@@ -23,9 +23,6 @@ async function blobToDataURL(blob: Blob): Promise<string> {
   });
 }
 
-// 由预热阶段创建的对象 URL，供卸载时清理
-const createdObjectURLs = new Map<string, string>();
-
 // ⭐ 添加预热状态追踪，防止重复预热和并发控制
 const prewarmingKeys = new Set<string>();
 const prewarmedKeys = new Set<string>();
@@ -53,11 +50,10 @@ async function prewarm(src: string, preferMemory: boolean, debug: boolean) {
 
     if (!res.ok) return;
     const blob = await res.blob();
-    // 内存：使用对象 URL，避免 base64 转码开销
+    // P2-6：内存缓存统一写 Blob，读取（CacheMemoryPlugin.onLoad）时才创建 objectURL，
+    // 避免预热阶段创建的对象 URL 因 revoke 时机不确定而失效。
     if (preferMemory) {
-      const objURL = URL.createObjectURL(blob);
-      MemoryCache.set(src, objURL, 200);
-      createdObjectURLs.set(src, objURL);
+      MemoryCache.set(src, blob, 200);
     }
     // IDB：直接持久化 Blob
     await IDBCache.set(src, blob, { dbName: "LLI-Cache", storeName: "images", debug });
@@ -125,13 +121,6 @@ export function createCachePrewarmPlugin(config: CachePrewarmConfig = {}): LazyI
         if (!enabled || trigger !== "enter") return;
         const hit = MemoryCache.get(context.src) || undefined;
         if (!hit) prewarm(context.src, preferMemory, debug);
-      },
-      onUnmount: (context: LazyImageContext) => {
-        const url = createdObjectURLs.get(context.src);
-        if (url) {
-          try { URL.revokeObjectURL(url); } catch {}
-          createdObjectURLs.delete(context.src);
-        }
       },
       renderOverlay: (context) => (showBadge ? React.createElement(CacheBadge, { src: context.src }) : null),
     },

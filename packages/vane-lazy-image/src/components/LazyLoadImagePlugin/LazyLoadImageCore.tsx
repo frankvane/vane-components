@@ -30,13 +30,15 @@ interface LazyImageState {
   displaySrc: string | null;
   // 错误信息
   error: Error | null;
+  // P0-2：当前这次加载的请求令牌（每次 startLoad 递增），用于拒绝迟到的旧请求事件
+  requestId: number;
 }
 
 // Issue #1: Action 类型定义
 type LazyImageAction =
-  | { type: "LOAD_START"; payload: { src: string } }
-  | { type: "LOAD_SUCCESS" }
-  | { type: "LOAD_ERROR"; payload: { error: Error } }
+  | { type: "LOAD_START"; payload: { src: string; requestId: number } }
+  | { type: "LOAD_SUCCESS"; payload: { requestId: number; src?: string } }
+  | { type: "LOAD_ERROR"; payload: { error: Error; requestId: number } }
   | { type: "RESET" };
 
 // Issue #1: Reducer 函数
@@ -50,14 +52,20 @@ function lazyImageReducer(
         status: "loading",
         displaySrc: action.payload.src,
         error: null,
+        requestId: action.payload.requestId,
       };
+    // P0-2：事件携带请求令牌，令牌不匹配说明是旧请求的迟到事件，直接丢弃
     case "LOAD_SUCCESS":
+      if (action.payload.requestId !== state.requestId) return state;
       return {
         ...state,
         status: "loaded",
+        // P0-2：回退 / 重试插件直接改写 img.src 时，成功地址可能已不等于原 displaySrc
+        displaySrc: action.payload.src || state.displaySrc,
         error: null,
       };
     case "LOAD_ERROR":
+      if (action.payload.requestId !== state.requestId) return state;
       return {
         ...state,
         status: "error",
@@ -68,9 +76,26 @@ function lazyImageReducer(
         status: "idle",
         displaySrc: null,
         error: null,
+        requestId: state.requestId,
       };
     default:
       return state;
+  }
+}
+
+/**
+ * P0-2：判断两个图片地址是否指向同一资源。
+ * 绑定 src 插件（Fallback / Retry / CDN）会直接改写 img.src，
+ * 这类改写属于「同一个逻辑请求」，因此只需要能识别绝对/相对等价即可。
+ */
+function sameImageUrl(a: string, b: string): boolean {
+  if (!a || !b) return true;
+  if (a === b) return true;
+  try {
+    const base = typeof document !== "undefined" ? document.baseURI : "http://localhost/";
+    return new URL(a, base).href === new URL(b, base).href;
+  } catch {
+    return false;
   }
 }
 
@@ -82,6 +107,12 @@ export interface LazyLoadImageCoreProps {
   root?: Element | Document | null;
   rootMargin?: string;
   threshold?: number | number[];
+  /**
+   * 进入视口后是否停止观察（默认 false）。
+   * ⚠️ 默认值变更（P1-3）：此前默认 true 会让「离开视口」事件永远不触发，
+   * 依赖 leave 的插件（MemoryPressureAbort / ViewportDebounce / UserBehavior）失效。
+   * 需要「只加载一次」时可显式传 true。
+   */
   unobserveOnVisible?: boolean;
 
   // 加载策略
@@ -110,6 +141,15 @@ export interface LazyLoadImageCoreProps {
   containerClassName?: string;
   imageStyle?: React.CSSProperties;
   imageClassName?: string;
+  /**
+   * P2-1：可选的占位比例（例如 16/9、"16 / 9"）。
+   * 传入后容器在首帧即具备高度，避免加载完成后兄弟节点被下推（CLS）。
+   */
+  aspectRatio?: number | string;
+  /** P2-4：响应式图片源集（由 Responsive 等插件在 transformProps 中注入） */
+  srcSet?: string;
+  /** P2-4：响应式图片 sizes 属性 */
+  sizes?: string;
   /** 允许插件/调用方为 <img> 设置跨域策略，以支持像素读取等功能 */
   crossOrigin?: "anonymous" | "use-credentials" | "" | null;
   /** 解码策略（decode-after-idle 等插件通过 transformProps 注入） */
@@ -146,22 +186,18 @@ function useIntersectionObserver(
   }
 ) {
   const {
+    // P1-4：root 参与依赖，切换滚动容器/src 时必须重建观察
     root,
-    rootMargin = "0px",
+    // P2-10：默认给出 200px 提前量，避免首屏边缘图片「先白后图」。
+    // ⚠️ 默认值变更，需要严格「进视口才加载」时显式传 rootMargin="0px"。
+    rootMargin = "200px 0px",
     threshold = 0,
-    unobserveOnVisible = true,
+    // P1-3：默认不再「首次可见即退订」，保证 leave 事件可持续触发。
+    unobserveOnVisible = false,
   } = options || {};
   const [inView, setInView] = useState(false);
 
-  // Issue #9: 使用 ref 存储配置，避免因 root 对象引用变化导致重建
-  const optionsRef = useRef({ root, rootMargin, threshold, unobserveOnVisible });
-
-  // Issue #9: 只在配置实际改变时更新 ref
-  useEffect(() => {
-    optionsRef.current = { root, rootMargin, threshold, unobserveOnVisible };
-  });
-
-  // Issue #9: 序列化配置为稳定的 key（排除 root，因为它是对象引用）
+  // Issue #9: 序列化非 root 配置为稳定 key（threshold 数组也归一化）
   const optionsKey = useMemo(() => {
     return JSON.stringify({
       rootMargin,
@@ -174,9 +210,6 @@ function useIntersectionObserver(
     const el = targetRef.current;
     if (!el) return;
 
-    // Issue #9: 从 ref 获取最新配置
-    const currentOptions = optionsRef.current;
-
     // 🚀 性能优化：使用 ObserverPool 共享 IntersectionObserver 实例
     // 100 张图片从 100 个 Observer 减少到 1-3 个（-95% 实例数量）
     const unobserve = observeElement(
@@ -185,20 +218,21 @@ function useIntersectionObserver(
         setInView(isIntersecting);
       },
       {
-        root: (currentOptions.root as Element) || null,
-        rootMargin: currentOptions.rootMargin,
-        threshold: currentOptions.threshold,
+        root: (root as Element) || null,
+        rootMargin,
+        threshold,
       },
-      currentOptions.unobserveOnVisible
+      unobserveOnVisible
     );
 
     // Issue #2: 清理函数 - 取消观察
     return () => {
       unobserve();
     };
-    // Issue #9: 只依赖序列化的配置 key，大幅减少重建
+    // Issue #9 / P1-4：root 现在参与依赖 —— 切换滚动容器（抽屉 / Tab / Modal）
+    // 或容器 ref 从 null 变为真实元素时必须重建，否则元素仍绑在旧 root 上。
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [optionsKey]);
+  }, [optionsKey, root]);
 
   return { inView };
 }
@@ -231,6 +265,9 @@ export const LazyLoadImageCore = forwardRef<
     containerClassName,
     imageStyle,
     imageClassName,
+    aspectRatio,
+    srcSet,
+    sizes,
   } = props;
 
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -267,9 +304,25 @@ export const LazyLoadImageCore = forwardRef<
     status: "idle",
     displaySrc: null,
     error: null,
+    requestId: 0,
   });
   /** 最近一次发起加载的 src（错误态下用于判断是否换了图） */
   const lastAttemptSrcRef = useRef<string | null>(null);
+  /** P0-2：最近一次失败加载的 src（避免错误态自动重试） */
+  const errorSrcRef = useRef<string | null>(null);
+  /** P0-2：每次加载分配递增令牌，异步结果 / 事件归属都用它校验 */
+  const requestIdRef = useRef(0);
+  /** P0-1：是否有加载正在进行（用 ref 避免 startLoad 依赖 state.status 而自动重试） */
+  const loadingRef = useRef(false);
+  /** P1-1：上次渲染时看到的 src，用于识别「换图」 */
+  const prevSrcRef = useRef(src);
+  /** P1-5：门控中止后的重试计数 / 定时器 / 重试纪元 */
+  const gateRetryCountRef = useRef(0);
+  const gateRetryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [gateEpoch, setGateEpoch] = useState(0);
+  /** P1-5：门控中止后最多重试次数与延迟（避免一次误判让图片永远停在 idle） */
+  const GATE_MAX_RETRIES = 5;
+  const GATE_RETRY_DELAY_MS = 300;
 
   // Issue #0: 智能加载策略
   // LCP 图片或 eager 模式下直接加载，无需等待视口
@@ -323,15 +376,37 @@ export const LazyLoadImageCore = forwardRef<
     prevInViewRef.current = inView;
   }, [inView, onEnterViewport, onLeaveViewport]);
 
+  /** P1-5：门控中止后延迟重试一次（避免「滚过去又停下」永久停在 idle） */
+  const scheduleGateRetry = useCallback(() => {
+    if (gateRetryCountRef.current >= GATE_MAX_RETRIES) return;
+    gateRetryCountRef.current += 1;
+    if (gateRetryTimerRef.current) clearTimeout(gateRetryTimerRef.current);
+    gateRetryTimerRef.current = setTimeout(() => {
+      gateRetryTimerRef.current = null;
+      setGateEpoch((n) => n + 1);
+    }, GATE_RETRY_DELAY_MS);
+  }, []);
+
   const startLoad = useCallback(async () => {
-    // Issue #1: 使用新的状态检查
-    if (state.status === "loading" || state.status === "loaded") return;
-    // 加载失败后不要自动重试：否则 startLoad 随 state.status 变化而重建，
-    // 触发自动加载 effect 再次 dispatch LOAD_START，把 error 状态覆盖回
-    // loading —— 表现为「图片 404 却永远停在 Loading...」。
-    // 只有被显式重置（reload()）或 src 变化时才允许再次发起加载。
-    if (state.status === "error" && lastAttemptSrcRef.current === src) return;
+    // P1-1：空 src（列表里「暂无图片 / 异步尚未回填」）直接回到 idle，
+    // 不进入 loading —— 否则因为没有 <img> 渲染，会永远停留在 Loading 提示。
+    if (!src.trim()) {
+      loadingRef.current = false;
+      lastAttemptSrcRef.current = null;
+      errorSrcRef.current = null;
+      dispatch({ type: "RESET" });
+      return;
+    }
+
+    // P0-1：正在加载直接忽略重复触发；错误态下只有换图才允许重新加载。
+    // 改用 ref 判断后，startLoad 不再依赖 state.status，
+    // 触发 effect 不会因状态流转而重跑（也就不会把 error 覆盖回 loading）。
+    if (loadingRef.current) return;
+    if (errorSrcRef.current === src) return;
+
+    loadingRef.current = true;
     lastAttemptSrcRef.current = src;
+    const requestId = ++requestIdRef.current;
 
     // Issue #23: 标记加载开始
     performanceMonitorRef.current?.mark('load-start');
@@ -351,32 +426,68 @@ export const LazyLoadImageCore = forwardRef<
     try {
       const maybeCached = await Promise.resolve(onBeforeLoad?.());
 
-      // Issue #2: 检查是否已被取消
-      if (currentController.signal.aborted) {
+      // Issue #2 / P0-2：被取消或令牌已过期（期间换了 src），丢弃本次结果
+      if (currentController.signal.aborted || requestIdRef.current !== requestId) {
         return;
       }
+
+      // 门控放行：清零门控重试计数
+      gateRetryCountRef.current = 0;
 
       const finalSrc = maybeCached || src;
 
+      // P1-1：插件把 src 改写成了空串时同样回到 idle
+      if (!finalSrc.trim()) {
+        loadingRef.current = false;
+        dispatch({ type: "RESET" });
+        return;
+      }
+
       // Issue #1: 通过 dispatch 统一更新状态和 src
-      dispatch({ type: "LOAD_START", payload: { src: finalSrc } });
+      dispatch({ type: "LOAD_START", payload: { src: finalSrc, requestId } });
     } catch (error: any) {
       // Issue #2: 忽略因取消导致的错误
-      if (currentController.signal.aborted) {
+      if (currentController.signal.aborted || requestIdRef.current !== requestId) {
         return;
       }
       // 插件 onBeforeLoad 返回 false 触发的门控中止：不视为错误、不进入 error 态，
-      // 也不进入 loading 态，直接放弃本次加载（图像保持 idle/占位）。
+      // 也不进入 loading 态；P1-5 再安排一次延迟重试。
       if (error?.message === "LLI_PLUGIN_GATE") {
+        loadingRef.current = false;
+        dispatch({ type: "RESET" });
+        scheduleGateRetry();
         return;
       }
 
       // Issue #1: 使用 dispatch 处理错误
+      loadingRef.current = false;
+      errorSrcRef.current = src;
       const err = error instanceof Error ? error : new Error(String(error));
-      dispatch({ type: "LOAD_ERROR", payload: { error: err } });
+      dispatch({ type: "LOAD_ERROR", payload: { error: err, requestId } });
       onLoadError?.(err);
     }
-  }, [src, onBeforeLoad, onLoadStart, onLoadError, state.status]);
+  }, [src, onBeforeLoad, onLoadStart, onLoadError, scheduleGateRetry]);
+
+  // P0-1：src 变化 → 中止在途请求、作废旧令牌、复位状态机，再重新加载。
+  // 必须声明在「触发加载 effect」之前，保证同一 commit 内先复位再发起。
+  useEffect(() => {
+    if (prevSrcRef.current === src) return;
+    prevSrcRef.current = src;
+
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = null;
+    // 令牌递增：所有在途异步分支（onBeforeLoad / 旧 img 事件）立即失效
+    requestIdRef.current += 1;
+    loadingRef.current = false;
+    lastAttemptSrcRef.current = null;
+    errorSrcRef.current = null;
+    gateRetryCountRef.current = 0;
+    if (gateRetryTimerRef.current) {
+      clearTimeout(gateRetryTimerRef.current);
+      gateRetryTimerRef.current = null;
+    }
+    dispatch({ type: "RESET" });
+  }, [src]);
 
   // Issue #0: 智能加载触发
   // LCP 或 eager 模式：立即加载
@@ -389,7 +500,10 @@ export const LazyLoadImageCore = forwardRef<
       // lazy 模式，等待进入视口
       startLoad();
     }
-  }, [inView, startLoad, shouldUseIntersectionObserver]);
+    // P0-1 / P1-5：只依赖真实输入（视口、src、策略）与门控重试纪元，
+    // 不再依赖 startLoad 身份，避免状态流转导致的重复自动加载。
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inView, src, shouldUseIntersectionObserver, gateEpoch]);
 
   // Issue #2: 组件卸载时取消所有异步操作
   useEffect(() => {
@@ -397,6 +511,10 @@ export const LazyLoadImageCore = forwardRef<
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
         abortControllerRef.current = null;
+      }
+      if (gateRetryTimerRef.current) {
+        clearTimeout(gateRetryTimerRef.current);
+        gateRetryTimerRef.current = null;
       }
     };
   }, []);
@@ -411,13 +529,26 @@ export const LazyLoadImageCore = forwardRef<
     ref,
     () => ({
       reload: () => {
-        // Issue #24: 使用提取的重置函数
+        // Issue #24 / P0-1：先中止在途请求并作废旧令牌，再重新发起加载
+        abortControllerRef.current?.abort();
+        abortControllerRef.current = null;
+        requestIdRef.current += 1;
+        loadingRef.current = false;
+        lastAttemptSrcRef.current = null;
+        errorSrcRef.current = null;
+        gateRetryCountRef.current = 0;
         resetToInitialState();
         // 重新触发加载（若已在视口）
-        if (inView) startLoad();
+        if (!shouldUseIntersectionObserver || inView) startLoad();
       },
       reset: () => {
-        // Issue #24: 使用提取的重置函数
+        // Issue #24 / P0-1：reset 同时中止在途请求，避免旧事件回流覆盖状态
+        abortControllerRef.current?.abort();
+        abortControllerRef.current = null;
+        requestIdRef.current += 1;
+        loadingRef.current = false;
+        lastAttemptSrcRef.current = null;
+        errorSrcRef.current = null;
         resetToInitialState();
       },
       getState: () => ({
@@ -432,7 +563,7 @@ export const LazyLoadImageCore = forwardRef<
         return performanceMonitorRef.current?.getReport() || null;
       },
     }),
-    [inView, startLoad, state.status, resetToInitialState]
+    [inView, startLoad, shouldUseIntersectionObserver, state.status, resetToInitialState]
   );
 
   // 渲染
@@ -444,6 +575,8 @@ export const LazyLoadImageCore = forwardRef<
       // 结果既不留白也托不住图，兄弟节点（标题/说明）会压到图上。
       // 交给内容（img 的自然比例）或调用方显式传入的 height / aspectRatio 决定。
       height: "auto",
+      // P2-1：显式传入比例时首帧即占位，避免加载完成后兄弟节点被下推（CLS）
+      ...(aspectRatio !== undefined ? { aspectRatio: String(aspectRatio) } : null),
       overflow: "hidden",
       // Issue #1: 使用新的状态格式
       background: state.status === "error" ? "#fee" : "#f5f5f5",
@@ -465,7 +598,7 @@ export const LazyLoadImageCore = forwardRef<
       justifyContent: "center",
       ...containerStyle,
     }),
-    [containerStyle, state.status]
+    [containerStyle, state.status, aspectRatio]
   );
 
   return (
@@ -503,8 +636,11 @@ export const LazyLoadImageCore = forwardRef<
 
       {/* Image - 在加载阶段也渲染，通过 onLoad/onError 更新状态，避免二次请求 */}
       {/* Issue #1: 使用 state.displaySrc */}
-      {state.displaySrc && (
+      {state.displaySrc ? (
         <img
+          // P0-2：把本次请求的令牌 / 期望 src 写到 DOM 上，便于事件归属校验与排障
+          data-lli-request={state.requestId}
+          data-lli-src={state.displaySrc}
           ref={(el) => {
             imgRef.current = el;
             if (props.imageRefExternal) {
@@ -513,6 +649,9 @@ export const LazyLoadImageCore = forwardRef<
           }}
           src={state.displaySrc}
           alt={alt}
+          // P2-4：响应式 srcset/sizes 由插件在 transformProps 阶段注入，首帧即生效
+          srcSet={srcSet}
+          sizes={sizes}
           loading={finalLoading}
           // Issue #0: 添加 fetchpriority 支持（LCP 优化）
           // 注意：React 中 HTML 属性应使用小写 fetchpriority
@@ -523,24 +662,87 @@ export const LazyLoadImageCore = forwardRef<
           // 导致 decode-after-idle、auth 等插件「配了却没有任何效果」
           decoding={props.decoding ?? undefined}
           referrerPolicy={props.referrerPolicy ?? undefined}
-          onLoad={() => {
+          onLoad={(event) => {
+            // P0-2：loading 期间的正常事件，或 error 后由回退/重试插件改写 img.src
+            // 触发的「回退成功」事件；其余（idle / loaded 的重复事件）一律忽略。
+            if (state.status !== "loading" && state.status !== "error") return;
+            const img = event.currentTarget;
+            const actualSrc = (img.currentSrc || img.src || "").trim();
+            const expectedSrc = (state.displaySrc || "").trim();
+            const attrSrc = (img.getAttribute("src") || "").trim();
+            const isFallbackSuccess = state.status === "error";
+
+            if (isFallbackSuccess) {
+              // 迟到事件 / 原始地址的重复成功事件：地址仍等于期望 src，不能把 error 打成 loaded
+              if (!actualSrc || sameImageUrl(actualSrc, expectedSrc)) return;
+              // 回退地址必须与当前 img 上的 src 一致，才认为属于本次逻辑请求
+              if (!sameImageUrl(actualSrc, attrSrc)) return;
+            } else if (
+              actualSrc &&
+              !sameImageUrl(actualSrc, expectedSrc) &&
+              !sameImageUrl(actualSrc, attrSrc)
+            ) {
+              // 迟到的旧请求事件：既不是本次期望 src，也不是当前 img 上的 src
+              return;
+            }
+
+            loadingRef.current = false;
+            errorSrcRef.current = null;
+
             // Issue #23: 标记加载完成并测量
             performanceMonitorRef.current?.mark('load-end');
             performanceMonitorRef.current?.measure('load-duration', 'load-start', 'load-end');
             performanceMonitorRef.current?.measure('total-duration', 'mount', 'load-end');
 
             // Issue #1: 使用 dispatch 更新状态
-            dispatch({ type: "LOAD_SUCCESS" });
-            onLoadSuccess?.(state.displaySrc || undefined);
+            dispatch({
+              type: "LOAD_SUCCESS",
+              payload: {
+                requestId: state.requestId,
+                // 回退成功时把 displaySrc 同步为真正加载成功的地址
+                ...(isFallbackSuccess ? { src: actualSrc || attrSrc } : null),
+              },
+            });
+            // P0-2：回调携带真正加载完成的地址（回退 / 重试插件改写后不再是 displaySrc）
+            onLoadSuccess?.(actualSrc || expectedSrc || undefined);
           }}
-          onError={() => {
+          onError={(event) => {
+            // P0-2：loading 期间的事件，或 error 后回退地址再次失败（供 CDN / 重试插件续跑）。
+            if (state.status !== "loading" && state.status !== "error") return;
+            const img = event.currentTarget;
+            const actualSrc = (img.currentSrc || img.src || "").trim();
+            const expectedSrc = (state.displaySrc || "").trim();
+            const attrSrc = (img.getAttribute("src") || "").trim();
+            const isFallbackFailure = state.status === "error";
+
+            if (isFallbackFailure) {
+              // 原始地址的重复/迟到失败事件不能再触发一轮回退
+              if (!actualSrc || sameImageUrl(actualSrc, expectedSrc)) return;
+              if (!sameImageUrl(actualSrc, attrSrc)) return;
+            } else if (
+              actualSrc &&
+              !sameImageUrl(actualSrc, expectedSrc) &&
+              !sameImageUrl(actualSrc, attrSrc)
+            ) {
+              // 迟到的旧请求 error：不得把已经成功的新图打回 error
+              return;
+            }
+
+            if (!isFallbackFailure) {
+              loadingRef.current = false;
+              errorSrcRef.current = src;
+            }
+
             // Issue #23: 标记加载错误
             performanceMonitorRef.current?.mark('load-error');
             performanceMonitorRef.current?.measure('error-duration', 'load-start', 'load-error');
 
             // Issue #1: 使用 dispatch 处理错误
             const err = new Error("Image load error");
-            dispatch({ type: "LOAD_ERROR", payload: { error: err } });
+            dispatch({
+              type: "LOAD_ERROR",
+              payload: { error: err, requestId: state.requestId },
+            });
             onLoadError?.(err);
           }}
           style={{
@@ -555,7 +757,7 @@ export const LazyLoadImageCore = forwardRef<
           }}
           className={imageClassName}
         />
-      )}
+      ) : null}
 
       {/* 插件渲染内容 */}
       {children}

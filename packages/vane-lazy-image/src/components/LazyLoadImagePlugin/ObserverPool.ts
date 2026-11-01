@@ -99,8 +99,15 @@ class IntersectionObserverPool {
   private cleanupTimer?: ReturnType<typeof setTimeout>;
 
   private constructor() {
-    // 私有构造函数，防止外部实例化
-    this.startAutoCleanup();
+    // P2-8：定时器改为惰性启动（首次创建 observer 时才启动），
+    // 避免模块单例在应用/测试生命周期内一直空转。
+  }
+
+  /**
+   * P1-2：当前环境是否具备 IntersectionObserver 能力
+   */
+  private static supportsIntersectionObserver(): boolean {
+    return typeof IntersectionObserver !== "undefined";
   }
 
   /**
@@ -129,11 +136,18 @@ class IntersectionObserverPool {
    */
   private startAutoCleanup(): void {
     if (typeof window === "undefined") return;
+    if (this.cleanupTimer) return;
 
     // 每 60 秒检查一次
     this.cleanupTimer = setInterval(() => {
       const now = Date.now();
       const IDLE_THRESHOLD = 60000; // 60 秒未使用则清理
+
+      // P2-8：空闲且无元素时停止定时器，等下次 observe 再惰性启动
+      if (this.observers.size === 0) {
+        this.stopAutoCleanup();
+        return;
+      }
 
       this.observerStats.forEach((stats, key) => {
         if (now - stats.lastUsedAt > IDLE_THRESHOLD && stats.elementCount === 0) {
@@ -196,43 +210,71 @@ class IntersectionObserverPool {
     config: ObserverConfig = {},
     unobserveOnVisible: boolean = false
   ): () => void {
+    // P1-2：没有 IntersectionObserver 的环境（旧 WebView / 老 Safari / 无 polyfill 测试环境）
+    // 直接退化为「立即可见」，等同于 eager 加载，而不是让组件树在提交阶段抛 TypeError。
+    if (!IntersectionObserverPool.supportsIntersectionObserver()) {
+      try {
+        callback(true);
+      } catch (error) {
+        if (this.debugMode) {
+          console.warn("[ObserverPool] fallback callback failed", error);
+        }
+      }
+      return () => {};
+    }
+
     const key = this.getConfigKey(config);
     const now = Date.now();
 
     // 如果该配置的 Observer 不存在，则创建
     if (!this.observers.has(key)) {
-      const observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            const callbacks = this.observerCallbacks.get(key);
-            if (callbacks) {
-              callbacks.forEach((cb) => {
-                if (cb.element === entry.target) {
-                  // 🆕 统计回调执行次数
-                  this.totalCallbackExecutions++;
-                  const stats = this.observerStats.get(key);
-                  if (stats) {
-                    stats.totalCallbacks++;
-                    stats.lastUsedAt = Date.now();
-                  }
+      let observer: IntersectionObserver;
+      try {
+        observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              const callbacks = this.observerCallbacks.get(key);
+              if (callbacks) {
+                callbacks.forEach((cb) => {
+                  if (cb.element === entry.target) {
+                    // 🆕 统计回调执行次数
+                    this.totalCallbackExecutions++;
+                    const stats = this.observerStats.get(key);
+                    if (stats) {
+                      stats.totalCallbacks++;
+                      stats.lastUsedAt = Date.now();
+                    }
 
-                  cb.callback(entry.isIntersecting);
+                    cb.callback(entry.isIntersecting);
 
-                  // 如果设置了 unobserveOnVisible 且元素可见，则取消观察
-                  if (cb.unobserveOnVisible && entry.isIntersecting) {
-                    this.unobserve(entry.target as Element);
+                    // 如果设置了 unobserveOnVisible 且元素可见，则取消观察
+                    if (cb.unobserveOnVisible && entry.isIntersecting) {
+                      this.unobserve(entry.target as Element);
+                    }
                   }
-                }
-              });
-            }
-          });
-        },
-        {
-          root: config.root || null,
-          rootMargin: config.rootMargin || "0px",
-          threshold: config.threshold ?? 0,
+                });
+              }
+            });
+          },
+          {
+            root: config.root || null,
+            rootMargin: config.rootMargin || "0px",
+            threshold: config.threshold ?? 0,
+          }
+        );
+      } catch (error) {
+        // 构造失败（非标准环境）：同样降级为立即可见
+        if (this.debugMode) {
+          console.warn("[ObserverPool] IntersectionObserver unavailable, fallback to eager", error);
         }
-      );
+        try {
+          callback(true);
+        } catch {}
+        return () => {};
+      }
+
+      // P2-8：有 observer 时惰性启动自动清理
+      this.startAutoCleanup();
 
       this.observers.set(key, observer);
       this.observerCallbacks.set(key, new Set());
@@ -299,19 +341,23 @@ class IntersectionObserverPool {
       // 停止观察
       observer.unobserve(element);
 
-      // 移除回调
-      const toRemove = Array.from(callbacks).find((cb) => cb.element === element);
-      if (toRemove) {
-        callbacks.delete(toRemove);
-      }
+      // P2-8：同一元素可能被重复观察（StrictMode 双执行 / root 重建），
+      // 必须删除全部匹配回调，否则旧回调会残留并在每次相交时重复执行。
+      let removed = 0;
+      Array.from(callbacks).forEach((cb) => {
+        if (cb.element === element) {
+          callbacks.delete(cb);
+          removed++;
+        }
+      });
 
       // 清理映射
       this.elementToKey.delete(element);
 
-      // 🆕 更新统计
+      // 🆕 更新统计（按实际移除的回调数同步 elementCount）
       const stats = this.observerStats.get(key);
       if (stats) {
-        stats.elementCount--;
+        stats.elementCount = Math.max(0, stats.elementCount - Math.max(1, removed));
         stats.lastUsedAt = Date.now();
       }
 

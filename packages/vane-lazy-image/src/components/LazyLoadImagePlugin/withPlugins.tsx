@@ -160,6 +160,15 @@ export function withPlugins(
       const oldSrc = prevSrcRef.current;
       if (oldSrc !== props.src) {
         prevSrcRef.current = props.src;
+        // P0-1：Core 会在 src 变化时 RESET 状态机；领域镜像状态也必须同步回 idle，
+        // 否则插件在「新图尚未开始加载」的窗口里仍读到上一张图的 loaded/error。
+        setImageState({
+          isIdle: true,
+          isLoading: false,
+          isLoaded: false,
+          isError: false,
+        });
+        performanceDataRef.current = { loadStartTime: 0 };
         void execute("onSrcChange", oldSrc, props.src);
       }
     }, [props.src, execute]);

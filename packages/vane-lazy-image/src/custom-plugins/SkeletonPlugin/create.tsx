@@ -10,6 +10,32 @@ export interface SkeletonPluginConfig {
   showWhen?: "always" | "loading";
 }
 
+const SKELETON_STYLE_ID = "lli-skeleton-style";
+const SKELETON_STYLE_TEXT = `
+@keyframes lli-skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+@keyframes lli-skeleton-pulse {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 0.6; }
+}
+`;
+
+/**
+ * P2-2：全局 keyframes 只注入一次（而非每个实例一份 <style>）。
+ */
+function ensureSkeletonStyle(): void {
+  if (typeof document === "undefined") return;
+  try {
+    if (document.getElementById(SKELETON_STYLE_ID)) return;
+    const style = document.createElement("style");
+    style.id = SKELETON_STYLE_ID;
+    style.textContent = SKELETON_STYLE_TEXT;
+    document.head.appendChild(style);
+  } catch {}
+}
+
 function SkeletonOverlay({
   imageState,
   type = "shimmer",
@@ -29,6 +55,8 @@ function SkeletonOverlay({
 }) {
   const visible = showWhen === "always" ? true : imageState.isLoading;
   if (!visible) return null;
+
+  ensureSkeletonStyle();
 
   const base: React.CSSProperties = {
     position: "absolute",
@@ -56,19 +84,6 @@ function SkeletonOverlay({
 
   return (
     <div style={base}>
-      {/* 注入一次性样式（局部作用域） */}
-      <style>
-        {`
-@keyframes lli-skeleton-shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-@keyframes lli-skeleton-pulse {
-  0%, 100% { opacity: 0.85; }
-  50% { opacity: 0.6; }
-}
-        `}
-      </style>
       <div style={type === "shimmer" ? shimmerStyle : pulseStyle} />
     </div>
   );

@@ -70,9 +70,18 @@ export function useLCPPreload(
     if (!enabled || !src) return;
 
     // 检查是否已经存在相同的预加载链接
-    const existingLink = document.querySelector(
-      `link[rel="preload"][href="${src}"]`
-    ) as HTMLLinkElement;
+    // P2-7：不再把 src 拼进 CSS 选择器（含引号/方括号的签名 URL 会抛 not a valid selector），
+    // 改为遍历已有 preload 并比较解析后的 href。
+    const targetHref = (() => {
+      try {
+        return new URL(src, document.baseURI).href;
+      } catch {
+        return src;
+      }
+    })();
+    const existingLink = Array.from(
+      document.querySelectorAll<HTMLLinkElement>('link[rel="preload"]')
+    ).find((link) => link.href === targetHref);
 
     if (existingLink) {
       // 如果已存在，不需要重复添加

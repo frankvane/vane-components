@@ -38,9 +38,25 @@ export function createResponsivePlugin(config: ResponsivePluginConfig = {}): Laz
     version: "1.0.0",
     config,
     hooks: {
-      // 使用 DOM 属性设置 srcset/sizes（核心不透传未知 props）
-      onLoadSuccess: (context: LazyImageContext) => {
+      // P2-4：在 transformProps 阶段就写入 srcset/sizes，首帧即可让浏览器选择合适资源，
+      // 也避免「成功后补 srcset 触发第二次下载」。
+      transformProps: (props) => {
+        if (!enabled || !props.src) return props;
+        const parts = variants.map((v) => {
+          const url = v.src ?? buildSrc(props.src, v.width);
+          return `${url} ${v.width}w`;
+        });
+        return {
+          ...props,
+          srcSet: props.srcSet ?? parts.join(", "),
+          sizes: props.sizes ?? sizes,
+        } as typeof props;
+      },
+      // 兜底：宿主绕过 transformProps 时，成功后补一次 srcset；
+      // displaySrc 已是 blob:/data: 时跳过，避免把省流量变成多下载（P2-4）。
+      onLoadSuccess: (context: LazyImageContext, displaySrc: string) => {
         if (!enabled) return;
+        if (displaySrc.startsWith("blob:") || displaySrc.startsWith("data:")) return;
         const img = context.imageRef?.current;
         if (!img) return;
 
@@ -50,14 +66,13 @@ export function createResponsivePlugin(config: ResponsivePluginConfig = {}): Laz
           return `${url} ${v.width}w`;
         });
         try {
-          img.setAttribute("srcset", parts.join(", "));
-          img.setAttribute("sizes", sizes);
+          if (!img.getAttribute("srcset")) {
+            img.setAttribute("srcset", parts.join(", "));
+          }
+          if (!img.getAttribute("sizes")) {
+            img.setAttribute("sizes", sizes);
+          }
         } catch {}
-      },
-      onSrcChange: (_context: LazyImageContext, _oldSrc: string, _newSrc: string) => {
-        // 源变化时，让浏览器根据新的 srcset 选择最佳资源
-        // 无需额外处理，保持简单
-        return true;
       },
     },
   };

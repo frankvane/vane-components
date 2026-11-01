@@ -28,6 +28,8 @@ const ScrollIdleWatcher = (() => {
       idleWaiters: Set<(v: void) => void>;
       idleMs: number;
       initialized: boolean;
+      /** P1-8：引用计数，最后一个使用方 release 时才移除监听并删除 Map 条目 */
+      refCount: number;
       cleanup?: () => void;
     }
   >();
@@ -44,6 +46,7 @@ const ScrollIdleWatcher = (() => {
       idleWaiters: new Set<(v: void) => void>(),
       idleMs: idleMs > 0 ? idleMs : 120,
       initialized: false,
+      refCount: 0,
       cleanup: undefined as undefined | (() => void),
     };
 
@@ -107,7 +110,36 @@ const ScrollIdleWatcher = (() => {
     });
   }
 
-  return { ensure, waitForIdle };
+  function acquire(target: TargetKey, idleMs: number) {
+    const state = ensure(target, idleMs);
+    state.refCount += 1;
+    return state;
+  }
+
+  /**
+   * P1-8：释放监听。引用计数归零时移除事件监听、清掉定时器并删除 Map 条目，
+   * 避免旧滚动容器被单例强引用（DOM 子树无法 GC）。
+   */
+  function release(target: TargetKey) {
+    const state = map.get(target);
+    if (!state) return;
+    state.refCount -= 1;
+    if (state.refCount > 0) return;
+
+    try {
+      state.cleanup?.();
+    } catch {}
+    if (state.timer) clearTimeout(state.timer);
+    state.timer = null;
+    // 唤醒仍挂着的等待者，避免 Promise 永久 pending
+    state.idleWaiters.forEach((fn) => {
+      try { fn(); } catch {}
+    });
+    state.idleWaiters.clear();
+    map.delete(target);
+  }
+
+  return { ensure, acquire, release, waitForIdle };
 })();
 
 export function createScrollIdlePlugin(config: ScrollIdleConfig = {}): LazyImagePlugin {
@@ -128,12 +160,25 @@ export function createScrollIdlePlugin(config: ScrollIdleConfig = {}): LazyImage
       onMount: (context: LazyImageContext) => {
         const container = context.containerRef?.current || null;
         const key = target === "container" && container ? container : "window";
-        ScrollIdleWatcher.ensure(key, idleMs);
+        // P1-8：登记引用并记录 target，供 onUnmount 精确释放
+        ScrollIdleWatcher.acquire(key, idleMs);
+        try {
+          context.sharedData?.set("scroll-idle:target", key);
+        } catch {}
         if (debug) {
           try {
             console.debug("[ScrollIdle] mount", { idleMs, target, axis, hasContainer: !!container });
           } catch {}
         }
+      },
+      onUnmount: (context: LazyImageContext) => {
+        // P1-8：释放监听并删除单例 Map 条目，避免容器 DOM 与整棵子树被强引用
+        let key: "window" | HTMLElement | undefined;
+        try {
+          key = context.sharedData?.get("scroll-idle:target");
+          context.sharedData?.delete("scroll-idle:target");
+        } catch {}
+        if (key) ScrollIdleWatcher.release(key);
       },
       onLoad: async (context: LazyImageContext) => {
         // 仅在进入视口时应用，或配置为全局应用

@@ -142,14 +142,14 @@ export const PERFORMANCE_DEFAULTS = {
  * IntersectionObserver 默认配置
  */
 export const INTERSECTION_OBSERVER_DEFAULTS = {
-  /** 默认 rootMargin */
-  ROOT_MARGIN: '50px',
+  /** 默认 rootMargin（P2-10：200px 提前量，避免首屏边缘图「先白后图」） */
+  ROOT_MARGIN: '200px 0px',
 
   /** 默认阈值 */
   THRESHOLD: 0,
 
-  /** 默认是否在可见后取消观察 */
-  UNOBSERVE_ON_VISIBLE: true,
+  /** 默认是否在可见后取消观察（P1-3：默认 false，保证 leave 事件可持续触发） */
+  UNOBSERVE_ON_VISIBLE: false,
 } as const;
 
 // ============================================================================

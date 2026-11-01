@@ -7,7 +7,8 @@ export interface MemoryCacheConfig {
   debug?: boolean;
 }
 
-type Entry = { value: string; time: number };
+// P2-6：内存缓存支持 Blob（预热的 Blob 在读取时才 createObjectURL）
+type Entry = { value: string | Blob; time: number };
 
 // 简单的全局 LRU 内存缓存（跨组件实例共享）
 const store = new Map<string, Entry>();
@@ -33,7 +34,7 @@ function touch(key: string) {
   order.push(key);
 }
 
-function getFromMemory(key: string, ttlMs?: number): string | undefined {
+function getFromMemory(key: string, ttlMs?: number): string | Blob | undefined {
   const e = store.get(key);
   if (!e) return undefined;
   if (ttlMs && ttlMs > 0 && now() - e.time > ttlMs) {
@@ -46,7 +47,7 @@ function getFromMemory(key: string, ttlMs?: number): string | undefined {
   return e.value;
 }
 
-function setToMemory(key: string, value: string, maxEntries: number) {
+function setToMemory(key: string, value: string | Blob, maxEntries: number) {
   store.set(key, { value, time: now() });
   touch(key);
   evictIfNeeded(maxEntries);
@@ -115,11 +116,24 @@ export function createMemoryCachePlugin(config: MemoryCacheConfig = {}): LazyIma
           const hit = getFromMemory(context.src, ttlMs);
           if (hit) {
             if (debug) {
-              try { console.debug("[MemoryCache] hit", { src: context.src }); } catch {}
+              try { console.debug("[MemoryCache] hit", { src: context.src, isBlob: hit instanceof Blob }); } catch {}
             }
             // ⭐ 使用防抖的事件触发
             safeEmit(context.bus, "cache:hit", { level: "memory", src: context.src });
-            // 不返回已缓存的 blob: URL，避免引用已撤销的对象 URL
+            // P2-6：内存缓存统一存 Blob，读取时才创建 objectURL（不再直接丢弃缓存内容）
+            if (hit instanceof Blob) {
+              let url = context.sharedData?.get("fetch-loader:object-url") as string | undefined;
+              if (!url) {
+                url = URL.createObjectURL(hit);
+                createdObjectURLs.set(context.src, url);
+                try {
+                  context.sharedData?.set("fetch-loader:object-url", url);
+                  context.sharedData?.set("fetch-loader:blob", hit);
+                } catch {}
+              }
+              return url;
+            }
+            // 不返回已缓存的 blob: 字符串，避免引用已撤销的对象 URL
             if (!hit.startsWith("blob:")) {
               return hit; // 返回替代 src
             }
@@ -132,8 +146,12 @@ export function createMemoryCachePlugin(config: MemoryCacheConfig = {}): LazyIma
       },
       onLoadSuccess: (context: LazyImageContext, displaySrc: string) => {
         if (!enabled) return;
-        // 仅缓存非 blob: 的字符串，blob 交由 IDB 缓存处理
-        if (!displaySrc.startsWith("blob:")) {
+        // P2-6：有共享 Blob 时缓存 Blob（读取时再创建 objectURL）；
+        // 仅缓存非 blob: 的字符串，blob 字符串交由 IDB 缓存处理。
+        const sharedBlob = context.sharedData?.get("fetch-loader:blob");
+        if (sharedBlob instanceof Blob) {
+          setToMemory(context.src, sharedBlob, maxEntries);
+        } else if (!displaySrc.startsWith("blob:")) {
           setToMemory(context.src, displaySrc, maxEntries);
         }
         if (debug) {

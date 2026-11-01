@@ -31,10 +31,15 @@ export function createBlurUpPlugin(config: BlurUpConfig = {}): LazyImagePlugin {
           ? `${willChangePrev}, filter`
           : "filter";
 
+        // P2-1：Core 默认在 loading 阶段把 img opacity 置 0，导致「模糊占位」根本看不见。
+        // 未显式指定 opacity 时补成 1；调用方显式传入时保持其值。
+        const prevOpacity = (props.imageStyle as any)?.opacity as number | string | undefined;
+
         return {
           ...props,
           imageStyle: {
             ...(props.imageStyle || {}),
+            ...(prevOpacity === undefined ? { opacity: 1 } : null),
             filter: nextFilter,
             transition: nextTransition,
             willChange,

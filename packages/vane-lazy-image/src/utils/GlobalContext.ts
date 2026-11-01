@@ -21,6 +21,11 @@ class GlobalContextManager {
   private deviceInfo?: DeviceInfo;
   private listeners = new Set<() => void>();
 
+  /** P2-9：全局监听的清理函数集合 + 初始化标记（dispose 后可惰性重建） */
+  private initialized = false;
+  private disposeFns: Array<() => void> = [];
+  private resizeTimer: number | undefined;
+
   private constructor() {
     // 私有构造函数，防止外部实例化
     this.initListeners();
@@ -36,20 +41,29 @@ class GlobalContextManager {
     return GlobalContextManager.instance;
   }
 
+  /** P2-9：确保监听已注册（dispose 之后再次访问时惰性重建） */
+  private ensureInitialized(): void {
+    if (!this.initialized) this.initListeners();
+  }
+
   /**
    * 初始化监听器（监听网络和视口变化）
    */
   private initListeners(): void {
     if (typeof window === "undefined") return;
+    if (this.initialized) return;
+    this.initialized = true;
 
     // 监听网络类型/速率变化
     const nav: any = typeof navigator !== "undefined" ? navigator : undefined;
     const conn = nav?.connection || nav?.mozConnection || nav?.webkitConnection;
     if (conn) {
-      conn.addEventListener("change", () => {
+      const handleConnChange = () => {
         this.networkInfo = undefined; // 清除缓存，下次重新检测
         this.notifyListeners();
-      });
+      };
+      conn.addEventListener("change", handleConnChange);
+      this.disposeFns.push(() => conn.removeEventListener("change", handleConnChange));
     }
 
     // 🆕 监听在线/离线事件（最常用网络信号，此前缺失）
@@ -59,24 +73,53 @@ class GlobalContextManager {
     };
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOnline);
+    this.disposeFns.push(() => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOnline);
+    });
 
     // 监听视口大小变化（使用节流优化）
-    let resizeTimer: number | undefined;
     const handleResize = () => {
-      if (resizeTimer) clearTimeout(resizeTimer);
-      resizeTimer = window.setTimeout(() => {
+      if (this.resizeTimer) clearTimeout(this.resizeTimer);
+      this.resizeTimer = window.setTimeout(() => {
+        this.resizeTimer = undefined;
         this.deviceInfo = undefined; // 清除缓存，下次重新检测
         this.notifyListeners();
       }, 300); // 300ms 节流
     };
 
     window.addEventListener("resize", handleResize);
+    this.disposeFns.push(() => {
+      window.removeEventListener("resize", handleResize);
+      if (this.resizeTimer) {
+        clearTimeout(this.resizeTimer);
+        this.resizeTimer = undefined;
+      }
+    });
+  }
+
+  /**
+   * P2-9：移除全部全局监听并释放定时器。
+   * 单例边界：微前端 / 多次创建 Root / 测试中可显式调用；之后再次访问会惰性重建监听。
+   * 已注册的订阅者（listeners）不会被清除，避免打断在用的组件。
+   */
+  public dispose(): void {
+    this.disposeFns.forEach((fn) => {
+      try {
+        fn();
+      } catch {}
+    });
+    this.disposeFns = [];
+    this.initialized = false;
+    this.networkInfo = undefined;
+    this.deviceInfo = undefined;
   }
 
   /**
    * 获取网络信息（单例）
    */
   public getNetworkInfo(): NetworkInfo | undefined {
+    this.ensureInitialized();
     if (!this.networkInfo) {
       this.networkInfo = this.detectNetwork();
     }
@@ -87,6 +130,7 @@ class GlobalContextManager {
    * 获取设备信息（单例）
    */
   public getDeviceInfo(): DeviceInfo {
+    this.ensureInitialized();
     if (!this.deviceInfo) {
       this.deviceInfo = this.detectDevice();
     }
@@ -146,6 +190,7 @@ class GlobalContextManager {
    * 注册监听器
    */
   public addListener(listener: () => void): () => void {
+    this.ensureInitialized();
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);
   }
@@ -205,4 +250,6 @@ export const getGlobalNetworkInfo = () => globalContext.getNetworkInfo();
 export const getGlobalDeviceInfo = () => globalContext.getDeviceInfo();
 export const addGlobalContextListener = (listener: () => void) => globalContext.addListener(listener);
 export const getGlobalContextStats = () => globalContext.getStats();
+/** P2-9：移除全部全局监听（微前端 / 测试环境可显式调用；再次访问会惰性重建） */
+export const disposeGlobalContext = () => globalContext.dispose();
 

@@ -26,10 +26,10 @@ export interface HoverPrefetchConfig {
 }
 
 function addPreload(href: string, as: HoverPrefetchConfig["as"] = "image", crossOrigin: HoverPrefetchConfig["crossOrigin"] = "anonymous") {
+  const id = `lli-hoverprefetch-${as}-${href}`;
   try {
-    if (typeof document === "undefined") return;
-    const id = `lli-hoverprefetch-${as}-${href}`;
-    if (document.getElementById(id)) return; // 去重
+    if (typeof document === "undefined") return null;
+    if (document.getElementById(id)) return null; // 去重（已存在则不由本实例负责删除）
     const link = document.createElement("link");
     link.id = id;
     link.setAttribute("rel", "preload");
@@ -37,6 +37,17 @@ function addPreload(href: string, as: HoverPrefetchConfig["as"] = "image", cross
     link.setAttribute("href", href);
     if (crossOrigin) link.setAttribute("crossorigin", crossOrigin);
     document.head.appendChild(link);
+    return id;
+  } catch {
+    return null;
+  }
+}
+
+/** P2-3：按 id 移除本插件插入的 preload link */
+function removePreload(id: string) {
+  try {
+    if (typeof document === "undefined") return;
+    document.getElementById(id)?.remove();
   } catch {}
 }
 
@@ -66,7 +77,11 @@ export function createHoverPrefetchPlugin(config: HoverPrefetchConfig = {}): Laz
     debug = false,
   } = config;
 
-  const inserted = new Set<string>();
+  const insertedIds = new Set<string>();
+  const requested = new Set<string>();
+  /** P2-3：target=image 时 img 可能尚未渲染，轮询等待 ref 可用 */
+  const BIND_MAX_ATTEMPTS = 30;
+  const BIND_INTERVAL_MS = 100;
 
   async function handlePrefetch(context: LazyImageContext) {
     try {
@@ -80,9 +95,10 @@ export function createHoverPrefetchPlugin(config: HoverPrefetchConfig = {}): Laz
       const list = Array.isArray(result) ? result : [result];
       const selected = list.slice(0, Math.max(1, max));
       selected.forEach((href) => {
-        if (dedupe && inserted.has(href)) return;
-        addPreload(href, as, crossOrigin);
-        inserted.add(href);
+        if (dedupe && requested.has(href)) return;
+        const id = addPreload(href, as, crossOrigin);
+        if (id) insertedIds.add(id);
+        requested.add(href);
         if (debug) {
           try { console.debug("[HoverPrefetch] preload", { href, as }); } catch {}
         }
@@ -96,18 +112,42 @@ export function createHoverPrefetchPlugin(config: HoverPrefetchConfig = {}): Laz
 
   return {
     name: "hover-prefetch",
-    version: "2.0.0",
+    version: "2.1.0",
+    description: "悬停预取下一张图片；image 目标延迟绑定，preload link 在卸载时移除（P2-3）",
     config,
     hooks: {
       onMount: (context: LazyImageContext) => {
-        const container = context.containerRef?.current as HTMLElement | null;
-        const img = context.imageRef?.current as HTMLElement | null;
-        const el: HTMLElement | null = target === "container" ? container : img;
-        if (!el) return;
         const handler = () => handlePrefetch(context);
-        el.addEventListener(trigger, handler, { passive: true });
+        let cleanupBinding: (() => void) | null = null;
+        let bindTimer: ReturnType<typeof setTimeout> | null = null;
+        let attempts = 0;
+
+        const bind = () => {
+          const container = context.containerRef?.current as HTMLElement | null;
+          const img = context.imageRef?.current as HTMLElement | null;
+          const el: HTMLElement | null = target === "container" ? container : img;
+          if (!el) return false;
+          el.addEventListener(trigger, handler, { passive: true });
+          cleanupBinding = () => {
+            try { el.removeEventListener(trigger, handler); } catch {}
+          };
+          return true;
+        };
+
+        const tryBind = () => {
+          if (bind()) return;
+          // P2-3：idle 阶段 Core 还未渲染 <img>，轮询等待它出现（上限 3s）
+          if (target === "image" && attempts < BIND_MAX_ATTEMPTS) {
+            attempts += 1;
+            bindTimer = setTimeout(tryBind, BIND_INTERVAL_MS);
+          }
+        };
+
+        tryBind();
+
         context.sharedData?.set("hover-prefetch:cleanup", () => {
-          try { el.removeEventListener(trigger, handler); } catch {}
+          if (bindTimer) clearTimeout(bindTimer);
+          if (cleanupBinding) cleanupBinding();
         });
       },
       onUnmount: (context: LazyImageContext) => {
@@ -115,7 +155,11 @@ export function createHoverPrefetchPlugin(config: HoverPrefetchConfig = {}): Laz
         if (typeof cleanup === "function") {
           try { cleanup(); } catch {}
         }
-        inserted.clear();
+        context.sharedData?.delete("hover-prefetch:cleanup");
+        // P2-3：移除本实例插入的 preload link，避免长会话内持续累积
+        insertedIds.forEach((id) => removePreload(id));
+        insertedIds.clear();
+        requested.clear();
       },
       renderOverlay: () => (showBadge ? React.createElement(Badge) : null),
     },
