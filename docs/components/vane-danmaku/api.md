@@ -12,6 +12,8 @@
 | `opacity` | `number` | `1` | 全局不透明度 0–1 |
 | `containerClassName` | `string` | - | 容器类名 |
 | `containerStyle` | `React.CSSProperties` | - | 容器样式（需给出明确尺寸，canvas 才能测量） |
+| `avoidZoneProvider` | `() => Rect[]` | - | 避让区来源（由 `withDanmakuPlugins` 从运行时 shared 桥接）。内核每帧读取：轨道调度优先避开，绘制期再做 `evenodd` 裁剪把避让区挖空 |
+| `topInset` / `bottomInset` | `number` | `0` | 顶部/底部安全区（px），给统计条、输入框等浮层控件留位，弹幕不渲染到这里 |
 | `onMount` / `onUnmount` | `() => void` | - | 挂载/卸载回调（会被插件钩子转发） |
 | `debug` | `boolean` | `false` | 打印插件注册与钩子日志 |
 
@@ -23,6 +25,7 @@
 | `forceUpdate()` | 强制刷新 |
 | `getSize()` | 取容器尺寸 |
 | `getCanvas()` | 取 canvas 元素（消费方做截图 / 接 MediaPipe 帧源） |
+| `getStats()` | `{ active, dropped }`：当前在飞条数（真正参与绘制的量，出画即回收）与本周期因饱和被丢弃的条数 |
 
 ## `withDanmakuPlugins(Core, plugins)`
 

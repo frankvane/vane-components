@@ -1,11 +1,25 @@
 {
   "name": "SafeZonePlugin",
-  "description": "防遮挡：把避让区来源写入运行时 shared，内核每帧让轨道避开人物区。默认静态安全区（顶/底条带），可选接 MediaPipe（消费方注入 provider）。发布包不捆绑 ML。",
+  "description": "防遮挡：把避让区来源写入运行时 shared。内核双管齐下 —— 轨道调度优先避开避让区，绘制期再对避让区做 evenodd 裁剪，人物矩形内不会出现任何弹幕像素（视觉上弹幕从人身后穿过）。默认静态安全区（顶/底条带），可选接 MediaPipe（消费方注入 provider）。发布包不捆绑 ML。",
   "since": "0.1.0",
-  "tags": ["occlusion", "track", "strategy"],
+  "tags": [
+    "occlusion",
+    "track",
+    "strategy"
+  ],
   "config": [
-    { "name": "provider", "type": "() => Rect[]", "default": "undefined", "description": "消费方注入的实时避让区（如 MediaPipe Selfie Seg 掩膜→矩形 / Pose 点→凸包）" },
-    { "name": "reservedBands", "type": "{ top?, bottom? }", "default": "{ top: 0.18, bottom: 0.12 }", "description": "静态安全区比例，中间留空防遮挡" }
+    {
+      "name": "provider",
+      "type": "() => Rect[]",
+      "default": "undefined",
+      "description": "消费方注入的实时避让区（如 MediaPipe Selfie Seg 掩膜→矩形 / Pose 点→凸包）"
+    },
+    {
+      "name": "reservedBands",
+      "type": "{ top?, bottom? }",
+      "default": "{ top: 0.18, bottom: 0.12 }",
+      "description": "静态安全区比例，中间留空防遮挡"
+    }
   ],
   "example": "withDanmakuPlugins(DanmakuCore, [createSafeZonePlugin({ reservedBands: { top: 0.2, bottom: 0.15 } })])"
 }

@@ -18,7 +18,7 @@
 | [LangFilterPlugin](./LangFilterPlugin) | 语种过滤：弹幕须至少命中 allow 中一种字符体系才保留；blockUnknown 时纯符号刷屏直接丢弃。 | `allow` = ["cjk","latin"]<br/>`blockUnknown` = true | 0.1.0 | lang, filter, data |
 | [PinnedTopPlugin](./PinnedTopPlugin) | 高赞置顶：高等级弹幕标记 pinned + ring，内核钉在顶部带、居中停留并加高赞环高亮，不随风滚动。 | `minLevel` = 18 | 0.1.0 | pin, highlight, data |
 | [RateLimitPlugin](./RateLimitPlugin) | 单用户限流：window 秒内超过 max 条的同用户弹幕被丢弃，防刷屏压垮轨道。 | `max` = 3<br/>`window` = 10 | 0.1.0 | ratelimit, flood, data |
-| [SafeZonePlugin](./SafeZonePlugin) | 防遮挡：把避让区来源写入运行时 shared，内核每帧让轨道避开人物区。默认静态安全区（顶/底条带），可选接 MediaPipe（消费方注入 provider）。发布包不捆绑 ML。 | `provider` = undefined<br/>`reservedBands` = { top: 0.18, bottom: 0.12 } | 0.1.0 | occlusion, track, strategy |
+| [SafeZonePlugin](./SafeZonePlugin) | 防遮挡：把避让区来源写入运行时 shared。内核双管齐下 —— 轨道调度优先避开避让区，绘制期再对避让区做 evenodd 裁剪，人物矩形内不会出现任何弹幕像素（视觉上弹幕从人身后穿过）。默认静态安全区（顶/底条带），可选接 MediaPipe（消费方注入 provider）。发布包不捆绑 ML。 | `provider` = undefined<br/>`reservedBands` = { top: 0.18, bottom: 0.12 } | 0.1.0 | occlusion, track, strategy |
 | [SensitiveFilterPlugin](./SensitiveFilterPlugin) | 敏感词过滤：命中词按 mode 打码或删除；打码条保留并标记 masked，避免弹幕流闪烁。 | `words` = []<br/>`mask` = "*"<br/>`mode` = "mask" | 0.1.0 | filter, safety, data |
 | [SettingsPanelPlugin](./SettingsPanelPlugin) | 弹幕设置面板（UI 面）：不透明度/速度/轨道高度滑块，变更经 bus 广播 danmaku:settings，由消费方更新 props。 | `opacity` = 1<br/>`speed` = 1<br/>`trackHeight` = 28 | 0.1.0 | ui, settings, overlay |
 | [SpeedControlPlugin](./SpeedControlPlugin) | 速度控制：飞行时长按 factor 缩放并夹在 [min,max]；未指定 duration 用 defaultDuration 作基准。 | `factor` = 1<br/>`minDuration` = 4<br/>`maxDuration` = 16<br/>`defaultDuration` = 8 | 0.1.0 | speed, duration, data |
