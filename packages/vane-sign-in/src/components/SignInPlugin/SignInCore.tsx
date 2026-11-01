@@ -72,6 +72,9 @@ const SignInCore = forwardRef<SignInCoreRef, SignInCoreProps>(
           overflow: "hidden",
           display: "flex",
           flexDirection: "column",
+          // 兜底宽度：页面若没传 containerStyle.maxWidth，卡片也不许铺满父容器
+          width: "100%",
+          maxWidth: 460,
           ...containerStyle,
         }}
       >
