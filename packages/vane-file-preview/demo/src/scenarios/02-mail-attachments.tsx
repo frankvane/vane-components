@@ -24,7 +24,7 @@ import type { ScenarioMeta } from "./types";
 const Preview = withPlugins(FilePreviewCore, {
   plugins: [
     createImagePreviewPlugin(),
-    createPdfPreviewPlugin(),
+    createPdfPreviewPlugin({ sandbox: false }),
     createDocxPreviewPlugin(),
     createXlsxPreviewPlugin(),
     createZipPreviewPlugin(),
@@ -48,7 +48,7 @@ export const meta: ScenarioMeta = {
   plugs: [
     { fn: "createDocxPreviewPlugin", why: "docx 直接还原版式，合同类附件不用下载" },
     { fn: "createXlsxPreviewPlugin", why: "多 Sheet 离线解析，报价单能直接核对" },
-    { fn: "createPdfPreviewPlugin", why: "内嵌浏览器查看器，翻页与打印都现成" },
+    { fn: "createPdfPreviewPlugin", why: "内嵌浏览器查看器，翻页与打印都现成；样本为本站可信静态文件，显式关闭 sandbox 保证渲染，真实附件应保持默认" },
     { fn: "createImagePreviewPlugin", why: "截图类附件按原图看，可缩放" },
     { fn: "createZipPreviewPlugin", why: "只读目录不解压，几 GB 的包也能秒开" },
     { fn: "createCsvPreviewPlugin", why: "导出的账单表格，编码与分隔符自动识别" },

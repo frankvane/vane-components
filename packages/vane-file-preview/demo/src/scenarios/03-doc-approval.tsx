@@ -15,7 +15,7 @@ import { formatBytes } from "../lib/format";
 import { getSample } from "../data/samples";
 import type { ScenarioMeta } from "./types";
 
-const Preview = withPlugins(FilePreviewCore, { plugins: [createPdfPreviewPlugin()] });
+const Preview = withPlugins(FilePreviewCore, { plugins: [createPdfPreviewPlugin({ sandbox: false })] });
 
 const OLD = getSample("star.pdf");
 const NEW = getSample("danmu.pdf");
@@ -25,7 +25,7 @@ export const meta: ScenarioMeta = {
   title: "文档审批 · 左右对比",
   pain: "法务与采购要对着两版看：左右同屏、各自独立滚动与缩放，而不是来回切标签页对页码。",
   plugs: [
-    { fn: "createPdfPreviewPlugin", why: "两个实例各自持有一个 iframe，滚动/缩放互不干扰" },
+    { fn: "createPdfPreviewPlugin", why: "两个实例各自持有一个 iframe，滚动/缩放互不干扰；样本为本站可信静态文件，显式关闭 sandbox 保证渲染" },
   ],
   note: "两份 PDF 页数不同（旧版单页、新版多页）。插件不负责比对内容 —— 差异摘要这一层是业务写的，预览只解决「看得见」。",
 };

@@ -135,8 +135,10 @@ export const PREVIEWS: Record<string, PreviewEntry> = {
   "audio:loop": entry("audio:loop", [createAudioPreviewPlugin({ loop: true })]),
 
   // ---- 文档 ----
-  pdf: entry("pdf", [createPdfPreviewPlugin()]),
-  "pdf:embed": entry("pdf:embed", [createPdfPreviewPlugin({ useIframe: false })]),
+  // demo 的 PDF 样本来自本站静态目录（可信来源、MIME 正确），因此显式关闭 sandbox，
+  // 避免 Chromium 系在缺少 allow-same-origin 时不渲染内置查看器；真实不可信文件保持默认。
+  pdf: entry("pdf", [createPdfPreviewPlugin({ sandbox: false })]),
+  "pdf:sandbox": entry("pdf:sandbox", [createPdfPreviewPlugin()]),
   office: entry("office", [createOfficePreviewPlugin()]),
   "office:google": entry("office:google", [createOfficePreviewPlugin({ viewer: "google" })]),
   docx: entry("docx", [createDocxPreviewPlugin()]),

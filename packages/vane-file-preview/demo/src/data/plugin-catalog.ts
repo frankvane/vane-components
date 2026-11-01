@@ -151,11 +151,14 @@ const META: PluginMeta[] = [
     why: "合同、发票、扫描件。内置查看器自带缩放/翻页/搜索/打印，而且不会为了一个 PDF 往包里塞 300KB 的 pdfjs（以及它的 worker 与字体包）。",
     files: ["star.pdf", "danmu.pdf", "white-screen.pdf"],
     variants: [
-      { key: "pdf", label: "默认（iframe）" },
-      { key: "pdf:embed", label: "改用 <embed>", hint: "个别内嵌场景 iframe 被 CSP 拦，换 embed 可能过" },
+      { key: "pdf", label: "默认（iframe）", hint: "本页样本是本站可信静态文件，因此关闭 sandbox" },
+      { key: "pdf:sandbox", label: "默认 sandbox（安全默认）", hint: "不可信文件应保持该策略；部分 Chromium 可能灰底空白" },
     ],
     stageHeight: 520,
-    note: "浏览器对 blob:/data: URL 的 PDF 处理与 http(s) 不一致（部分内核直接下载而不是渲染），所以插件优先用 iframe 指向真实 URL。",
+    note:
+      "浏览器对 blob:/data: URL 的 PDF 处理与 http(s) 不一致（部分内核直接下载而不是渲染），所以插件优先用 iframe 指向真实 URL。" +
+      "iframe 默认 sandbox=\"allow-scripts\"（刻意不含 allow-same-origin）；本页样本来自本站 /samples 静态目录、MIME 正确，属可信来源，" +
+      "因此默认档按插件文档的迁移方式显式 sandbox: false 以保证内置查看器可见，另一档保留默认安全策略以便对照。",
   },
   {
     id: "office",
