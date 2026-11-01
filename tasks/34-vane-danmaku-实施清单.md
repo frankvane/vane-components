@@ -18,12 +18,18 @@
 
 ## P2 DEMO
 
-- [ ] **外壳四件生成物**：只写 `demo/src/demo.config.tsx` + `demo/src/App.css`；`vane.demo` 五项(brand/subtitle/title/accent/bg)与 config 一致
-- [ ] **demos/ 逐项示例层**：`import.meta.glob("./[0-9]*.tsx",{eager:true})` + `?raw` 同源；每页 `meta`(slug/plugin) + 默认 Stage；渲染体内严禁无条件调装配工厂
-- [ ] **codegen.ts + components/data**：最小装配生成；`highlight.ts`(ReactNode,禁 innerHTML) / `CodeBlock` / `ScenarioCard` / `data/plugins.ts`(glob doc.json + create.tsx 提 priority + DEFS make())
-- [ ] **demo vite alias**：通配在前(`/^vane-danmaku\/custom-plugins\/(.+)$/`)、裸名在后(`vane-danmaku`→`src/index.ts`)；`createDemoConfig({root,port,outDir:"demo-dist",open:"/demo/index.html"})`
-- [ ] **防遮挡 demo 集成**：demo 内（非发布包）接 MediaPipe Selfie Segmentation，可视化避让区矩形；走 SafeZonePlugin 的 `setAvoidZones` 注入
-- [ ] **样式/可访问性**：DOM slot 层全内联 tokens；容器有 bg 必有 color；不用 opacity 压字；ADR-13 门槛(正文≥4.5/禁用≥3/UI≥3)
+> 进度（截至本提交）：基础演示页 `00-basic.tsx` 已升级为 **23 插件综合演示**并通过 `build:demo`；
+> UI 控制插件经回调与消费方联动（设置面板/过滤开关/指令输入/统计条均可用）。
+> **延后项**：MediaPipe 实时防遮挡演示改为在 `docs/components/vane-danmaku/recipes.md`
+> 以消费方集成范式给出（发布包不捆绑 ML，避免体积膨胀）；`selftest`/`audit-geometry`/
+> 对比度体检与「插件工坊」多页 apparatus 留待下个迭代。
+
+- [x] **外壳四件生成物**：只写 `demo/src/demo.config.tsx` + `demo/src/App.css`；`vane.demo` 五项(brand/subtitle/title/accent/bg)与 config 一致
+- [x] **demos/ 逐项示例层**：`import.meta.glob("./[0-9]*.tsx",{eager:true})` + `?raw` 同源；每页 `meta`(slug/plugin) + 默认 Stage；`00-basic` 已装配 23 插件全家桶
+- [ ] **codegen.ts + components/data**：最小装配生成；`highlight.ts`/`CodeBlock`/`ScenarioCard`/`data/plugins.ts` —— 「插件工坊」多页 apparatus 留待下个迭代
+- [x] **demo vite alias**：通配在前(`/^vane-danmaku\/custom-plugins\/(.+)$/`)、裸名在后(`vane-danmaku`→`src/index.ts`)；`createDemoConfig({root,port,outDir:"demo-dist",open:"/demo/index.html"})`
+- [ ] **防遮挡 demo 集成**：实时 MediaPipe 演示改为 `recipes.md` 消费方范式（发布包不捆绑 ML）；`SafeZonePlugin` 静态安全区已接入演示
+- [x] **样式/可访问性**：DOM slot 层全内联 tokens；容器有 bg 必有 color；不用 opacity 压字；ADR-13 门槛(正文≥4.5/禁用≥3/UI≥3)
 - [ ] **自测 + 体检**：`lib/selftest.tsx`(`?selftest=1`→`document.title`=SELFTEST PASS n/n) + `lib/audit-geometry.ts`(越界/负坐标/重叠/scrollHeight)；`test/selftest.dom.test.tsx`(happy-dom,布局探测 guard)
 - [ ] **P2 门禁**：`build:demo` 成功 → `serve:demo` → `?selftest=1` PASS n/n → 对比度 0 处不达标
 
