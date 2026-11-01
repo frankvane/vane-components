@@ -29,14 +29,38 @@ export interface Availability {
   availableCount: Record<string, number>;
 }
 
+/**
+ * 读取变体的某个属性取值。
+ * 容错：宿主接口漏下发 attrValues（或某条变体没有该键）时返回 undefined，
+ * 而不是像 `v.attrValues[k]` 那样直接抛 TypeError（P0-3）。
+ */
+function attrValue(variant: SkuVariant, key: string): string | undefined {
+  const values = variant.attrValues as Record<string, string> | undefined;
+  return values ? values[key] : undefined;
+}
+
 /** 选出参与可用性推导的变体 */
-function effectiveVariants(
+export function effectiveVariants(
   variants: SkuVariant[],
-  opts: AvailabilityOptions
+  opts: AvailabilityOptions = {}
 ): SkuVariant[] {
   const ignoreOutOfStock = opts.ignoreOutOfStock ?? true;
   if (!ignoreOutOfStock) return variants;
   return variants.filter((v) => v.stock !== 0);
+}
+
+/**
+ * 可售判定（P1-1）：把「这个变体能不能买」收敛到唯一实现，
+ * 禁用推导（effectiveVariants）与 onValidSkuChange / 摘要展示都复用同一口径。
+ */
+export function isPurchasable(
+  variant: SkuVariant | null | undefined,
+  opts: AvailabilityOptions = {}
+): boolean {
+  if (!variant) return false;
+  const ignoreOutOfStock = opts.ignoreOutOfStock ?? true;
+  if (ignoreOutOfStock && variant.stock === 0) return false;
+  return true;
 }
 
 /**
@@ -57,20 +81,22 @@ export function buildAvailability(
 
   for (const attr of attributes) {
     const disabled = new Set<string>();
+    // 容错：接口漏下发 options 时按「无候选」处理（P0-3），空数组语义不变
+    const options = attr.options ?? [];
 
-    for (const option of attr.options) {
+    for (const option of options) {
       // 临时选择：以当前选择为基，把本属性覆盖为候选 option
       const tentative: SkuSelection = { ...selection, [attr.name]: option.id };
       const keys = Object.keys(tentative);
       const exists =
         keys.length > 0 &&
-        pool.some((v) => keys.every((k) => v.attrValues[k] === tentative[k]));
+        pool.some((v) => keys.every((k) => attrValue(v, k) === tentative[k]));
 
       if (!exists) disabled.add(option.id);
     }
 
     disabledMap[attr.name] = disabled;
-    availableCount[attr.name] = attr.options.length - disabled.size;
+    availableCount[attr.name] = options.length - disabled.size;
   }
 
   return { disabledMap, availableCount };
@@ -88,7 +114,7 @@ export function matchVariant(
   }
   const keys = Object.keys(selection);
   return (
-    variants.find((v) => keys.every((k) => v.attrValues[k] === selection[k])) ??
+    variants.find((v) => keys.every((k) => attrValue(v, k) === selection[k])) ??
     null
   );
 }

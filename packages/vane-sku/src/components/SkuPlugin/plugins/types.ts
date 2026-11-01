@@ -79,8 +79,14 @@ export interface SkuSelectorCoreProps {
   attributes: SkuAttribute[];
   /** 变体列表 */
   variants: SkuVariant[];
-  /** 默认选择（属性名 → optionId），未指定则初始为空 */
+  /** 默认选择（属性名 → optionId），未指定则初始为空。非受控模式的初值，只生效一次 */
   defaultSelection?: SkuSelection;
+  /**
+   * 选择态（属性名 → optionId）。
+   * - 宿主传入：进入受控模式，以 props 为准，点击通过 onSelectionChange 回传（P1-2）
+   * - 不传：withSkuPlugins 会注入内部 state 的当前值给 Core 渲染（只读）
+   */
+  selection?: SkuSelection;
   /**
    * 缺货变体（stock===0）是否参与可用推导。
    * true（默认）：缺货变体视为不存在 → 通往它的选项被置灰
@@ -88,10 +94,17 @@ export interface SkuSelectorCoreProps {
   ignoreOutOfStock?: boolean;
   /** 任意选择变化 */
   onChange?: (selection: SkuSelection, variant: SkuVariant | null) => void;
-  /** 选全并命中变体时触发 */
+  /** 受控模式下的选择变化回调（属性名 → optionId） */
+  onSelectionChange?: (selection: SkuSelection, variant: SkuVariant | null) => void;
+  /** 选全且可售时触发（缺货变体不触发，见 P1-1） */
   onValidSkuChange?: (variant: SkuVariant) => void;
   /** 业务数据（透传给内核 context.data） */
   data?: unknown;
+  /**
+   * 运行时替换插件数组（P2-6）：不传则使用 createSkuSelector / withPlugins 装配时绑定的一组。
+   * 传入时请保持引用稳定（数组元素引用不变即可），避免无意义的重注册。
+   */
+  plugins?: SkuPlugin[];
   containerClassName?: string;
   containerStyle?: React.CSSProperties;
   onMount?: () => void;
@@ -103,9 +116,10 @@ export interface SkuSelectorCoreProps {
   // ---- 以下由 withSkuPlugins 注入，Core 只读 ----
   /** 逐段插槽（内核 renderPluginSlot 输出） */
   slots?: SkuSlots;
-  selection?: SkuSelection;
   disabledMap?: Record<string, Set<string>>;
   variant?: SkuVariant | null;
+  /** 命中的变体是否可售（P1-1：缺货 / ignoreOutOfStock 判定后的统一口径） */
+  purchasable?: boolean;
   onSelectOption?: (attrName: string, optionId: string) => void;
 }
 
@@ -127,18 +141,28 @@ export interface SkuSelectorCoreRef {
  */
 export interface SkuPluginContext
   extends PluginContext<SkuSelectorCoreProps, unknown> {
+  /** 归一化后的规格属性（插件请用这份，不要读 props.attributes） */
+  attributes: SkuAttribute[];
+  /** 归一化后的变体列表（插件请用这份，不要读 props.variants） */
+  variants: SkuVariant[];
+  /** 缺货变体是否视为不存在（与禁用推导同一口径） */
+  ignoreOutOfStock: boolean;
   /** 当前选择 */
   selection: SkuSelection;
   /** 禁用推导结果：属性名 → 被置灰的 optionId 集合 */
   disabledMap: Record<string, Set<string>>;
   /** 当前命中的变体（未选全或未命中为 null） */
   variant: SkuVariant | null;
+  /** 命中变体是否可售（与 onValidSkuChange 的触发口径一致） */
+  purchasable: boolean;
   /** 规格是否已选全 */
   isComplete: boolean;
   /** 选择某个选项（写入内核 state，触发 context 重建） */
   selectOption: (attrName: string, optionId: string) => void;
   /** 清空全部选择（ResetBar / StatePersistence 等需要整段重置时用） */
   clearSelection: () => void;
+  /** 整段写入选择（外部来源）——经 normalizeSelection 白名单校验后写入 state */
+  setSelection: (selection: SkuSelection) => void;
 }
 
 // ============ 插件钩子 ============

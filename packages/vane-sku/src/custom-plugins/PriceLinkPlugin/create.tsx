@@ -1,4 +1,5 @@
 import React from "react";
+import { formatPriceValue } from "../../components/SkuPlugin/limits";
 import type {
   SkuPlugin,
   SkuPluginContext,
@@ -48,12 +49,12 @@ export function createPriceLinkPlugin(
           >
             <span style={{ fontSize: 18, fontWeight: 700, color: "#b32d08" }}>
               {currency}
-              {v.price}
+              {formatPriceValue(v.price)}
             </span>
             {hasOriginal ? (
               <s data-testid="sku-price-original" style={{ fontSize: 12, color: "#6b7076" }}>
                 {currency}
-                {v.originalPrice}
+                {formatPriceValue(v.originalPrice)}
               </s>
             ) : null}
             {config.discountText ? (

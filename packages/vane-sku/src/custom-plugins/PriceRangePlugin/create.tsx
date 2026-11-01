@@ -1,12 +1,17 @@
 import React from "react";
+import { effectiveVariants } from "../../components/SkuPlugin/matrix";
+import { formatPriceValue } from "../../components/SkuPlugin/limits";
 import type { SkuPlugin, SkuPluginContext } from "../../components/SkuPlugin/plugins/types";
 
 /**
  * PriceRangePlugin — 价格区间。
  *
  * 未选全（或组合无货）时，PriceLink 显示不出单价，页面价格区就空了。
- * 这里补上「¥199 – ¥269」这种区间展示：按当前选择过滤变体后取 min/max。
+ * 这里补上「¥199.00 – ¥269.00」这种区间展示：按当前选择过滤变体后取 min/max。
  * 一旦选全并命中变体就退场，把价格区让给 PriceLink 显示准确单价。
+ *
+ * 口径（P2-2）：区间只统计「可售」变体（复用 effectiveVariants，与禁用推导同一口径），
+ * 否则会出现「¥199 – ¥229」但只有 199 有货的虚假区间；价格固定两位小数。
  *
  * meta 在同目录 index.ts 挂载。
  */
@@ -31,16 +36,18 @@ export function createPriceRangePlugin(config: PriceRangeConfig = {}): SkuPlugin
       renderOverlay: (context: SkuPluginContext) => {
         if (context.variant && !config.showWhenMatched) return null;
 
-        const attrs = context.props.attributes ?? [];
+        const attributes = context.attributes ?? context.props.attributes ?? [];
+        const variants = context.variants ?? context.props.variants ?? [];
         const selection = context.selection ?? {};
-        // 按当前选择过滤：只统计「与已选属性一致」的变体
-        const keys = Object.keys(selection);
-        const pool = (context.props.variants ?? []).filter((v) =>
-          keys.every((k) => v.attrValues[k] === selection[k])
+        // 只统计「可售」变体，且与已选属性一致
+        const pool = effectiveVariants(variants, {
+          ignoreOutOfStock: context.ignoreOutOfStock ?? true,
+        }).filter((v) =>
+          Object.keys(selection).every((k) => v.attrValues?.[k] === selection[k])
         );
         const prices = pool
           .map((v) => v.price)
-          .filter((p): p is number => typeof p === "number");
+          .filter((p): p is number => typeof p === "number" && Number.isFinite(p));
         if (!prices.length) return null;
 
         const min = Math.min(...prices);
@@ -55,10 +62,10 @@ export function createPriceRangePlugin(config: PriceRangeConfig = {}): SkuPlugin
           >
             <span style={{ fontSize: 16, fontWeight: 700, color: "#b32d08" }}>
               {currency}
-              {min}
-              {min !== max ? `${separator}${currency}${max}` : ""}
+              {formatPriceValue(min)}
+              {min !== max ? `${separator}${currency}${formatPriceValue(max)}` : ""}
             </span>
-            {attrs.length && !context.isComplete ? (
+            {attributes.length && !context.isComplete ? (
               <span style={{ fontSize: 11, color: "#5b6064" }}>（请先选择规格）</span>
             ) : null}
           </div>

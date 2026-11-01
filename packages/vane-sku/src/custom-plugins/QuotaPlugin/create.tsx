@@ -1,4 +1,5 @@
 import React from "react";
+import { remainingQuota } from "../../components/SkuPlugin/limits";
 import type {
   SkuPlugin,
   SkuPluginContext,
@@ -9,7 +10,10 @@ import type {
  *
  * vane-card 只有 stock（库存），没有「每人限购 N 件」；这里补齐：
  *  - 读 variant.quota 与已购数，在 after 段渲染限购提示条；
- *  - 把 canPurchase 写入内核 state，宿主加购按钮读它决定是否禁用。
+ *  - 把 canPurchase / remaining 写入内核 state，宿主加购按钮读它决定是否禁用。
+ *
+ * 「剩余可购 = max(0, 限购 - 已购)」与 QuantityPlugin 共用同一实现（limits.ts），
+ * 避免出现「限购 2、已购 1，还能再加 2 件」的规则漏洞（P1-3）。
  *
  * canPurchase 在事件钩子（onMount / onSkuChange）里写入，不在渲染期 setState，
  * 避免渲染期修改状态导致的循环告警。
@@ -23,38 +27,49 @@ export interface QuotaConfig {
   onExceed?: () => void;
 }
 
+/** 解析限购状态（纯逻辑，便于单测与宿主复用） */
+export function resolveQuota(
+  variant: { quota?: number } | null | undefined,
+  purchasedCount = 0
+): { quota: number | undefined; remaining: number; canPurchase: boolean } {
+  const quota = variant?.quota;
+  const remaining = remainingQuota(quota, purchasedCount);
+  return { quota, remaining, canPurchase: remaining > 0 };
+}
+
 export function createQuotaPlugin(config: QuotaConfig = {}): SkuPlugin {
   const purchased = config.purchasedCount ?? 0;
 
-  const resolve = (context: SkuPluginContext) => {
-    const quota = context.variant?.quota;
-    // 未声明 quota 视为不限购
-    const canPurchase = typeof quota === "number" ? purchased < quota : true;
-    return { quota, canPurchase };
+  const resolve = (context: SkuPluginContext) =>
+    resolveQuota(context.variant, purchased);
+
+  const push = (context: SkuPluginContext) => {
+    const { remaining, canPurchase } = resolve(context);
+    context.setState({ canPurchase, remainingQuota: remaining });
+    return canPurchase;
   };
 
   return {
     name: "Quota",
     version: "0.1.0",
-    description: "限购校验：渲染限购提示条并暴露 canPurchase 门控",
+    description: "限购校验：渲染限购提示条并暴露 canPurchase / remaining",
     priority: 40,
     config,
     hooks: {
       onMount: (context: SkuPluginContext) => {
-        context.setState({ canPurchase: resolve(context).canPurchase });
+        push(context);
       },
       onSkuChange: (context: SkuPluginContext) => {
-        const { canPurchase } = resolve(context);
-        context.setState({ canPurchase });
-        if (!canPurchase) config.onExceed?.();
+        if (!push(context)) config.onExceed?.();
       },
       renderHeader: (context: SkuPluginContext) => {
-        const { quota, canPurchase } = resolve(context);
+        const { quota, remaining, canPurchase } = resolve(context);
         if (typeof quota !== "number") return null;
         return (
           <div
             data-testid="sku-quota"
             data-can-purchase={canPurchase ? "true" : "false"}
+            data-remaining={String(remaining)}
             style={{
               marginTop: 6,
               fontSize: 12,
@@ -66,7 +81,7 @@ export function createQuotaPlugin(config: QuotaConfig = {}): SkuPlugin {
             }}
           >
             每人限购 {quota} 件（已购 {purchased}）
-            {canPurchase ? "" : " · 已达限购上限"}
+            {canPurchase ? ` · 还可购 ${remaining} 件` : " · 已达限购上限"}
           </div>
         );
       },

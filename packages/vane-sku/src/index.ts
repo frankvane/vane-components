@@ -13,7 +13,27 @@ export {
   buildAvailability,
   matchVariant,
   isSelectionComplete,
+  isPurchasable,
+  effectiveVariants,
 } from "./components/SkuPlugin/matrix";
+
+/** 数据 / 选择态归一化（外部输入白名单，纯函数） */
+export {
+  normalizeSkuData,
+  normalizeSelection,
+  isSameSelection,
+} from "./components/SkuPlugin/normalize";
+
+/** 数量 / 价格口径（Quota 与 Quantity 共用） */
+export {
+  remainingQuota,
+  quantityUpper,
+  formatPrice,
+  formatPriceValue,
+} from "./components/SkuPlugin/limits";
+
+export type { NormalizedSkuData } from "./components/SkuPlugin/normalize";
+export type { AvailabilityOptions, Availability } from "./components/SkuPlugin/matrix";
 
 export type {
   SkuAttribute,

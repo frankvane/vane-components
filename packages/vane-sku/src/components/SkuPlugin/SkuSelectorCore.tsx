@@ -1,10 +1,13 @@
 import React, {
   forwardRef,
+  useCallback,
   useEffect,
   useImperativeHandle,
+  useMemo,
   useRef,
   useState,
 } from "react";
+import { formatPriceValue } from "./limits";
 import type {
   SkuAttribute,
   SkuSelectorCoreProps,
@@ -30,6 +33,7 @@ export const SkuSelectorCore = forwardRef<
     selection = {},
     disabledMap = {},
     variant = null,
+    purchasable = true,
     onSelectOption,
     slots,
     children,
@@ -58,7 +62,8 @@ export const SkuSelectorCore = forwardRef<
       getSelection: () => selection,
       getVariant: () => variant,
     }),
-    [selection, variant]
+    // containerRef 必须列入依赖：外部容器 ref 切换时 getContainer() 否则仍指向旧节点（P2-8）
+    [selection, variant, containerRef]
   );
 
   useEffect(() => {
@@ -69,8 +74,23 @@ export const SkuSelectorCore = forwardRef<
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const labelOf = (attr: SkuAttribute, optionId: string) =>
-    attr.options.find((o) => o.id === optionId)?.label ?? optionId;
+  // 摘要文案查表：提前建好 attrName → optionId → label 的索引，
+  // 避免每次渲染都做 O(属性 × 选项) 的 find（P2-8）
+  const labelMap = useMemo(() => {
+    const map = new Map<string, Map<string, string>>();
+    for (const attr of attributes) {
+      const labels = new Map<string, string>();
+      for (const option of attr.options ?? []) labels.set(option.id, option.label);
+      map.set(attr.name, labels);
+    }
+    return map;
+  }, [attributes]);
+
+  const labelOf = useCallback(
+    (attrName: string, optionId: string) =>
+      labelMap.get(attrName)?.get(optionId) ?? optionId,
+    [labelMap]
+  );
 
   const selectedEntries = attributes
     .map((a) => ({ attr: a, optionId: selection[a.name] }))
@@ -95,55 +115,71 @@ export const SkuSelectorCore = forwardRef<
       {slots?.before}
 
       <div data-testid="sku-groups">
-        {attributes.map((attr) => (
-          <div
-            key={attr.name}
-            data-testid={`sku-attr-${attr.name}`}
-            style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 8 }}
-          >
-            <span style={{ fontSize: 12, color: "#4a5056", minWidth: 48 }}>
-              {attr.name}
-            </span>
-            {attr.options.map((opt) => {
-              const selected = selection[attr.name] === opt.id;
-              const disabled = disabledMap[attr.name]?.has(opt.id) ?? false;
-              return (
-                <button
-                  key={opt.id}
-                  type="button"
-                  data-testid={`sku-opt-${attr.name}-${opt.id}`}
-                  data-selected={selected ? "true" : "false"}
-                  aria-pressed={selected}
-                  disabled={disabled}
-                  onClick={() => onSelectOption?.(attr.name, opt.id)}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 4,
-                    padding: "6px 10px",
-                    borderRadius: 6,
-                    border: selected ? "2px solid #2b7de9" : "1px solid #d0d4da",
-                    background: disabled ? "#f2f3f5" : selected ? "#e8f0fe" : "#fff",
-                    // 禁用态靠「灰底 + 灰字 + not-allowed」表达，不再叠 opacity：
-                    // #9aa0a6 再乘 0.6 落到 1.63:1，白卡上等于看不见（WCAG 要 ≥3:1）
-                    color: disabled ? "#6f757b" : "#1f2328",
-                    cursor: disabled ? "not-allowed" : "pointer",
-                    fontSize: 12,
-                  }}
-                >
-                  {opt.image ? (
-                    <img
-                      src={opt.image}
-                      alt=""
-                      style={{ width: 16, height: 16, objectFit: "cover", borderRadius: 3 }}
-                    />
-                  ) : null}
-                  {opt.label}
-                </button>
-              );
-            })}
-          </div>
-        ))}
+        {attributes.map((attr) => {
+          const options = attr.options ?? [];
+          const disabledSet = disabledMap[attr.name];
+          // roving tabindex：整行只保留一个 Tab 落点（已选优先，否则第一个可选项）（P2-7）
+          const tabbableId =
+            selection[attr.name] ??
+            options.find((opt) => !disabledSet?.has(opt.id))?.id;
+          return (
+            <div
+              key={attr.name}
+              role="radiogroup"
+              aria-label={attr.name}
+              data-testid={`sku-attr-${attr.name}`}
+              style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 8 }}
+            >
+              <span style={{ fontSize: 12, color: "#4a5056", minWidth: 48 }}>
+                {attr.name}
+              </span>
+              {options.map((opt) => {
+                const selected = selection[attr.name] === opt.id;
+                const disabled = disabledSet?.has(opt.id) ?? false;
+                // 已选中的选项始终可点：禁用态只约束「未选中且不可达」的候选，
+                // 否则库存变 0 / 脏值残留时用户连取消都做不到（P2-1 / P0-1）
+                const blocked = disabled && !selected;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    tabIndex={opt.id === tabbableId ? 0 : -1}
+                    data-testid={`sku-opt-${attr.name}-${opt.id}`}
+                    data-selected={selected ? "true" : "false"}
+                    data-disabled={disabled ? "true" : "false"}
+                    disabled={blocked}
+                    onClick={() => onSelectOption?.(attr.name, opt.id)}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 4,
+                      padding: "6px 10px",
+                      borderRadius: 6,
+                      border: selected ? "2px solid #2b7de9" : "1px solid #d0d4da",
+                      background: disabled ? "#f2f3f5" : selected ? "#e8f0fe" : "#fff",
+                      // 禁用态靠「灰底 + 灰字 + not-allowed」表达，不再叠 opacity：
+                      // #9aa0a6 再乘 0.6 落到 1.63:1，白卡上等于看不见（WCAG 要 ≥3:1）
+                      color: disabled ? "#6f757b" : "#1f2328",
+                      cursor: blocked ? "not-allowed" : "pointer",
+                      fontSize: 12,
+                    }}
+                  >
+                    {opt.image ? (
+                      <img
+                        src={opt.image}
+                        alt=""
+                        style={{ width: 16, height: 16, objectFit: "cover", borderRadius: 3 }}
+                      />
+                    ) : null}
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+          );
+        })}
       </div>
 
       <div data-testid="sku-summary" style={{ fontSize: 12, color: "#3c4147", marginTop: 4 }}>
@@ -151,13 +187,18 @@ export const SkuSelectorCore = forwardRef<
           <span>
             已选：
             {selectedEntries
-              .map((e) => `${e.attr.name}:${labelOf(e.attr, e.optionId)}`)
+              .map((e) => `${e.attr.name}:${labelOf(e.attr.name, e.optionId)}`)
               .join(" / ")}
             {variant ? (
               <span data-testid="sku-summary-variant">
                 （SKU：{variant.sku}
-                {typeof variant.price === "number" ? ` · ¥${variant.price}` : ""}
-                {typeof variant.stock === "number" ? ` · 库存 ${variant.stock}` : ""}）
+                {typeof variant.price === "number"
+                  ? ` · ¥${formatPriceValue(variant.price)}`
+                  : ""}
+                {typeof variant.stock === "number" ? ` · 库存 ${variant.stock}` : ""}
+                {/* 命中但不可售时如实标注，避免摘要与回调宣告「可买」（P1-1） */}
+                {purchasable ? "" : " · 缺货"}
+                ）
               </span>
             ) : (
               <span data-testid="sku-summary-novariant">（无可售组合）</span>

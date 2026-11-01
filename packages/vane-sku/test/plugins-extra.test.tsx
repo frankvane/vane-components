@@ -181,28 +181,39 @@ describe("ResetBarPlugin 清空重选", () => {
 });
 
 describe("KeyboardNavPlugin 键盘漫游", () => {
-  it("→ 键切到同属性下一个选项", async () => {
+  it("→ 键只把焦点移到同属性下一个选项，不改变选择", async () => {
     const Sku = createSkuSelector([createKeyboardNavPlugin()]);
     await mount(<Sku attributes={attributes} variants={variants} />);
 
     const red = q('[data-testid="sku-opt-颜色-red"]') as HTMLButtonElement;
+    red.focus();
     await act(async () => {
       red.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
     });
 
-    expect((q('[data-testid="sku-opt-颜色-blue"]') as HTMLButtonElement).dataset.selected).toBe("true");
+    const blue = q('[data-testid="sku-opt-颜色-blue"]') as HTMLButtonElement;
+    expect(document.activeElement).toBe(blue);
+    expect(blue.dataset.selected).toBe("false");
+
+    await act(async () => {
+      blue.click();
+    });
+    expect(blue.dataset.selected).toBe("true");
   });
 
-  it("↓ 键跳到下一属性行", async () => {
+  it("↓ 键把焦点移到下一属性行（保持列位置），点击才选中", async () => {
     const Sku = createSkuSelector([createKeyboardNavPlugin()]);
     await mount(<Sku attributes={attributes} variants={variants} />);
 
     const red = q('[data-testid="sku-opt-颜色-red"]') as HTMLButtonElement;
+    red.focus();
     await act(async () => {
       red.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
     });
 
-    expect((q('[data-testid="sku-opt-尺码-s"]') as HTMLButtonElement).dataset.selected).toBe("true");
+    const s = q('[data-testid="sku-opt-尺码-s"]') as HTMLButtonElement;
+    expect(document.activeElement).toBe(s);
+    expect(s.dataset.selected).toBe("false");
   });
 });
 

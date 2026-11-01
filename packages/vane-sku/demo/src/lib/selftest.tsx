@@ -223,10 +223,12 @@ export async function runSelfTest(): Promise<SelfTestResult> {
     // 派发原生事件后等一轮 tick，React 的批处理更新自会提交。
     red.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
     await tick();
-    ok(
-      "键盘漫游：→ 键切到同属性下一个选项",
-      (t.q('[data-testid="sku-opt-颜色-blue"]') as HTMLButtonElement)?.dataset.selected === "true"
-    );
+    const blue = t.q('[data-testid="sku-opt-颜色-blue"]') as HTMLButtonElement;
+    ok("键盘漫游：→ 键移动焦点到同属性下一个选项", document.activeElement === blue);
+    ok("键盘漫游：移动焦点不等于选中", blue?.dataset.selected === "false");
+    blue?.click();
+    await tick();
+    ok("键盘漫游：点击（Enter/Space 原生行为）才选中", blue?.dataset.selected === "true");
     flushSync(() => t.root.unmount());
     t.host.remove();
   }
