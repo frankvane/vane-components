@@ -19,12 +19,50 @@ import type {
   ProfileSlotName,
 } from "./types";
 
+/** 7 个领域槽（预分组只算一次，Core 只做 map） */
+const SLOT_NAMES: ProfileSlotName[] = [
+  "renderBannerArea",
+  "renderBioArea",
+  "renderStatRow",
+  "renderTabBar",
+  "renderBadgeArea",
+  "renderFollowArea",
+  "renderContentArea",
+];
+
+type SlotGroups = Record<ProfileSlotName, ProfilePlugin<any>[]>;
+
 interface SlotContextValue {
   orderedPlugins: ProfilePlugin<any>[];
   context: ProfilePluginContext<any>;
+  /** 按槽预分组（已过滤未启用 / 未实现该钩子的插件，并完成排序） */
+  slots: SlotGroups;
 }
 
 const SlotContext = createContext<SlotContextValue | null>(null);
+
+function sortByOrder(plugins: ProfilePlugin<any>[]): ProfilePlugin<any>[] {
+  return plugins.sort(
+    (a, b) =>
+      (a.config?.order ?? 0) - (b.config?.order ?? 0) ||
+      (b.priority ?? 0) - (a.priority ?? 0)
+  );
+}
+
+/** 把插件按 7 个领域槽分组（过滤 + 排序一次完成） */
+export function groupPluginsBySlot(plugins: ProfilePlugin<any>[]): SlotGroups {
+  const groups = {} as SlotGroups;
+  for (const slot of SLOT_NAMES) {
+    groups[slot] = sortByOrder(
+      plugins.filter(
+        (p) =>
+          p.enabled !== false &&
+          typeof (p.hooks as Record<string, unknown>)[slot] === "function"
+      )
+    );
+  }
+  return groups;
+}
 
 /**
  * 由 withProfilePlugins 包在 WrappedComponent 外层，把当前实例的 orderedPlugins 与
@@ -39,11 +77,46 @@ export function ProfileSlotProvider({
   context: ProfilePluginContext<any>;
   children: React.ReactNode;
 }) {
+  const slots = useMemo(() => groupPluginsBySlot(orderedPlugins), [orderedPlugins]);
   const value = useMemo<SlotContextValue>(
-    () => ({ orderedPlugins, context }),
-    [orderedPlugins, context]
+    () => ({ orderedPlugins, context, slots }),
+    [orderedPlugins, context, slots]
   );
   return <SlotContext.Provider value={value}>{children}</SlotContext.Provider>;
+}
+
+/** 渲染一个已分组的槽位列表（不重复排序 / 过滤） */
+function renderSlotGroup(
+  plugins: ProfilePlugin<any>[],
+  context: ProfilePluginContext<any>,
+  hookName: ProfileSlotName
+): React.ReactNode[] {
+  return plugins.reduce<React.ReactNode[]>((acc, plugin) => {
+    try {
+      const node = (
+        plugin.hooks as Record<
+          string,
+          (ctx: ProfilePluginContext<any>) => React.ReactNode
+        >
+      )[hookName](context);
+      if (node === null || node === undefined) return acc;
+      // 每个插件单独一层错误边界：某个插件渲染期抛错只丢它自己。
+      // key 只用插件名：插件顺序变化（order/priority 调整、增删同槽插件）时
+      // 不因 index 位移整颗重挂载，内部态（展开 / 乐观态）得以保留。
+      acc.push(
+        <PluginErrorBoundary key={`profile-slot-${plugin.name}`}>
+          {node}
+        </PluginErrorBoundary>
+      );
+      return acc;
+    } catch (error) {
+      console.warn(
+        `[vane-profile] 插件 ${plugin.name} 的 ${hookName} 渲染失败`,
+        error
+      );
+      return acc;
+    }
+  }, []);
 }
 
 /**
@@ -55,50 +128,23 @@ export function renderProfileSlot(
   context: ProfilePluginContext<any>,
   hookName: ProfileSlotName
 ): React.ReactNode[] {
-  return [...plugins]
-    .filter(
-      (p) =>
-        p.enabled !== false &&
-        typeof (p.hooks as Record<string, unknown>)[hookName] === "function"
-    )
-    .sort(
-      (a, b) =>
-        (a.config?.order ?? 0) - (b.config?.order ?? 0) ||
-        (b.priority ?? 0) - (a.priority ?? 0)
-    )
-    .map((plugin, index) => {
-      try {
-        const node = (
-          plugin.hooks as Record<
-            string,
-            (ctx: ProfilePluginContext<any>) => React.ReactNode
-          >
-        )[hookName](context);
-        if (node === null || node === undefined) return null;
-        // 每个插件单独一层错误边界：某个插件渲染期抛错只丢它自己
-        return (
-          <PluginErrorBoundary
-            key={`profile-slot-${plugin.name}-${index}`}
-          >
-            {node}
-          </PluginErrorBoundary>
-        );
-      } catch (error) {
-        console.warn(
-          `[vane-profile] 插件 ${plugin.name} 的 ${hookName} 渲染失败`,
-          error
-        );
-        return null;
-      }
-    })
-    .filter(Boolean) as React.ReactNode[];
+  return renderSlotGroup(groupPluginsBySlot(plugins)[hookName], context, hookName);
 }
 
-/** 复合组件 / Core 读取某个领域槽位的所有片段 */
+/**
+ * 复合组件 / Core 读取某个领域槽位的所有片段。
+ * 结果按 [provider value, slot] memo：宿主重渲染但 props / context 未变时，
+ * 插件渲染函数不会被重复调用。
+ */
 export function useProfileSlot(slot: ProfileSlotName): React.ReactNode[] {
   const ctx = useContext(SlotContext);
-  if (!ctx) return [];
-  return renderProfileSlot(ctx.orderedPlugins, ctx.context, slot);
+  const plugins = ctx ? ctx.slots[slot] : null;
+  const context = ctx ? ctx.context : null;
+  return useMemo(
+    () =>
+      plugins && context ? renderSlotGroup(plugins, context, slot) : [],
+    [plugins, context, slot]
+  );
 }
 
 /**

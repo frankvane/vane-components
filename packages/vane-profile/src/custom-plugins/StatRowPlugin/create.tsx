@@ -49,39 +49,53 @@ export function createStatRowPlugin<T = any>(
               flex: 1,
             }}
           >
-            {items.map((it, i) => (
-              <button
-                key={it.key ?? `stat-${i}`}
-                type="button"
-                onClick={onStatClick ? () => onStatClick(it, i) : undefined}
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: direction === "column" ? "flex-start" : "center",
-                  border: "none",
-                  background: "transparent",
-                  cursor: onStatClick ? "pointer" : "default",
-                  padding: 0,
-                  lineHeight: 1.2,
-                }}
-              >
-                <span style={{ fontSize: 18, fontWeight: 700 }}>{it.value}</span>
-                <span
-                  style={{
-                    fontSize: 12,
-                    color: "#6b6b6b",
-                    borderRight:
-                      divider && direction === "row" && i < items.length - 1
-                        ? "1px solid #eee"
-                        : "none",
-                    paddingRight:
-                      divider && direction === "row" && i < items.length - 1 ? 16 : 0,
-                  }}
+            {items.map((it, i) => {
+              const content = (
+                <>
+                  <span style={{ fontSize: 18, fontWeight: 700 }}>{it.value}</span>
+                  <span
+                    style={{
+                      fontSize: 12,
+                      color: "#6b6b6b",
+                      borderRight:
+                        divider && direction === "row" && i < items.length - 1
+                          ? "1px solid #eee"
+                          : "none",
+                      paddingRight:
+                        divider && direction === "row" && i < items.length - 1 ? 16 : 0,
+                    }}
+                  >
+                    {it.label}
+                  </span>
+                </>
+              );
+              const style: React.CSSProperties = {
+                display: "flex",
+                flexDirection: "column",
+                alignItems: direction === "column" ? "flex-start" : "center",
+                border: "none",
+                background: "transparent",
+                cursor: onStatClick ? "pointer" : "default",
+                padding: 0,
+                lineHeight: 1.2,
+              };
+              // 未传 onStatClick 时输出 span：避免一列「可聚焦但点了没反应」的空按钮
+              return onStatClick ? (
+                <button
+                  key={it.key ?? `stat-${i}`}
+                  type="button"
+                  className="vp-stat-item"
+                  onClick={() => onStatClick(it, i)}
+                  style={style}
                 >
-                  {it.label}
+                  {content}
+                </button>
+              ) : (
+                <span key={it.key ?? `stat-${i}`} className="vp-stat-item" style={style}>
+                  {content}
                 </span>
-              </button>
-            ))}
+              );
+            })}
           </div>
         );
       },

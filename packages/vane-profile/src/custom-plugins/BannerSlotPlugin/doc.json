@@ -23,6 +23,18 @@
       "description": "头像 URL，浮于头图左下"
     },
     {
+      "name": "avatarAlt",
+      "type": "string",
+      "default": "头像",
+      "description": "头像无障碍描述"
+    },
+    {
+      "name": "avatarFallback",
+      "type": "ReactNode",
+      "default": "人形占位",
+      "description": "头像加载失败 / 缺失时的兜底内容"
+    },
+    {
       "name": "avatarSize",
       "type": "number",
       "default": "64",

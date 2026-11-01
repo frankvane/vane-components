@@ -4,7 +4,7 @@
   "since": "0.1.0",
   "tags": ["ui", "share", "qr", "renderBadgeArea"],
   "config": [
-    { "name": "url", "type": "string", "default": "https://vane.dev/u/frankvane", "description": "要分享的主页地址" },
+    { "name": "url", "type": "string", "default": "props.data.homeUrl", "description": "要分享的主页地址；缺省读 props.data.homeUrl，都没有则不渲染分享按钮" },
     { "name": "buttonLabel", "type": "ReactNode", "default": "分享", "description": "按钮文案" },
     { "name": "size", "type": "number", "default": "96", "description": "二维码占位区边长（px）" }
   ],

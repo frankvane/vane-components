@@ -48,8 +48,20 @@ export function createTabSyncPlugin<T = any>(
     scrollTopOnChange = true,
     onChange,
   } = config;
-  if (!tabs || tabs.length === 0) {
-    throw new Error("[vane-profile] TabSync 至少需要一个 tab");
+  const items = Array.isArray(tabs) ? tabs.filter((t) => !!t && !!t.id) : [];
+  if (items.length === 0) {
+    // 页签通常来自异步接口，首帧常常是空数组。这里不能 throw：
+    // 工厂一般在渲染期构造，抛错发生在 React 渲染之外，错误边界接不住，直接白屏。
+    // 因此空 tabs 返回一个 enabled:false 的空插件，等数据到位后由宿主重建插件数组。
+    return {
+      name: "TabSync",
+      version: "0.1.0",
+      description:
+        "页签系统：渲染页签栏 + 切换时联动内容区重渲染（消费方子节点经 useProfileContext 订阅 activeTab）。",
+      priority: 20,
+      enabled: false,
+      hooks: {},
+    };
   }
 
   const activeStyle = (active: boolean): React.CSSProperties => {
@@ -94,6 +106,7 @@ export function createTabSyncPlugin<T = any>(
         return (
           <div
             className="vp-tab-bar-inner"
+            role="tablist"
             style={{
               display: "flex",
               gap: variant === "segmented" ? 4 : 8,
@@ -106,12 +119,14 @@ export function createTabSyncPlugin<T = any>(
                 : {}),
             }}
           >
-            {tabs.map((t) => {
+            {items.map((t) => {
               const isActive = t.id === active;
               return (
                 <button
                   key={t.id}
                   type="button"
+                  role="tab"
+                  aria-selected={isActive}
                   onClick={() => context.setActiveTab(t.id)}
                   style={{
                     display: "inline-flex",

@@ -3,6 +3,7 @@ import type {
   ProfilePlugin,
   ProfilePluginContext,
 } from "../../components/ProfilePlugin/plugins/types";
+import { safeHref } from "../../components/ProfilePlugin/plugins/safe-url";
 import doc from "./doc.json";
 
 export interface ContactCardConfig {
@@ -36,15 +37,18 @@ export function createContactCardPlugin<T = any>(
 ): ProfilePlugin<T> {
   const { email, phone, site, address, showIcon = true } = config;
   const rows: Row[] = [];
-  if (email) rows.push({ glyph: "@", text: email, href: `mailto:${email}` });
-  if (phone) rows.push({ glyph: "☎", text: phone, href: `tel:${phone}` });
-  if (site)
+  // href 一律过协议白名单；不合法（javascript: / data: / 裸域名等）时降级为纯文本
+  if (email) rows.push({ glyph: "@", text: email, href: safeHref(`mailto:${email}`) });
+  if (phone) rows.push({ glyph: "☎", text: phone, href: safeHref(`tel:${phone}`) });
+  if (site) {
+    const siteHref = safeHref(site);
     rows.push({
       glyph: "网",
       text: site.replace(/^https?:\/\//, ""),
-      href: site,
-      external: true,
+      href: siteHref,
+      external: !!siteHref,
     });
+  }
   if (address) rows.push({ glyph: "📍", text: address });
 
   return {

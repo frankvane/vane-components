@@ -3,6 +3,7 @@ import type {
   ProfilePlugin,
   ProfilePluginContext,
 } from "../../components/ProfilePlugin/plugins/types";
+import { cssImageUrl } from "../../components/ProfilePlugin/plugins/safe-url";
 import doc from "./doc.json";
 
 export interface WorkItem {
@@ -78,8 +79,11 @@ export function createWorksGridPlugin<T = any>(
             }}
           >
             {items.map((w, i) => {
+              const coverUrl = cssImageUrl(w.cover);
               const bg =
-                w.cover ?? w.coverColor ?? FALLBACK_COLORS[i % FALLBACK_COLORS.length];
+                coverUrl ??
+                w.coverColor ??
+                FALLBACK_COLORS[i % FALLBACK_COLORS.length];
               return (
                 <figure
                   key={w.id}
@@ -96,7 +100,7 @@ export function createWorksGridPlugin<T = any>(
                   <div
                     style={{
                       aspectRatio: "1 / 1",
-                      background: w.cover ? `url(${w.cover}) center/cover no-repeat` : bg,
+                      background: coverUrl ? `${coverUrl} center/cover no-repeat` : bg,
                     }}
                   />
                   <figcaption style={{ padding: "8px 10px" }}>
@@ -113,7 +117,10 @@ export function createWorksGridPlugin<T = any>(
 
         if (items.length === 0) {
           return (
-            <div className="vp-works-empty" style={{ padding: "24px 0", textAlign: "center", opacity: 0.6 }}>
+            <div
+              className="vp-works-empty"
+              style={{ padding: "24px 0", textAlign: "center", color: "#6b6b6b" }}
+            >
               {empty}
             </div>
           );

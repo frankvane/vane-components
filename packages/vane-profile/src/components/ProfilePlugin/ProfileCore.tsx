@@ -42,10 +42,9 @@ const ProfileCore = forwardRef<ProfileCoreRef, ProfileCoreProps>(
     const followArea = useProfileSlot("renderFollowArea");
     const contentSlot = useProfileSlot("renderContentArea");
 
-    // 当前激活页签（供 ref 读取，并订阅 context 变化）
+    // 当前激活页签（订阅 context 变化；ref 直接读渲染期值，不写 ref.current）
     const ctx = useProfileContext();
-    const activeTabRef = useRef<string | null>(ctx?.activeTab ?? null);
-    activeTabRef.current = ctx?.activeTab ?? null;
+    const activeTab = ctx?.activeTab ?? null;
 
     useImperativeHandle(
       ref,
@@ -58,9 +57,9 @@ const ProfileCore = forwardRef<ProfileCoreRef, ProfileCoreProps>(
             ? { width: el.offsetWidth, height: el.offsetHeight }
             : { width: 0, height: 0 };
         },
-        getActiveTab: () => activeTabRef.current,
+        getActiveTab: () => activeTab,
       }),
-      [forceUpdate]
+      [forceUpdate, activeTab]
     );
 
     return (
@@ -118,25 +117,27 @@ const ProfileCore = forwardRef<ProfileCoreRef, ProfileCoreProps>(
           </div>
         )}
 
-        {/* 数据行 + 关注回显 */}
-        <div
-          className="vp-meta-area"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 12,
-            padding: "12px 16px",
-          }}
-        >
-          <div className="vp-stat-row">{statRow}</div>
+        {/* 数据行 + 关注回显：两个槽都空时整块跳过，不留 24px 空白带 */}
+        {(statRow.length > 0 || followArea.length > 0) && (
           <div
-            className="vp-follow-area"
-            style={{ display: "flex", alignItems: "center", gap: 8 }}
+            className="vp-meta-area"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 12,
+              padding: "12px 16px",
+            }}
           >
-            {followArea}
+            <div className="vp-stat-row">{statRow}</div>
+            <div
+              className="vp-follow-area"
+              style={{ display: "flex", alignItems: "center", gap: 8 }}
+            >
+              {followArea}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* 页签栏 */}
         {tabBar.length > 0 && (
@@ -145,10 +146,12 @@ const ProfileCore = forwardRef<ProfileCoreRef, ProfileCoreProps>(
           </div>
         )}
 
-        {/* 内容区：插件贡献（renderContentArea，随 activeTab 联动）优先；
-            无内容插件时回退到 children（如 TabSync 驱动的文本区） */}
+        {/* 内容区：插件贡献（renderContentArea，随 activeTab 联动）与 children 并列渲染。
+            曾经用 contentSlot 整体替换 children，导致一装 WorksGrid / AchievementWall，
+            宿主内容与内核 header / overlay / footer 插件全部消失。 */}
         <div className="vp-content-area" style={{ padding: "16px" }}>
-          {contentSlot.length > 0 ? contentSlot : children}
+          {contentSlot}
+          {children}
         </div>
       </div>
     );

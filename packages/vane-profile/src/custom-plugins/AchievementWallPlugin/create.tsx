@@ -61,7 +61,9 @@ export function createAchievementWallPlugin<T = any>(
         if (tab && context.activeTab !== tab) return null;
         if (!items.length)
           return (
-            <div style={{ padding: 16, opacity: 0.6 }}>{empty}</div>
+            <div className="vp-achievements-empty" style={{ padding: 16, color: "#6b6b6b" }}>
+              {empty}
+            </div>
           );
         return (
           <div className="vp-achievements" style={{ padding: 4 }}>

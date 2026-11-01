@@ -46,7 +46,14 @@ export type BadgeType = "personal" | "institution";
 export interface ProfileCoreProps<T = any> {
   /** 内容子节点（内容区，随 activeTab 重渲染） */
   children?: React.ReactNode;
-  /** 默认激活的页签 id（未指定则初始为 null） */
+  /**
+   * 受控激活页签 id：显式传入即为受控模式——点击页签只回调 onActiveTabChange，
+   * 不写内部 state，真相由消费方回写本 props（支持 URL 深链 / 刷新恢复）。
+   */
+  activeTab?: string | null;
+  /** 页签切换回调（受控 / 非受控均触发） */
+  onActiveTabChange?: (id: string | null, prev: string | null) => void;
+  /** 默认激活的页签 id（未指定则初始为 null；受控模式下不生效） */
   defaultActiveTab?: string | null;
   /** 主页指标数据（StatRow 读取；也可由插件经 context 注入） */
   stats?: StatItem[];

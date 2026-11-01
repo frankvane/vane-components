@@ -6,13 +6,14 @@ import { createVerifyBadgePlugin } from "../src/custom-plugins/VerifyBadgePlugin
 import { createFollowEchoPlugin } from "../src/custom-plugins/FollowEchoPlugin";
 
 describe("ProfileCore 三段式布局壳", () => {
-  it("无插件时渲染骨架且不崩溃（头图区/数据行区/内容区齐备）", async () => {
+  it("无插件时渲染骨架且不崩溃（空数据态不留空白数据行）", async () => {
     const h = renderProfile([]);
     await flush();
     expect(h.container.querySelector(".vp-profile")).toBeTruthy();
     expect(h.container.querySelector(".vp-banner-area")).toBeTruthy();
-    expect(h.container.querySelector(".vp-meta-area")).toBeTruthy();
     expect(h.container.querySelector(".vp-content-area")).toBeTruthy();
+    // P2-7：statRow / followArea 都空时整块跳过，不再输出 24px 空白带
+    expect(h.container.querySelector(".vp-meta-area")).toBeNull();
     h.unmount();
   });
 

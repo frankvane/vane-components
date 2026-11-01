@@ -24,9 +24,9 @@
     },
     {
       "name": "onFollow",
-      "type": "function",
+      "type": "function => void | Promise<void | { error }>",
       "default": "-",
-      "description": "点击切换后的回调"
+      "description": "点击切换后的回调；可返回 Promise，pending 时禁用按钮，失败（reject 或 { error }）时回滚乐观态并提示错误"
     },
     {
       "name": "onMutual",

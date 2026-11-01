@@ -3,6 +3,7 @@ import type {
   ProfilePlugin,
   ProfilePluginContext,
 } from "../../components/ProfilePlugin/plugins/types";
+import { safeHref } from "../../components/ProfilePlugin/plugins/safe-url";
 import doc from "./doc.json";
 
 export interface SocialLink {
@@ -73,25 +74,20 @@ export function createSocialLinksPlugin<T = any>(
               const preset = PRESET[link.platform] ?? { glyph: "·", label: link.platform };
               const glyph = link.glyph ?? preset.glyph;
               const label = link.label ?? preset.label;
-              return (
-                <a
-                  key={i}
-                  className="vp-social-item"
-                  href={link.href}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 6,
-                    padding: "4px 10px",
-                    borderRadius: 999,
-                    border: "1px solid rgba(125,130,140,0.35)",
-                    color: "inherit",
-                    textDecoration: "none",
-                    fontSize: 13,
-                  }}
-                >
+              const href = safeHref(link.href);
+              const style: React.CSSProperties = {
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "4px 10px",
+                borderRadius: 999,
+                border: "1px solid rgba(125,130,140,0.35)",
+                color: "inherit",
+                textDecoration: "none",
+                fontSize: 13,
+              };
+              const inner = (
+                <>
                   <span
                     aria-hidden
                     style={{
@@ -110,7 +106,25 @@ export function createSocialLinksPlugin<T = any>(
                     {glyph}
                   </span>
                   {showLabel ? <span>{label}</span> : null}
+                </>
+              );
+              // 协议不在白名单（javascript: / data: / 自定义 scheme）时降级为纯文本，
+              // 绝不把用户可编辑的字符串直接交给 href。
+              return href ? (
+                <a
+                  key={i}
+                  className="vp-social-item"
+                  href={href}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  style={style}
+                >
+                  {inner}
                 </a>
+              ) : (
+                <span key={i} className="vp-social-item" style={{ ...style, cursor: "default" }}>
+                  {inner}
+                </span>
               );
             })}
           </div>
