@@ -13,6 +13,8 @@ export interface SettingsPanelConfig {
   speed?: number;
   /** 初始轨道高度（px），默认 28 */
   trackHeight?: number;
+  /** 变更回调（消费方可据此更新 DanmakuCore props）；与 bus 广播并存 */
+  onChange?: (s: { opacity: number; speed: number; trackHeight: number }) => void;
 }
 
 const PANEL: React.CSSProperties = {
@@ -31,7 +33,13 @@ const PANEL: React.CSSProperties = {
 const ROW: React.CSSProperties = { marginBottom: 8, display: "flex", flexDirection: "column", gap: 2 };
 const LABEL: React.CSSProperties = { opacity: 0.8, display: "flex", justifyContent: "space-between" };
 
-function SettingsPanel({ context }: { context: DanmakuPluginContext }) {
+function SettingsPanel({
+  context,
+  onChange,
+}: {
+  context: DanmakuPluginContext;
+  onChange?: SettingsPanelConfig["onChange"];
+}) {
   const [open, setOpen] = useState(true);
   const [opacity, setOpacity] = useState(1);
   const [speed, setSpeed] = useState(1);
@@ -39,6 +47,7 @@ function SettingsPanel({ context }: { context: DanmakuPluginContext }) {
 
   const push = () => {
     context.bus.emit("danmaku:settings", { opacity, speed, trackHeight });
+    onChange?.({ opacity, speed, trackHeight });
   };
 
   if (!open) {
@@ -111,7 +120,7 @@ export function createSettingsPanelPlugin(
     enabled: true,
     hooks: {
       renderOverlay: (context: DanmakuPluginContext) => (
-        <SettingsPanel context={context} />
+        <SettingsPanel context={context} onChange={_config.onChange} />
       ),
     },
   };

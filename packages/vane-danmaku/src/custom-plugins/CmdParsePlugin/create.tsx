@@ -11,6 +11,8 @@ export interface CmdParseConfig {
   prefixes?: string[];
   /** 已知指令名 -> bus 事件 type（命中后从渲染流移除并发事件） */
   commands?: Record<string, string>;
+  /** 命中指令回调（type, payload, item）；与 bus 广播并存，消费方可据此清屏/抽奖等 */
+  onCommand?: (type: string, payload: string, item: DanmakuData["items"][number]) => void;
 }
 
 /**
@@ -53,6 +55,7 @@ export function createCmdParsePlugin(
           }
           const payload = rest.slice(name.length).trim();
           context.bus.emit("danmaku:command", { type, payload, item: it });
+          config.onCommand?.(type, payload, it);
           // 命中指令：不 push → 不渲染
         }
         return { ...data, items: kept };

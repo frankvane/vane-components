@@ -9,6 +9,8 @@ import doc from "./doc.json";
 export interface CommandInputConfig {
   /** 占位符，默认 "发条弹幕 / 指令（/clear）" */
   placeholder?: string;
+  /** 发送回调（消费方可据此向弹幕流追加一条弹幕）；与 bus 广播并存 */
+  onSend?: (text: string) => void;
 }
 
 const WRAP: React.CSSProperties = {
@@ -39,13 +41,20 @@ const SEND: React.CSSProperties = {
   background: "rgba(255,122,41,0.95)",
 };
 
-function CommandInput({ context }: { context: DanmakuPluginContext }) {
+function CommandInput({
+  context,
+  onSend,
+}: {
+  context: DanmakuPluginContext;
+  onSend?: CommandInputConfig["onSend"];
+}) {
   const [text, setText] = useState("");
 
   const send = () => {
     const t = text.trim();
     if (!t) return;
     context.bus.emit("danmaku:send", { text: t });
+    onSend?.(t);
     setText("");
   };
 
@@ -83,7 +92,7 @@ export function createCommandInputPlugin(
     enabled: true,
     hooks: {
       renderFooter: (context: DanmakuPluginContext) => (
-        <CommandInput context={context} />
+        <CommandInput context={context} onSend={_config.onSend} />
       ),
     },
   };

@@ -9,6 +9,8 @@ import doc from "./doc.json";
 export interface FilterToggleConfig {
   /** 默认开启的过滤项 key（其余默认关） */
   defaults?: string[];
+  /** 切换回调（消费方可据此重建对应数据面插件）；与 bus 广播并存 */
+  onToggle?: (key: string, enabled: boolean) => void;
 }
 
 const FILTERS: { key: string; label: string }[] = [
@@ -37,7 +39,13 @@ const CHIP = (on: boolean): React.CSSProperties => ({
   userSelect: "none",
 });
 
-function FilterToggle({ context }: { context: DanmakuPluginContext }) {
+function FilterToggle({
+  context,
+  onToggle,
+}: {
+  context: DanmakuPluginContext;
+  onToggle?: FilterToggleConfig["onToggle"];
+}) {
   const [on, setOn] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(FILTERS.map((f) => [f.key, true]))
   );
@@ -46,6 +54,7 @@ function FilterToggle({ context }: { context: DanmakuPluginContext }) {
     setOn((prev) => {
       const next = { ...prev, [key]: !prev[key] };
       context.bus.emit("danmaku:filter", { key, enabled: next[key] });
+      onToggle?.(key, next[key]);
       return next;
     });
   };
@@ -77,7 +86,7 @@ export function createFilterTogglePlugin(
     enabled: true,
     hooks: {
       renderHeader: (context: DanmakuPluginContext) => (
-        <FilterToggle context={context} />
+        <FilterToggle context={context} onToggle={_config.onToggle} />
       ),
     },
   };
