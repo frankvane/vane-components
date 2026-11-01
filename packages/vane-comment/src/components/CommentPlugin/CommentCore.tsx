@@ -1,6 +1,7 @@
 import React, {
   forwardRef,
   useCallback,
+  useEffect,
   useImperativeHandle,
   useRef,
   useState,
@@ -36,6 +37,23 @@ const CommentCore = forwardRef<CommentCoreRef, CommentCoreProps>(
     const containerRef = containerRefExternal || internalRef;
     const [, forceTick] = useState(0);
     const forceUpdate = useCallback(() => forceTick((t) => t + 1), []);
+
+    // 相对时间自刷新：每 60s 触发一次重渲染，让「刚刚 / N 分钟前」随时间推进。
+    // 长驻页面（信息流浮层、直播详情）没有其它重渲染来源时，一条 59 秒前的评论
+    // 会永远停在「刚刚」。页面隐藏时跳过，避免后台空转；卸载时清理定时器。
+    useEffect(() => {
+      if (typeof window === "undefined") return;
+      const id = window.setInterval(() => {
+        if (
+          typeof document !== "undefined" &&
+          document.visibilityState === "hidden"
+        ) {
+          return;
+        }
+        forceUpdate();
+      }, 60_000);
+      return () => window.clearInterval(id);
+    }, [forceUpdate]);
 
     const toolbar = useCommentSlot("renderToolbar");
     const footer = useCommentSlot("renderFooter");

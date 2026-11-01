@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import type {
   CommentPlugin,
   CommentPluginContext,
@@ -16,7 +16,11 @@ const actionBtn: React.CSSProperties = {
   flexShrink: 0,
 };
 
-/** 置顶按钮：本地高亮 + 回调 onPin(id, next)；Core 已读 comment.pinned 渲染置顶标 */
+/**
+ * 置顶按钮：完全受控（状态只来自 comment.pinned），点击只回调 onPin(id, next)。
+ * 不用本地 state：置顶被服务端拒绝 / 列表刷新时，props 才是唯一事实来源；
+ * 本地态会让按钮与 Core 的「置顶」标显示相反结论（且刷新后仍不回正）。
+ */
 function PinButton({
   comment,
   onPin,
@@ -24,11 +28,9 @@ function PinButton({
   comment: Comment;
   onPin?: (id: string, next: boolean) => void;
 }) {
-  const [pinned, setPinned] = useState(!!comment.pinned);
+  const pinned = !!comment.pinned;
   const handle = () => {
-    const next = !pinned;
-    setPinned(next);
-    onPin?.(comment.id, next);
+    onPin?.(comment.id, !pinned);
   };
   return (
     <button

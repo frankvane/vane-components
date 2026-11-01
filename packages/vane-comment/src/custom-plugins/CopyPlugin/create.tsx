@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import type {
   CommentPlugin,
   CommentPluginContext,
@@ -28,26 +28,56 @@ function plainText(comment: Comment): string {
   return parts.join("");
 }
 
-/** 复制按钮：复制评论纯文本到剪贴板 */
+type FlashState = "idle" | "copied" | "failed";
+
+/**
+ * 复制按钮：复制评论纯文本到剪贴板。
+ * 只有真正写成功才提示「已复制」——http 非 localhost / 浏览器拒绝写剪贴板时
+ * `navigator.clipboard` 是 undefined，旧写法会静默跳过却仍报成功。
+ * 复位定时器在卸载时清理，避免对已卸载组件 setState。
+ */
 function CopyButton({ comment }: { comment: Comment }) {
-  const [copied, setCopied] = useState(false);
+  const [state, setState] = useState<FlashState>("idle");
+  const timerRef = useRef<number | null>(null);
+
+  useEffect(
+    () => () => {
+      if (timerRef.current !== null) window.clearTimeout(timerRef.current);
+    },
+    []
+  );
+
+  const flash = (next: FlashState) => {
+    setState(next);
+    if (timerRef.current !== null) window.clearTimeout(timerRef.current);
+    timerRef.current = window.setTimeout(() => {
+      timerRef.current = null;
+      setState("idle");
+    }, 1500);
+  };
+
   const handle = async () => {
     try {
-      await navigator.clipboard?.writeText(plainText(comment));
+      const clipboard =
+        typeof navigator !== "undefined" ? navigator.clipboard : undefined;
+      if (!clipboard?.writeText) throw new Error("clipboard unavailable");
+      await clipboard.writeText(plainText(comment));
+      flash("copied");
     } catch {
-      /* 剪贴板不可用时静默 */
+      flash("failed");
     }
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 1500);
   };
   return (
     <button
       type="button"
       data-testid="comment-copy"
-      onClick={handle}
+      title={state === "failed" ? "复制失败，请手动选择文本" : undefined}
+      onClick={() => {
+        void handle();
+      }}
       style={actionBtn}
     >
-      {copied ? "已复制" : "📋复制"}
+      {state === "copied" ? "已复制" : state === "failed" ? "复制失败" : "📋复制"}
     </button>
   );
 }

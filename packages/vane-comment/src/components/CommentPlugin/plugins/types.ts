@@ -110,8 +110,12 @@ export interface CommentCoreProps<T = CommentData> {
   onLogin?: () => void;
   /** 回复提交回调（content 为结构化富内容） */
   onReply?: (parentId: string, content: CommentNode[]) => void;
-  /** 根评论提交回调 */
-  onSubmit?: (content: CommentNode[]) => void;
+  /**
+   * 根评论提交回调。
+   * 允许返回 Promise：RichComposerPlugin 会等待它落地后才清空草稿，
+   * reject 时保留草稿并提示；提交期间按钮置灰，避免重复提交。
+   */
+  onSubmit?: (content: CommentNode[]) => void | Promise<void>;
   /** 排序变化回调 */
   onSortChange?: (mode: SortMode) => void;
   /** 加载更多回调 */
@@ -156,7 +160,12 @@ export interface CommentCoreRef {
  */
 export interface CommentPluginContext<T = CommentData>
   extends PluginContext<CommentCoreProps<T>, T> {
-  /** 经插件 transformData 处理后的评论列表（已排序） */
+  /**
+   * 经插件 transformData 处理后的评论列表（已排序、已脱敏）。
+   * withCommentPlugins 同时把同一份数组写回 `data`（本上下文里的 `data` 也是可见列表，
+   * 不再是原始入参）——第三方插件按「context.data 是当前可见列表」写逻辑不会再看到
+   * 被审核隐藏 / 未脱敏的原始数据。
+   */
   comments: Comment[];
   /** 当前排序模式（SortPlugin 写入 state；无 SortPlugin 时为 defaultSortMode） */
   sortMode: SortMode;

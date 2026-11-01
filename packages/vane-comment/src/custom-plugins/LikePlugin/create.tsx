@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import type {
   CommentPlugin,
   CommentPluginContext,
@@ -11,7 +11,11 @@ export interface LikePluginConfig {
   showCount?: boolean;
 }
 
-/** 点赞按钮：本地爆裂动画（component 内 CSS transition，规避 overlay 全局槽定位问题） */
+/**
+ * 点赞按钮：受控（liked / likeCount 全部来自 props），本地只保留爆裂动画。
+ * 契约：消费方必须实现 onLike 并在数据里回写 liked / likeCount，否则按钮不会有任何变化。
+ * 动画定时器随卸载清理。
+ */
 function LikeButton({
   comment,
   onLike,
@@ -22,15 +26,27 @@ function LikeButton({
   showCount?: boolean;
 }) {
   const [burst, setBurst] = useState(false);
+  const burstTimer = useRef<number | null>(null);
   const liked = !!comment.liked;
   const count = comment.likeCount;
+
+  useEffect(
+    () => () => {
+      if (burstTimer.current !== null) window.clearTimeout(burstTimer.current);
+    },
+    []
+  );
 
   const handle = () => {
     const next = !liked;
     onLike?.(comment.id, next);
     if (next) {
       setBurst(true);
-      window.setTimeout(() => setBurst(false), 450);
+      if (burstTimer.current !== null) window.clearTimeout(burstTimer.current);
+      burstTimer.current = window.setTimeout(() => {
+        burstTimer.current = null;
+        setBurst(false);
+      }, 450);
     }
   };
 

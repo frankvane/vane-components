@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import type {
   CommentPlugin,
   CommentPluginContext,
@@ -16,7 +16,10 @@ const actionBtn: React.CSSProperties = {
   flexShrink: 0,
 };
 
-/** 收藏按钮：本地高亮 + 回调 onFavorite(id, next) */
+/**
+ * 收藏按钮：完全受控（状态只来自 comment.favorited），点击只回调 onFavorite(id, next)。
+ * 与 LikePlugin 一致：本地 state 会在服务端拒绝 / 列表刷新后与 props 分叉。
+ */
 function FavoriteButton({
   comment,
   onFavorite,
@@ -24,11 +27,9 @@ function FavoriteButton({
   comment: Comment;
   onFavorite?: (id: string, next: boolean) => void;
 }) {
-  const [fav, setFav] = useState(!!comment.favorited);
+  const fav = !!comment.favorited;
   const handle = () => {
-    const next = !fav;
-    setFav(next);
-    onFavorite?.(comment.id, next);
+    onFavorite?.(comment.id, !fav);
   };
   return (
     <button

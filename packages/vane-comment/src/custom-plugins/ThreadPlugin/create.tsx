@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { createContext, useContext, useState } from "react";
 import type {
   CommentPlugin,
   CommentPluginContext,
@@ -52,21 +52,75 @@ function MiniAvatar({ author }: { author: Comment["author"] }) {
   );
 }
 
+/**
+ * 楼中楼层级上下文。
+ *
+ * `level`：当前评论自身的层级（顶层评论为 0），子回复为 level + 1。
+ * `path`：当前评论的祖先 id 集合，用于环检测（自引用 / A→B→A 这类循环 replies）。
+ *
+ * 为什么用 React context 而不是把 depth 塞进插槽 payload：
+ * `renderNested` 的 payload 是 `Comment`（公开契约，第三方插件也按此实现），
+ * 改 payload 形状会破坏兼容；层级只是「当前渲染位置」的信息，放上下文里最自然。
+ */
+interface NestInfo {
+  level: number;
+  path: ReadonlySet<string>;
+}
+
+const EMPTY_PATH: ReadonlySet<string> = new Set();
+const NestContext = createContext<NestInfo>({ level: 0, path: EMPTY_PATH });
+
+/**
+ * 楼中楼入口（由 `renderNested` 槽渲染）。
+ * 读环境层级 → 环检测（祖先里已出现过同一 id 就停止递归）→ 限深（level >= maxDepth 不再展开）
+ * → 用 level + 1 渲染子级 ThreadView。
+ */
+function NestedSection({
+  comment,
+  maxDepth,
+  defaultExpanded,
+  showReply,
+}: {
+  comment: Comment;
+  maxDepth: number;
+  defaultExpanded: boolean;
+  showReply: boolean;
+}) {
+  const nest = useContext(NestContext);
+  // 环检测：循环 replies 不再递归（否则会一路渲染到 RangeError 栈溢出）
+  if (nest.path.has(comment.id)) return null;
+  // 限深：当前评论已到 maxDepth，不再展开它自己的回复
+  if (nest.level >= maxDepth) return null;
+  const path = new Set(nest.path);
+  path.add(comment.id);
+  return (
+    <ThreadView
+      comment={comment}
+      depth={nest.level + 1}
+      ancestors={path}
+      maxDepth={maxDepth}
+      defaultExpanded={defaultExpanded}
+      showReply={showReply}
+    />
+  );
+}
+
 /** 单条回复（复用同一 renderCommentActions / renderNested 槽 → 嵌套回复也能点赞/继续回复） */
 function ReplyNode({
   reply,
-  depth,
   maxDepth,
   showReply,
 }: {
   reply: Comment;
-  depth: number;
   maxDepth: number;
   showReply: boolean;
 }) {
+  const nest = useContext(NestContext);
   const actions = useCommentSlot("renderCommentActions", reply);
   const nestedSlot = useCommentSlot("renderNested", reply);
-  const deeper = depth < maxDepth ? nestedSlot : [];
+  // 与 NestedSection 的双保险：到限深或命中环时连子回复槽都不展开
+  const deeper =
+    nest.level < maxDepth && !nest.path.has(reply.id) ? nestedSlot : [];
   const deleted = (reply.status ?? "normal") === "deleted";
 
   return (
@@ -121,12 +175,16 @@ function ReplyNode({
 function ThreadView({
   comment,
   depth,
+  ancestors,
   maxDepth,
   defaultExpanded,
   showReply,
 }: {
   comment: Comment;
+  /** 本次渲染的 replies 所在层级（顶层评论的回复为 1） */
   depth: number;
+  /** 当前评论的祖先 id 集合（含自身 id），供下一层环检测 */
+  ancestors: ReadonlySet<string>;
   maxDepth: number;
   defaultExpanded: boolean;
   showReply: boolean;
@@ -159,13 +217,13 @@ function ThreadView({
       ) : (
         <div>
           {replies.map((reply) => (
-            <ReplyNode
+            // 子回复的层级信息：level = depth，path = 祖先集合（含本评论 id）
+            <NestContext.Provider
               key={reply.id}
-              reply={reply}
-              depth={depth}
-              maxDepth={maxDepth}
-              showReply={showReply}
-            />
+              value={{ level: depth, path: ancestors }}
+            >
+              <ReplyNode reply={reply} maxDepth={maxDepth} showReply={showReply} />
+            </NestContext.Provider>
           ))}
         </div>
       )}
@@ -315,9 +373,9 @@ export function createThreadPlugin<T = any>(
     hooks: {
       renderNested: (context: CommentPluginContext<T>, comment: Comment) =>
         comment.replies && comment.replies.length > 0 ? (
-          <ThreadView
+          // 深度由 NestContext 沿层级递增（顶层 0 → 子级 1 → 孙级 2 …），不再写死 1
+          <NestedSection
             comment={comment}
-            depth={1}
             maxDepth={maxDepth}
             defaultExpanded={defaultExpanded}
             showReply={showReply}

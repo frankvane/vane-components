@@ -47,6 +47,43 @@ export function CommentSlotProvider({
 }
 
 /**
+ * 每个 plugins 数组的「槽位 → 已排序候选插件」缓存。
+ * orderedPlugins 数组引用由内核 useMemo 固定，故以它作 WeakMap key 不会泄漏；
+ * 逐条槽以前每次都要 `[...plugins].filter().sort()`，N 条评论 × 2 槽 × 17 插件时
+ * 排序开销随列表长度线性放大，这里缓存掉排序结果（enabled 仍在每次调用时判断，
+ * 保留运行时启停语义）。
+ */
+const slotCache = new WeakMap<
+  CommentPlugin<any>[],
+  Map<CommentSlotName, CommentPlugin<any>[]>
+>();
+
+function resolveSlotPlugins(
+  plugins: CommentPlugin<any>[],
+  hookName: CommentSlotName
+): CommentPlugin<any>[] {
+  let perHook = slotCache.get(plugins);
+  if (!perHook) {
+    perHook = new Map();
+    slotCache.set(plugins, perHook);
+  }
+  let resolved = perHook.get(hookName);
+  if (!resolved) {
+    resolved = [...plugins]
+      .filter(
+        (p) => typeof (p.hooks as Record<string, unknown>)[hookName] === "function"
+      )
+      .sort(
+        (a, b) =>
+          (a.config?.order ?? 0) - (b.config?.order ?? 0) ||
+          (b.priority ?? 0) - (a.priority ?? 0)
+      );
+    perHook.set(hookName, resolved);
+  }
+  return resolved;
+}
+
+/**
  * 渲染某个领域槽位的所有插件输出。
  * 排序：config.order 升序（越小越靠前）→ priority 降序（越大越靠后）。
  * 逐条槽（renderCommentActions / renderNested）把 payload（当前评论）作为第二参数。
@@ -57,18 +94,9 @@ export function renderCommentSlot(
   hookName: CommentSlotName,
   payload?: unknown
 ): React.ReactNode[] {
-  return [...plugins]
-    .filter(
-      (p) =>
-        p.enabled !== false &&
-        typeof (p.hooks as Record<string, unknown>)[hookName] === "function"
-    )
-    .sort(
-      (a, b) =>
-        (a.config?.order ?? 0) - (b.config?.order ?? 0) ||
-        (b.priority ?? 0) - (a.priority ?? 0)
-    )
+  return resolveSlotPlugins(plugins, hookName)
     .map((plugin, index) => {
+      if (plugin.enabled === false) return null;
       try {
         const fn = (plugin.hooks as Record<string, (ctx: any, p?: any) => React.ReactNode>)[
           hookName

@@ -18,7 +18,15 @@ export interface RichComposerConfig {
   placeholder?: string;
   /** 提交按钮文案，默认「发布」 */
   submitText?: string;
+  /** 图片 MIME 白名单（拖拽 / 改扩展名也拦得住），默认 jpeg/png/gif/webp */
+  acceptImageTypes?: string[];
+  /** 单张图片体积上限（MB），默认 5 */
+  maxImageSizeMb?: number;
+  /** 最多可选图片张数，默认 9 */
+  maxImages?: number;
 }
+
+const DEFAULT_IMAGE_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
 
 const EMOJIS = [
   "😀", "😂", "🤣", "😍", "😘", "😎", "🤔", "😭",
@@ -62,16 +70,24 @@ function Composer({
   features,
   placeholder,
   submitText,
+  acceptImageTypes,
+  maxImageSizeMb,
+  maxImages,
 }: {
   context: CommentPluginContext<any>;
   features: { emoji: boolean; image: boolean; mention: boolean };
   placeholder?: string;
   submitText?: string;
+  acceptImageTypes: string[];
+  maxImageSizeMb: number;
+  maxImages: number;
 }) {
   const [text, setText] = useState("");
   const [images, setImages] = useState<string[]>([]);
   const [showEmoji, setShowEmoji] = useState(false);
   const [mentionOpen, setMentionOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const mentions = (context.props.mentions as { id: string; name: string; avatar?: string }[]) ?? [];
   const fileRef = useRef<HTMLInputElement | null>(null);
 
@@ -83,15 +99,29 @@ function Composer({
       n.type === "mention"
   );
 
-  const submit = () => {
-    if (!canSubmit) return;
-    (
-      context.props.onSubmit as ((c: CommentNode[]) => void) | undefined
-    )?.(preview);
-    setText("");
-    setImages([]);
-    setShowEmoji(false);
-    setMentionOpen(false);
+  /**
+   * 发布：等 onSubmit 落地（同步回调或 Promise）后再清草稿。
+   * 失败保留草稿并提示；提交期间按钮 disabled，避免快速双击重复提交。
+   */
+  const submit = async () => {
+    if (!canSubmit || submitting) return;
+    const payload = preview;
+    const onSubmit = context.props.onSubmit as
+      | ((c: CommentNode[]) => void | Promise<void>)
+      | undefined;
+    setSubmitting(true);
+    setError(null);
+    try {
+      await Promise.resolve(onSubmit?.(payload));
+      setText("");
+      setImages([]);
+      setShowEmoji(false);
+      setMentionOpen(false);
+    } catch {
+      setError("发布失败，内容已保留，请重试");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const insertEmoji = (e: string) => setText((t) => t + e);
@@ -100,7 +130,21 @@ function Composer({
     setMentionOpen(false);
   };
 
+  /** 选图：先做类型 / 体积 / 张数三层校验，再读成 DataURL（避免把任意大文件塞进内存） */
   const onFile = (file: File) => {
+    if (acceptImageTypes.length > 0 && !acceptImageTypes.includes(file.type)) {
+      setError(`不支持的图片类型：${file.type || "未知"}`);
+      return;
+    }
+    if (file.size > maxImageSizeMb * 1024 * 1024) {
+      setError(`图片超过 ${maxImageSizeMb}MB 上限`);
+      return;
+    }
+    if (images.length >= maxImages) {
+      setError(`最多只能添加 ${maxImages} 张图片`);
+      return;
+    }
+    setError(null);
     const reader = new FileReader();
     reader.onload = () => {
       if (typeof reader.result === "string") {
@@ -230,7 +274,7 @@ function Composer({
             <input
               ref={fileRef}
               type="file"
-              accept="image/*"
+              accept={acceptImageTypes.join(",")}
               style={{ display: "none" }}
               onChange={(e) => {
                 const f = e.target.files?.[0];
@@ -247,22 +291,35 @@ function Composer({
         )}
         <button
           type="button"
-          onClick={submit}
-          disabled={!canSubmit}
+          data-testid="composer-submit"
+          onClick={() => {
+            void submit();
+          }}
+          disabled={!canSubmit || submitting}
           style={{
             marginLeft: "auto",
             border: "none",
             borderRadius: 6,
             padding: "6px 18px",
             fontSize: 13,
-            cursor: canSubmit ? "pointer" : "not-allowed",
-            background: canSubmit ? "#1565c0" : "rgba(128,128,128,0.2)",
-            color: canSubmit ? "#fff" : "inherit",
+            cursor: canSubmit && !submitting ? "pointer" : "not-allowed",
+            background:
+              canSubmit && !submitting ? "#1565c0" : "rgba(128,128,128,0.2)",
+            color: canSubmit && !submitting ? "#fff" : "inherit",
           }}
         >
-          {submitText ?? "发布"}
+          {submitting ? "发布中…" : submitText ?? "发布"}
         </button>
       </div>
+
+      {error && (
+        <div
+          data-testid="composer-error"
+          style={{ marginTop: 6, fontSize: 12, color: "#c62828" }}
+        >
+          {error}
+        </div>
+      )}
 
       {canSubmit && (
         <div
@@ -298,6 +355,9 @@ export function createRichComposerPlugin<T = any>(
   config: RichComposerConfig = {}
 ): CommentPlugin<T> {
   const features = { ...DEFAULT_FEATURES, ...(config.features ?? {}) };
+  const acceptImageTypes = config.acceptImageTypes ?? DEFAULT_IMAGE_TYPES;
+  const maxImageSizeMb = config.maxImageSizeMb ?? 5;
+  const maxImages = config.maxImages ?? 9;
   return {
     name: "RichComposerPlugin",
     version: "0.1.0",
@@ -311,6 +371,9 @@ export function createRichComposerPlugin<T = any>(
           features={features}
           placeholder={config.placeholder}
           submitText={config.submitText}
+          acceptImageTypes={acceptImageTypes}
+          maxImageSizeMb={maxImageSizeMb}
+          maxImages={maxImages}
         />
       ),
     },
