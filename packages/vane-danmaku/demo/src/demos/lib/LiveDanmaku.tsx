@@ -151,16 +151,40 @@ export function LiveDanmaku({
       }}
     >
       {showGrid ? (
-        <div
-          aria-hidden
-          style={{
-            position: "absolute",
-            inset: 0,
-            pointerEvents: "none",
-            backgroundImage:
-              "repeating-linear-gradient(to bottom, rgba(255,255,255,0.05) 0 1px, transparent 1px 30px)",
-          }}
-        />
+        <div aria-hidden style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
+          {/* 轨道分隔线 */}
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              backgroundImage: `repeating-linear-gradient(to bottom, rgba(255,255,255,0.06) 0 1px, transparent 1px ${trackHeight}px)`,
+            }}
+          />
+          {/* 顶部固定带 / 底部固定带 预留区（滚动弹幕不入侵，防叠字） */}
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              height: Math.max(1, Math.floor((height / trackHeight) * 0.25)) * trackHeight,
+              background: "rgba(255,122,41,0.10)",
+              borderBottom: "1px solid rgba(255,122,41,0.35)",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height:
+                height - Math.floor((height / trackHeight) * 0.75) * trackHeight,
+              background: "rgba(127,208,192,0.10)",
+              borderTop: "1px solid rgba(127,208,192,0.35)",
+            }}
+          />
+        </div>
       ) : null}
       <Enhanced
         items={items}

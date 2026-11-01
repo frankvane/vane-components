@@ -12,10 +12,12 @@
 import React from "react";
 import type { DemoEntry } from "./registry";
 import { GROUP_META } from "./types";
+import { tokenize } from "../components/highlight";
 
 export function DemoPage({ entry, order }: { entry: DemoEntry; order: number }) {
   const { meta, Stage, source, file } = entry;
   const no = String(order).padStart(2, "0");
+  const tokens = tokenize(source);
 
   return (
     <article>
@@ -40,7 +42,17 @@ export function DemoPage({ entry, order }: { entry: DemoEntry; order: number }) 
           <span className="demo-src-hint">下面这份就是上面正在跑的那份</span>
         </div>
         <pre className="demo-src">
-          <code>{source}</code>
+          <code>
+            {tokens.map((t, i) =>
+              t.cls ? (
+                <span key={i} className={t.cls}>
+                  {t.text}
+                </span>
+              ) : (
+                <React.Fragment key={i}>{t.text}</React.Fragment>
+              )
+            )}
+          </code>
         </pre>
       </section>
     </article>

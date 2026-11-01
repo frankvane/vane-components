@@ -56,6 +56,18 @@ export function measure(
   return { width, height: fontSize };
 }
 
+/** 估算弹幕宽度（调度阶段无 ctx，用字符类近似；CJK≈1em、西文≈0.55em，含牌/角标） */
+function estimateWidth(item: DanmakuItem, base: number): number {
+  let w = 0;
+  for (const ch of item.text) {
+    w += /[㐀-鿿぀-ヿ가-킯＀-￯]/.test(ch) ? base : base * 0.55; // CJK / 假名 / 谚文 / 全角 ≈ 1em
+  }
+  if (item.meta.fanBadge) w += base * 4 + 18;
+  if (item.meta.combo && item.meta.combo > 1) w += base * 2;
+  if (item.meta.emoji?.length) w += item.meta.emoji.length * base;
+  return Math.max(40, w);
+}
+
 /** 组装 ctx.font（尊重 meta.fontFamily / fontWeight） */
 function fontString(fontSize: number, item: DanmakuItem, opts: RenderOptions): string {
   const family = item.meta.fontFamily ?? opts.fontFamily;
@@ -96,9 +108,8 @@ export class DanmakuScheduler {
       if (item.time <= currentTime) {
         const track = this.assignTrack(item, currentTime, size, trackCount, opts, zones);
         const dur = item.duration ?? opts.defaultDuration;
-        // 测量需要 ctx，这里只记宽度占位；真正宽度在调用方预测量后传入更准，
-        // 但调度阶段不持 ctx，故用估算：字符数 * 字号 * 0.6 + 牌宽。
-        const est = Math.max(40, item.text.length * opts.baseFontSize * 0.6);
+        // 调度阶段不持 ctx，用字符类近似宽度（CJK/假名/谚文/全角≈1em、西文≈0.55em，含牌/角标）
+        const est = estimateWidth(item, opts.baseFontSize);
         this.active.set(item.id, {
           item,
           track,
@@ -137,50 +148,78 @@ export class DanmakuScheduler {
   ): number {
     const isTop = item.mode === "top" || item.renderHint?.pinned === true;
     const isBottom = item.mode === "bottom";
-    const lo = isTop ? 0 : isBottom ? Math.floor(trackCount * 0.7) : 0;
-    const hi = isTop ? Math.floor(trackCount * 0.3) : trackCount;
+    // 顶部固定带 / 底部固定带：滚动弹幕不入侵，避免与 fixed 弹幕叠字（截图里顶部叠字的根因）
+    const topBand = Math.max(1, Math.floor(trackCount * 0.25));
+    const bottomBandStart = Math.floor(trackCount * 0.75);
+
+    // 按模式选首选轨道区间：top/pinned→顶部带，bottom→底部带，scroll/reverse→中间带
+    let lo: number, hi: number;
+    if (isTop) {
+      lo = 0;
+      hi = topBand;
+    } else if (isBottom) {
+      lo = bottomBandStart;
+      hi = trackCount;
+    } else {
+      lo = topBand;
+      hi = bottomBandStart;
+    }
 
     // 显式轨道（TrackStrategyPlugin / 置顶带）：该轨空闲且不落避让区则直接采用
     const forced = item.renderHint?.track;
     if (forced != null && forced >= 0 && forced < trackCount) {
-      let free = !trackBlocked(forced, opts.trackHeight, zones);
-      if (free) {
-        for (const a of this.active.values()) {
-          if (a.track !== forced) continue;
-          if (isTop || isBottom || item.renderHint?.pinned) {
-            if (currentTime - a.enterAt < a.duration) { free = false; break; }
-          } else {
-            if (a.x + a.width > size.width - opts.gap) { free = false; break; }
-          }
-        }
+      if (
+        !trackBlocked(forced, opts.trackHeight, zones) &&
+        this.trackFree(forced, item, currentTime, size, opts)
+      ) {
+        return forced;
       }
-      if (free) return forced;
     }
 
+    // 第一遍：首选区间内找空轨
+    let t = this.findFree(lo, hi, item, currentTime, size, opts, zones);
+    if (t >= 0) return t;
+    // 第二遍：整段兜底（仅当首选区饱和，允许与固定带短暂共用，避免丢弹幕）
+    t = this.findFree(0, trackCount, item, currentTime, size, opts, zones);
+    if (t >= 0) return t;
+    return lo;
+  }
+
+  /** 该轨道是否可容纳一条同模式弹幕：停留型看时长、滚动型看右缘是否已移出 */
+  private trackFree(
+    track: number,
+    item: DanmakuItem,
+    currentTime: number,
+    size: { width: number; height: number },
+    opts: RenderOptions
+  ): boolean {
+    const stay = item.mode === "top" || item.mode === "bottom" || item.renderHint?.pinned;
+    for (const a of this.active.values()) {
+      if (a.track !== track) continue;
+      if (stay) {
+        if (currentTime - a.enterAt < a.duration) return false;
+      } else if (a.x + a.width > size.width - opts.gap) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /** 在 [lo,hi) 内跳过避让区找空轨；无空轨返回 -1 */
+  private findFree(
+    lo: number,
+    hi: number,
+    item: DanmakuItem,
+    currentTime: number,
+    size: { width: number; height: number },
+    opts: RenderOptions,
+    zones: Rect[]
+  ): number {
     for (let t = lo; t < hi; t++) {
       if (trackBlocked(t, opts.trackHeight, zones)) continue;
-      let free = true;
-      for (const a of this.active.values()) {
-        if (a.track !== t) continue;
-        if (isTop || isBottom || item.renderHint?.pinned) {
-          // 停留型：该轨仍有未结束弹幕则占用
-          if (currentTime - a.enterAt < a.duration) {
-            free = false;
-            break;
-          }
-        } else {
-          // 滚动型：该轨最后一条右缘尚未移出右缘 → 无空间
-          const right = a.x + a.width;
-          if (right > size.width - opts.gap) {
-            free = false;
-            break;
-          }
-        }
-      }
-      if (free) return t;
+      if (this.trackFree(t, item, currentTime, size, opts)) return t;
     }
-    // 无空轨则复用起始轨（允许短暂重叠，避免丢弹幕）
-    return lo;
+    return -1;
   }
 
   /** 清空（切换视频 / 清屏指令时调用） */

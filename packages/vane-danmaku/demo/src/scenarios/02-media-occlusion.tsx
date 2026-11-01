@@ -1,5 +1,5 @@
 /**
- * 场景 02 · MediaPipe 实时防遮挡
+ * 场景 02 · MediaPipe 实时防遮挡（视频 + 人物 + 骨骼识别 + 弹幕穿透）
  *
  * 核心思路（纠正「纯骨骼点」的误区）：
  *   1. 用 MediaPipe PoseLandmarker 取人物 33 个骨骼点（normalized 0..1）。
@@ -7,10 +7,15 @@
  *   3. 把避让区通过 SafeZonePlugin 的 `provider` 注入运行时 shared，内核每帧读取、
  *      让轨道调度避开人物，绝不阻塞 60fps 渲染。
  *
- * 关键点：发布包不捆绑 MediaPipe（体积预算不受影响）；ML 跑在消费方独立循环里，
- * 低频产出避让区，内核同步消费上一帧已知区（人不会瞬移，几帧延迟可接受）。
+ * 三种输入，保证「视频中有人物」一定能演示：
+ *   · 启动摄像头：真实人物实时骨骼识别（需授权 + 安全上下文 + 外网拉模型）。
+ *   · 上传视频：选一段有人物的本地视频，离线即可跑骨骼识别（最稳，无需摄像头）。
+ *   · 模拟人物：无摄像头 / 无外网时合成一个来回移动的避让区，跑同一套防遮挡逻辑。
  *
- * 没摄像头 / 没外网也能看效果：点「模拟人物」用合成避让区跑同一套防遮挡逻辑。
+ * 弹幕穿透：弹幕层绝对定位于视频之上（GPU canvas 叠加），人物框区域被内核调度绕开，
+ * 既不挡人、也不被视频裁切 —— 这是「弹幕穿透视频」的正确范式。
+ *
+ * 发布包不捆绑 MediaPipe（体积预算不受影响）；ML 跑在消费方独立循环，低频产出避让区。
  */
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { DanmakuCore, withDanmakuPlugins } from "vane-danmaku";
@@ -22,21 +27,42 @@ const POSE_WASM =
   "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm";
 const POSE_MODEL =
   "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task";
+// 动态 import 必须用变量承载 URL，否则 tsc 会试图解析 CDN 远程模块而 TS2307
+const VISION_URL =
+  "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
 
-type Mode = "idle" | "camera" | "synthetic";
+// 标准人体骨骼连线（PoseLandmarker 33 关键点子集：头面 / 躯干 / 四肢）
+const POSE_CONNECTIONS: ReadonlyArray<readonly [number, number]> = [
+  [0, 1], [1, 2], [2, 3], [3, 7], [0, 4], [4, 5], [5, 6], [6, 8], [9, 10],
+  [11, 12], [11, 13], [13, 15], [12, 14], [14, 16],
+  [11, 23], [12, 24], [23, 24],
+  [15, 17], [15, 19], [15, 21], [16, 18], [16, 20], [16, 22],
+  [23, 25], [25, 27], [27, 29], [27, 31], [24, 26], [26, 28], [28, 30], [28, 32],
+];
+
+type Mode = "idle" | "camera" | "upload" | "synthetic";
+
+//  denser 弹幕流：原样本 + 半周期错位的第二波，让「绕开人物」更直观
+const STREAM: DanmakuItem[] = [
+  ...SAMPLE_BASIC,
+  ...SAMPLE_BASIC.map((d) => ({ ...d, id: `${d.id}-b`, time: (d.time + 6) % 12 })),
+];
 
 function MediaPipeOcclusion() {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const overlayRef = useRef<HTMLCanvasElement | null>(null);
+  const fileRef = useRef<HTMLInputElement | null>(null);
   const zonesRef = useRef<Rect[]>([]);
+  const visionRef = useRef<any>(null);
   const landmarkerRef = useRef<any>(null);
   const rafRef = useRef<number>(0);
   const startRef = useRef(performance.now());
 
   const [mode, setMode] = useState<Mode>("idle");
+  const [videoSrc, setVideoSrc] = useState<string | null>(null);
   const [status, setStatus] = useState<string>(
-    "未启动 —— 可点「模拟人物」立即看效果，或「启动摄像头」接 MediaPipe 骨骼点"
+    "未启动 —— 点「启动摄像头」接真实人物，或「上传视频」选一段有人物的画面，或「模拟人物」立即看效果"
   );
   const [currentTime, setCurrentTime] = useState(0);
 
@@ -58,8 +84,9 @@ function MediaPipeOcclusion() {
     [provider]
   );
 
+  // 画人物框 + 骨架（内核只消费 zones 做调度，这里纯可视化）
   const drawOverlay = useMemo(
-    () => (zones: Rect[], points?: { x: number; y: number }[]) => {
+    () => (pts: { x: number; y: number }[]) => {
       const cv = overlayRef.current;
       const el = containerRef.current;
       if (!cv || !el) return;
@@ -72,18 +99,30 @@ function MediaPipeOcclusion() {
       }
       const ctx = cv.getContext("2d");
       if (!ctx) return;
-      ctx.setTransform(dpr, 0,0, dpr, 0, 0);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, w, h);
-      ctx.strokeStyle = "rgba(95,211,200,0.9)";
-      ctx.lineWidth = 2;
-      for (const z of zones) {
-        ctx.fillStyle = "rgba(95,211,200,0.08)";
+      for (const z of zonesRef.current) {
+        ctx.fillStyle = "rgba(95,211,200,0.10)";
         ctx.fillRect(z.x, z.y, z.w, z.h);
+        ctx.strokeStyle = "rgba(95,211,200,0.95)";
+        ctx.lineWidth = 2;
         ctx.strokeRect(z.x, z.y, z.w, z.h);
       }
-      if (points && points.length) {
+      if (pts.length) {
+        ctx.strokeStyle = "rgba(255,122,41,0.85)";
+        ctx.lineWidth = 2;
+        for (const [a, b] of POSE_CONNECTIONS) {
+          const pa = pts[a];
+          const pb = pts[b];
+          if (pa && pb) {
+            ctx.beginPath();
+            ctx.moveTo(pa.x, pa.y);
+            ctx.lineTo(pb.x, pb.y);
+            ctx.stroke();
+          }
+        }
         ctx.fillStyle = "#ff7a29";
-        for (const p of points) {
+        for (const p of pts) {
           ctx.beginPath();
           ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
           ctx.fill();
@@ -93,31 +132,26 @@ function MediaPipeOcclusion() {
     []
   );
 
-  // 模拟人物：合成一个来回移动的避让区（无需摄像头 / 外网）
-  useEffect(() => {
-    if (mode !== "synthetic") return;
-    let raf = 0;
-    const loop = () => {
-      const el = containerRef.current;
-      if (el) {
-        const w = el.clientWidth;
-        const h = el.clientHeight;
-        const t = performance.now() / 1000;
-        const cx = w * (0.5 + 0.32 * Math.sin(t * 0.6));
-        const cy = h * (0.52 + 0.12 * Math.sin(t * 0.9));
-        const bw = Math.min(w, h) * 0.18;
-        const bh = Math.min(w, h) * 0.52;
-        const zone: Rect = { x: cx - bw / 2, y: cy - bh / 2, w: bw, h: bh };
-        zonesRef.current = [zone];
-        drawOverlay([zone]);
-      }
-      raf = requestAnimationFrame(loop);
-    };
-    raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
-  }, [mode, drawOverlay]);
+  // 懒加载 MediaPipe（缓存，camera/upload 共用同一份 landmarker）
+  const loadVision = useMemo(
+    () => async () => {
+      if (visionRef.current) return visionRef.current;
+      const url = VISION_URL;
+      const vision: any = await import(/* @vite-ignore */ url);
+      const fileset = await vision.FilesetResolver.forVisionTasks(POSE_WASM);
+      const landmarker = await vision.PoseLandmarker.createFromOptions(fileset, {
+        baseOptions: { modelAssetPath: POSE_MODEL, delegate: "GPU" },
+        runningMode: "VIDEO",
+        numPoses: 1,
+      });
+      visionRef.current = vision;
+      landmarkerRef.current = landmarker;
+      return vision;
+    },
+    []
+  );
 
-  // 摄像头 + MediaPipe PoseLandmarker：取骨骼点 → 外接矩形 → 避让区
+  // 摄像头：取真实人物视频流
   useEffect(() => {
     if (mode !== "camera") return;
     let stream: MediaStream | null = null;
@@ -138,27 +172,51 @@ function MediaPipeOcclusion() {
         v.srcObject = stream;
         await v.play();
         setStatus("加载 MediaPipe PoseLandmarker…");
-        const visionUrl =
-          "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
-        const vision: any = await import(/* @vite-ignore */ visionUrl);
+        await loadVision();
         if (cancelled) return;
-        const fileset = await vision.FilesetResolver.forVisionTasks(POSE_WASM);
-        const landmarker = await vision.PoseLandmarker.createFromOptions(fileset, {
-          baseOptions: { modelAssetPath: POSE_MODEL, delegate: "GPU" },
-          runningMode: "VIDEO",
-          numPoses: 1,
-        });
-        landmarkerRef.current = landmarker;
-        setStatus("MediaPipe 已连接 · 实时骨骼点 → 计算人物避让区");
+        setStatus("已连接 · 实时骨骼识别 → 人物避让区，弹幕自动绕开人物");
+      } catch {
+        if (cancelled) return;
+        setStatus("摄像头不可用（无设备 / 未授权 / 非安全上下文）。已自动切回「模拟人物」。");
+        setMode("synthetic");
+      }
+    })();
+    return () => {
+      cancelled = true;
+      stream?.getTracks().forEach((t) => t.stop());
+      const v = videoRef.current;
+      if (v) v.srcObject = null;
+    };
+  }, [mode, loadVision]);
 
+  // 检测循环：摄像头 / 上传视频 共用，取骨骼点 → 外接矩形 → 避让区 + 骨架
+  useEffect(() => {
+    if (mode !== "camera" && mode !== "upload") return;
+    let cancelled = false;
+    let raf = 0;
+    (async () => {
+      try {
+        await loadVision();
+        if (cancelled) return;
         const loop = () => {
           if (cancelled) return;
           const vv = videoRef.current;
           const el = containerRef.current;
-          if (vv && el && vv.readyState >= 2 && landmarker) {
-            const res = landmarker.detectForVideo(vv, performance.now());
+          const lm = landmarkerRef.current;
+          if (vv && el && lm && vv.readyState >= 2) {
+            const res = lm.detectForVideo(vv, performance.now());
             const lms = res.landmarks?.[0];
             if (lms && lms.length) {
+              const cw = el.clientWidth;
+              const ch = el.clientHeight;
+              const vw = vv.videoWidth || cw;
+              const vh = vv.videoHeight || ch;
+              // cover 变换：与 <video objectFit:cover> 一致
+              const scale = Math.max(cw / vw, ch / vh);
+              const dispW = vw * scale;
+              const dispH = vh * scale;
+              const offX = (cw - dispW) / 2;
+              const offY = (ch - dispH) / 2;
               let minX = 1, minY = 1, maxX = 0, maxY = 0;
               for (const p of lms) {
                 minX = Math.min(minX, p.x);
@@ -166,26 +224,16 @@ function MediaPipeOcclusion() {
                 minY = Math.min(minY, p.y);
                 maxY = Math.max(maxY, p.y);
               }
-              const cw = el.clientWidth;
-              const ch = el.clientHeight;
-              const vw = vv.videoWidth || cw;
-              const vh = vv.videoHeight || ch;
-              // cover 变换：视频按 contain? 这里用 cover 与 <video objectFit:cover> 一致
-              const scale = Math.max(cw / vw, ch / vh);
-              const dispW = vw * scale;
-              const dispH = vh * scale;
-              const offX = (cw - dispW) / 2;
-              const offY = (ch - dispH) / 2;
-              const pad = 8;
-              const zone: Rect = {
-                x: offX + minX * dispW - pad,
-                y: offY + minY * dispH - pad,
-                w: (maxX - minX) * dispW + pad * 2,
-                h: (maxY - minY) * dispH + pad * 2,
-              };
-              zonesRef.current = [zone];
+              const pad = 10;
+              zonesRef.current = [
+                {
+                  x: offX + minX * dispW - pad,
+                  y: offY + minY * dispH - pad,
+                  w: (maxX - minX) * dispW + pad * 2,
+                  h: (maxY - minY) * dispH + pad * 2,
+                },
+              ];
               drawOverlay(
-                [zone],
                 lms.map((p: { x: number; y: number }) => ({
                   x: offX + p.x * dispW,
                   y: offY + p.y * dispH,
@@ -193,24 +241,63 @@ function MediaPipeOcclusion() {
               );
             }
           }
-          rafRef.current = requestAnimationFrame(loop);
+          raf = requestAnimationFrame(loop);
         };
-        rafRef.current = requestAnimationFrame(loop);
+        raf = requestAnimationFrame(loop);
       } catch {
         if (cancelled) return;
-        setStatus("摄像头或 MediaPipe 加载失败（无摄像头 / 无外网）。已自动切回「模拟人物」。");
+        setStatus("MediaPipe 模型加载失败（无外网）。已自动切回「模拟人物」。");
         setMode("synthetic");
       }
     })();
     return () => {
       cancelled = true;
-      stream?.getTracks().forEach((t) => t.stop());
-      cancelAnimationFrame(rafRef.current);
-      landmarkerRef.current = null;
+      cancelAnimationFrame(raf);
     };
+  }, [mode, loadVision, drawOverlay]);
+
+  // 上传视频：设置 src 并播放（离线即可跑骨骼识别）
+  useEffect(() => {
+    if (mode !== "upload" || !videoSrc) return;
+    const v = videoRef.current;
+    if (!v) return;
+    v.srcObject = null;
+    v.loop = true;
+    v.play().catch(() => {});
+  }, [mode, videoSrc]);
+
+  const onFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    if (videoSrc) URL.revokeObjectURL(videoSrc);
+    setVideoSrc(URL.createObjectURL(f));
+    setMode("upload");
+  };
+
+  // 模拟人物：合成一个来回移动的避让区（无需摄像头 / 外网）
+  useEffect(() => {
+    if (mode !== "synthetic") return;
+    let raf = 0;
+    const loop = () => {
+      const el = containerRef.current;
+      if (el) {
+        const w = el.clientWidth;
+        const h = el.clientHeight;
+        const t = performance.now() / 1000;
+        const cx = w * (0.5 + 0.3 * Math.sin(t * 0.6));
+        const cy = h * (0.52 + 0.12 * Math.sin(t * 0.9));
+        const bw = Math.min(w, h) * 0.2;
+        const bh = Math.min(w, h) * 0.55;
+        zonesRef.current = [{ x: cx - bw / 2, y: cy - bh / 2, w: bw, h: bh }];
+        drawOverlay([]); // 模拟态不画骨架，只画人物框
+      }
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
   }, [mode, drawOverlay]);
 
-  // 离开 camera/synthetic 时清场
+  // 离开各模式时清场
   useEffect(() => {
     if (mode === "idle") {
       zonesRef.current = [];
@@ -220,6 +307,9 @@ function MediaPipeOcclusion() {
     }
   }, [mode]);
 
+  const showVideo = mode === "camera" || mode === "upload";
+  const tracking = showVideo;
+
   return (
     <div
       ref={containerRef}
@@ -227,7 +317,7 @@ function MediaPipeOcclusion() {
       style={{
         position: "relative",
         width: "100%",
-        height: 380,
+        height: 420,
         borderRadius: 8,
         overflow: "hidden",
         background: "linear-gradient(135deg, #0d1424, #1b2a4a 60%, #2a1730)",
@@ -238,18 +328,21 @@ function MediaPipeOcclusion() {
         ref={videoRef}
         muted
         playsInline
+        loop
+        src={mode === "upload" ? videoSrc ?? undefined : undefined}
         style={{
           position: "absolute",
           inset: 0,
           width: "100%",
           height: "100%",
           objectFit: "cover",
-          opacity: mode === "camera" ? 1 : 0.28,
+          opacity: showVideo ? 1 : 0.28,
           transition: "opacity .3s",
         }}
       />
+      {/* 弹幕穿透：绝对定位覆盖在视频之上，内核每帧绕开人物框 */}
       <Player
-        items={SAMPLE_BASIC as DanmakuItem[]}
+        items={STREAM as DanmakuItem[]}
         currentTime={currentTime}
         playing
         containerStyle={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
@@ -265,6 +358,36 @@ function MediaPipeOcclusion() {
           zIndex: 5,
         }}
       />
+
+      {/* 顶部状态条 */}
+      <div
+        style={{
+          position: "absolute",
+          top: 10,
+          left: 10,
+          right: 10,
+          zIndex: 6,
+          display: "flex",
+          gap: 8,
+          alignItems: "center",
+          flexWrap: "wrap",
+          pointerEvents: "none",
+        }}
+      >
+        <span
+          style={{
+            fontSize: 12,
+            color: tracking ? "#5fd3c8" : "#9aa3b2",
+            background: "rgba(0,0,0,0.45)",
+            padding: "4px 8px",
+            borderRadius: 6,
+          }}
+        >
+          {tracking ? "● 骨骼识别中 · 弹幕绕开人物" : mode === "synthetic" ? "● 模拟人物 · 防遮挡演练" : "○ 未启动"}
+        </span>
+      </div>
+
+      {/* 底部控件 */}
       <div
         style={{
           position: "absolute",
@@ -281,9 +404,23 @@ function MediaPipeOcclusion() {
         <button type="button" className="mp-btn" onClick={() => setMode("camera")}>
           启动摄像头
         </button>
+        <button
+          type="button"
+          className="mp-btn"
+          onClick={() => fileRef.current?.click()}
+        >
+          上传视频
+        </button>
         <button type="button" className="mp-btn" onClick={() => setMode("synthetic")}>
           模拟人物
         </button>
+        <input
+          ref={fileRef}
+          type="file"
+          accept="video/*"
+          style={{ display: "none" }}
+          onChange={onFile}
+        />
         <span className="mp-status">{status}</span>
       </div>
     </div>
@@ -303,9 +440,9 @@ export const meta = {
       why: "把消费方算出的避让区注入内核，轨道调度自动避开人物",
     },
   ],
-  props: ["items={SAMPLE_BASIC}", "currentTime={t}", "playing"],
+  props: ["items={STREAM}", "currentTime={t}", "playing", "avoidZoneProvider"],
   note:
-    "发布包不捆绑 MediaPipe（体积预算不受影响）。这里在 demo 里用 PoseLandmarker 取 33 个骨骼点，算人物外接矩形当避让区；内核每帧同步消费，几帧延迟对人无感。无摄像头 / 无外网时点「模拟人物」跑同一套逻辑。",
+    "发布包不捆绑 MediaPipe（体积预算不受影响）。这里在 demo 里用 PoseLandmarker 取 33 个骨骼点，算人物外接矩形当避让区；内核每帧同步消费，几帧延迟对人无感。三种输入：摄像头（真实人物）/ 上传视频（离线最稳）/ 模拟人物（无设备回退）。弹幕穿透 = canvas 叠在视频之上、绕开人物框。",
   tone: "dark",
 };
 
