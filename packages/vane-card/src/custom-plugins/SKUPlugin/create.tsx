@@ -1,8 +1,18 @@
 /**
  * SKUPlugin - 基础变体选择与匹配
+ *
+ * 口径统一（P1-2）：与复合组件完全一致地使用 `attributesMatchExactly` ——
+ * 只有「已选属性集 == 变体属性集」才算命中；只选了颜色还没选尺码时不写价格，
+ * 让价格回退到商品级字段，而不是拿数组里第一条同色变体顶上去。
+ *
+ * 派生键（P1-3）：每次选择变化都先清后写（`writeSkuDerivedKeys`），
+ * 并且 onMount 返回总线订阅，只装 SKUPlugin 时选中态也能刷新。
  */
 import type { CardPlugin, PluginCreator } from "../../components/CardPlugin/plugins/types";
 import { BusKeys } from "../../components/CardPlugin/plugins/BusKeys";
+import { attributesMatchExactly } from "../../components/CardPlugin/types/product";
+import { setupForceUpdateOnBusKeys } from "../../components/CardPlugin/plugins/utils/busHelpers";
+import { writeSkuDerivedKeys } from "../../components/CardPlugin/plugins/utils/sku";
 import React from "react";
 
 export interface SKUAttribute {
@@ -24,11 +34,12 @@ export interface SKUPluginConfig {
   renderIn?: "footer" | "overlay"; // 选择控件位置
 }
 
-function matchVariant(variants: SKUVariant[], selection: Record<string, string>): SKUVariant | undefined {
+function matchVariant(
+  variants: SKUVariant[],
+  selection: Record<string, string>
+): SKUVariant | undefined {
   if (!variants.length) return undefined;
-  const keys = Object.keys(selection);
-  if (!keys.length) return undefined;
-  return variants.find((v) => keys.every((k) => v.attrs[k] === selection[k]));
+  return variants.find((v) => attributesMatchExactly(v.attrs, selection));
 }
 
 const Selector: React.FC<{
@@ -74,63 +85,50 @@ export const createSKUPlugin: PluginCreator<any, SKUPluginConfig> = (config) => 
   const variants = config?.variants || [];
   const renderIn = config?.renderIn || "footer";
 
+  /** 唯一的「写选择 + 写派生键 + 发事件」入口（footer / overlay / 首屏共用） */
+  const applySelection = (
+    context: { bus?: any },
+    next: Record<string, string>
+  ) => {
+    const bus = context.bus;
+    bus?.setData?.(BusKeys.skuSelection, next);
+    const matched = matchVariant(variants, next);
+    // 先清后写：未命中时把 skuVariant / skuPrice / skuImage 全部清掉
+    writeSkuDerivedKeys(bus, matched);
+    // 发布 sku:change 事件
+    bus?.emit?.("sku:change", {
+      attrs: next,
+      variant: matched,
+      stock: typeof matched?.stock === "number" ? matched.stock : undefined,
+    });
+  };
+
   const plugin: CardPlugin = {
     name: "SKUPlugin",
-    version: "1.0.0",
+    version: "1.1.0",
     description: "基础 SKU 变体选择与匹配",
     priority: 60,
-  hooks: {
-    onMount: (context) => {
-      // 初始化选择
-      const initSel = attributes.reduce<Record<string, string>>((acc, a) => {
-        const d = (context.data as any)?.defaultAttrs?.[a.name];
-        if (d) acc[a.name] = d;
-        return acc;
-      }, {});
-      context.bus?.setData?.(BusKeys.skuSelection, initSel);
-      const matched = matchVariant(variants, initSel);
-      if (matched) {
-        context.bus?.setData?.(BusKeys.skuVariant, matched);
-        // 首屏也要把变体价/图写进派生键：否则初始价格只能回落到 data.price，
-        // 要等用户切一次规格才变成变体价（首屏价格错，且切换时突然跳变）。
-        if (typeof matched.price === "number") {
-          context.bus?.setData?.(BusKeys.skuPrice, matched.price);
-        }
-        if (matched.image) {
-          context.bus?.setData?.(BusKeys.skuImage, matched.image);
-        }
-      }
-      // 发布 sku:change 事件，包含当前选择、匹配变体与库存
-      context.bus?.emit?.("sku:change", {
-        attrs: initSel,
-        variant: matched,
-        stock: typeof matched?.stock === "number" ? matched?.stock : undefined,
-      });
-    },
-    renderFooter: (context) => {
-      if (renderIn !== "footer") return null;
-      const sel = context.bus?.getData?.<Record<string, string>>(BusKeys.skuSelection) || {};
-      const setSel = (name: string, value: string) => {
-        const next = { ...sel, [name]: value };
-        context.bus?.setData?.(BusKeys.skuSelection, next);
-        const matched = matchVariant(variants, next);
-        if (matched) {
-          context.bus?.setData?.(BusKeys.skuVariant, matched);
-          // 同步价格/图片到派生键（0 元也是合法价格，用 typeof 判定而不是真值判定）
-          if (typeof matched.price === "number") {
-            context.bus?.setData?.(BusKeys.skuPrice, matched.price);
-          }
-          if (matched.image) {
-            context.bus?.setData?.(BusKeys.skuImage, matched.image);
-          }
-        }
-        // 发布 sku:change 事件
-        context.bus?.emit?.("sku:change", {
-          attrs: next,
-          variant: matched,
-          stock: typeof matched?.stock === "number" ? matched?.stock : undefined,
-        });
-      };
+    hooks: {
+      onMount: (context) => {
+        // 初始化选择
+        const initSel = attributes.reduce<Record<string, string>>((acc, a) => {
+          const d = (context.data as any)?.defaultAttrs?.[a.name];
+          if (d) acc[a.name] = d;
+          return acc;
+        }, {});
+        applySelection(context, initSel);
+        // 只装 SKUPlugin（没有 PriceCalculator 等消费方）时，点击后也要刷新选中态
+        return setupForceUpdateOnBusKeys(context, [
+          BusKeys.skuSelection,
+          BusKeys.skuVariant,
+        ]);
+      },
+      renderFooter: (context) => {
+        if (renderIn !== "footer") return null;
+        const sel = context.bus?.getData?.<Record<string, string>>(BusKeys.skuSelection) || {};
+        const setSel = (name: string, value: string) => {
+          applySelection(context, { ...sel, [name]: value });
+        };
 
         const variant = context.bus?.getData?.<SKUVariant>(BusKeys.skuVariant);
         return (
@@ -148,19 +146,10 @@ export const createSKUPlugin: PluginCreator<any, SKUPluginConfig> = (config) => 
       },
       renderOverlay: (context) => {
         if (renderIn !== "overlay") return null;
-      const sel = context.bus?.getData?.<Record<string, string>>(BusKeys.skuSelection) || {};
-      const setSel = (name: string, value: string) => {
-        const next = { ...sel, [name]: value };
-        context.bus?.setData?.(BusKeys.skuSelection, next);
-        const matched = matchVariant(variants, next);
-        if (matched) context.bus?.setData?.(BusKeys.skuVariant, matched);
-        // 发布 sku:change 事件（overlay 模式）
-        context.bus?.emit?.("sku:change", {
-          attrs: next,
-          variant: matched,
-          stock: typeof matched?.stock === "number" ? matched?.stock : undefined,
-        });
-      };
+        const sel = context.bus?.getData?.<Record<string, string>>(BusKeys.skuSelection) || {};
+        const setSel = (name: string, value: string) => {
+          applySelection(context, { ...sel, [name]: value });
+        };
         return (
           <div style={{ position: "absolute", bottom: 8, left: 8, right: 8, background: "rgba(255,255,255,0.9)", borderRadius: 8, padding: 8, zIndex: 9 }}>
             <Selector attributes={attributes} selection={sel} onChange={setSel} />

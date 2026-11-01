@@ -5,6 +5,7 @@ import type { CardPlugin, PluginCreator } from "../../components/CardPlugin/plug
 import { BusKeys } from "../../components/CardPlugin/plugins/BusKeys";
 import { setupForceUpdateOnBusKeys } from "../../components/CardPlugin/plugins/utils/busHelpers";
 import { applyDefaults } from "../../components/CardPlugin/plugins/utils/config";
+import { computeCouponCut, isCouponApplicable, type CouponLike } from "../../components/CardPlugin/plugins/utils/coupon";
 import type { Coupon } from "../CouponPlugin";
 import React from "react";
 
@@ -30,9 +31,18 @@ function formatCurrency(value: number, currency?: string, locale?: string) {
 }
 
 function pickBestCoupon(coupons: Coupon[], subtotal: number): Coupon | undefined {
-  const applicable = coupons.filter((c) => (c.minAmount ?? 0) <= subtotal);
+  const applicable = coupons.filter((c) => isCouponApplicable(subtotal, c));
   if (!applicable.length) return undefined;
-  return applicable.reduce((best, c) => (c.discount > best.discount ? c : best), applicable[0]);
+  return applicable.reduce(
+    (best, c) =>
+      computeCouponCut(subtotal, c) > computeCouponCut(subtotal, best) ? c : best,
+    applicable[0]
+  );
+}
+
+/** 当前已应用券的折扣额（统一口径，供 isBetter / delta 复用） */
+function appliedCut(subtotal: number, applied?: CouponLike): number {
+  return computeCouponCut(subtotal, applied);
 }
 
 export const createCouponRecommendPlugin: PluginCreator<any, CouponRecommendPluginConfig> = (
@@ -77,10 +87,15 @@ export const createCouponRecommendPlugin: PluginCreator<any, CouponRecommendPlug
         const applied = context.bus?.getData?.(BusKeys.couponApplied) as Coupon | undefined;
         const best = pickBestCoupon(cfg.coupons, subtotal);
 
-        const isBetter = best && (!applied || best.discount > (applied.discount ?? 0));
+        const isBetter =
+          !!best &&
+          (!applied || computeCouponCut(subtotal, best) > appliedCut(subtotal, applied));
         if (!best || !isBetter) return null;
 
-        const delta = Math.max(0, (best.discount ?? 0) - (applied?.discount ?? 0));
+        const delta = Math.max(
+          0,
+          computeCouponCut(subtotal, best) - appliedCut(subtotal, applied)
+        );
 
         const applyBest = () => context.bus?.setData?.(BusKeys.couponApplied, best);
 
@@ -102,7 +117,9 @@ export const createCouponRecommendPlugin: PluginCreator<any, CouponRecommendPlug
         const applied = context.bus?.getData?.(BusKeys.couponApplied) as Coupon | undefined;
         const best = pickBestCoupon(cfg.coupons, subtotal);
 
-        const isBetter = best && (!applied || best.discount > (applied.discount ?? 0));
+        const isBetter =
+          !!best &&
+          (!applied || computeCouponCut(subtotal, best) > appliedCut(subtotal, applied));
         if (!best || !isBetter) return null;
 
         const applyBest = () => context.bus?.setData?.(BusKeys.couponApplied, best);
@@ -123,10 +140,15 @@ export const createCouponRecommendPlugin: PluginCreator<any, CouponRecommendPlug
         const applied = context.bus?.getData?.(BusKeys.couponApplied) as Coupon | undefined;
         const best = pickBestCoupon(cfg.coupons, subtotal);
 
-        const isBetter = best && (!applied || (best.discount ?? 0) > (applied.discount ?? 0));
+        const isBetter =
+          !!best &&
+          (!applied || computeCouponCut(subtotal, best) > appliedCut(subtotal, applied));
         if (!best || !isBetter) return null;
 
-        const delta = Math.max(0, (best.discount ?? 0) - (applied?.discount ?? 0));
+        const delta = Math.max(
+          0,
+          computeCouponCut(subtotal, best) - appliedCut(subtotal, applied)
+        );
         const applyBest = () => context.bus?.setData?.(BusKeys.couponApplied, best);
         return (
           <span

@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useProductCard } from "../ProductCard";
-import { usePluginSlot } from "../../plugins/slots";
+import { useBusValue, usePluginSlot } from "../../plugins/slots";
+import { BusKeys } from "../../plugins/BusKeys";
+import { couponValueLabel, isCouponApplicable } from "../../plugins/utils/coupon";
 
 export type CouponInfo = {
   id: string;
@@ -46,36 +48,24 @@ export const CouponBar: React.FC<CouponBarProps> = ({
   const { data, state } = useProductCard();
   const [expandedCoupon, setExpandedCoupon] = useState<string | null>(null);
   const priceAreaNodes = usePluginSlot("priceArea");
+  const skuPrice = useBusValue<number>(BusKeys.skuPrice);
+  const busQuantity = useBusValue<number>(BusKeys.quantity);
 
   // 如果没有优惠券，不显示
   if (!coupons || coupons.length === 0) {
     return null;
   }
 
-  // 获取当前商品价格，用于判断优惠券是否可用
-  const currentPrice = Number(data?.price ?? 0);
-  const quantity = state.quantity ?? 1;
+  // 小计以总线（变体价 × 数量）为准，插件没写总线时回落到商品级 data.price
+  const currentPrice = Number(skuPrice ?? data?.price ?? 0);
+  const quantity = busQuantity ?? state.quantity ?? 1;
   const totalAmount = currentPrice * quantity;
 
-  // 过滤可用的优惠券
-  const availableCoupons = coupons.filter(coupon => {
-    if (coupon.minAmount && totalAmount < coupon.minAmount) {
-      return false;
-    }
-    return true;
-  });
+  // 不过滤掉不满足门槛的券：仍需展示，只是标记为不可用（P1-5）
+  const visibleCoupons = coupons.slice(0, maxVisible);
 
-  // 限制显示数量
-  const visibleCoupons = availableCoupons.slice(0, maxVisible);
-
-  // 格式化折扣显示
-  const formatDiscount = (coupon: CouponInfo) => {
-    if (coupon.discountType === "percentage") {
-      return `${coupon.discount}折`;
-    } else {
-      return `${currency}${coupon.discount}`;
-    }
-  };
+  // 券面值展示与计算口径统一（金额 / 折数）
+  const formatDiscount = (coupon: CouponInfo) => couponValueLabel(coupon, currency);
 
   // 格式化过期时间
   const formatExpiry = (expiry: string) => {
@@ -130,7 +120,7 @@ export const CouponBar: React.FC<CouponBarProps> = ({
     >
       {visibleCoupons.map((coupon) => {
         const isExpanded = expandedCoupon === coupon.id;
-        const isUnavailable = Boolean(coupon.minAmount && totalAmount < coupon.minAmount);
+        const isUnavailable = !isCouponApplicable(totalAmount, coupon);
 
         return (
           <div key={coupon.id} className="vc-coupon__wrap">
@@ -202,14 +192,12 @@ export const CouponBar: React.FC<CouponBarProps> = ({
       })}
 
       {/* 显示更多优惠券的提示 */}
-      {availableCoupons.length > maxVisible && (
-        <div className="vc-coupon-more">+{availableCoupons.length - maxVisible}个</div>
+      {coupons.length > maxVisible && (
+        <div className="vc-coupon-more">+{coupons.length - maxVisible}个</div>
       )}
       {priceAreaNodes.length > 0 && (
         <div className="vc-price__area" data-slot="price-area">
-          {priceAreaNodes.map((node, i) => (
-            <React.Fragment key={i}>{node}</React.Fragment>
-          ))}
+          {priceAreaNodes}
         </div>
       )}
     </div>

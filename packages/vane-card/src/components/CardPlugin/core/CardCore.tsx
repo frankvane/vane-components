@@ -18,6 +18,7 @@ import React, {
   useCallback,
   useEffect,
   useImperativeHandle,
+  useLayoutEffect,
   useRef,
   useState,
 } from "react";
@@ -183,7 +184,16 @@ const CardCore = forwardRef<CardCoreRef, CardCoreProps>(function CardCore<
   // 用 ref 存最新回调 + 仅挂载时建立一次 IO：
   // 旧版把 onVisibilityChange 放进依赖数组，每次渲染都换新函数 → 每次 hover 都重建 IO。
   const onVisibilityChangeRef = useRef(onVisibilityChange);
-  onVisibilityChangeRef.current = onVisibilityChange;
+  // onMount / onUnmount 同样只取首次挂载时的闭包，因此用 ref 保存最新回调（P2-4）
+  const onMountRef = useRef(onMount);
+  const onUnmountRef = useRef(onUnmount);
+
+  // 提交后更新 ref，不在渲染期写 ref
+  useLayoutEffect(() => {
+    onVisibilityChangeRef.current = onVisibilityChange;
+    onMountRef.current = onMount;
+    onUnmountRef.current = onUnmount;
+  });
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -208,11 +218,11 @@ const CardCore = forwardRef<CardCoreRef, CardCoreProps>(function CardCore<
 
   // ===== 挂载时初始化 =====
   useEffect(() => {
-    if (onMount) onMount();
+    onMountRef.current?.();
     if (debug) console.log(`[CardCore] mounted: ${cardId}`);
 
     return () => {
-      if (onUnmount) onUnmount();
+      onUnmountRef.current?.();
       if (debug) console.log(`[CardCore] unmounted: ${cardId}`);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps

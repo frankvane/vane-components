@@ -31,9 +31,7 @@
       "readers": []
     },
     "sku.variant": {
-      "writers": [
-        "SKUPlugin"
-      ],
+      "writers": [],
       "readers": [
         "ImagePlugin",
         "InventoryPlugin",
@@ -41,9 +39,7 @@
       ]
     },
     "sku.price": {
-      "writers": [
-        "SKUPlugin"
-      ],
+      "writers": [],
       "readers": [
         "ComparePricePlugin",
         "CouponRecommendPlugin",
@@ -52,9 +48,7 @@
       ]
     },
     "sku.image": {
-      "writers": [
-        "SKUPlugin"
-      ],
+      "writers": [],
       "readers": []
     },
     "quantity": {
@@ -90,8 +84,8 @@
       "CouponRecommendPlugin",
       "OrderSummaryPlugin"
     ],
-    "registeredOn": 12,
-    "offAtUnmount": 12,
+    "registeredOn": 14,
+    "offAtUnmount": 14,
     "r2Fixed": true,
     "note": "R2 已修复：旧 withPlugins 丢弃 onMount 返回值（off=0）；新内核登记清理函数并在 clear() 逆序执行（off===on）"
   },

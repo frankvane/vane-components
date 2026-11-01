@@ -19,14 +19,22 @@ export interface InventoryPluginConfig {
   showOverlayWhenSoldOut?: boolean; // 售罄时覆盖层
 }
 
-/** 库存口径：选中变体库存 > data.inventory > 0（与 QuantityPlugin.getMax 保持一致） */
-function resolveInventory(context: { bus?: any; data?: any }): number {
+/**
+ * 库存口径：选中变体库存 > data.inventory > 未知。
+ *
+ * 返回 `undefined` 表示「未知」，绝不能折算成 0 —— `ProductData.inventory` 与
+ * `ProductVariant.stock` 都是可选的，契约写明「缺失表示未知」。旧版回落成 0，
+ * 于是只传 price/title/image 的卡片首帧就被判成售罄并盖上整卡蒙层（P0-1）。
+ */
+function resolveInventory(
+  context: { bus?: any; data?: any }
+): number | undefined {
   const variant = context.bus?.getData?.(BusKeys.skuVariant) as
     | { stock?: number }
     | undefined;
   if (typeof variant?.stock === "number") return variant.stock;
   const inventory = (context.data as any)?.inventory;
-  return typeof inventory === "number" ? inventory : 0;
+  return typeof inventory === "number" ? inventory : undefined;
 }
 
 export const createInventoryPlugin: PluginCreator<any, InventoryPluginConfig> = (
@@ -46,13 +54,18 @@ export const createInventoryPlugin: PluginCreator<any, InventoryPluginConfig> = 
 
       renderOverlay: (context) => {
         const inventory = resolveInventory(context);
-        const soldOut = showOverlayWhenSoldOut && inventory <= 0;
-        const lowStock = inventory > 0 && inventory <= lowStockThreshold;
+        // 未知库存（undefined）既不是售罄也不是紧张：什么都不渲染
+        const known = typeof inventory === "number";
+        const soldOut = showOverlayWhenSoldOut && known && inventory! <= 0;
+        const lowStock = known && inventory! > 0 && inventory! <= lowStockThreshold;
         if (!soldOut && !lowStock) return null;
         return (
           <>
             {soldOut && (
               <div
+                role="status"
+                aria-live="polite"
+                data-card-sold-out="true"
                 style={{
                   position: "absolute",
                   inset: 0,
@@ -65,6 +78,9 @@ export const createInventoryPlugin: PluginCreator<any, InventoryPluginConfig> = 
                   fontWeight: 600,
                   borderRadius: 8,
                   zIndex: 9,
+                  // 蒙层只是视觉提示，不能吞掉整卡的点击/滚动：
+                  // 旧版没有这行，售罄时点规格、点加购、点主图全部无效。
+                  pointerEvents: "none",
                 }}
               >
                 已售罄
@@ -82,6 +98,7 @@ export const createInventoryPlugin: PluginCreator<any, InventoryPluginConfig> = 
                   fontSize: 12,
                   borderRadius: 4,
                   zIndex: 10,
+                  pointerEvents: "none",
                 }}
               >
                 库存紧张

@@ -5,6 +5,7 @@ import type { CardPlugin, PluginCreator } from "../../components/CardPlugin/plug
 import { BusKeys } from "../../components/CardPlugin/plugins/BusKeys";
 import { setupForceUpdateOnBusKeys } from "../../components/CardPlugin/plugins/utils/busHelpers";
 import { applyDefaults } from "../../components/CardPlugin/plugins/utils/config";
+import { computeCouponCut, type CouponLike } from "../../components/CardPlugin/plugins/utils/coupon";
 import React from "react";
 
 export interface PriceCalculatorPluginConfig {
@@ -69,9 +70,10 @@ export const createPriceCalculatorPlugin: PluginCreator<any, PriceCalculatorPlug
           const skuPrice = context.bus?.getData?.(BusKeys.skuPrice);
           const price = Number((skuPrice as any) ?? (context.data as any)?.price ?? 0);
           const quantity = Number(context.bus?.getData?.(BusKeys.quantity) ?? 1);
-          const appliedCoupon = context.bus?.getData?.(BusKeys.couponApplied) as { code?: string; discount?: number } | undefined;
+          const appliedCoupon = context.bus?.getData?.(BusKeys.couponApplied) as CouponLike | undefined;
           const subtotal = price * quantity;
-          const total = Math.max(0, subtotal - (appliedCoupon?.discount ?? 0));
+          // 折扣口径唯一实现在 utils/coupon（金额券 / 折数券）
+          const total = Math.max(0, subtotal - computeCouponCut(subtotal, appliedCoupon));
           // 发布 price:change 事件（含当前单价/数量/小计/合计/券）
           context.bus?.emit?.("price:change", { price, quantity, subtotal, total, coupon: appliedCoupon });
           // 触发 UI 刷新
@@ -107,9 +109,9 @@ export const createPriceCalculatorPlugin: PluginCreator<any, PriceCalculatorPlug
         const discount = hasOriginal ? Math.round((1 - price / originalPrice) * 100) : 0;
 
         const quantity = Number(context.bus?.getData?.(BusKeys.quantity) ?? 1);
-        const appliedCoupon = context.bus?.getData?.(BusKeys.couponApplied) as { code?: string; discount?: number } | undefined;
+        const appliedCoupon = context.bus?.getData?.(BusKeys.couponApplied) as CouponLike | undefined;
         const subtotal = price * quantity;
-        const total = Math.max(0, subtotal - (appliedCoupon?.discount ?? 0));
+        const total = Math.max(0, subtotal - computeCouponCut(subtotal, appliedCoupon));
 
         return (
           <div style={{ padding: 12 }}>

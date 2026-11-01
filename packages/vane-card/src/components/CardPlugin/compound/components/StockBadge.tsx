@@ -1,6 +1,7 @@
 import React from "react";
 import { useProductCard } from "../ProductCard";
 import { matchVariant, variantListOf } from "../../types/product";
+import { useSelectedAttributes } from "../../plugins/slots";
 
 export type StockBadgeProps = {
   className?: string;
@@ -30,15 +31,18 @@ export const StockBadge: React.FC<StockBadgeProps> = ({
   hideWhenInStock = false,
 }) => {
   const { data, state } = useProductCard();
+  const attributes = useSelectedAttributes(state.attributes);
 
-  // 选中变体库存优先，与 Quantity / Inventory 同一口径
-  const selected = matchVariant(variantListOf(data), state.attributes);
+  // 选中变体库存优先，与 Quantity / Inventory 同一口径；未知 ≠ 缺货（P0-1）
+  const selected = matchVariant(variantListOf(data), attributes);
   const currentStock =
     typeof selected?.stock === "number"
       ? selected.stock
       : typeof data?.inventory === "number"
         ? data.inventory
-        : 0;
+        : undefined;
+
+  if (typeof currentStock !== "number") return null;
 
   // 确定库存状态
   const getStockStatus = () => {

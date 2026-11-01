@@ -3,11 +3,13 @@
  */
 import type { CardPlugin, PluginCreator } from "../../components/CardPlugin/plugins/types";
 import { BusKeys } from "../../components/CardPlugin/plugins/BusKeys";
+import { couponValueLabel, type CouponLike } from "../../components/CardPlugin/plugins/utils/coupon";
 import React from "react";
 
-export interface Coupon {
+export interface Coupon extends CouponLike {
   code: string;
-  discount: number; // 金额或百分比（简单用金额）
+  /** 金额或折数；配合 discountType 解释（见 utils/coupon） */
+  discount: number;
   minAmount?: number;
   expiry?: Date;
 }
@@ -60,14 +62,14 @@ export const createCouponPlugin: PluginCreator<any, CouponPluginConfig> = (
                       fontSize: 12,
                     }}
                   >
-                    {c.code} - 立减 ¥{c.discount}
+                    {c.code} - {couponValueLabel(c, "¥")}
                   </button>
                 );
               })}
             </div>
             {applied && (
               <div style={{ marginTop: 8, fontSize: 12, color: "#2e7d32" }}>
-                已应用优惠券：{applied.code}（立减 ¥{applied.discount}）
+                已应用优惠券：{applied.code}（{couponValueLabel(applied, "¥")}）
               </div>
             )}
           </div>

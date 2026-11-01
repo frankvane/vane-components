@@ -9,9 +9,11 @@
  * 单个插件渲染抛错只丢自己那一段（PluginErrorBoundary 隔离）。
  */
 
-import React, { createContext, useContext, useMemo } from "react";
+import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { PluginErrorBoundary } from "vane-plugin-core";
-import type { CardPlugin, CardPluginContext } from "./types";
+import { BusKeys } from "./BusKeys";
+import type { CardPlugin, CardPluginContext, PluginBus } from "./types";
+import type { ProductAttributes } from "../types/product";
 
 export type PluginSlotName = "priceArea";
 
@@ -62,15 +64,16 @@ export function renderDomainSlot(
         (a.config?.order ?? 0) - (b.config?.order ?? 0) ||
         (b.priority ?? 0) - (a.priority ?? 0)
     )
-    .map((plugin, index) => {
+    .map((plugin) => {
       try {
         const node = (plugin.hooks as Record<string, (ctx: CardPluginContext<any>) => React.ReactNode>)[hookName](
           context
         );
         if (node === null || node === undefined) return null;
-        // 每个插件单独一层错误边界：某个插件渲染期抛错只丢它自己
+        // 每个插件单独一层错误边界：某个插件渲染期抛错只丢它自己。
+        // key 只用插件名：带 index 会让片段在列表变化时错位重挂（P2-3）。
         return (
-          <PluginErrorBoundary key={`card-slot-${plugin.name}-${index}`}>
+          <PluginErrorBoundary key={`card-slot-${plugin.name}`}>
             {node}
           </PluginErrorBoundary>
         );
@@ -92,4 +95,40 @@ export function usePluginSlot(slot: PluginSlotName): React.ReactNode[] {
   const ctx = useContext(SlotContext);
   if (!ctx) return [];
   return renderDomainSlot(ctx.orderedPlugins, ctx.context, "renderPriceArea");
+}
+
+/** 当前卡片实例的总线（复合组件与插件共享的唯一真源）；不在插件体系里时为 undefined */
+export function useCardBus(): PluginBus | undefined {
+  return useContext(SlotContext)?.context.bus;
+}
+
+/**
+ * 订阅总线键并保持最新值。
+ *
+ * 订阅时先读一次当前值：插件 onMount 早于复合组件的 effect 时，写入已经发生，
+ * 不补偿就会一直读到 undefined（表现为「插件改了规格，复合组件价格不动」）。
+ */
+export function useBusValue<T = unknown>(key: string): T | undefined {
+  const bus = useCardBus();
+  const [value, setValue] = useState<T | undefined>(() =>
+    bus?.getData?.<T>(key)
+  );
+  useEffect(() => {
+    if (!bus?.getData || !bus?.on) return;
+    setValue(bus.getData<T>(key));
+    return bus.on(key, () => setValue(bus.getData<T>(key)));
+  }, [bus, key]);
+  return value;
+}
+
+/**
+ * 当前选中的规格属性：总线优先，其次调用方传入的本地 state（P1-4）。
+ * 插件与复合组件都写总线后，这里的值就是唯一真源。
+ */
+export function useSelectedAttributes(
+  fallback?: ProductAttributes
+): ProductAttributes | undefined {
+  const selection = useBusValue<Record<string, string>>(BusKeys.skuSelection);
+  if (selection && Object.keys(selection).length > 0) return selection;
+  return fallback;
 }

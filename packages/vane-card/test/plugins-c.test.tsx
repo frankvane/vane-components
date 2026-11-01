@@ -42,8 +42,8 @@ describe("ImagePlugin（占位实现）", () => {
 
     expect(container.querySelector("#fb")).not.toBeNull();
     expect(container.querySelector('[data-image-state="failed"]')).not.toBeNull();
-    // 失败后不该再留一个空的 img
-    expect(container.querySelector("img")).toBeNull();
+    // 失败后仍保留 <img>（透明度 0）：换新 src 才能恢复（P2-7）
+    expect(container.querySelector("img")).not.toBeNull();
   });
 
   it("placeholder 在加载完成前可见，加载后让位给图片", async () => {

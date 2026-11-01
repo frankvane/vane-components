@@ -1,6 +1,7 @@
 import React from "react";
 import { useProductCard } from "../ProductCard";
 import { matchVariant, variantListOf } from "../../types/product";
+import { useSelectedAttributes } from "../../plugins/slots";
 import type { ProductData, ProductVariant } from "../../types/product";
 
 export type VariantImage = {
@@ -41,19 +42,20 @@ export const VariantMediaSwitcher: React.FC<VariantMediaSwitcherProps> = ({
   onMediaChange,
 }) => {
   const { data, state } = useProductCard();
+  const attributes = useSelectedAttributes(state.attributes);
   const [manualUrl, setManualUrl] = React.useState<string | null>(null);
 
   // 当选中规格变化时，取消手动覆盖，跟随规格主图
   React.useEffect(() => {
     setManualUrl(null);
-  }, [state.attributes]);
+  }, [attributes]);
 
   // 推导主图 URL
   const mainUrl = React.useMemo(() => {
     if (manualUrl) return manualUrl;
 
     // 1) 根据选中规格计算
-    const selected = matchVariant(variantListOf(data), state.attributes);
+    const selected = matchVariant(variantListOf(data), attributes);
 
     let url: string | undefined;
     if (getImageForSelected) {
@@ -70,7 +72,7 @@ export const VariantMediaSwitcher: React.FC<VariantMediaSwitcherProps> = ({
     }
     // 4) 回退到 props.images 或商品主图
     return url || (images?.[0] ?? data?.image ?? "");
-  }, [manualUrl, getImageForSelected, state.attributes, images, variantImages, data]);
+  }, [manualUrl, getImageForSelected, attributes, images, variantImages, data]);
 
   // 通知外部主图变化
   React.useEffect(() => {

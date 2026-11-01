@@ -36,8 +36,16 @@ export const createActionsPlugin: PluginCreator<any, ActionsPluginConfig> = (
       renderFooter: (context) => {
         const { state, bus } = context;
 
+        // 同一次点击批次里多次触发时，闭包里的 state 还是旧值；sharedData（每个
+        // runtime 一个 Map）是跨点击的同步真源，state 只负责触发重渲染（P2-5）。
+        const readFlag = (key: string, fallback: boolean | undefined) => {
+          const stored = context.sharedData?.get?.(key);
+          return typeof stored === "boolean" ? stored : Boolean(fallback);
+        };
+
         const handleCartClick = () => {
-          const newState = !state.cart;
+          const newState = !readFlag("actions:cart", state.cart);
+          context.sharedData?.set?.("actions:cart", newState);
           bus?.emit("cart:change", {
             cardId: context.cardId,
             isAdded: newState,
@@ -46,7 +54,8 @@ export const createActionsPlugin: PluginCreator<any, ActionsPluginConfig> = (
         };
 
         const handleWishlistClick = () => {
-          const newState = !state.wishlist;
+          const newState = !readFlag("actions:wishlist", state.wishlist);
+          context.sharedData?.set?.("actions:wishlist", newState);
           bus?.emit("wishlist:change", {
             cardId: context.cardId,
             isWishlisted: newState,

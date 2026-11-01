@@ -93,6 +93,25 @@ export function attributeMapOf(data: ProductData | undefined): Record<string, st
 }
 
 /**
+ * 属性集「完全相等」判定（插件侧与复合组件侧共用的唯一口径）。
+ *
+ * 大小必须相等 + 逐项相等：只选了颜色还没选尺码时返回 false，
+ * 调用方于是回退到商品级字段，而不是拿「颜色对了但尺码没选」的变体价格顶上。
+ */
+export function attributesMatchExactly(
+  options: Record<string, string | number> | undefined,
+  attributes: ProductAttributes | undefined
+): boolean {
+  const opts = options ?? {};
+  const attrs = attributes ?? {};
+  const keys = Object.keys(attrs);
+  if (!keys.length) return false;
+  // 属性集大小必须相等：既排除"只选了一部分"，也排除"变体多了没选的属性"
+  if (Object.keys(opts).length !== keys.length) return false;
+  return keys.every((key) => String(opts[key]) === String(attrs[key]));
+}
+
+/**
  * 在 variants 里找与当前已选属性**完全匹配**的那一条。
  *
  * "完全"是刻意的：变体声明的属性集必须与已选属性集一一对上。
@@ -104,14 +123,7 @@ export function matchVariant(
   attributes: ProductAttributes | undefined
 ): ProductVariant | undefined {
   if (!variants?.length) return undefined;
-  const attrs = attributes ?? {};
-  const keys = Object.keys(attrs);
-  if (!keys.length) return undefined;
-
-  return variants.find((variant) => {
-    const opts = variantOptionsOf(variant);
-    // 属性集大小必须相等：既排除"只选了一部分"，也排除"变体多了没选的属性"
-    if (Object.keys(opts).length !== keys.length) return false;
-    return keys.every((key) => String(opts[key]) === String(attrs[key]));
-  });
+  return variants.find((variant) =>
+    attributesMatchExactly(variantOptionsOf(variant), attributes)
+  );
 }

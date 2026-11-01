@@ -1,6 +1,8 @@
 import React from "react";
 import { useProductCard } from "../ProductCard";
 import { matchVariant, variantListOf } from "../../types/product";
+import { useCardBus, useBusValue, useSelectedAttributes } from "../../plugins/slots";
+import { BusKeys } from "../../plugins/BusKeys";
 
 export type QuantityStepperProps = {
   min?: number;
@@ -23,9 +25,12 @@ export const QuantityStepper: React.FC<QuantityStepperProps> = ({
   onChange,
 }) => {
   const { state, setState, data } = useProductCard();
+  const bus = useCardBus();
+  const busQuantity = useBusValue<number>(BusKeys.quantity);
+  const attributes = useSelectedAttributes(state.attributes);
 
   // 与 InventoryPlugin 同一口径：选中变体库存 > data.inventory > 未知
-  const selectedStock = matchVariant(variantListOf(data), state.attributes)?.stock;
+  const selectedStock = matchVariant(variantListOf(data), attributes)?.stock;
   const inferredAvailable =
     typeof available === "number"
       ? available
@@ -36,11 +41,18 @@ export const QuantityStepper: React.FC<QuantityStepperProps> = ({
           : undefined;
 
   const effectiveMax = typeof inferredAvailable === "number" ? Math.min(max, Math.max(0, inferredAvailable)) : max;
-  const qty = typeof state.quantity === "number" ? state.quantity : Math.max(min, 1);
+  // 单一真源（P1-4）：总线数量优先（插件与复合组件都写它）
+  const qty =
+    typeof busQuantity === "number"
+      ? busQuantity
+      : typeof state.quantity === "number"
+        ? state.quantity
+        : Math.max(min, 1);
 
   const update = (next: number) => {
     const clamped = Math.max(min, Math.min(effectiveMax, next));
     setState((s) => ({ ...s, quantity: clamped }));
+    bus?.setData?.(BusKeys.quantity, clamped);
     onChange?.(clamped);
   };
 

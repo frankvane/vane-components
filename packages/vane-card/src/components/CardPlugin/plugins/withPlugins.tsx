@@ -23,6 +23,7 @@ import React, {
   forwardRef,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
 } from "react";
@@ -72,7 +73,10 @@ export function withPlugins<T = any>(
     (props, ref) => {
       const containerRef = useRef<HTMLDivElement | null>(null);
       const coreRef = useRef<CardCoreRef | null>(null);
+      // 最新 props / 变换结果：extendContext 是稳定回调，只能通过 ref 读到最新值
+      const propsRef = useRef<CardCoreProps<T>>(props);
       const transformedPropsRef = useRef<CardCoreProps<T>>(props);
+      const transformedDataRef = useRef<T | undefined>(props.data as T | undefined);
 
       // 插件数组 → 内核插件。
       // 领域字段适配：vane-card 的公开配置叫 headerPosition（before/after），
@@ -98,16 +102,15 @@ export function withPlugins<T = any>(
       // 类型系统的精确匹配。
       const extendContext = useCallback(
         (base: any): any => {
-          const tProps = () =>
-            (transformedPropsRef.current as CardCoreProps<T>) ??
-            (props as CardCoreProps<T>);
+          const tProps = () => transformedPropsRef.current;
+          const latestProps = () => propsRef.current;
           const size = (): CardSize =>
             base.getSize ? (base.getSize() as CardSize) : { width: 0, height: 0 };
 
           const ctx: CardPluginContext<T> = {
             ...base,
-            cardId: props.cardId,
-            data: props.data as T | undefined,
+            cardId: latestProps().cardId,
+            data: transformedDataRef.current,
             containerRef: (base.refs?.container ??
               containerRef) as React.RefObject<HTMLDivElement | null>,
             getContainer: () =>
@@ -129,7 +132,7 @@ export function withPlugins<T = any>(
           Object.defineProperties(ctx, {
             props: { get: tProps, enumerable: true, configurable: true },
             data: {
-              get: () => props.data as T | undefined,
+              get: () => transformedDataRef.current,
               enumerable: true,
               configurable: true,
             },
@@ -137,7 +140,8 @@ export function withPlugins<T = any>(
           });
           return ctx;
         },
-        [props]
+        // 稳定回调：内部一律从 propsRef / transformedPropsRef 读最新值
+        [containerRef]
       );
 
       const runtime = usePluginRuntime<CardCoreProps<T>, T>({
@@ -150,9 +154,8 @@ export function withPlugins<T = any>(
         enableDebug,
       });
 
-      // 最新 context（供 ref 回调 / 钩子链读取）
+      // 最新 context（供 ref 回调 / 钩子链读取）；提交后再写入，避免渲染期副作用
       const ctxRef = useRef(runtime.context as unknown as CardPluginContext<T>);
-      ctxRef.current = runtime.context as unknown as CardPluginContext<T>;
 
       const execute = useCallback(
         (hookName: string, ...args: unknown[]) =>
@@ -161,8 +164,27 @@ export function withPlugins<T = any>(
         [runtime.manager]
       );
 
-      const transformedProps = runtime.transformProps(props) as CardCoreProps<T>;
+      // transformProps / transformData 走与内核同一套插件链（P2-1 / P2-2）：
+      // 结果按输入 memo 化，props 不变时不重复执行插件链。
+      const transformedProps = useMemo(
+        () => runtime.transformProps(props) as CardCoreProps<T>,
+        [runtime.transformProps, props]
+      );
+      const sourceData = (transformedProps.data ?? props.data) as T | undefined;
+      const transformedData = useMemo(
+        () => (sourceData === undefined ? undefined : runtime.transformData(sourceData)),
+        [runtime.transformData, sourceData]
+      );
+
+      // 渲染期同步写入（而非 layout effect）：composeSlots 在同一次渲染里就会读取
+      // context.data / context.props，滞后一帧会让插件渲染到上一轮的旧数据。
+      propsRef.current = props;
       transformedPropsRef.current = transformedProps;
+      transformedDataRef.current = transformedData;
+
+      useLayoutEffect(() => {
+        ctxRef.current = runtime.context as unknown as CardPluginContext<T>;
+      });
 
       // onMount：layout effect 之后触发钩子链（内核不自动跑 onMount）
       useEffect(() => {
@@ -208,6 +230,8 @@ export function withPlugins<T = any>(
 
       const enhancedProps: CardCoreProps<T> = {
         ...transformedProps,
+        // transformData 的结果同时下发给 CardCore（renderContent 与插件看到同一份数据）
+        data: transformedData,
         containerRefExternal: containerRef,
         debug: transformedProps.debug ?? enableDebug,
 

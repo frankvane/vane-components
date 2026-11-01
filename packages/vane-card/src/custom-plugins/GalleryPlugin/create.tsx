@@ -1,4 +1,5 @@
 import type { CardPlugin, PluginCreator } from "../../components/CardPlugin/plugins/types";
+import { openExternal } from "../../components/CardPlugin/plugins/utils/url";
 import React from "react";
 
 type Slide = { type: "image" | "video"; src: string; thumb?: string };
@@ -11,6 +12,7 @@ interface GalleryHeaderProps {
   interval: number;
   showIndicators: boolean;
   showThumbnails: boolean;
+  errorFallbackSrc?: string;
   context: any;
 }
 
@@ -22,6 +24,7 @@ const GalleryHeaderComp: React.FC<GalleryHeaderProps> = ({
   interval,
   showIndicators,
   showThumbnails,
+  errorFallbackSrc,
   context,
 }) => {
   const [index, setIndex] = React.useState(0);
@@ -36,12 +39,51 @@ const GalleryHeaderComp: React.FC<GalleryHeaderProps> = ({
     return () => clearInterval(t);
   }, [effectiveAutoplay, interval, slides.length]);
 
+  // 幻灯片数量减少时（如 2 张 → 1 张），index 可能越界；钳制回 0（P2-6）
+  React.useEffect(() => {
+    if (index > slides.length - 1) setIndex(0);
+  }, [index, slides.length]);
+
   const go = (dir: number) => {
     setPlaying(false);
     setIndex((i) => (i + dir + slides.length) % slides.length);
   };
 
-  const current = slides[index];
+  const safeIndex = slides.length ? Math.min(index, slides.length - 1) : 0;
+  const current = slides[safeIndex];
+
+  // 让视频插件避让的处理标记：只能在提交后的 effect 里写总线（渲染期写会触发
+  // 兄弟插件的状态更新警告，且 VideoPlugin 读的是上一帧的值）（P2-6）。
+  const hasVideo = slides.some((s) => s.type === "video");
+  const bus = context.bus;
+  const forceUpdate = context.forceUpdate;
+  React.useEffect(() => {
+    if (!bus?.setData) return;
+    const marked = Boolean(bus.getData?.("media.handledByGallery"));
+    if (marked === hasVideo) return;
+    if (hasVideo) {
+      bus.setData("media.videoInGallery", true);
+      bus.setData("media.handledByGallery", true);
+    } else {
+      bus.deleteData?.("media.videoInGallery");
+      bus.deleteData?.("media.handledByGallery");
+    }
+    // 标记变化后让同级 VideoPlugin 重渲染，才能看到最新标记
+    forceUpdate?.();
+  }, [hasVideo, bus, forceUpdate]);
+
+  if (!current) return null;
+
+  const handleImgError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const el = e.currentTarget;
+    if (errorFallbackSrc && el.dataset.fallback !== "1") {
+      el.dataset.fallback = "1";
+      el.src = errorFallbackSrc;
+      return;
+    }
+    // 没有兜底图：隐藏即可，不再硬编码 /404.jpg
+    el.style.visibility = "hidden";
+  };
 
   return (
     <div
@@ -62,11 +104,9 @@ const GalleryHeaderComp: React.FC<GalleryHeaderProps> = ({
           style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", cursor: enableZoom ? "zoom-in" : "default" }}
           onClick={() => {
             if (!enableZoom) return;
-            window.open(current.src, "_blank");
+            openExternal(current.src);
           }}
-          onError={(e) => {
-            (e.currentTarget as HTMLImageElement).src = "/404.jpg";
-          }}
+          onError={handleImgError}
         />
       ) : (
         <div style={{ position: "relative", width: "100%", height: "100%" }}>
@@ -77,12 +117,10 @@ const GalleryHeaderComp: React.FC<GalleryHeaderProps> = ({
           ) : (
             <>
               <img
-                src={current.thumb || "/404.jpg"}
+                src={current.thumb || (context.data as any)?.poster || ""}
                 alt={(context.data as any)?.name || "商品视频预览"}
                 style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                onError={(e) => {
-                  (e.currentTarget as HTMLImageElement).src = "/404.jpg";
-                }}
+                onError={handleImgError}
               />
               <button
                 onClick={() => setPlaying(true)}
@@ -116,7 +154,7 @@ const GalleryHeaderComp: React.FC<GalleryHeaderProps> = ({
       {showIndicators && slides.length > 1 && (
         <div style={{ position: "absolute", bottom: 8, left: 0, right: 0, display: "flex", justifyContent: "center", gap: 6 }}>
           {slides.map((s, i) => (
-            <span key={i} title={s.type === "video" ? "视频" : "图片"} style={{ width: 8, height: 8, borderRadius: "50%", background: i === index ? "#333" : "#bbb", display: "inline-block" }} />
+            <span key={i} title={s.type === "video" ? "视频" : "图片"} style={{ width: 8, height: 8, borderRadius: "50%", background: i === safeIndex ? "#333" : "#bbb", display: "inline-block" }} />
           ))}
         </div>
       )}
@@ -131,15 +169,13 @@ const GalleryHeaderComp: React.FC<GalleryHeaderProps> = ({
                 setIndex(i);
               }}
               title={s.type === "video" ? "视频" : "图片"}
-              style={{ border: i === index ? "2px solid #fff" : "1px solid rgba(255,255,255,0.6)", padding: 0, borderRadius: 4, background: "transparent", cursor: "pointer" }}
+              style={{ border: i === safeIndex ? "2px solid #fff" : "1px solid rgba(255,255,255,0.6)", padding: 0, borderRadius: 4, background: "transparent", cursor: "pointer" }}
             >
               <img
                 src={s.thumb || s.src}
                 alt={s.type === "video" ? "视频缩略图" : "图片缩略图"}
                 style={{ width: 44, height: 28, objectFit: "cover", display: "block", borderRadius: 4 }}
-                onError={(e) => {
-                  (e.currentTarget as HTMLImageElement).src = "/404.jpg";
-                }}
+                onError={handleImgError}
               />
             </button>
           ))}
@@ -159,6 +195,8 @@ export interface GalleryPluginConfig {
   style?: React.CSSProperties;
   videoSrc?: string;
   videoPoster?: string;
+  /** 图片加载失败时的兜底图；不传则隐藏破图，不再硬编码 /404.jpg */
+  errorFallbackSrc?: string;
   // 渲染位置控制（供 withPlugins 读取）
   headerPosition?: "before" | "after";
   order?: number;
@@ -178,6 +216,7 @@ export const createGalleryPlugin: PluginCreator<any, GalleryPluginConfig> = (
     style = {},
     videoSrc,
     videoPoster,
+    errorFallbackSrc,
   } = config;
 
   const plugin: CardPlugin = {
@@ -202,8 +241,7 @@ export const createGalleryPlugin: PluginCreator<any, GalleryPluginConfig> = (
           const desired = (config.videoIndex ?? totalImages + 1) - 1;
           const insertIndex = Math.max(0, Math.min(totalImages, desired));
           slides.splice(insertIndex, 0, videoSlide);
-          context.bus?.setData?.("media.videoInGallery", true);
-          context.bus?.setData?.("media.handledByGallery", true);
+          // 标记由 GalleryHeaderComp 的 effect 写入（渲染期写总线不安全，见 P2-6）
         }
         if (!slides.length) return null;
 
@@ -216,6 +254,7 @@ export const createGalleryPlugin: PluginCreator<any, GalleryPluginConfig> = (
             interval={interval}
             showIndicators={showIndicators}
             showThumbnails={showThumbnails}
+            errorFallbackSrc={errorFallbackSrc}
             context={context}
           />
         );

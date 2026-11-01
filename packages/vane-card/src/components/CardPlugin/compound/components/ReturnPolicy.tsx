@@ -1,4 +1,5 @@
 import React from "react";
+import { openExternal } from "../../plugins/utils/url";
 
 export type ReturnPolicyProps = {
   className?: string;
@@ -81,7 +82,7 @@ export const ReturnPolicy: React.FC<ReturnPolicyProps> = ({
             className="vc-return__link"
             onClick={() => {
               if (onViewPolicy) onViewPolicy();
-              if (policyLink) window.open(policyLink, "_blank");
+              if (policyLink) openExternal(policyLink);
             }}
           >
             查看详情

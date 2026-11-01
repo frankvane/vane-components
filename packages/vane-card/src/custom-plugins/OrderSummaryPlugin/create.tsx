@@ -5,6 +5,7 @@ import type { CardPlugin, PluginCreator } from "../../components/CardPlugin/plug
 import { BusKeys } from "../../components/CardPlugin/plugins/BusKeys";
 import { setupForceUpdateOnBusKeys } from "../../components/CardPlugin/plugins/utils/busHelpers";
 import { applyDefaults } from "../../components/CardPlugin/plugins/utils/config";
+import { computeCouponCut, type CouponLike } from "../../components/CardPlugin/plugins/utils/coupon";
 import React from "react";
 
 export interface OrderSummaryPluginConfig {
@@ -63,9 +64,9 @@ export const createOrderSummaryPlugin: PluginCreator<any, OrderSummaryPluginConf
         const skuPrice = context.bus?.getData?.(BusKeys.skuPrice);
         const price = Number((skuPrice as any) ?? (context.data as any)?.price ?? 0);
         const qty = Number(context.bus?.getData?.(BusKeys.quantity) ?? 1);
-        const appliedCoupon = context.bus?.getData?.(BusKeys.couponApplied) as { code?: string; discount?: number } | undefined;
+        const appliedCoupon = context.bus?.getData?.(BusKeys.couponApplied) as CouponLike | undefined;
         const subtotal = price * qty;
-        const couponCut = Math.min(appliedCoupon?.discount ?? 0, subtotal);
+        const couponCut = computeCouponCut(subtotal, appliedCoupon);
         const tax = cfg.showTax ? Math.round(subtotal * (cfg.taxRate ?? 0)) : 0;
         const shipping = cfg.showShipping ? (cfg.shippingFee ?? 0) : 0;
         const total = Math.max(0, subtotal - couponCut + tax + shipping);
@@ -111,9 +112,9 @@ export const createOrderSummaryPlugin: PluginCreator<any, OrderSummaryPluginConf
         const skuPrice = context.bus?.getData?.(BusKeys.skuPrice);
         const price = Number((skuPrice as any) ?? (context.data as any)?.price ?? 0);
         const qty = Number(context.bus?.getData?.(BusKeys.quantity) ?? 1);
-        const appliedCoupon = context.bus?.getData?.(BusKeys.couponApplied) as { code?: string; discount?: number } | undefined;
+        const appliedCoupon = context.bus?.getData?.(BusKeys.couponApplied) as CouponLike | undefined;
         const subtotal = price * qty;
-        const couponCut = Math.min(appliedCoupon?.discount ?? 0, subtotal);
+        const couponCut = computeCouponCut(subtotal, appliedCoupon);
         const tax = cfg.showTax ? Math.round(subtotal * (cfg.taxRate ?? 0)) : 0;
         const shipping = cfg.showShipping ? (cfg.shippingFee ?? 0) : 0;
         const total = Math.max(0, subtotal - couponCut + tax + shipping);

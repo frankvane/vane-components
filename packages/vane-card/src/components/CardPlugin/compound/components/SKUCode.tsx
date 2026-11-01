@@ -1,6 +1,7 @@
 import React from "react";
 import { useProductCard } from "../ProductCard";
 import { matchVariant, variantListOf } from "../../types/product";
+import { useSelectedAttributes } from "../../plugins/slots";
 
 export type SKUCodeProps = {
   code?: string;
@@ -11,8 +12,9 @@ export type SKUCodeProps = {
 
 export const SKUCode: React.FC<SKUCodeProps> = ({ code, prefix = "SKU", className, style }) => {
   const { data, state } = useProductCard();
+  const attributes = useSelectedAttributes(state.attributes);
 
-  const active = matchVariant(variantListOf(data), state.attributes);
+  const active = matchVariant(variantListOf(data), attributes);
   const final = code ?? active?.sku ?? data?.sku;
   if (!final) return null;
   return (

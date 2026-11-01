@@ -47,6 +47,13 @@ const Stepper: React.FC<{
     setInputVal(String(q));
   }, [q]);
   const timerRef = React.useRef<number | undefined>(undefined);
+  // 卸载时清掉未触发的防抖定时器，避免组件已卸载还写总线（P2-8）
+  React.useEffect(
+    () => () => {
+      if (timerRef.current) window.clearTimeout(timerRef.current);
+    },
+    []
+  );
   const setQ = (next: number) => {
     const clamped = Math.min(Math.max(next, minActive), max);
     context.bus?.setData?.(BusKeys.quantity, clamped);

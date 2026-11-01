@@ -47,25 +47,10 @@ const CardImage: React.FC<CardImageProps> = ({
     "loading"
   );
 
-  if (status === "failed") {
-    return (
-      <div
-        style={{
-          width: "100%",
-          aspectRatio: "1 / 1",
-          overflow: "hidden",
-          borderRadius: "8px 8px 0 0",
-          background: "#f5f5f5",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-        data-image-state="failed"
-      >
-        {errorFallback ?? null}
-      </div>
-    );
-  }
+  // src 变化后重置状态：否则一次加载失败会永久停在 failed，换成有效图片也恢复不了（P2-7）
+  React.useEffect(() => {
+    setStatus("loading");
+  }, [src]);
 
   return (
     <div
@@ -92,6 +77,7 @@ const CardImage: React.FC<CardImageProps> = ({
           {placeholder}
         </div>
       ) : null}
+      {/* failed 时仍保留 <img>（透明度 0）：换新 src 后能重新加载恢复 */}
       <img
         src={src}
         alt={alt}
@@ -107,6 +93,20 @@ const CardImage: React.FC<CardImageProps> = ({
         onLoad={() => setStatus("loaded")}
         onError={() => setStatus("failed")}
       />
+      {status === "failed" ? (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+          data-image-state-fallback="true"
+        >
+          {errorFallback ?? null}
+        </div>
+      ) : null}
     </div>
   );
 };
