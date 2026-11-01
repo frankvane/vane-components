@@ -10,9 +10,12 @@ export function buildMinimal(meta: ScenarioMeta): string {
   const factories = meta.plugs.map((p) => p.fn).sort();
   const multi = factories.length > 3;
 
-  const importLine = multi
-    ? `import {\n${factories.map((f) => `  ${f},`).join("\n")}\n} from "vane-danmaku/custom-plugins";`
-    : `import { ${factories.join(", ")} } from "vane-danmaku/custom-plugins";`;
+  const importLine =
+    factories.length === 0
+      ? ""
+      : multi
+      ? `import {\n${factories.map((f) => `  ${f},`).join("\n")}\n} from "vane-danmaku/custom-plugins";`
+      : `import { ${factories.join(", ")} } from "vane-danmaku/custom-plugins";`;
 
   const pluginLines = meta.plugs
     .map((p) => `  ${p.fn}(${p.cfg ? `{ ${p.cfg} }` : ""}),`)

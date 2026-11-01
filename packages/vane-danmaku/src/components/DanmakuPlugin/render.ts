@@ -32,6 +32,8 @@ export interface Active {
   enterAt: number;
   duration: number;
   width: number;
+  /** 宽度是否已用真实 ctx 量过（估宽只用于调度阶段，绘制首帧后升级为实测值） */
+  measured?: boolean;
   x: number;
   y: number;
   /** 当前透明度（渐显/渐隐），绘制时与 opts.opacity 相乘 */
@@ -102,6 +104,15 @@ function trackBlocked(track: number, trackHeight: number, zones: Rect[]): boolea
  */
 export class DanmakuScheduler {
   private active = new Map<string, Active>();
+  /**
+   * 本轮（一个时钟周期内）已经激活过的条目 id。
+   *
+   * 没有它就会「复活」：激活条件是 `item.time <= currentTime`，某条弹幕飞完被
+   * active 回收后，下一帧仍然满足该条件 → 再飞一次，如此循环。结果是在飞条数
+   * 随 currentTime 一路膨胀（1000 条压 40s，到 20s 时屏幕上叠着 500+ 条），
+   * 既糊成一片、也把帧率拖垮。时钟回绕时随 active 一起清空。
+   */
+  private fired = new Set<string>();
   /** 上一帧 currentTime，用于检测时钟回绕（如 LiveDanmaku 的 currentTime % loop） */
   private lastTime = 0;
 
@@ -115,16 +126,20 @@ export class DanmakuScheduler {
   ): Active[] {
     // 时钟回绕（取模循环导致 currentTime 从 ~loop 跳回 ~0）：清空上一轮仍在飞行的弹幕，
     // 否则负 elapsed 会让它们错乱瞬移 / 卡在轨道里占坑。干净重置后由 time 重新激活。
-    if (currentTime < this.lastTime - 0.5) this.active.clear();
+    if (currentTime < this.lastTime - 0.5) {
+      this.active.clear();
+      this.fired.clear();
+    }
     this.lastTime = currentTime;
 
-    // 1. 激活到达时间的弹幕
+    // 1. 激活到达时间的弹幕（每条每周期只激活一次，见 fired 注释）
     // 有效高度 = 总高 − 顶部/底部安全区（控件浮层占用），弹幕只在安全区之间的带状区流动
     const effH = Math.max(opts.trackHeight, size.height - opts.topInset - opts.bottomInset);
     const trackCount = Math.max(1, Math.floor(effH / opts.trackHeight));
     for (const item of items) {
-      if (this.active.has(item.id) || item._cmd) continue;
+      if (this.fired.has(item.id) || item._cmd) continue;
       if (item.time <= currentTime) {
+        this.fired.add(item.id);
         const track = this.assignTrack(item, currentTime, size, trackCount, opts, zones);
         const dur = item.duration ?? opts.defaultDuration;
         const stay = item.mode === "top" || item.mode === "bottom" || item.renderHint?.pinned === true;
@@ -146,7 +161,22 @@ export class DanmakuScheduler {
       }
     }
 
-    // 2. 推进位置，回收离场，算渐显/渐隐透明度
+    // 2. 避让区挤压：人物走到已经在飞的弹幕下面时，把它们挪到空轨
+    //    （只在有避让区时发生，每帧限量，避免密集场景里反复抢轨导致钉帧）
+    if (zones.length) {
+      let budget = 6;
+      for (const a of this.active.values()) {
+        if (budget <= 0) break;
+        if (!trackBlocked(a.track, opts.trackHeight, zones)) continue;
+        const t = this.findFree(0, trackCount, a.item, currentTime, size, opts, zones);
+        if (t >= 0 && t !== a.track) {
+          a.track = t;
+          budget--;
+        }
+      }
+    }
+
+    // 3. 推进位置，回收离场，算渐显/渐隐透明度
     const result: Active[] = [];
     for (const [id, a] of this.active) {
       const pos = compute(a, currentTime, size, opts, playing);
@@ -159,10 +189,12 @@ export class DanmakuScheduler {
       let alpha = 1;
       if (playing) {
         const elapsed = currentTime - a.enterAt;
-        const fade = opts.fadeMs;
+        // fadeMs 是毫秒、elapsed/remain 是秒 —— 必须换算，否则 alpha≈elapsed/450≈0.02 让弹幕近乎全透明
+        const fade = Math.max(0.001, opts.fadeMs / 1000);
         if (elapsed < fade) alpha = Math.max(0, elapsed / fade);
         const remain = a.duration - elapsed;
         if (remain < fade) alpha = Math.min(alpha, Math.max(0, remain / fade));
+        alpha = Math.min(1, Math.max(0, alpha));
       }
       a.alpha = alpha;
       result.push(a);
@@ -325,7 +357,12 @@ export function draw(
 
   let cursorX = a.x;
   const cy = a.y;
-  const totalW = measure(a.item, ctx, opts).width;
+  // 宽度只量一次：measureText 是逐帧热点（满载时每帧几百条，重复量直接吃掉十几毫秒）
+  if (!a.measured) {
+    a.width = measure(a.item, ctx, opts).width;
+    a.measured = true;
+  }
+  const totalW = a.width;
 
   // 高亮底块（半透明圆角，不压字）
   if (a.item.renderHint?.highlight) {

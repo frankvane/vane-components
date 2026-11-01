@@ -817,8 +817,54 @@ time {
   border-radius: 8px;
 }
 .scn-video-note b {
-  color: var(--ink-0);
+  color: var(--text);
   font-weight: 600;
+}
+/* 海量弹幕压测条 */
+.perf-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.perf-title {
+  font-family: var(--ff-mono);
+  font-size: var(--fs-xs);
+  letter-spacing: 0.08em;
+  color: var(--text);
+  margin-right: 4px;
+}
+.perf-stat {
+  margin-left: auto;
+  font-family: var(--ff-mono);
+  font-size: var(--fs-xs);
+  color: var(--dim);
+}
+.perf-stat b {
+  color: var(--text);
+}
+.perf-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  color: var(--dim);
+  font-size: 14px;
+  pointer-events: none;
+}
+.perf-tip {
+  font-family: var(--ff-mono);
+  font-size: 12px;
+  color: var(--dim);
+}
+/* 过载档按钮：与常规档视觉区分，避免误点 */
+.mp-btn-danger {
+  border-color: rgba(242, 104, 94, 0.55);
+  color: #f2685e;
 }
 .scn-stage {
   padding: var(--s5) var(--s4);
@@ -1076,8 +1122,14 @@ time {
   border-color: var(--accent-line);
 }
 .mp-status {
+  /* 状态文字压在视频上：必须自带底 + 亮字，否则视频亮部直接把它吃掉
+     （有背景必有字色 —— ADR-13） */
+  flex: 1 1 100%;
   font-family: var(--ff-mono);
   font-size: 11px;
   line-height: 1.4;
-  color: var(--dim);
+  color: #d6dae1;
+  background: rgba(0, 0, 0, 0.55);
+  padding: 4px 8px;
+  border-radius: 6px;
 }

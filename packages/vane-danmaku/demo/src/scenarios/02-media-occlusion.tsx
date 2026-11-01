@@ -35,13 +35,21 @@ const POSE_MODEL =
 const VISION_URL =
   "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
 
-// 离线示例视频（放在 demo/public/samples，构建后由 build-demos.mjs 平铺到产物根）
+// 离线示例视频（demo/public/samples，构建后由 build-demos 平铺到产物根）
+// 用 720p / 12s 轻量转码版（原 4K 太大、加载慢），MediaPipe 检测本就降采样到 480px。
 const SAMPLE_VIDEOS: { label: string; url: string }[] = [
-  { label: "示例 · 人物镜头 A", url: "/samples/3391101-uhd_2160_3840_25fps.mp4" },
-  { label: "示例 · 人物镜头 B", url: "/samples/2795747-uhd_2160_3840_25fps.mp4" },
+  { label: "示例 · 人物镜头 A", url: "/samples/sample-a.mp4" },
+  { label: "示例 · 人物镜头 B", url: "/samples/sample-b.mp4" },
 ];
 
 const DETECT_W = 480; // 检测降采样宽度（保纵横比）
+
+/**
+ * 避让区只用「主体」关键点（鼻/双肩/双髋），不用全部 33 个点。
+ * 全骨架外接在举手、踢腿、跨步时会膨胀成几乎整屏的框，弹幕就无处可去；
+ * 主体框跟着躯干走，既挡住人、又给弹幕留出上下通道。
+ */
+const CORE_POINTS = [0, 11, 12, 23, 24];
 
 // 标准人体骨骼连线（PoseLandmarker 33 关键点：头面 / 躯干 / 四肢）
 const POSE_CONNECTIONS: ReadonlyArray<readonly [number, number]> = [
@@ -72,11 +80,21 @@ function MediaPipeOcclusion() {
   const startRef = useRef(performance.now());
   const detCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  const [mode, setMode] = useState<Mode>("idle");
-  const [videoSrc, setVideoSrc] = useState<string | null>(null);
-  const [status, setStatus] = useState<string>(
-    "未启动 —— 点「示例视频」看离线人物镜头，或「启动摄像头」接真实人物，或「上传视频」选本地画面，或「模拟人物」立即看效果"
+  // 默认直接播放第一段示例视频：打开场景即看到「视频 + 弹幕穿透」，无需手动点选
+  const [mode, setMode] = useState<Mode>("upload");
+  const [videoSrc, setVideoSrc] = useState<string | null>(
+    SAMPLE_VIDEOS[0]?.url ?? null
   );
+  const [status, setStatus] = useState<string>(
+    "自动播放示例视频 · 弹幕穿透叠在视频上；PoseLandmarker 就绪后骨骼识别并绕开人物"
+  );
+  // ML 是否就绪（模型加载成功才做骨骼识别）；失败也不影响视频与弹幕穿透
+  const [mlReady, setMlReady] = useState(false);
+  // 视频真实播放进度（0 = 没在播），用于状态显示与自检
+  const [videoClock, setVideoClock] = useState(0);
+  // 视频是否真的在播（onPlay/onPause 同步）；没播时给一个显眼的起播按钮，
+  // 避免 autoplay 被拦后用户只看到一张静止的渐变底，以为「视频演示坏了」。
+  const [videoPlaying, setVideoPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
 
   // 时钟：把 currentTime 推进并取模，弹幕循环播放
@@ -187,6 +205,7 @@ function MediaPipeOcclusion() {
         setStatus("加载 MediaPipe PoseLandmarker…");
         await loadVision();
         if (cancelled) return;
+        setMlReady(true);
         setStatus("已连接 · 实时骨骼识别 → 人物避让区，弹幕自动绕开人物");
       } catch {
         if (cancelled) return;
@@ -215,6 +234,7 @@ function MediaPipeOcclusion() {
       try {
         await loadVision();
         if (cancelled) return;
+        setMlReady(true);
         const loop = () => {
           if (cancelled) return;
           const vv = videoRef.current;
@@ -241,21 +261,28 @@ function MediaPipeOcclusion() {
               const offX = (cw - dispW) / 2;
               const offY = (ch - dispH) / 2;
               let minX = 1, minY = 1, maxX = 0, maxY = 0;
-              for (const p of lms) {
+              for (const i of CORE_POINTS) {
+                const p = lms[i];
+                if (!p) continue;
                 minX = Math.min(minX, p.x);
                 maxX = Math.max(maxX, p.x);
                 minY = Math.min(minY, p.y);
                 maxY = Math.max(maxY, p.y);
               }
-              const pad = 10;
-              zonesRef.current = [
-                {
-                  x: offX + minX * dispW - pad,
-                  y: offY + minY * dispH - pad,
-                  w: (maxX - minX) * dispW + pad * 2,
-                  h: (maxY - minY) * dispH + pad * 2,
-                },
-              ];
+              // 检测不到主体点时（人出画/侧身）就不产生避让区，别拿 0,0 当框
+              if (maxX > minX && maxY > minY) {
+                const pad = 14;
+                zonesRef.current = [
+                  {
+                    x: offX + minX * dispW - pad,
+                    y: offY + minY * dispH - pad,
+                    w: (maxX - minX) * dispW + pad * 2,
+                    h: (maxY - minY) * dispH + pad * 2,
+                  },
+                ];
+              } else {
+                zonesRef.current = [];
+              }
               drawOverlay(
                 lms.map((p: { x: number; y: number }) => ({
                   x: offX + p.x * dispW,
@@ -269,8 +296,10 @@ function MediaPipeOcclusion() {
         raf = requestAnimationFrame(loop);
       } catch {
         if (cancelled) return;
-        setStatus("MediaPipe 模型加载失败（无外网）。已自动切回「模拟人物」。");
-        setMode("synthetic");
+        // 模型加载失败（多半无外网）：**保留视频与弹幕穿透**，只是不做骨骼识别/绕人，
+        // 不要切走视频（旧逻辑切 synthetic 会把视频也关掉，与「视频穿透演示」冲突）
+        setMlReady(false);
+        setStatus("视频播放中 · 弹幕穿透（MediaPipe 模型未加载，暂不做骨骼绕人）");
       }
     })();
     return () => {
@@ -286,6 +315,12 @@ function MediaPipeOcclusion() {
     if (!v) return;
     v.srcObject = null;
     v.loop = true;
+    v.muted = true;
+    // 显式 setAttribute + load，避免 React 的 src 未触发加载（preload 只拿元数据时首帧不绘制）
+    if (v.getAttribute("src") !== videoSrc) {
+      v.setAttribute("src", videoSrc);
+      v.load();
+    }
     v.play().catch(() => {});
   }, [mode, videoSrc]);
 
@@ -339,12 +374,20 @@ function MediaPipeOcclusion() {
   }, [mode]);
 
   const showVideo = mode === "camera" || mode === "upload";
-  const tracking = showVideo;
+  // 骨骼识别真正在跑 = 视频模式 + 模型就绪
+  const tracking = showVideo && mlReady;
 
   return (
     <div
       ref={containerRef}
       data-danmaku-root
+      onClick={() => {
+        // 兜底：某些浏览器/策略下 muted autoplay 仍被拦，点一下舞台即可起播
+        const v = videoRef.current;
+        if (v && v.paused && (mode === "upload" || mode === "camera")) {
+          v.play().catch(() => {});
+        }
+      }}
       style={{
         position: "relative",
         width: "100%",
@@ -357,18 +400,34 @@ function MediaPipeOcclusion() {
     >
       <video
         ref={videoRef}
+        autoPlay
         muted
         playsInline
         loop
+        preload="auto"
         src={mode === "upload" ? videoSrc ?? undefined : undefined}
+        onTimeUpdate={(e) => setVideoClock(e.currentTarget.currentTime)}
+        onPlay={() => setVideoPlaying(true)}
+        onPause={() => setVideoPlaying(false)}
+        onError={(e) => {
+          // 浏览器/环境无法解码时别静默卡住：退回「模拟人物」照样演示防遮挡，
+          // 同时把错误码写进状态条（供排查是资源问题还是媒体管线问题）
+          const code = e.currentTarget.error?.code;
+          setVideoPlaying(false);
+          setStatus(
+            `视频无法播放（MediaError ${code ?? "?"}）· 已切「模拟人物」，弹幕穿透与绕人逻辑照跑`
+          );
+          setMode("synthetic");
+        }}
         style={{
           position: "absolute",
           inset: 0,
           width: "100%",
           height: "100%",
           objectFit: "cover",
-          opacity: showVideo ? 1 : 0.28,
+          opacity: showVideo ? 1 : 0,
           transition: "opacity .3s",
+          zIndex: 0,
         }}
       />
       {/* 弹幕穿透：绝对定位覆盖在视频之上，内核每帧绕开人物框 */}
@@ -377,7 +436,7 @@ function MediaPipeOcclusion() {
         currentTime={currentTime}
         playing
         topInset={44}
-        bottomInset={64}
+        bottomInset={88}
         containerStyle={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
       />
       <canvas
@@ -391,6 +450,34 @@ function MediaPipeOcclusion() {
           zIndex: 5,
         }}
       />
+
+      {/* autoplay 被浏览器策略拦下时的显式起播口（静音播放一般不会被拦，这里是兜底） */}
+      {showVideo && !videoPlaying ? (
+        <button
+          type="button"
+          aria-label="播放视频"
+          onClick={() => videoRef.current?.play().catch(() => {})}
+          style={{
+            position: "absolute",
+            left: "50%",
+            top: "50%",
+            transform: "translate(-50%, -50%)",
+            zIndex: 7,
+            width: 64,
+            height: 64,
+            borderRadius: 32,
+            border: "1px solid rgba(255,255,255,0.28)",
+            background: "rgba(0,0,0,0.55)",
+            color: "#fff",
+            fontSize: 24,
+            lineHeight: 1,
+            cursor: "pointer",
+            backdropFilter: "blur(2px)",
+          }}
+        >
+          ▶
+        </button>
+      ) : null}
 
       {/* 顶部状态条 */}
       <div
@@ -410,14 +497,33 @@ function MediaPipeOcclusion() {
         <span
           style={{
             fontSize: 12,
-            color: tracking ? "#5fd3c8" : "#9aa3b2",
+            color: tracking ? "#5fd3c8" : showVideo ? "#f5c24b" : "#9aa3b2",
             background: "rgba(0,0,0,0.45)",
             padding: "4px 8px",
             borderRadius: 6,
           }}
         >
-          {tracking ? "● 骨骼识别中 · 弹幕绕开人物" : mode === "synthetic" ? "● 模拟人物 · 防遮挡演练" : "○ 未启动"}
+          {tracking
+            ? "● 骨骼识别中 · 弹幕绕开人物"
+            : mode === "synthetic"
+            ? "● 模拟人物 · 防遮挡演练"
+            : showVideo
+            ? "● 视频播放中 · 弹幕穿透叠加"
+            : "○ 未启动"}
         </span>
+        {showVideo ? (
+          <span
+            style={{
+              fontSize: 12,
+              color: videoClock > 0 ? "#7fd08c" : "#9aa3b2",
+              background: "rgba(0,0,0,0.45)",
+              padding: "4px 8px",
+              borderRadius: 6,
+            }}
+          >
+            {videoClock > 0 ? `▶ 播放中 ${videoClock.toFixed(1)}s` : "⏸ 未播放（点舞台起播）"}
+          </span>
+        ) : null}
       </div>
 
       {/* 底部控件 */}
@@ -486,7 +592,7 @@ export const meta = {
   props: ["items={STREAM}", "currentTime={t}", "playing", "avoidZoneProvider"],
   video: true,
   note:
-    "发布包不捆绑 MediaPipe（体积预算不受影响）。这里在 demo 里用 PoseLandmarker 取 33 个骨骼点，算人物外接矩形当避让区；内核每帧同步消费，几帧延迟对人无感。四种输入：示例视频（离线人物镜头）/ 上传视频（离线最稳）/ 摄像头（真实人物）/ 模拟人物（无设备回退）。4K 视频检测前降采样到 480px 宽，开销降一量级。弹幕穿透 = canvas 叠在视频之上、绕开人物框。",
+    "发布包不捆绑 MediaPipe（体积预算不受影响）。这里在 demo 里用 PoseLandmarker 取 33 个骨骼点，只用鼻/双肩/双髋这几个主体点算外接矩形当避让区（全骨架外接会随举手踢腿膨胀成整屏，弹幕就没地方走了）；内核每帧同步消费，几帧延迟对人无感。四种输入：示例视频（离线人物镜头）/ 上传视频（离线最稳）/ 摄像头（真实人物）/ 模拟人物（无设备回退）。4K 视频检测前降采样到 480px 宽，开销降一量级。弹幕穿透 = canvas 叠在视频之上、绕开人物框。",
   tone: "dark",
 };
 

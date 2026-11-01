@@ -17,6 +17,13 @@ const demo = createDemoConfig({
  */
 export default {
   ...demo,
+  /**
+   * 样本视频在 `demo/public/samples/`，不是包根的 `public/`。
+   * `createDemoConfig` 的 root 是**包根**，而 Vite 的 `publicDir` 默认相对 root →
+   * 会去读 `packages/vane-danmaku/public`（不存在），导致 dev 下 `/samples/x.mp4` 404、
+   * 构建时也不会把样本平铺到产物根。显式指到 `demo/public` 后 dev 与构建都能命中。
+   */
+  publicDir: path.resolve(root, "demo/public"),
   resolve: {
     ...demo.resolve,
     alias: [

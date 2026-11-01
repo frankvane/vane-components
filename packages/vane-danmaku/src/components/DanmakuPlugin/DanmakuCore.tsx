@@ -10,7 +10,6 @@ import { useDanmakuSlot } from "./plugins/slots";
 import {
   DanmakuScheduler,
   draw,
-  measure,
   type RenderOptions,
 } from "./render";
 
@@ -169,8 +168,8 @@ export const DanmakuCore = forwardRef<DanmakuCoreRef, DanmakuCoreProps>(
 
         ctx.globalAlpha = opts.opacity;
         for (const a of active) {
-          // 用真实 ctx 复测宽度（含粉丝牌），保证碰撞与绘制一致
-          a.width = measure(a.item, ctx, opts).width;
+          // 完全在画布外的跳过（右侧刚入场 / 左侧已滑出），满载时能省掉可观的光栅化开销
+          if (a.x > width || a.x + a.width < 0) continue;
           draw(a, ctx, opts);
         }
         ctx.globalAlpha = 1;

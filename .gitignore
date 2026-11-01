@@ -3,8 +3,10 @@ dist/
 demo-dist/
 # 根 build:demo 的聚合产物（各包 demo 构建后聚合到这里，见 scripts/build-demos.mjs）
 demos/
-# demo 本地示例视频（体积大，用户本地放置；不入库，构建时 vite 自动平铺到产物）
-packages/vane-danmaku/demo/public/samples/
+# demo 本地示例视频：4K 原片体积大不入库；轻量转码版（sample-*.mp4，<1MB）入库，
+# 保证 clone 后演示台直接能跑「视频穿透」。
+packages/vane-danmaku/demo/public/samples/*.mp4
+!packages/vane-danmaku/demo/public/samples/sample-*.mp4
 *.tsbuildinfo
 .turbo/
 docs/.vitepress/cache/
