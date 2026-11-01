@@ -10,8 +10,8 @@
  */
 import React, { forwardRef, useCallback, useEffect, useRef } from "react";
 import {
-  composeSlots,
   PluginErrorBoundary,
+  renderPluginSlot,
   usePluginRuntime,
 } from "vane-plugin-core";
 import type { WithPluginsConfig } from "vane-plugin-core";
@@ -101,14 +101,21 @@ export function withPlugins(
         onUnmount: () => {
           transformedProps.onUnmount?.();
         },
-        // overlay 钩子链兜底（绝对定位层）
+        // overlay 钩子链兜底（绝对定位层）。
+        // 铁律：这里不能走内核 composeSlots —— 它会把 renderHeader / renderFooter
+        // 也组进 children，而签到的领域插件恰好用同名钩子承载五段式领域槽，
+        // 结果是同一段内容渲染两遍：领域槽里一遍（带 .vs-* 包裹层和 padding），
+        // children 里再裸一遍（无包裹层、无 padding、被 overflow:hidden 裁切，
+        // 即用户看到的「顶边 / 文字贴边」重影）。签到的结构化段落一律走
+        // SignInSlotProvider 领域槽，children 只兜 renderOverlay。
         children: (
           <PluginErrorBoundary>
-            {composeSlots(
-              runtime.orderedPlugins,
-              runtime.context,
-              transformedProps.children
-            )}
+            <>
+              {transformedProps.children}
+              {renderPluginSlot(runtime.orderedPlugins, runtime.context, {
+                hook: "renderOverlay",
+              })}
+            </>
           </PluginErrorBoundary>
         ),
       };
