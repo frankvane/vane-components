@@ -7,7 +7,13 @@
 import type { ComponentType } from "react";
 
 /** 侧栏分组。新增分组记得同时在 GROUP_META 补 label，否则导航会显示 key */
-export type DemoGroup = "basic" | "advanced" | "plugin";
+export type DemoGroup =
+  | "basic"
+  | "content"
+  | "emphasis"
+  | "interaction"
+  | "layout"
+  | "control";
 
 export interface DemoMeta {
   /** 路由片段，与文件名去序号一致（01-basic.tsx → "basic"） */
@@ -33,6 +39,9 @@ export interface DemoModule {
 
 export const GROUP_META: Record<DemoGroup, { label: string }> = {
   basic: { label: "基础用法" },
-  advanced: { label: "进阶用法" },
-  plugin: { label: "插件示例" },
+  content: { label: "内容治理" },
+  emphasis: { label: "视觉强调" },
+  interaction: { label: "互动指令" },
+  layout: { label: "轨道策略" },
+  control: { label: "控制层" },
 };

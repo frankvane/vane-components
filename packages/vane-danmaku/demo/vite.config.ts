@@ -25,6 +25,13 @@ export default {
         find: new RegExp(`^vane-danmaku\\/custom-plugins\\/(.+)$`),
         replacement: path.resolve(root, "src/custom-plugins/$1"),
       },
+      // 裸桶别名必须排在通用 `vane-danmaku` 之前：否则 `vane-danmaku/custom-plugins`
+      // 会被通用别名兜底成 `src/index.ts/custom-plugins` 而 ENOENT（data/plugins.ts 与
+      // 场景文件都从桶导入全部工厂）。对齐 vane-profile / vane-sign-in 的写法。
+      {
+        find: "vane-danmaku/custom-plugins",
+        replacement: path.resolve(root, "src/custom-plugins/index.ts"),
+      },
       { find: "vane-danmaku", replacement: path.resolve(root, "src/index.ts") },
     ],
   },
