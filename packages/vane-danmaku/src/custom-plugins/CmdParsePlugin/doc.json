@@ -1,0 +1,11 @@
+{
+  "name": "CmdParsePlugin",
+  "description": "互动指令：/clear、#lottery 等弹幕在 transformData 阶段被识别、从渲染流移除，并经 bus 事件触发业务动作。",
+  "since": "0.1.0",
+  "tags": ["command", "interaction", "data"],
+  "config": [
+    { "name": "prefixes", "type": "string[]", "default": "[\"/\", \"#\"]", "description": "指令前缀" },
+    { "name": "commands", "type": "Record<string, string>", "default": "{ clear, lottery }", "description": "指令名 -> bus 事件 type" }
+  ],
+  "example": "withDanmakuPlugins(DanmakuCore, [createCmdParsePlugin()])"
+}

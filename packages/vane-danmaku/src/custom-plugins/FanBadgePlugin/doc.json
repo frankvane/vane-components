@@ -1,0 +1,11 @@
+{
+  "name": "FanBadgePlugin",
+  "description": "粉丝牌：按 userId 富化 meta.fanBadge，canvas 内核据此绘制牌底块 + 白字。插件只写数据，绝不直绘。",
+  "since": "0.1.0",
+  "tags": ["badge", "enrich", "data"],
+  "config": [
+    { "name": "badges", "type": "Record<string, FanBadge>", "default": "{}", "description": "userId -> 粉丝牌（name/level/color）" },
+    { "name": "defaultColor", "type": "string", "default": "\"#ff7a29\"", "description": "lookup 未提供 color 时的缺省牌底色" }
+  ],
+  "example": "withDanmakuPlugins(DanmakuCore, [createFanBadgePlugin({ badges: { u1: { name: \"粉丝\", level: 5, color: \"#ff7a29\" } } })])"
+}

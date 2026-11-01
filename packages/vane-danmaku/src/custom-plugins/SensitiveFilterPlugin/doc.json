@@ -1,0 +1,12 @@
+{
+  "name": "SensitiveFilterPlugin",
+  "description": "敏感词过滤：命中词按 mode 打码或删除；打码条保留并标记 masked，避免弹幕流闪烁。",
+  "since": "0.1.0",
+  "tags": ["filter", "safety", "data"],
+  "config": [
+    { "name": "words", "type": "string[]", "default": "[]", "description": "敏感词列表（子串匹配）" },
+    { "name": "mask", "type": "string", "default": "\"*\"", "description": "打码字符" },
+    { "name": "mode", "type": "\"mask\"|\"hide\"", "default": "\"mask\"", "description": "mask=打码保留整条；hide=直接删除整条" }
+  ],
+  "example": "withDanmakuPlugins(DanmakuCore, [createSensitiveFilterPlugin({ words: [\"敏感词A\", \"敏感词B\"], mode: \"mask\" })])"
+}

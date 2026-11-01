@@ -1,0 +1,10 @@
+{
+  "name": "PinnedTopPlugin",
+  "description": "高赞置顶：高等级弹幕标记 pinned + ring，内核钉在顶部带、居中停留并加高赞环高亮，不随风滚动。",
+  "since": "0.1.0",
+  "tags": ["pin", "highlight", "data"],
+  "config": [
+    { "name": "minLevel", "type": "number", "default": "18", "description": "高赞阈值：meta.level >= 该值即置顶 + 高赞环" }
+  ],
+  "example": "withDanmakuPlugins(DanmakuCore, [createPinnedTopPlugin({ minLevel: 18 })])"
+}
