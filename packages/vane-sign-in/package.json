@@ -134,7 +134,8 @@
       "accent": "#cf4407",
       "bg": "#0b0a09"
     },
-    "sizeBudgetKb": 14
+    "sizeBudgetKb": 16,
+    "sizeBudgetNote": "根入口 = SignInCore + withSignInPlugins + 领域槽 + 类型。【2026-11-01 修复批次：14→16KB】为修「双击并发签到」与「日期跨时区差一天」，根入口并入签到 pending 状态机、本地日期键工具（src/utils/date.ts）与回调工具；实测 15.5KB，属核心正确性修复，据实上调并留 0.5KB 余量。"
   },
   "peerDependencies": {
     "react": ">=16.8.0",

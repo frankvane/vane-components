@@ -5,7 +5,7 @@ import type {
 } from "../../components/SignInPlugin/plugins/types";
 import type { PluginDoc } from "vane-plugin-core";
 import doc from "./doc.json";
-import { DAY_COLORS, DAY_GLYPH } from "../tokens";
+import { DAY_COLORS, DAY_GLYPH, DAY_STATUS_TEXT } from "../tokens";
 
 export interface CalendarGridConfig {
   /** 每周列数，默认 7 */
@@ -40,10 +40,13 @@ export function createCalendarGridPlugin<T = any>(
           >
             {cells.map((c) => {
               const s = DAY_COLORS[c.status] ?? DAY_COLORS.future;
+              const statusText = DAY_STATUS_TEXT[c.status] ?? c.status;
               return (
                 <div
                   key={c.date}
-                  title={c.date}
+                  role="img"
+                  aria-label={`${c.date} ${statusText}`}
+                  title={`${c.date} ${statusText}`}
                   style={{
                     height: 44,
                     borderRadius: 8,

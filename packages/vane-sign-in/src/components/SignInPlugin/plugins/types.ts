@@ -33,12 +33,17 @@ export interface RewardInfo {
 
 /** 日历单格 */
 export interface DayCell {
-  /** ISO yyyy-mm-dd */
+  /**
+   * 业务日键（DayKey）：`yyyy-mm-dd`，口径为 {@link SignInData.businessTimeZone} 时区的
+   * 自然日（缺省为本地时区）。**不是** UTC 日，也不要带时刻。
+   * 与服务端按 `(userId, 业务日)` 的判定口径必须一致，否则东八区 00:00–08:00 会差一天。
+   */
   date: string;
+  /** 第几天（1-based），由服务端按签到周期计算 */
   day: number;
   status: DayStatus;
   reward?: RewardInfo;
-  /** 漏签且仍在补签窗口内 */
+  /** 漏签且仍在补签窗口内；窗口判定与配额复核由服务端负责，前端只做展示与目标筛选 */
   canMakeup?: boolean;
 }
 
@@ -66,6 +71,12 @@ export interface ClaimRecord {
   at: number;
 }
 
+/** 宿主回写的最近一次业务失败（用于 CTA / 开关的可见反馈） */
+export interface SignInError {
+  code?: string;
+  message: string;
+}
+
 /** 签到核心数据 */
 export interface SignInData {
   todaySigned: boolean;
@@ -76,20 +87,47 @@ export interface SignInData {
   calendar: DayCell[];
   rewards: RewardInfo[];
   makeup: MakeupInfo;
+  /**
+   * 下次签到资格重置的绝对时刻（epoch 毫秒，**不要**按本地 23:59 自己构造）。
+   * Core 每秒心跳 + 回到前台时用它判定「跨日」，跨过后签到 CTA 自动解除禁用。
+   */
   nextResetAt?: number;
+  /**
+   * 业务日所在 IANA 时区（如 `"Asia/Shanghai"`），缺省用运行环境本地时区。
+   * 日历 `date`、`todayKey`、领取记录时间展示都按它归一。
+   */
+  businessTimeZone?: string;
+  /**
+   * 宿主当前业务日键（`yyyy-mm-dd`）。缺省时包内用 `toDayKey(now, businessTimeZone)` 推导。
+   * 提供它可获得与倒计时无关的跨夜复位能力（`nextResetAt` 缺失时仍然生效）。
+   */
+  todayKey?: string;
+  /** 最近一次业务失败（宿主回写），CTA 会把它展示为可见错误提示 */
+  lastError?: SignInError;
+  /** 提醒开关的受控真值（可选）：提供时作为开关初值，缺省用插件 config.defaultOn */
+  remindEnabled?: boolean;
   level?: LevelInfo;
   rules?: string[];
   history?: ClaimRecord[];
 }
 
+/** 回调统一返回形态：同步成功（void）或异步成功（resolve）/ 失败（reject） */
+export type SignInCallbackResult = void | Promise<void>;
+
 /** 业务回调 */
 export interface SignInCallbacks {
-  sign?: () => void | Promise<void>;
-  claim?: (day: number) => void | Promise<void>;
-  makeup?: (date: string) => void | Promise<void>;
-  share?: () => void;
-  remind?: (enabled: boolean) => void;
-  invite?: () => void;
+  sign?: () => SignInCallbackResult;
+  claim?: (day: number) => SignInCallbackResult;
+  /**
+   * 补签：第二个参数携带格子的 `day` 便于服务端对账（旧实现只用 date，仍兼容）。
+   * 目标由包内按「不晚于业务日的 canMakeup 格、日期最早优先」选出。
+   */
+  makeup?: (date: string, detail?: { day: number }) => SignInCallbackResult;
+  share?: () => SignInCallbackResult;
+  remind?: (enabled: boolean) => SignInCallbackResult;
+  invite?: () => SignInCallbackResult;
+  /** 数据刷新请求：Core 在页面回到前台（visibilitychange / focus）时触发 */
+  refresh?: () => SignInCallbackResult;
 }
 
 // ============ 核心组件 props / ref ============

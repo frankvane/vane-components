@@ -8,7 +8,13 @@
  *     结构化段落走包内领域槽（SignInSlotProvider 下发）。
  *  4. vane-plugin-core 声明为 peer（模板默认），构建期外部化，不进 dist。
  */
-import React, { forwardRef, useCallback, useEffect, useRef } from "react";
+import React, {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+} from "react";
 import {
   PluginErrorBoundary,
   renderPluginSlot,
@@ -16,6 +22,7 @@ import {
 } from "vane-plugin-core";
 import type { WithPluginsConfig } from "vane-plugin-core";
 import type {
+  SignInCallbacks,
   SignInCoreProps,
   SignInCoreRef,
   SignInData,
@@ -23,6 +30,10 @@ import type {
   SignInPluginContext,
 } from "./plugins/types";
 import { SignInSlotProvider } from "./plugins/slots";
+import { normalizeSignInData } from "../../utils/normalize";
+
+/** 空回调单例：避免 `?? {}` 每次渲染造新对象，把 context 身份打散 */
+const EMPTY_CALLBACKS: SignInCallbacks = {};
 
 export function withPlugins(
   WrappedComponent: React.ForwardRefExoticComponent<
@@ -38,18 +49,22 @@ export function withPlugins(
   const WithPluginsComponent = forwardRef<SignInCoreRef, SignInCoreProps>(
     (props, ref) => {
       const containerRef = useRef<HTMLDivElement | null>(null);
+      const callbacks = props.callbacks ?? EMPTY_CALLBACKS;
 
       // 领域上下文扩展：在内核 context 上附加 data / callbacks。
+      // 依赖收敛到具体字段（data / callbacks）而不是整个 props：
+      // 宿主任意一次 setState 都会换 props 身份，依赖 props 会让 context 每次都重建，
+      // 进而让 Provider value 变化、五个领域槽全部重跑。
       const extendContext = useCallback(
         (base: any): any => {
           const ctx: SignInPluginContext = {
             ...base,
             data: props.data,
-            callbacks: props.callbacks ?? {},
+            callbacks,
           };
           return ctx;
         },
-        [props]
+        [props.data, callbacks]
       );
 
       const runtime = usePluginRuntime<SignInCoreProps, SignInData>({
@@ -61,11 +76,6 @@ export function withPlugins(
         enableDebug,
       });
 
-      const ctxRef = useRef<SignInPluginContext>(
-        runtime.context as unknown as SignInPluginContext
-      );
-      ctxRef.current = runtime.context as unknown as SignInPluginContext;
-
       const execute = useCallback(
         (hookName: string, ...args: unknown[]) =>
           runtime.execute(hookName as any, ...args),
@@ -73,12 +83,33 @@ export function withPlugins(
         [runtime.manager]
       );
 
+      // 数据归一：先跑 transformData 钩子链（P2-4，旧实现只在类型里声明、运行时从不执行），
+      // 再统一兜底，保证插件拿到的是 calendar / rewards / makeup 一定存在的安全数据。
+      const { transformData } = runtime;
+      const transformedData = useMemo(
+        () => normalizeSignInData(transformData(props.data)),
+        [props.data, transformData]
+      );
+
+      // 领域槽专用 context：身份在 data / callbacks / 插件内部 state 不变时保持稳定，
+      // 这样父级无关重渲染不会让五个槽重跑（P2-2）。
+      // 注意：ctx.props 是首次 memo 时的快照；插件若要读容器 props 请改用 ctx.refs。
+      const slotContext = useMemo<SignInPluginContext>(
+        () =>
+          ({
+            ...runtime.context,
+            data: transformedData,
+            callbacks,
+          }) as SignInPluginContext,
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [transformedData, callbacks, runtime.bus, runtime.state]
+      );
+
       const transformedProps = runtime.transformProps(props) as SignInCoreProps;
 
       // onMount：挂载后触发钩子链
       useEffect(() => {
         void execute("onMount");
-        // eslint-disable-next-line react-hooks/exhaustive-deps
       }, [execute]);
 
       // onPropsChange
@@ -93,6 +124,8 @@ export function withPlugins(
 
       const enhancedProps: SignInCoreProps = {
         ...transformedProps,
+        // 渲染树与插件读的是同一份归一化数据
+        data: transformedData,
         containerRefExternal: containerRef,
         debug: transformedProps.debug ?? enableDebug,
         onMount: () => {
@@ -112,7 +145,7 @@ export function withPlugins(
           <PluginErrorBoundary>
             <>
               {transformedProps.children}
-              {renderPluginSlot(runtime.orderedPlugins, runtime.context, {
+              {renderPluginSlot(runtime.orderedPlugins, slotContext, {
                 hook: "renderOverlay",
               })}
             </>
@@ -123,7 +156,7 @@ export function withPlugins(
       return (
         <SignInSlotProvider
           orderedPlugins={runtime.orderedPlugins as unknown as SignInPlugin<any>[]}
-          context={runtime.context as unknown as SignInPluginContext}
+          context={slotContext}
         >
           <WrappedComponent
             ref={ref as React.Ref<SignInCoreRef>}

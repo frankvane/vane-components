@@ -6,6 +6,7 @@ import type {
 import type { PluginDoc } from "vane-plugin-core";
 import doc from "./doc.json";
 import { TEXT_2 } from "../tokens";
+import { invokeCallback } from "../../utils/callback";
 
 export interface ShareConfig {
   /** 自定义按钮文案 */
@@ -32,7 +33,12 @@ export function createSharePlugin<T = any>(
         return (
           <button
             type="button"
-            onClick={() => ctx.callbacks.share?.()}
+            onClick={() => {
+              // 包内兜住同步抛错 / Promise reject，避免 unhandled rejection
+              void invokeCallback(ctx.callbacks.share).catch((error) => {
+                console.warn("[vane-sign-in] callbacks.share 执行失败", error);
+              });
+            }}
             style={{
               border: "1px solid #d8d8d8",
               background: "#ffffff",

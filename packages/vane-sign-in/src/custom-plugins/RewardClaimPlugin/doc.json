@@ -3,7 +3,20 @@
   "description": "当日奖励领取：提供已达天数待领奖励的领取按钮，奖励区渲染。",
   "since": "0.1.0",
   "tags": ["reward", "claim", "rewards-slot"],
-  "config": [],
+  "config": [
+    {
+      "name": "pendingText",
+      "type": "string",
+      "default": "领取中…",
+      "description": "请求在途时的按钮文案；期间按钮禁用，防重复领取"
+    },
+    {
+      "name": "errorText",
+      "type": "string",
+      "default": "领取失败，请重试",
+      "description": "回调失败时的兜底文案"
+    }
+  ],
   "example": "withSignInPlugins(SignInCore, [createRewardClaimPlugin()])",
   "examples": [
     {

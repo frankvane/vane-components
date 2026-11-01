@@ -6,6 +6,7 @@ import type {
 import type { PluginDoc } from "vane-plugin-core";
 import doc from "./doc.json";
 import { ACCENT } from "../tokens";
+import { invokeCallback } from "../../utils/callback";
 
 export interface InviteConfig {
   /** 自定义按钮文案 */
@@ -31,7 +32,12 @@ export function createInvitePlugin<T = any>(
         return (
           <button
             type="button"
-            onClick={() => ctx.callbacks.invite?.()}
+            onClick={() => {
+              // 包内兜住同步抛错 / Promise reject，避免 unhandled rejection
+              void invokeCallback(ctx.callbacks.invite).catch((error) => {
+                console.warn("[vane-sign-in] callbacks.invite 执行失败", error);
+              });
+            }}
             style={{
               border: `1px solid ${ACCENT}`,
               background: "#ffffff",

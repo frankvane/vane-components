@@ -6,6 +6,7 @@ import type {
 import type { PluginDoc } from "vane-plugin-core";
 import doc from "./doc.json";
 import { TEXT_2, TEXT_3 } from "../tokens";
+import { formatDayKey } from "../../utils/date";
 
 export interface RewardHistoryConfig {
   /** 最多展示几条，默认 5 */
@@ -29,6 +30,7 @@ export function createRewardHistoryPlugin<T = any>(
     hooks: {
       renderFooter: (ctx: SignInPluginContext<T>) => {
         const history = ctx.data.history ?? [];
+        const timeZone = ctx.data.businessTimeZone;
         if (!history.length) {
           return (
             <div style={{ fontSize: 12, color: TEXT_3 }}>暂无领取记录</div>
@@ -50,7 +52,8 @@ export function createRewardHistoryPlugin<T = any>(
                   第{h.day}天 · {h.label}
                 </span>
                 <span style={{ marginLeft: "auto" }}>
-                  {new Date(h.at).toLocaleDateString()}
+                  {/* 用业务日键而非 toLocaleDateString：SSR/浏览器时区不同也不会差一天 */}
+                  {formatDayKey(h.at, timeZone)}
                 </span>
               </div>
             ))}

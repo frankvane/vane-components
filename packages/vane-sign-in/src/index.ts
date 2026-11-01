@@ -16,12 +16,27 @@ export type {
   LevelInfo,
   ClaimRecord,
   SignInCallbacks,
+  SignInCallbackResult,
+  SignInError,
   SignInPluginContext,
   SignInPluginHooks,
   SignInPlugin,
   SignInPluginCreator,
   SignInSlotName,
 } from "./components/SignInPlugin/plugins/types";
+
+// 日期 / 数据归一工具（DayKey 口径见 types.ts 的字段注释）
+export {
+  toDayKey,
+  formatDayKey,
+  todayKey,
+  addDays,
+  diffDays,
+  compareDayKeys,
+  isDayKey,
+} from "./utils/date";
+export type { DayKey } from "./utils/date";
+export { normalizeSignInData } from "./utils/normalize";
 
 // 插件工厂（用户必做四件套 + 主 CTA）
 export { createStreakStatePlugin, type StreakStateConfig } from "./custom-plugins/StreakStatePlugin";

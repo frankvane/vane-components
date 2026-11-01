@@ -30,9 +30,10 @@ export function createRewardPreviewPlugin<T = any>(
     enabled: true,
     hooks: {
       renderRewards: (ctx: SignInPluginContext<T>) => {
-        const rewards: RewardInfo[] = (ctx.data.rewards ?? []).filter(
-          (r) => r.day >= ctx.data.streak
-        );
+        // 服务端乱序时预告也要按 day 升序：先排序再截断，避免「第 30 天大奖」被挤出列表
+        const rewards: RewardInfo[] = [...(ctx.data.rewards ?? [])]
+          .filter((r) => r.day >= ctx.data.streak)
+          .sort((a, b) => a.day - b.day);
         if (!rewards.length) return null;
         return (
           <div

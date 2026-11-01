@@ -33,3 +33,12 @@ export const DAY_GLYPH: Record<string, string> = {
   future: "",
   reward: "★",
 };
+
+/** 日历格状态的可读文案（aria-label 用，读屏用户能听到「今天 / 漏签 / 已签到」） */
+export const DAY_STATUS_TEXT: Record<string, string> = {
+  signed: "已签到",
+  today: "今天",
+  missed: "漏签",
+  future: "未开始",
+  reward: "奖励日",
+};

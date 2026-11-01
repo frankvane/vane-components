@@ -1,5 +1,5 @@
 import type React from "react";
-import { useState } from "react";
+import { useId, useState } from "react";
 import type {
   SignInPlugin,
   SignInPluginContext,
@@ -13,13 +13,23 @@ export interface RuleExpandConfig {
   defaultOpen?: boolean;
 }
 
-function RuleBlock({ rules }: { rules?: string[] }) {
-  const [open, setOpen] = useState(false);
+function RuleBlock({
+  rules,
+  initialOpen,
+}: {
+  rules?: string[];
+  initialOpen: boolean;
+}) {
+  const [open, setOpen] = useState(initialOpen);
+  const panelId = useId();
   if (!rules || !rules.length) return null;
   return (
     <div>
       <button
         type="button"
+        data-testid="si-rule-toggle"
+        aria-expanded={open}
+        aria-controls={panelId}
         onClick={() => setOpen((o) => !o)}
         style={{
           border: "none",
@@ -34,6 +44,7 @@ function RuleBlock({ rules }: { rules?: string[] }) {
       </button>
       {open && (
         <ul
+          id={panelId}
           style={{
             margin: "6px 0 0",
             paddingLeft: 18,
@@ -66,10 +77,9 @@ export function createRuleExpandPlugin<T = any>(
     priority: 50,
     enabled: true,
     hooks: {
-      renderFooter: (ctx: SignInPluginContext<T>) => {
-        void defaultOpen;
-        return <RuleBlock rules={ctx.data.rules} />;
-      },
+      renderFooter: (ctx: SignInPluginContext<T>) => (
+        <RuleBlock rules={ctx.data.rules} initialOpen={defaultOpen} />
+      ),
     },
   };
 }

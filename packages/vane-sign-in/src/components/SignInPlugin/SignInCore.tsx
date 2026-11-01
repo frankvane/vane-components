@@ -6,6 +6,7 @@ import React, {
   useState,
 } from "react";
 import { useSignInSlot } from "./plugins/slots";
+import { SignInClockProvider } from "./plugins/clock";
 import type { SignInCoreProps, SignInCoreRef } from "./plugins/types";
 
 /**
@@ -33,6 +34,22 @@ const SignInCore = forwardRef<SignInCoreRef, SignInCoreProps>(
     const [, forceTick] = useState(0);
     const forceUpdate = useCallback(() => forceTick((t) => t + 1), []);
 
+    // 回到前台时请求宿主刷新（跨夜后 todaySigned / nextResetAt 已经过期）
+    const refresh = props.callbacks?.refresh;
+    const handleResume = useCallback(() => {
+      if (!refresh) return;
+      try {
+        const result = refresh();
+        if (result && typeof result.then === "function") {
+          void result.catch((error: unknown) => {
+            console.warn("[vane-sign-in] callbacks.refresh 执行失败", error);
+          });
+        }
+      } catch (error) {
+        console.warn("[vane-sign-in] callbacks.refresh 执行失败", error);
+      }
+    }, [refresh]);
+
     const header = useSignInSlot("renderHeader");
     const calendar = useSignInSlot("renderCalendar");
     const rewards = useSignInSlot("renderRewards");
@@ -55,7 +72,8 @@ const SignInCore = forwardRef<SignInCoreRef, SignInCoreProps>(
     );
 
     return (
-      <div
+      <SignInClockProvider onResume={handleResume}>
+        <div
         ref={containerRef as React.RefObject<HTMLDivElement>}
         data-testid="si-root"
         className={`vs-signin ${containerClassName || ""}`}
@@ -154,7 +172,8 @@ const SignInCore = forwardRef<SignInCoreRef, SignInCoreProps>(
 
         {/* overlay 钩子链产物（绝对定位层） */}
         {children}
-      </div>
+        </div>
+      </SignInClockProvider>
     );
   }
 );

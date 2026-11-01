@@ -12,9 +12,24 @@ export type {
   LevelInfo,
   ClaimRecord,
   SignInCallbacks,
+  SignInCallbackResult,
+  SignInError,
   SignInPluginContext,
   SignInPluginHooks,
   SignInPlugin,
   SignInPluginCreator,
   SignInSlotName,
 } from "../components/SignInPlugin/plugins/types";
+
+// 日期 / 数据归一工具（跨天、时区、脏数据兜底的统一入口）
+export {
+  toDayKey,
+  formatDayKey,
+  todayKey,
+  addDays,
+  diffDays,
+  compareDayKeys,
+  isDayKey,
+} from "../utils/date";
+export type { DayKey } from "../utils/date";
+export { normalizeSignInData } from "../utils/normalize";

@@ -8,7 +8,25 @@
       "name": "buttonText",
       "type": "string",
       "default": "undefined",
-      "description": "自定义按钮文案（禁用态仍显示「补签次数已用完」）"
+      "description": "自定义按钮文案（仅有可补目标且还有配额时生效）"
+    },
+    {
+      "name": "exhaustedText",
+      "type": "string",
+      "default": "补签次数已用完",
+      "description": "补签配额耗尽时的文案"
+    },
+    {
+      "name": "noTargetText",
+      "type": "string",
+      "default": "暂无可补签",
+      "description": "配额还在但没有可补目标（漏签格都在窗口外）时的文案"
+    },
+    {
+      "name": "errorText",
+      "type": "string",
+      "default": "补签失败，请重试",
+      "description": "回调失败时的兜底文案"
     }
   ],
   "example": "withSignInPlugins(SignInCore, [createMakeupSlotPlugin()])",
