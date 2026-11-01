@@ -27,6 +27,12 @@ export default {
         find: /^vane-coupon\/custom-plugins\/(.+)$/,
         replacement: path.resolve(root, "src/custom-plugins/$1"),
       },
+      // 裸桶（工坊/场景页会 from "vane-coupon/custom-plugins" 一次导入多工厂）：
+      // 缺这条会被上面的裸名兜底成 src/index.ts/custom-plugins 而 ENOENT
+      {
+        find: "vane-coupon/custom-plugins",
+        replacement: path.resolve(root, "src/custom-plugins/index.ts"),
+      },
       // 顺序铁律：通配在前、裸名在后，反了会 ENOENT .../src/index.ts/xxx
       { find: "vane-coupon", replacement: path.resolve(root, "src/index.ts") },
     ],

@@ -1,0 +1,139 @@
+/**
+ * 场景库
+ *
+ * 每个场景卡片左侧是**真实运行的组件**，右侧的「完整源码」用 `?raw` 读的是同一个文件，
+ * 所以不存在「示例代码和实际效果不一致」这种漂移。
+ *
+ * 右上角的「体检」把全部场景卡跑一遍几何断言（未渲染 / 零尺寸 / 越界 / 两两重叠），
+ * 结果直接列在页面上 —— 几何问题只有真实布局引擎能发现。
+ */
+import React, { useCallback, useMemo, useState } from "react";
+import { GROUPS, SCENARIOS, USED_PLUGINS } from "../scenarios/catalog";
+import { ScenarioCard } from "../components/ScenarioCard";
+import { auditCoupon } from "../lib/audit-coupon";
+
+export function ScenariosPage() {
+  const [group, setGroup] = useState<string>("全部");
+  const [report, setReport] = useState<{ problems: string[]; checked: number } | null>(null);
+  const [running, setRunning] = useState(false);
+
+  const list = useMemo(
+    () => (group === "全部" ? SCENARIOS : SCENARIOS.filter((s) => s.meta.group === group)),
+    [group]
+  );
+
+  const tabs = ["全部", ...GROUPS];
+
+  const runAudit = useCallback(() => {
+    setRunning(true);
+    // 等一轮布局走完再量，否则量到的是中间态。
+    // auditCoupon 的宿主口径是「单个券容器」：逐场景卡的 stage 各自体检再聚合，
+    // 直接传 documentElement 会把视口当宿主，折叠线以下的元素全误报「下溢」。
+    window.setTimeout(() => {
+      const stages = Array.from(
+        document.querySelectorAll<HTMLElement>(".scn-stage")
+      );
+      const problems: string[] = [];
+      let checked = 0;
+      for (const stage of stages) {
+        const card = stage.closest<HTMLElement>(".scn-card");
+        const id = card?.dataset.scenario ?? "scenario";
+        const r = auditCoupon(stage);
+        checked += r.checked;
+        for (const p of r.problems) problems.push(`${id} · ${p}`);
+      }
+      setReport({ problems, checked });
+      setRunning(false);
+    }, 320);
+  }, []);
+
+  return (
+    <div>
+      <header className="page-head">
+        <div>
+          <p className="eyebrow">plates · 版式索引</p>
+          <h2 className="page-title">场景示例</h2>
+          <p className="page-sub">
+            {SCENARIOS.length} 个真实券版式，全部可交互（领券、展开规则、复制券码都真的能用）。
+            每张卡右边有「最小装配」和「完整源码」两份代码，都能直接复制。
+            原子插件只解决一件事，组合之后才是业务看得见的运营位。
+          </p>
+        </div>
+        <div className="page-facts">
+          <div>
+            <b>{SCENARIOS.length}</b>
+            <span>plates</span>
+          </div>
+          <div>
+            <b>{GROUPS.length}</b>
+            <span>groups</span>
+          </div>
+          <div>
+            <b>{USED_PLUGINS.length}</b>
+            <span>plugins used</span>
+          </div>
+        </div>
+      </header>
+
+      <div className="scn-tabs">
+        {tabs.map((t) => {
+          const count =
+            t === "全部" ? SCENARIOS.length : SCENARIOS.filter((s) => s.meta.group === t).length;
+          return (
+            <button
+              key={t}
+              type="button"
+              className={`scn-tab${group === t ? " is-active" : ""}`}
+              onClick={() => {
+                setGroup(t);
+                setReport(null);
+              }}
+            >
+              {t}
+              <span className="n">{count}</span>
+            </button>
+          );
+        })}
+        <button
+          type="button"
+          className="scn-tab scn-tab-audit"
+          onClick={runAudit}
+          disabled={running}
+        >
+          {running ? "体检中…" : "体检全部"}
+        </button>
+      </div>
+
+      {report ? (
+        <div className={`audit${report.problems.length ? " is-bad" : " is-ok"}`}>
+          <div className="audit-head">
+            <b>
+              体检 {report.checked} 个交互元素 · {report.problems.length} 处问题
+            </b>
+            <button type="button" onClick={() => setReport(null)}>
+              关闭
+            </button>
+          </div>
+          {report.problems.length ? (
+            <ul>
+              {report.problems.slice(0, 40).map((p, k) => (
+                <li key={k}>{p}</li>
+              ))}
+            </ul>
+          ) : (
+            <p>
+              所有卡片的交互元素都真实渲染、无越界、无重叠、容器正常撑开。
+              断言口径见 <code>demo/src/lib/audit-coupon.ts</code>。
+            </p>
+          )}
+        </div>
+      ) : null}
+
+      {list.length === 0 ? (
+        <div className="scn-empty">这个分类下还没有场景</div>
+      ) : (
+        list.map((entry) => <ScenarioCard key={entry.meta.id} entry={entry} />)
+      )}
+    </div>
+  );
+}
