@@ -25,7 +25,16 @@ export function createInfiniteScrollPlugin<T = any>(
   config: InfiniteScrollConfig = {}
 ): WaterfallPlugin<T> {
   const threshold = Math.max(1, config.threshold ?? 300);
-  let loading = false;
+  /**
+   * 并发锁按**实例**隔离。
+   *
+   * 旧实现是工厂闭包里的一个 `let loading`：同一个插件对象被两个瀑布流复用
+   * （或同一页面开了两个无限列表）时，A 在加载会把 B 也锁住（P2-2）。
+   * key 用容器元素（天然一实例一个），容器还没挂时退回该实例独有的 bus。
+   */
+  const loadingByInstance = new WeakMap<object, boolean>();
+  const instanceKey = (context: WaterfallPluginContext<T>): object =>
+    (context.containerRef?.current as unknown as object) ?? (context.bus as unknown as object);
 
   return {
     name: "InfiniteScrollPlugin",
@@ -38,23 +47,24 @@ export function createInfiniteScrollPlugin<T = any>(
       }),
 
       onReachBottom: async (context: WaterfallPluginContext<T>, distance: number) => {
-        if (loading) return;
+        const key = instanceKey(context);
+        if (loadingByInstance.get(key)) return;
         if (context.hasMore === false) return;
         if (distance > threshold) return;
 
         const onLoadMore = config.onLoadMore ?? context.props.onLoadMore;
         if (typeof onLoadMore !== "function") return;
 
-        loading = true;
+        loadingByInstance.set(key, true);
         try {
           await Promise.resolve(onLoadMore());
         } finally {
-          loading = false;
+          loadingByInstance.delete(key);
         }
       },
 
-      onUnmount: () => {
-        loading = false;
+      onUnmount: (context) => {
+        loadingByInstance.delete(instanceKey(context));
       },
     },
   };

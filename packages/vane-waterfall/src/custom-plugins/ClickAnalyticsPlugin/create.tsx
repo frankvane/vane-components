@@ -1,4 +1,7 @@
-import type { WaterfallPlugin } from "../../components/WaterfallPlugin/plugins/types";
+import type {
+  WaterfallPlugin,
+  WaterfallPluginContext,
+} from "../../components/WaterfallPlugin/plugins/types";
 
 export type ClickAnalyticsConfig = {
   /** 是否在控制台打印每次点击（默认 false） */
@@ -10,7 +13,8 @@ export type ClickAnalyticsConfig = {
 /** `getStats()` 的返回形状：够平，直接 `JSON.stringify` 就能上报 */
 export type ClickAnalyticsStats = {
   total: number;
-  byIndex: Array<{ index: number; clicks: number }>;
+  /** `index` 是该 key 最近一次出现时的下标；数据被排序 / 分页后以 `key` 为准 */
+  byIndex: Array<{ index: number; key: string; clicks: number }>;
 };
 
 /**
@@ -23,9 +27,37 @@ export function createClickAnalyticsPlugin<T = any>(
   config: ClickAnalyticsConfig = {}
 ): WaterfallPlugin<T> & { getStats: () => ClickAnalyticsStats } {
   const { log = false, showOverlay = false } = config;
-  /** 按 index 计数：总数从它求和得到，避免两处状态不同步 */
-  const clicks = new Map<number, number>();
+  /**
+   * 按**稳定 key** 计数，不按 index。
+   *
+   * 排序 / 筛选 / 分页之后同一个下标可能已经是另一条数据，按 index 统计会把点击
+   * 算到别的项头上（P2-8）。key 取 `keyExtractor` 的结果，取不到才退回 index。
+   */
+  const clicks = new Map<string, number>();
+  const indexByKey = new Map<string, number>();
+  let lastItems: unknown[] | null = null;
   const total = () => Array.from(clicks.values()).reduce((a, b) => a + b, 0);
+
+  const keyOf = (context: WaterfallPluginContext<T>, item: T, index: number): string => {
+    try {
+      const key = context.props?.keyExtractor?.(item, index);
+      if (key !== undefined && key !== null) return String(key);
+    } catch {
+      /* 消费方的 keyExtractor 抛错不影响埋点 */
+    }
+    return `#${index}`;
+  };
+
+  /** 数据集被替换（新数组）时清零：旧计数对应的已经不是这批数据了 */
+  const syncDataset = (context: WaterfallPluginContext<T>) => {
+    const items = context.items;
+    if (lastItems === null || items !== lastItems) {
+      lastItems = items;
+      clicks.clear();
+      indexByKey.clear();
+      context.sharedData?.set("click-count", 0);
+    }
+  };
 
   return {
     name: "ClickAnalyticsPlugin",
@@ -33,19 +65,29 @@ export function createClickAnalyticsPlugin<T = any>(
     getStats: () => ({
       total: total(),
       byIndex: Array.from(clicks.entries())
-        .map(([index, count]) => ({ index, clicks: count }))
-        .sort((a, b) => a.index - b.index),
+        .map(([key, count]) => ({
+          index: indexByKey.get(key) ?? 0,
+          key,
+          clicks: count,
+        }))
+        .sort((a, b) => a.index - b.index || a.key.localeCompare(b.key)),
     }),
     hooks: {
       onMount: (context) => {
         context.sharedData?.set("click-count", total());
       },
+      onLayoutComplete: (context) => {
+        syncDataset(context);
+      },
       onItemClick: (context, index, item, event) => {
-        const next = (clicks.get(index) ?? 0) + 1;
-        clicks.set(index, next);
+        syncDataset(context);
+        const key = keyOf(context, item, index);
+        indexByKey.set(key, index);
+        const next = (clicks.get(key) ?? 0) + 1;
+        clicks.set(key, next);
         const sum = total();
         context.sharedData?.set("click-count", sum);
-        context.bus?.emit("analytics:click", { index, item, event, total: sum });
+        context.bus?.emit("analytics:click", { index, key, item, event, total: sum });
         // 计数只存在闭包 Map 里，宿主不会因为「点了一下」重渲染；
         // 不主动请求一次，`renderOverlay` 要等到下次布局 / 滚动才重算，
         // 表现就是「点了数字不动，一滚动才跳变」。

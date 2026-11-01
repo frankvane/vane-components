@@ -20,7 +20,15 @@
  * lazy-image 那种 `1000 - x` 反转（见 tasks/07 · 4.3，照抄会直接引入 bug）。
  */
 
-import React, { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { composeSlots, PluginErrorBoundary, usePluginRuntime } from "vane-plugin-core";
 import type { LayoutHooks } from "./layout";
 import type {
@@ -59,6 +67,39 @@ const EMPTY_VIEWPORT: ViewportInfo = {
   isScrolling: false,
   direction: null,
 };
+
+/**
+ * 消费方回调隔层：宿主传入的 `onXxx` 抛错时只告警，不能中断插件链与布局流程。
+ * 旧实现把它们直接串在一起，任一回调抛错都会连带后续钩子不执行（P1-1 的另一半）。
+ */
+function safeCall<A extends unknown[], R>(
+  label: string,
+  fn: ((...args: A) => R) | undefined,
+  ...args: A
+): R | undefined {
+  if (typeof fn !== "function") return undefined;
+  try {
+    return fn(...args);
+  } catch (error) {
+    console.warn(`[vane-waterfall] ${label} 回调抛错，已忽略`, error);
+    return undefined;
+  }
+}
+
+/** `safeCall` 的异步版：async 回调的 reject 也要吞掉 */
+async function safeAwait<A extends unknown[], R>(
+  label: string,
+  fn: ((...args: A) => R | Promise<R>) | undefined,
+  ...args: A
+): Promise<R | undefined> {
+  if (typeof fn !== "function") return undefined;
+  try {
+    return await fn(...args);
+  } catch (error) {
+    console.warn(`[vane-waterfall] ${label} 回调抛错，已忽略`, error);
+    return undefined;
+  }
+}
 
 function detectNetwork(): NetworkInfo | undefined {
   const nav = typeof navigator !== "undefined" ? (navigator as any) : undefined;
@@ -132,7 +173,15 @@ export function withPlugins<T = any>(
       );
       const [viewport, setViewport] = useState<ViewportInfo>(EMPTY_VIEWPORT);
       const [isLayouting, setIsLayouting] = useState(false);
-      const [items, setItems] = useState<T[]>((props.items ?? []) as T[]);
+      /**
+       * `transformProps` 的显式失效计数。
+       *
+       * 结果按「props 身份 + 插件链身份」缓存：否则每次渲染都跑一遍数据管线，
+       * Filter/Sort/Search/Pagination 每次产出**新 items 数组** → Core 认为数据集变了
+       * → 全量重排（P1-3）。插件在 props 没变但需要重算时（GapPlugin 的容器宽度换档）
+       * 通过 `bus.emit("props:invalidate")` 加一。
+       */
+      const [transformVersion, setTransformVersion] = useState(0);
 
       const extendContext = useCallback(
         (base: any): WaterfallPluginContext<T> => {
@@ -142,11 +191,37 @@ export function withPlugins<T = any>(
           const liveLayout = () => coreRef.current?.getLayoutInfo() ?? layout;
           const livePositions = () => coreRef.current?.getAllItemPositions() ?? itemPositions;
           const liveViewport = () => coreRef.current?.getViewportInfo() ?? viewport;
+          // 渲染集合：数据插件（Filter/Sort/Search/Pagination）改写后的 items。
+          // 旧实现给的是 props.items 原始集合，插件看到的项数与实际渲染的不一致（P2-1）
+          const liveItems = (): T[] =>
+            ((transformedPropsRef.current?.items ??
+              (base.props as WaterfallCoreProps<T> | undefined)?.items ??
+              []) as T[]);
+          // 原始集合（未经数据插件改写），给需要「总条数」的插件用
+          const liveRawItems = (): T[] =>
+            (((base.props as WaterfallCoreProps<T> | undefined)?.items ?? []) as T[]);
+          const liveVisibleItems = (): Set<number> => {
+            const fromCore = coreRef.current?.getVisibleItems();
+            if (fromCore && fromCore.size > 0) return fromCore;
+            // 首帧 Core 还没滚动过：按位置与视口的重叠兜底算一次
+            const vp = liveViewport();
+            const result = new Set<number>();
+            livePositions().forEach((position, index) => {
+              const overlap = Math.max(
+                0,
+                Math.min(vp.scrollTop + vp.clientHeight, position.y + position.height) -
+                  Math.max(vp.scrollTop, position.y)
+              );
+              if (overlap > 0) result.add(index);
+            });
+            return result;
+          };
 
           const ctx: WaterfallPluginContext<T> = {
             ...base,
-            items,
-            itemCount: items.length,
+            items: liveItems(),
+            itemCount: liveItems().length,
+            rawItems: liveRawItems(),
             containerRef,
             itemRefs: itemRefsMap.current,
             getItemRef: (index: number) => itemRefsMap.current.get(index) ?? null,
@@ -154,7 +229,7 @@ export function withPlugins<T = any>(
             itemPositions: livePositions(),
             getItemPosition: (index: number) => livePositions().get(index) ?? null,
             viewport: liveViewport(),
-            visibleItems: new Set<number>(),
+            visibleItems: liveVisibleItems(),
             visibleRange: computeVisibleIndexRange(
               livePositions(),
               liveViewport().scrollTop,
@@ -183,6 +258,30 @@ export function withPlugins<T = any>(
             layout: { get: liveLayout, enumerable: true, configurable: true },
             itemPositions: { get: livePositions, enumerable: true, configurable: true },
             viewport: { get: liveViewport, enumerable: true, configurable: true },
+            items: { get: liveItems, enumerable: true, configurable: true },
+            itemCount: {
+              get: () => liveItems().length,
+              enumerable: true,
+              configurable: true,
+            },
+            rawItems: { get: liveRawItems, enumerable: true, configurable: true },
+            visibleItems: { get: liveVisibleItems, enumerable: true, configurable: true },
+            // 宿主 props 优先：`hasMore` / `isLoading` 从「恒 true / 恒 false」改成
+            // 「props 能覆盖插件状态」，页面不用 hand-roll 一个插件就能控制（P2-2）
+            hasMore: {
+              get: () =>
+                (transformedPropsRef.current as any)?.hasMore ??
+                (((base.state as any)?.hasMore as boolean | undefined) ?? true),
+              enumerable: true,
+              configurable: true,
+            },
+            isLoading: {
+              get: () =>
+                (transformedPropsRef.current as any)?.isLoading ??
+                (((base.state as any)?.isLoading as boolean | undefined) ?? false),
+              enumerable: true,
+              configurable: true,
+            },
             props: {
               get: () =>
                 (transformedPropsRef.current ??
@@ -202,7 +301,7 @@ export function withPlugins<T = any>(
 
           return ctx;
         },
-        [items, layout, itemPositions, viewport, isLayouting, networkInfo]
+        [layout, itemPositions, viewport, isLayouting, networkInfo]
       );
 
       const kernelPlugins = plugins as any;
@@ -217,8 +316,18 @@ export function withPlugins<T = any>(
 
       // context 的最新值：布局钩子与 ref 回调都从 ref 里取，避免函数身份抖动。
       // extendContext 已经注入领域字段，但内核返回的静态类型是基础 context。
+      // 在 layout effect 里同步而不是渲染期直接写：并发渲染下被丢弃的那次渲染也会写 ref，
+      // 异步布局钩子就可能读到一份从未提交的 context（P2-10）
       const ctxRef = useRef(runtime.context as unknown as WaterfallPluginContext<T>);
-      ctxRef.current = runtime.context as unknown as WaterfallPluginContext<T>;
+      useLayoutEffect(() => {
+        ctxRef.current = runtime.context as unknown as WaterfallPluginContext<T>;
+      });
+
+      // 插件请求「props 没变但需要重算 transformProps」时（例如 GapPlugin 的容器宽度换档）
+      useEffect(
+        () => runtime.bus.on("props:invalidate", () => setTransformVersion((v) => v + 1)),
+        [runtime.bus]
+      );
 
       const execute = useCallback(
         (hookName: string, ...args: unknown[]) =>
@@ -299,8 +408,8 @@ export function withPlugins<T = any>(
               }
             : undefined,
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-      }, [namesKey]);
+        // 按插件对象身份重建：只依赖 namesKey 时，「同名换配置」的插件仍会沿用旧闭包（P2-10）
+      }, [orderedPlugins]);
 
       // ---------- 状态同步（布局完成后从 Core 读回来） ----------
       const syncFromCore = useCallback(() => {
@@ -317,9 +426,27 @@ export function withPlugins<T = any>(
             ? prev
             : nextLayout
         );
-        setItemPositions((prev) =>
-          prev.size === nextPositions.size ? prev : nextPositions
-        );
+        setItemPositions((prev) => {
+          if (prev === nextPositions) return prev;
+          if (prev.size !== nextPositions.size) return nextPositions;
+          let same = true;
+          nextPositions.forEach((position, index) => {
+            if (same === false) return;
+            const old = prev.get(index);
+            if (
+              !old ||
+              old.x !== position.x ||
+              old.y !== position.y ||
+              old.width !== position.width ||
+              old.height !== position.height ||
+              old.column !== position.column
+            ) {
+              same = false;
+            }
+          });
+          // 只比 size 会让「项数不变、位置全变」的布局被吞掉（P2-10）
+          return same ? prev : nextPositions;
+        });
         setViewport((prev) =>
           prev.scrollTop === nextViewport.scrollTop &&
           prev.clientHeight === nextViewport.clientHeight &&
@@ -330,10 +457,26 @@ export function withPlugins<T = any>(
         );
       }, []);
 
-      // items 引用变化 → 同步进上下文
+      // transformProps 结果缓存：props 身份不变时复用同一份结果，
+      // 数据插件产出的 items 数组也就保持同一引用 → Core 不必全量重排（P1-3）
+      const transformedProps = useMemo(() => {
+        // transformVersion 是插件的显式失效信号（见 props:invalidate）
+        void transformVersion;
+        return runtime.transformProps(props) as WaterfallCoreProps<T>;
+      }, [runtime.transformProps, props, transformVersion]);
+
+      // 分页与无限加载互斥：同时启用时两者都会改写 items，谁在链尾谁生效，
+      // 表现为「翻页后被无限加载的追加结果覆盖」——装的时候就说清楚（P2-3）
       useEffect(() => {
-        setItems((props.items ?? []) as T[]);
-      }, [props.items]);
+        if (
+          plugins.some((p) => p.name === "PaginationPlugin") &&
+          plugins.some((p) => p.name === "InfiniteScrollPlugin")
+        ) {
+          console.warn(
+            "[vane-waterfall] PaginationPlugin 与 InfiniteScrollPlugin 互斥：两者都会改写 items，请只保留一个"
+          );
+        }
+      }, [namesKey]);
 
       // ---------- 生命周期 ----------
       // onMount：layout effect 里 manager 已注册完插件，这里触发钩子链
@@ -354,7 +497,9 @@ export function withPlugins<T = any>(
       }, [props, execute]);
 
       // ---------- Core 回调 → 钩子链 ----------
-      const transformedProps = runtime.transformProps(props) as WaterfallCoreProps<T>;
+      // 插件钩子里的 `context.props` 必须是 Core 真正收到的那份（transformProps 的结果）。
+      // 这个镜像保持渲染期赋值：`renderItemWrapper` 是在渲染期调用的，若延后到 layout effect，
+      // 首次渲染就会拿到未改写的原始 props。异步钩子走的是 ctxRef（见上方说明）。
       transformedPropsRef.current = transformedProps;
 
       const handleBeforeLayout = useCallback(async () => {
@@ -379,8 +524,9 @@ export function withPlugins<T = any>(
       }, [execute, syncFromCore]);
 
       // ---------- 项包装管道 ----------
-      const wrapperPlugins = orderedPlugins.filter(
-        (p) => typeof p.hooks?.renderItemWrapper === "function"
+      const wrapperPlugins = useMemo(
+        () => orderedPlugins.filter((p) => typeof p.hooks?.renderItemWrapper === "function"),
+        [orderedPlugins]
       );
       const baseRenderItem = transformedProps.renderItem;
 
@@ -397,8 +543,9 @@ export function withPlugins<T = any>(
           }
           return node;
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [baseRenderItem, namesKey]
+        // 身份保持稳定（插件链与基础 renderItem 不变时不变）：Core 里项单元是 memo 的，
+        // 这里每次渲染都给新函数等于把 memo 全部击穿（P2-11）
+        [baseRenderItem, wrapperPlugins]
       );
 
       const enhancedProps: WaterfallCoreProps<T> = {
@@ -415,59 +562,61 @@ export function withPlugins<T = any>(
         ),
 
         onMount: () => {
-          transformedProps.onMount?.();
+          safeCall("onMount", transformedProps.onMount);
           // 插件 onMount 由上面的 useEffect 统一触发，这里不重复
         },
         onUnmount: () => {
-          transformedProps.onUnmount?.();
+          safeCall("onUnmount", transformedProps.onUnmount);
         },
         onBeforeLayout: async () => {
           const gate = await handleBeforeLayout();
           if (gate === false) return false;
-          return transformedProps.onBeforeLayout?.() ?? true;
+          // 消费方回调抛错不能连带本次布局一起中止（P1-1）
+          const result = await safeAwait("onBeforeLayout", transformedProps.onBeforeLayout);
+          return result ?? true;
         },
         onLayout: () => {
-          transformedProps.onLayout?.();
+          safeCall("onLayout", transformedProps.onLayout);
           handleLayout();
         },
         onLayoutComplete: () => {
-          transformedProps.onLayoutComplete?.();
+          safeCall("onLayoutComplete", transformedProps.onLayoutComplete);
           handleLayoutComplete();
         },
 
         onItemMount: (index, element) => {
-          transformedProps.onItemMount?.(index, element);
+          safeCall("onItemMount", transformedProps.onItemMount, index, element);
           void execute("onItemMount", index, element);
         },
         onItemUnmount: (index) => {
-          transformedProps.onItemUnmount?.(index);
+          safeCall("onItemUnmount", transformedProps.onItemUnmount, index);
           void execute("onItemUnmount", index);
         },
         onItemEnterViewport: (index, visibility) => {
-          transformedProps.onItemEnterViewport?.(index, visibility);
+          safeCall("onItemEnterViewport", transformedProps.onItemEnterViewport, index, visibility);
           void execute("onItemEnterViewport", index, visibility);
         },
         onItemLeaveViewport: (index, visibility) => {
-          transformedProps.onItemLeaveViewport?.(index, visibility);
+          safeCall("onItemLeaveViewport", transformedProps.onItemLeaveViewport, index, visibility);
           void execute("onItemLeaveViewport", index, visibility);
         },
         onScroll: (scrollTop, scrollLeft) => {
-          transformedProps.onScroll?.(scrollTop, scrollLeft);
+          safeCall("onScroll", transformedProps.onScroll, scrollTop, scrollLeft);
           void execute("onScroll", scrollTop, scrollLeft);
           // 滚动不触发 Core 重渲染（只有 handleScroll 内部的 setState），
           // 这里补一次同步，让上下文里的 viewport / visibleRange 跟上
           syncFromCore();
         },
         onResize: (width, height) => {
-          transformedProps.onResize?.(width, height);
+          safeCall("onResize", transformedProps.onResize, width, height);
           void execute("onResize", width, height);
         },
         onReachBottom: async (distance) => {
-          await transformedProps.onReachBottom?.(distance);
+          await safeAwait("onReachBottom", transformedProps.onReachBottom, distance);
           await execute("onReachBottom", distance);
         },
         onItemClick: (index, item, event) => {
-          transformedProps.onItemClick?.(index, item, event);
+          safeCall("onItemClick", transformedProps.onItemClick, index, item, event);
           void execute("onItemClick", index, item, event);
         },
       };

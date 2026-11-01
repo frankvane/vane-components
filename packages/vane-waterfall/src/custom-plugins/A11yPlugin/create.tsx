@@ -30,6 +30,18 @@ export function createA11yPlugin<T = any>(config: A11yConfig = {}): WaterfallPlu
   const enableTabIndex = config.enableTabIndex ?? true;
   const containerLabel = config.containerLabel ?? "Waterfall list";
 
+  /**
+   * roving tabindex：只有「当前项」是 tab 停靠点（0），其余为 -1。
+   *
+   * 旧实现给每一项都挂 `tabIndex=0`，一个列表按 Tab 要穿行几十次才能走到后面的控件；
+   * 同时又写了 `outline:none`，键盘用户完全看不见焦点（P2-9）。
+   */
+  const rovingByInstance = new WeakMap<object, number>();
+  const instanceKey = (context: WaterfallPluginContext<T>): object =>
+    (context.containerRef?.current as unknown as object) ?? (context.bus as unknown as object);
+  const getRovingIndex = (context: WaterfallPluginContext<T>): number =>
+    rovingByInstance.get(instanceKey(context)) ?? 0;
+
   const decorateContainer = (context: WaterfallPluginContext<T>) => {
     const container = context.containerRef.current;
     if (!container) return;
@@ -48,13 +60,20 @@ export function createA11yPlugin<T = any>(config: A11yConfig = {}): WaterfallPlu
       onLayoutComplete: (context) => {
         decorateContainer(context);
       },
+      onItemClick: (context, index) => {
+        // 点击后把 tab 停靠点挪过去（键盘用户随后按 Tab 从这一项继续）
+        if (getRovingIndex(context) !== index) {
+          rovingByInstance.set(instanceKey(context), index);
+          context.forceUpdate?.();
+        }
+      },
       renderItemWrapper: (context, node, index) => (
         <div
           role={itemRole}
           aria-posinset={index + 1}
+          // 渲染集合的项数（虚拟化下是当前挂载集合），与 aria-posinset 出自同一集合
           aria-setsize={context.itemCount}
-          tabIndex={enableTabIndex ? 0 : undefined}
-          style={{ outline: "none" }}
+          tabIndex={enableTabIndex ? (index === getRovingIndex(context) ? 0 : -1) : undefined}
         >
           {node}
         </div>

@@ -1,4 +1,7 @@
-import type { WaterfallPlugin } from "../../components/WaterfallPlugin/plugins/types";
+import type {
+  WaterfallPlugin,
+  WaterfallPluginContext,
+} from "../../components/WaterfallPlugin/plugins/types";
 
 export type StatePersistenceConfig = {
   /** 存储键（localStorage） */
@@ -20,11 +23,22 @@ export function createStatePersistencePlugin<T = any>(config: StatePersistenceCo
   const persistKeys = config.persistKeys || ["pageIndex", "pageSize", "searchQuery"];
   // 一次性注入标记：避免 transformProps 重复覆盖
   let initialInjected = false;
+  /** 快照 schema 版本：旧版本（无 version 字段）结构不保证兼容，读到直接丢弃（P2-6） */
+  const SCHEMA_VERSION = 1;
+  /** 每个实例只恢复一次滚动（按容器/总线区分实例） */
+  const restoredInstances = new WeakSet<object>();
+  const instanceKey = (context: WaterfallPluginContext<T>): object =>
+    (context.containerRef?.current as unknown as object) ?? (context.bus as unknown as object);
 
   function read(): Record<string, any> | null {
     try {
       const raw = localStorage.getItem(key);
-      return raw ? JSON.parse(raw) : null;
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (!parsed || parsed.version !== SCHEMA_VERSION || typeof parsed.state !== "object") {
+        return null;
+      }
+      return parsed.state;
     } catch {
       return null;
     }
@@ -32,7 +46,7 @@ export function createStatePersistencePlugin<T = any>(config: StatePersistenceCo
 
   function write(data: Record<string, any>) {
     try {
-      localStorage.setItem(key, JSON.stringify(data));
+      localStorage.setItem(key, JSON.stringify({ version: SCHEMA_VERSION, state: data }));
     } catch {}
   }
 
@@ -59,16 +73,8 @@ export function createStatePersistencePlugin<T = any>(config: StatePersistenceCo
       onMount: (context) => {
         const snap = read();
         if (!snap) return;
-        // 恢复滚动
-        if (persistScroll) {
-          const top = Number(snap.scrollTop ?? 0);
-          const el = context.containerRef.current;
-          if (el) {
-            el.scrollTo({ top, behavior: "auto" });
-          } else {
-            context.scrollToTop?.({ behavior: "auto" });
-          }
-        }
+        // 滚动位置**不在这里恢复**：onMount 时内容总高还是 0，
+        // scrollTo 会被钳到 0，看起来像「恢复没生效」。等首次布局完成再恢复（见下）
         // 广播持久化的键，便于页面采用
         const restored: Record<string, any> = {};
         persistKeys.forEach((k) => {
@@ -83,6 +89,22 @@ export function createStatePersistencePlugin<T = any>(config: StatePersistenceCo
             } catch {}
           }
         }
+      },
+      onLayoutComplete: (context) => {
+        if (!persistScroll) return;
+        const key = instanceKey(context);
+        if (restoredInstances.has(key)) return;
+        const snap = read();
+        const top = Number(snap?.scrollTop ?? 0);
+        if (!Number.isFinite(top) || top <= 0) {
+          restoredInstances.add(key);
+          return;
+        }
+        const el = context.containerRef.current;
+        if (!el) return;
+        // 布局完成 → 内容总高已按真实位置提交，此时 scrollTo 不会被钳住
+        el.scrollTo({ top, behavior: "auto" });
+        restoredInstances.add(key);
       },
       // props 变化时，增量更新快照（立即持久化分页/查询键）
       onPropsChange: (_context, _prev, nextProps) => {

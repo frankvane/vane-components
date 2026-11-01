@@ -66,6 +66,13 @@ export interface LayoutParams {
   alignmentMode?: AlignmentMode;
   /** 未测量项的兜底高度。不给 → 沿用旧行为：跳过不占位 */
   estimateHeight?: number;
+  /**
+   * 零高度项的最小占位，默认 0（= 旧行为：跳过不占位）。
+   *
+   * 图片 404 / 尚未解码 / 字体未就绪时首测高度为 0，跳过会让该项既不在 `positions` 里
+   * 也被渲染层 `opacity:0` 隐藏，`scrollToItem` / 视口回调永远命中不到（P1-6）。
+   */
+  minItemHeight?: number;
   hooks?: LayoutHooks;
 }
 
@@ -80,12 +87,17 @@ export interface LayoutResult {
   estimatedCount: number;
 }
 
-/** 单项高度：已测量用真值，未测量用估值，都没有则返回 0（跳过） */
-function resolveHeight(height: number | undefined, estimate?: number): number {
+/** 单项高度：已测量用真值，未测量用估值，都没有则用最小占位（仍为 0 才跳过） */
+function resolveHeight(
+  height: number | undefined,
+  estimate?: number,
+  minItemHeight?: number
+): number {
   if (typeof height === "number" && Number.isFinite(height) && height > 0) {
     return height;
   }
-  return estimate && estimate > 0 ? estimate : 0;
+  if (estimate && estimate > 0) return estimate;
+  return minItemHeight && minItemHeight > 0 ? minItemHeight : 0;
 }
 
 export function computeLayout(params: LayoutParams): LayoutResult {
@@ -95,6 +107,7 @@ export function computeLayout(params: LayoutParams): LayoutResult {
     rowGap,
     alignmentMode = "shortest",
     estimateHeight,
+    minItemHeight,
     hooks,
   } = params;
 
@@ -145,7 +158,7 @@ export function computeLayout(params: LayoutParams): LayoutResult {
 
   for (let i = 0; i < heights.length; i++) {
     const measured = heights[i];
-    const itemHeight = resolveHeight(measured, estimateHeight);
+    const itemHeight = resolveHeight(measured, estimateHeight, minItemHeight);
     if (itemHeight === 0) continue;
     if (!(typeof measured === "number" && measured > 0)) estimatedCount += 1;
 

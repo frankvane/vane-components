@@ -64,13 +64,12 @@ export function createBookmarkPlugin<T = any>(config: BookmarkConfig = {}): Wate
           }
         };
 
-        // 捕获阶段监听，尽量避免被其他组件拦截
+        // 捕获阶段只在 window 上监听一次：document 上的按键会冒泡到 window，
+        // 双注册会让同一次按键执行两遍（保存两次 / 平滑滚动被打断，P2-6）
         window.addEventListener("keydown", handler, { capture: true });
-        document.addEventListener("keydown", handler, { capture: true });
 
         return () => {
-          window.removeEventListener("keydown", handler, { capture: true } as any);
-          document.removeEventListener("keydown", handler, { capture: true } as any);
+          window.removeEventListener("keydown", handler, { capture: true });
         };
       },
     },

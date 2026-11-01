@@ -100,8 +100,11 @@ export interface ScrollToItemOptions extends ScrollToOptions {
 export interface WaterfallPluginContext<T = any>
   extends PluginContext<WaterfallCoreProps<T>, WaterfallData> {
   // --- 数据 ---
+  /** 当前**渲染集合**：数据插件（Filter / Sort / Search / Pagination）改写后的结果 */
   items: T[];
   itemCount: number;
+  /** 原始集合（未经数据插件改写），需要「源数据总条数」时用它 */
+  rawItems: T[];
 
   // --- DOM ---
   containerRef: React.RefObject<HTMLDivElement | null>;

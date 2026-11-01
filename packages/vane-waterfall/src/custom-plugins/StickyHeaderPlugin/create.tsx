@@ -19,8 +19,17 @@ export function createStickyHeaderPlugin<T = any>(config: StickyHeaderConfig = {
     enabled: true,
     hooks: {
       renderOverlay: (context) => {
-  const groups: Map<string | number, number[]> = context.sharedData?.get("GROUPS") || new Map();
-        const firstKey = groups.size > 0 ? Array.from(groups.keys())[0] : undefined;
+        const groups: Map<string | number, number[]> =
+          context.sharedData?.get("GROUPS") || new Map();
+        const indexMap: Map<number, string | number> | undefined =
+          context.sharedData?.get("GROUP_INDEX");
+        // 吸顶条跟着「当前可见的第一个项」所属分组走；旧实现恒取第一个组，
+        // 滚到后面的分组时标题一直不变（P2-7）
+        const start = context.visibleRange?.start ?? 0;
+        const activeKey = indexMap?.get(start);
+        const firstKey =
+          activeKey ??
+          (groups.size > 0 ? Array.from(groups.keys())[0] : undefined);
         return (
           <div
             style={{

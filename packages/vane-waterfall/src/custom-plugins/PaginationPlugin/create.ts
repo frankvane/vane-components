@@ -20,13 +20,27 @@ export function createPaginationPlugin<T = any>(config: PaginationConfig = {}): 
     enabled: true,
     hooks: {
       transformProps: (props: any) => {
-        // 统一采用 1 基页码：展示页码从 1 开始
-        const pageIndex1: number = Math.max(1, Number(props.pageIndex ?? 1));
-        const pageSize: number = Math.max(1, Number(props.pageSize ?? config.pageSize ?? 20));
+        // 统一采用 1 基页码：展示页码从 1 开始。
+        // 非法输入（NaN / 小数 / 负数）先归一，否则 slice 会得到出人意料的结果
+        const rawIndex = Number(props.pageIndex ?? 1);
+        const pageIndex1: number = Math.max(
+          1,
+          Math.floor(Number.isFinite(rawIndex) ? rawIndex : 1)
+        );
+        const rawSize = Number(props.pageSize ?? config.pageSize ?? 20);
+        const pageSize: number = Math.max(1, Math.floor(Number.isFinite(rawSize) ? rawSize : 20));
         const items: T[] = Array.isArray(props.items) ? props.items : [];
-        const start = (pageIndex1 - 1) * pageSize;
-        const end = start + pageSize;
-        const sliced = items.slice(start, end);
+        // 页码越界（搜索后数据变少、深链带了合法范围外的页码）时钳到最后一页。
+        // 旧实现直接 slice 出空数组，界面静默变成空列表，没有任何提示（P2-3）
+        const pageCount = Math.max(1, Math.ceil(items.length / pageSize));
+        const currentPage = Math.min(pageIndex1, pageCount);
+        if (pageIndex1 > pageCount) {
+          console.warn(
+            `[vane-waterfall] PaginationPlugin：pageIndex=${pageIndex1} 超出总页数 ${pageCount}，已钳制到第 ${currentPage} 页`
+          );
+        }
+        const start = (currentPage - 1) * pageSize;
+        const sliced = items.slice(start, start + pageSize);
         return { ...props, items: sliced } as any;
       },
       onPropsChange: (context, prevProps: any, nextProps: any) => {

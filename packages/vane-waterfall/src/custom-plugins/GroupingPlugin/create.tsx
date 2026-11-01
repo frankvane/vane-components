@@ -11,6 +11,8 @@ export type GroupingConfig<T = any> = {
 };
 
 const KEY = "GROUPS";
+/** index → 组键：吸顶条据此显示「当前可见项」所属的分组（见 StickyHeaderPlugin） */
+const INDEX_KEY = "GROUP_INDEX";
 
 /**
  * GroupingPlugin - 按字段把项分组，结果写进 `sharedData.get("GROUPS")`。
@@ -26,15 +28,40 @@ export function createGroupingPlugin<T = any>(
     config.groupBy ?? ((item: any) => item?.category ?? "default");
   const showOverlay = config.showOverlay ?? false;
 
+  /** 上一次的输入集合：items 引用不变就不重算（onLayoutComplete 每次布局都会调到这里，P2-7） */
+  let cachedItems: unknown[] | null = null;
+  let cachedGroups: Map<string | number, number[]> | null = null;
+
+  const sameGroups = (a: Map<string | number, number[]>, b: Map<string | number, number[]>) => {
+    if (a.size !== b.size) return false;
+    for (const [key, list] of a) {
+      const other = b.get(key);
+      if (!other || other.length !== list.length) return false;
+    }
+    return true;
+  };
+
   const compute = (context: WaterfallPluginContext<T>) => {
+    // 用「渲染集合」而不是原始 props：分页 / 筛选 / 排序之后，分组必须跟着渲染结果走
+    const items = context.items ?? [];
+    if (cachedGroups && cachedItems === items) return cachedGroups;
+
     const groups = new Map<string | number, number[]>();
-    (context.props.items ?? []).forEach((item, index) => {
+    const indexMap = new Map<number, string | number>();
+    items.forEach((item, index) => {
       const key = groupBy(item as T, index);
+      indexMap.set(index, key);
       if (!groups.has(key)) groups.set(key, []);
       groups.get(key)!.push(index);
     });
+
+    const changed = cachedGroups ? !sameGroups(groups, cachedGroups) : true;
+    cachedItems = items;
+    cachedGroups = groups;
     context.sharedData.set(KEY, groups);
-    if (groups.size > 0) context.bus.emit("grouping:change", { groups });
+    context.sharedData.set(INDEX_KEY, indexMap);
+    // 结果没变就不 emit：旧实现每次布局都广播一次，订阅方跟着做无意义的重渲染（P2-7）
+    if (changed && groups.size > 0) context.bus.emit("grouping:change", { groups });
     return groups;
   };
 
