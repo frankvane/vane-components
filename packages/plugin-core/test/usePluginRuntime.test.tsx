@@ -128,4 +128,44 @@ describe("usePluginRuntime", () => {
     expect(warn).toHaveBeenCalled();
     warn.mockRestore();
   });
+
+  it("props 内容不变（每次新建同内容对象）时 context 引用保持不变", async () => {
+    const { getRuntime, rerender } = await mount({
+      plugins: [],
+      props: { title: "x", count: 1 } as any,
+    });
+    const first = getRuntime().context;
+    await rerender({ props: { title: "x", count: 1 } as any });
+    expect(getRuntime().context).toBe(first);
+  });
+
+  it("props 内容变化时 context 重建并携带新值", async () => {
+    const { getRuntime, rerender } = await mount({
+      plugins: [],
+      props: { title: "x" } as any,
+    });
+    const first = getRuntime().context;
+    const nextProps = { title: "y" } as any;
+    await rerender({ props: nextProps });
+    expect(getRuntime().context).not.toBe(first);
+    expect(getRuntime().context.props).toBe(nextProps);
+  });
+
+  it("data 内容不变时 context 引用保持不变", async () => {
+    const { getRuntime, rerender } = await mount({
+      plugins: [],
+      props: {},
+      data: { list: [1, 2] } as any,
+    });
+    const first = getRuntime().context;
+    await rerender({ data: { list: [1, 2] } as any });
+    // list 是新数组引用 → 视为内容变化
+    expect(getRuntime().context).not.toBe(first);
+
+    const stableList = [1, 2];
+    await rerender({ data: { list: stableList } as any });
+    const afterStable = getRuntime().context;
+    await rerender({ data: { list: stableList } as any });
+    expect(getRuntime().context).toBe(afterStable);
+  });
 });

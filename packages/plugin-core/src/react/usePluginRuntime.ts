@@ -36,6 +36,20 @@ export interface PluginRuntime<TProps = any, TData = any> {
   orderedPlugins: Plugin<TProps, TData>[];
 }
 
+/** 浅比较：props / data 内容不变时保持上一次的对象引用，避免 context 每次渲染都重建 */
+function shallowEqual(a: unknown, b: unknown): boolean {
+  if (Object.is(a, b)) return true;
+  if (typeof a !== "object" || typeof b !== "object" || a === null || b === null) {
+    return false;
+  }
+  const keysA = Object.keys(a as object);
+  const keysB = Object.keys(b as object);
+  if (keysA.length !== keysB.length) return false;
+  return keysA.every((key) =>
+    Object.is((a as Record<string, unknown>)[key], (b as Record<string, unknown>)[key])
+  );
+}
+
 export interface UsePluginRuntimeOptions<TProps = any, TData = any> {
   plugins: Plugin<TProps, TData>[];
   props: TProps;
@@ -135,10 +149,20 @@ export function usePluginRuntime<TProps = any, TData = any>(
 
   const contextRef = useRef<PluginContext<TProps, TData> | null>(null);
 
+  // props / data 只做浅比较：父组件每次渲染都新建同内容对象时，
+  // context 不应该跟着重建，否则所有插槽与 memo 子组件都会全量重渲染。
+  const stablePropsRef = useRef(props);
+  if (!shallowEqual(stablePropsRef.current, props)) stablePropsRef.current = props;
+  const stableProps = stablePropsRef.current;
+
+  const stableDataRef = useRef(data);
+  if (!shallowEqual(stableDataRef.current, data)) stableDataRef.current = data;
+  const stableData = stableDataRef.current;
+
   const context = useMemo<PluginContext<TProps, TData>>(() => {
     const ctx: PluginContext<TProps, TData> = {
-      props,
-      data,
+      props: stableProps,
+      data: stableData,
       bus,
       refs: { container: containerRef, getContainer: () => containerRef.current },
       state,
@@ -154,7 +178,7 @@ export function usePluginRuntime<TProps = any, TData = any>(
     };
     return extendContext ? extendContext(ctx) : ctx;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props, data, state, deviceInfo, bus, extendContext]);
+  }, [stableProps, stableData, state, deviceInfo, bus, extendContext]);
 
   contextRef.current = context;
 
