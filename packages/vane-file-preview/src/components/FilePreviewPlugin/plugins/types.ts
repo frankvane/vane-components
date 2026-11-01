@@ -75,6 +75,13 @@ export interface PreviewStateInfo {
   state: PreviewState;
   error?: Error;
   message?: string;
+  /**
+   * 解析进度（可选）。
+   *
+   * 之前 `PreviewProgress` 只被导出、全库没有任何读写点，是死契约（P2-2）。
+   * 现在插件可以通过 `reportState({ progress })` 上报，Core 的 loading 覆盖层会消费它。
+   */
+  progress?: PreviewProgress;
 }
 
 /** 插件上报状态用的补丁：Core 是唯一真源，插件只允许「上报我这一步的结果」 */

@@ -24,9 +24,10 @@
  * `file.size` 为 0（调用方没给）时放行 —— 拦不住也比误拦强。
  */
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 import {
+  copyToClipboard,
   triggerDownload,
 } from "../../components/FilePreviewPlugin/shared/fileHelpers";
 import {
@@ -158,6 +159,17 @@ function JsonBody({
   const systemScheme = useSystemScheme();
   const [state, setState] = useState<JsonState>({ status: "loading" });
   const [term, setTerm] = useState("");
+  // 复制路径的反馈。原来直接 `navigator.clipboard?.writeText`，
+  // 在 http 内网页面里 clipboard 是 undefined，点了完全没反应（P2-6）。
+  const [copiedPath, setCopiedPath] = useState<string | null>(null);
+  const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (copyTimer.current !== null) clearTimeout(copyTimer.current);
+    },
+    []
+  );
 
   const resolvedTheme: "light" | "dark" =
     config.theme === "auto" ? systemScheme : config.theme;
@@ -365,7 +377,16 @@ function JsonBody({
                 <button
                   type="button"
                   onClick={() => {
-                    void navigator.clipboard?.writeText(hit.path);
+                    void copyToClipboard(hit.path).then((ok) => {
+                      setCopiedPath(ok ? hit.path : null);
+                      if (copyTimer.current !== null) {
+                        clearTimeout(copyTimer.current);
+                      }
+                      copyTimer.current = setTimeout(() => {
+                        copyTimer.current = null;
+                        setCopiedPath(null);
+                      }, 2000);
+                    });
                   }}
                   style={{
                     marginLeft: "auto",
@@ -379,7 +400,7 @@ function JsonBody({
                     flexShrink: 0,
                   }}
                 >
-                  复制路径
+                  {copiedPath === hit.path ? "已复制" : "复制路径"}
                 </button>
               )}
             </div>

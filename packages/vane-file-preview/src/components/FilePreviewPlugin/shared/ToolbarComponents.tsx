@@ -56,20 +56,20 @@ export const toolbarStyles = {
 
   buttonHover: {
     background: "#f6f8fa",
-    borderColor: "#d0d7de",
+    border: "1px solid #d0d7de",
   } as React.CSSProperties,
 
   buttonActive: {
     background: "#0969da",
     color: "#fff",
-    borderColor: "#0969da",
+    border: "1px solid #0969da",
   } as React.CSSProperties,
 
   buttonDisabled: {
     background: "#f6f8fa",
     color: "#8c959f",
     cursor: "not-allowed",
-    borderColor: "#d0d7de",
+    border: "1px solid #d0d7de",
   } as React.CSSProperties,
 
   iconButton: {
@@ -99,7 +99,8 @@ export const toolbarStyles = {
 
 export interface ToolbarButtonProps {
   onClick: () => void;
-  children: React.ReactNode;
+  /** 文字标签可省略（纯图标按钮）；省略时需给 title 作为可访问名称 */
+  children?: React.ReactNode;
   disabled?: boolean;
   active?: boolean;
   icon?: string;
@@ -116,13 +117,27 @@ export const ToolbarButton: React.FC<ToolbarButtonProps> = ({
   title,
   variant = "default",
 }) => {
+  /*
+   * hover 走 React state，而不是在事件里 `Object.assign(style)`。
+   * 直接写 DOM style 绕过了 React 的样式 diff：下一次重渲染会把内联样式改回去，
+   * 用户看到的 hover 会「闪一下又消失」；而且它也没法跟着 disabled/active 变化。
+   */
+  const [hovered, setHovered] = React.useState(false);
+
   const baseStyle =
     variant === "icon" ? toolbarStyles.iconButton : toolbarStyles.button;
   const style = {
     ...baseStyle,
-    ...(disabled ? toolbarStyles.buttonDisabled : {}),
+    ...(disabled
+      ? toolbarStyles.buttonDisabled
+      : hovered
+        ? toolbarStyles.buttonHover
+        : {}),
     ...(active ? toolbarStyles.buttonActive : {}),
   };
+
+  const label =
+    title ?? (typeof children === "string" ? children : undefined);
 
   return (
     <button
@@ -130,23 +145,19 @@ export const ToolbarButton: React.FC<ToolbarButtonProps> = ({
       onClick={onClick}
       disabled={disabled}
       title={title}
+      // 只有 title 时读屏器不会念（title 不是可靠的可访问名称）；图标按钮
+      // 尤其明显，里面只有一个 span。这里统一补 aria-label（P2-8）。
+      aria-label={label}
+      aria-hidden={!label && !children ? true : undefined}
       style={style}
-      onMouseEnter={(e) => {
-        if (!disabled && !active) {
-          Object.assign(
-            e.currentTarget.style,
-            baseStyle,
-            toolbarStyles.buttonHover
-          );
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (!disabled && !active) {
-          Object.assign(e.currentTarget.style, baseStyle);
-        }
-      }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
     >
-      {icon && <span style={{ fontSize: 14 }}>{icon}</span>}
+      {icon && (
+        <span aria-hidden="true" style={{ fontSize: 14 }}>
+          {icon}
+        </span>
+      )}
       {children}
     </button>
   );

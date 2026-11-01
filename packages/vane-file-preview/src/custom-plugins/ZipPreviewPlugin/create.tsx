@@ -50,6 +50,12 @@ export interface ZipPreviewPluginConfig {
   showFileSize?: boolean;
   /** 最多列出多少项，超出只提示总数。默认 200 */
   maxFiles?: number;
+  /**
+   * 超过这个字节数直接拒绝解析。默认 50MB。
+   * 压缩包要整份读进内存再解中央目录，超大文件必须在 fetch 之前拦（P1-4）。
+   * 设为 0 表示不限制。
+   */
+  maxFileSize?: number;
 }
 
 interface ZipEntry {
@@ -100,6 +106,16 @@ function ZipBody({
 
     (async () => {
       try {
+        if (config.maxFileSize > 0 && file.size > config.maxFileSize) {
+          throw new Error(
+            `文件 ${(file.size / 1024 / 1024).toFixed(1)}MB，超过压缩包解析上限 ${(
+              config.maxFileSize /
+              1024 /
+              1024
+            ).toFixed(1)}MB`
+          );
+        }
+
         const res = await fetch(file.url);
         if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
         const buf = await res.arrayBuffer();
@@ -134,7 +150,7 @@ function ZipBody({
     return () => {
       alive = false;
     };
-  }, [file.url, jszipModule]);
+  }, [file.url, file.size, jszipModule, config.maxFileSize]);
 
   if (jszipModule.status === "unavailable") {
     return (
@@ -269,6 +285,7 @@ export function createZipPreviewPlugin(
   const resolved: Required<ZipPreviewPluginConfig> = {
     showFileSize: config.showFileSize ?? true,
     maxFiles: config.maxFiles ?? 200,
+    maxFileSize: config.maxFileSize ?? 50 * 1024 * 1024,
   };
 
   return {

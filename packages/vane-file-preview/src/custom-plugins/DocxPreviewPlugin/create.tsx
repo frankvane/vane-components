@@ -108,21 +108,26 @@ function DocxPreviewBody({
     if (docxModule.status !== "ready") return;
 
     let alive = true;
+    // 换文件 / 卸载时真的取消请求，而不是只在回调里比对 alive
+    const controller = new AbortController();
     setState({ status: "loading" });
 
     (async () => {
       try {
-        const res = await fetch(file.url);
+        const res = await fetch(file.url, { signal: controller.signal });
         if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
         const arrayBuffer = await res.arrayBuffer();
-
-        const host = hostRef.current;
-        if (!host) return;
-        // 换文件时先清空，否则旧文档会叠在新文档上面
-        host.innerHTML = "";
+        // fetch 完成时可能已经切走了：先在渲染前拦一次（P1-2）
+        if (!alive) return;
 
         const docx = defaultOf<DocxPreviewModule>(docxModule.mod);
-        await docx.renderAsync(arrayBuffer, host, null, {
+        /*
+         * 先画到游离容器。renderAsync 是长操作，直接往 hostRef 里写的话，
+         * 中途切文件会留下「做了一半的旧文档」，而且 clear 发生在 fetch 之后、
+         * 旧文档在被清空前一直是可见的。
+         */
+        const staging = document.createElement("div");
+        await docx.renderAsync(arrayBuffer, staging, null, {
           className: "vfp-docx",
           inWrapper: true,
           breakPages: config.breakPages,
@@ -130,10 +135,15 @@ function DocxPreviewBody({
           renderFooters: config.renderHeaders,
         });
 
+        // 渲染完再检查一次：renderAsync 本身也可能跑了几百毫秒
         if (!alive) return;
+        const host = hostRef.current;
+        if (!host) return;
+        host.replaceChildren(...Array.from(staging.childNodes));
         setState({ status: "ready" });
       } catch (err) {
-        if (!alive) return;
+        // abort 不是错误，别把「用户切走了」显示成渲染失败
+        if (!alive || controller.signal.aborted) return;
         setState({
           status: "error",
           error: err instanceof Error ? err.message : "DOCX 渲染失败",
@@ -143,6 +153,7 @@ function DocxPreviewBody({
 
     return () => {
       alive = false;
+      controller.abort();
     };
   }, [file.url, docxModule, config.breakPages, config.renderHeaders]);
 

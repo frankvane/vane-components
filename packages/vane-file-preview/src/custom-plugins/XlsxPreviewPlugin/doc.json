@@ -21,6 +21,12 @@
       "type": "number",
       "default": "50",
       "description": "最多渲染多少列"
+    },
+    {
+      "name": "maxFileSize",
+      "type": "number",
+      "default": "20971520",
+      "description": "超过这个字节数直接拒绝读取（fetch 之前按 file.size 拦截）：SheetJS 解析会把整个工作簿放进内存。0 表示不限制"
     }
   ],
   "example": "import { createXlsxPreviewPlugin } from \"vane-file-preview/custom-plugins/XlsxPreviewPlugin\";\n\nconst plugins = [createXlsxPreviewPlugin({ maxRows: 500, maxCols: 30 })];\n// 别忘了装依赖：npm i xlsx",

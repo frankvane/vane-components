@@ -15,6 +15,12 @@
       "type": "number",
       "default": "200",
       "description": "最多列出多少项，超出只提示总数（一个 5000 文件的包铺 5000 个节点会卡）"
+    },
+    {
+      "name": "maxFileSize",
+      "type": "number",
+      "default": "52428800",
+      "description": "超过这个字节数直接拒绝读取（fetch 之前按 file.size 拦截）：jszip 解包需要把整个压缩包读进内存。0 表示不限制"
     }
   ],
   "example": "import { createZipPreviewPlugin } from \"vane-file-preview/custom-plugins/ZipPreviewPlugin\";\n\nconst plugins = [createZipPreviewPlugin({ maxFiles: 100 })];\n// 别忘了装依赖：npm i jszip",

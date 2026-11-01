@@ -46,7 +46,9 @@ describe("Core 加载状态机", () => {
 
     expect(onBeforeLoad).toHaveBeenCalledTimes(1);
     expect(onLoadSuccess).not.toHaveBeenCalled();
-    expect(h.ref.current?.getState().state).toBe("idle");
+    // P2-1：拦截 = 这个文件没有可用的渲染器，落到 unsupported（而不是 idle）。
+    // 仍然只跑一次，没有回到「置 idle → effect 重跑」的旧循环。
+    expect(h.ref.current?.getState().state).toBe("unsupported");
     h.unmount();
   });
 

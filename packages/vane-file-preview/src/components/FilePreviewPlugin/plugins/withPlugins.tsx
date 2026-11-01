@@ -118,6 +118,17 @@ export function withPlugins(
       [plugins, file]
     );
 
+    /**
+     * 文件身份键：sharedData 的生命周期是整个组件实例（内核的 Map），
+     * 不按文件复位就会「在 A 里缩放到 300%，切到 B 还是 300%」、
+     * 「给 a.ts 选了 TypeScript，打开 b.py 仍显示 TypeScript」（P1-3）。
+     *
+     * 这里在**渲染期**比对并清空（而不是 useEffect）：插件正文/工具栏是在同一棵
+     * 子树里立刻读取 sharedData 的，放到 effect 里会先渲染一帧旧值。
+     * 同时给正文/工具栏加 key，让插件组件的本地 state（CSV 排序、列宽）一起复位。
+     */
+    const fileKey = `${file.url}|${file.name}`;
+
     // 领域插件 → 内核插件。
     // 结构上完全兼容（name / hooks / config / priority / enabled / dependencies），
     // 只是 hooks 的 context 是领域 context：内核 executeHook 拿到的就是 extendContext
@@ -141,7 +152,8 @@ export function withPlugins(
           props,
           file,
           state: stateRef.current,
-          reportState: (patch) => coreRef.current?.reportState(patch),
+          reportState: (patch) =>
+            coreRef.current?.reportState(patch, file.url),
           containerRef,
           contentRef,
           sharedData: (base.shared as Map<string, unknown>) ?? new Map(),
@@ -177,6 +189,13 @@ export function withPlugins(
     });
 
     const ctx = runtime.context as unknown as FilePreviewPluginContext;
+
+    // 换文件 → 清空跨插件表。渲染期做，插件同一轮就读到干净的值（见 fileKey 注释）。
+    const fileKeyRef = useRef(fileKey);
+    if (fileKeyRef.current !== fileKey) {
+      fileKeyRef.current = fileKey;
+      ctx.sharedData?.clear();
+    }
 
     const execute = useCallback(
       (hookName: string, ...args: unknown[]) =>
@@ -244,7 +263,9 @@ export function withPlugins(
         setState((prev) =>
           prev.state === info.state &&
           prev.message === info.message &&
-          prev.error === info.error
+          prev.error === info.error &&
+          prev.progress?.percent === info.progress?.percent &&
+          prev.progress?.indeterminate === info.progress?.indeterminate
             ? prev
             : info
         );
@@ -265,6 +286,7 @@ export function withPlugins(
             >
               {winner.hooks.renderToolbar && (
                 <div
+                  key={`${fileKey}:toolbar`}
                   data-vfp-toolbar
                   style={{
                     display: "flex",
@@ -281,6 +303,7 @@ export function withPlugins(
                 </div>
               )}
               <div
+                key={`${fileKey}:body`}
                 data-vfp-body
                 style={{
                   flex: 1,

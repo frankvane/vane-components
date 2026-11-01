@@ -27,6 +27,12 @@
       "type": "boolean",
       "default": "true",
       "description": "页脚显示「导出当前结果」（导出的是过滤 + 排序后的内容，与所见一致）"
+    },
+    {
+      "name": "maxFileSize",
+      "type": "number",
+      "default": "20971520",
+      "description": "超过这个字节数直接拒绝读取（fetch 之前按 file.size 拦截），避免整表进内存。0 表示不限制"
     }
   ],
   "example": "import { createCsvPreviewPlugin } from \"vane-file-preview/custom-plugins/CsvPreviewPlugin\";\n\nconst plugins = [createCsvPreviewPlugin({ pageSize: 100, maxPreviewRows: 5000 })];\n// 别忘了装依赖：npm i papaparse",

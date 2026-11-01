@@ -15,6 +15,7 @@ import type {
 } from "../plugins/types";
 import { ErrorPanel } from "../shared/panels";
 import { triggerDownload } from "../shared/fileHelpers";
+import { ProgressIndicator } from "../shared/ToolbarComponents";
 import React, {
   forwardRef,
   useCallback,
@@ -81,7 +82,14 @@ export interface FilePreviewCoreRef {
   reset: () => void;
   getState: () => PreviewStateInfo;
   /** 插件上报自己的加载结果。Core 是唯一真源，插件不许自己 setState */
-  reportState: (patch: PreviewStatePatch) => void;
+  reportState: (
+    patch: PreviewStatePatch,
+    /**
+     * 这条上报属于哪个文件的 URL。插件切换文件后旧异步任务仍可能回调，
+     * 传入该文件 URL 可以让 Core 丢弃过期上报；不传则视为当前文件。
+     */
+    sourceUrl?: string
+  ) => void;
 }
 
 export const FilePreviewCore = forwardRef<
@@ -111,6 +119,18 @@ export const FilePreviewCore = forwardRef<
    */
   const [state, setState] = useState<PreviewStateInfo>({ state: "idle" });
   const stateRef = useRef<PreviewStateInfo>({ state: "idle" });
+
+  /**
+   * 加载令牌：每次 runLoad / effect cleanup 都递增。
+   *
+   * 没有它时，「文件 A 的 onBeforeLoad 还没 resolve，用户已经切到文件 B」会出现
+   * A 的 Promise 把 B 的状态改成 loaded / error —— 插件侧的旧异步任务同理。
+   * 每个 await 之后与最新令牌比对，过期就静默丢弃。
+   */
+  const loadTokenRef = useRef(0);
+  /** reportState 的归属校验用：旧插件闭包里拿的是旧 file.url */
+  const fileUrlRef = useRef(props.file.url);
+  fileUrlRef.current = props.file.url;
 
   // 回调一律走 latest-ref：它们的身份每次渲染都变（内联箭头函数），
   // 若写进 useCallback 依赖，runLoad 就会不稳定，effect 又会跟着重跑。
@@ -147,14 +167,21 @@ export const FilePreviewCore = forwardRef<
       const cur = stateRef.current.state;
       if (!opts?.force && (cur === "loading" || cur === "loaded")) return;
 
+      const token = ++loadTokenRef.current;
+      const isCurrent = () => token === loadTokenRef.current;
+
       commit({ state: "loading" });
       callbacksRef.current.onLoadStart?.();
 
       try {
         const canLoad = await Promise.resolve(callbacksRef.current.onBeforeLoad?.());
+        // 旧文件的加载结果不许覆盖新文件（P1-1 的核心）
+        if (!isCurrent()) return;
+
         if (canLoad === false) {
-          // 直接返回，不排队重试。要重试得调用方自己调 reload()。
-          commit({ state: "idle" });
+          // 无人认领 / 调用方主动拦截：落 unsupported，而不是 idle ——
+          // 类型里本来就是这么声明的，UI 侧也有对应面板（P2-1）。
+          commit({ state: "unsupported" });
           return;
         }
 
@@ -163,6 +190,7 @@ export const FilePreviewCore = forwardRef<
         commit({ state: "loaded" });
         callbacksRef.current.onLoadSuccess?.();
       } catch (error) {
+        if (!isCurrent()) return;
         const err = error instanceof Error ? error : new Error(String(error));
         commit({ state: "error", error: err, message: err.message });
         callbacksRef.current.onLoadError?.(err);
@@ -180,6 +208,10 @@ export const FilePreviewCore = forwardRef<
    */
   useEffect(() => {
     void runLoad({ force: true });
+    // cleanup 让「切文件前的那个请求」立刻失效：即使它晚到，也不能再写状态
+    return () => {
+      loadTokenRef.current += 1;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- 见上方注释：只跟文件标识
   }, [file.url]);
 
@@ -193,7 +225,9 @@ export const FilePreviewCore = forwardRef<
   }, [commit]);
 
   const reportState = useCallback(
-    (patch: PreviewStatePatch) => {
+    (patch: PreviewStatePatch, sourceUrl?: string) => {
+      // 旧文件的插件实例还在跑异步任务时会上报；不拦就会把新文件的状态改坏。
+      if (sourceUrl !== undefined && sourceUrl !== fileUrlRef.current) return;
       commit({ ...stateRef.current, ...patch });
     },
     [commit]
@@ -264,7 +298,19 @@ export const FilePreviewCore = forwardRef<
             zIndex: 2,
           }}
         >
-          <span style={{ color: "#999", fontSize: 14 }}>加载中…</span>
+          {/*
+            PreviewProgress 曾经是死契约（只在类型里出现、没人读）。
+            现在插件可以通过 reportState({ progress }) 上报，这里直接消费 ——
+            大文件解析时至少能看到百分比，而不是只有一个「加载中…」。
+          */}
+          {state.progress ? (
+            <ProgressIndicator
+              progress={state.progress.percent}
+              status={state.progress.indeterminate ? "处理中…" : "加载中…"}
+            />
+          ) : (
+            <span style={{ color: "#999", fontSize: 14 }}>加载中…</span>
+          )}
         </div>
       )}
 

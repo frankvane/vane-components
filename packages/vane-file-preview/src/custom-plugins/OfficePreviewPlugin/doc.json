@@ -28,6 +28,18 @@
       "type": "boolean",
       "default": "false",
       "description": "true 时 docx 优先级提到 9，压过本地解析插件（8）；xlsx/pptx 不受影响"
+    },
+    {
+      "name": "iframeSandbox",
+      "type": "string",
+      "default": "\"allow-scripts allow-same-origin allow-popups allow-forms\"",
+      "description": "查看器 iframe 的 sandbox 策略。查看器是第三方跨源页面，allow-same-origin 只作用于它自己的源，不等同于放开宿主源；要收紧可删掉 allow-scripts"
+    },
+    {
+      "name": "iframeReferrerPolicy",
+      "type": "\"no-referrer\" | ...",
+      "default": "\"no-referrer\"",
+      "description": "查看器 iframe 的 referrerPolicy，默认不把宿主页面地址带给查看器"
     }
   ],
   "example": "import { createOfficePreviewPlugin } from \"vane-file-preview/custom-plugins/OfficePreviewPlugin\";\n\nconst plugins = [\n  // 文件已放在公网 CDN 时，在线预览省掉 mammoth / docx-preview 的体积\n  createOfficePreviewPlugin({ viewer: \"auto\", preferDocxOnline: true }),\n];",
@@ -36,7 +48,8 @@
     "auto 模式提供「换查看器」按钮，手动在微软与 Google 之间切换",
     "preferDocxOnline 只提升 docx 的优先级，不会抢走 XlsxPreviewPlugin / PptxPreviewPlugin 的活",
     "说明面板只显示主机名，不把整条 URL（可能带签名 token）打到界面上",
-    "无法在线预览时（blob:/data:/localhost/内网）给出说明面板 + 「下载后用本地应用打开」按钮"
+    "无法在线预览时（blob:/data:/localhost/内网）给出说明面板 + 「下载后用本地应用打开」按钮",
+    "查看器 iframe 带 sandbox 与 referrerPolicy=\"no-referrer\"；默认策略允许查看器自身运行（第三方跨源，allow-same-origin 不会让文件内容继承宿主源）"
   ],
   "useCases": [
     "企业网盘里的 Office 附件",
@@ -47,6 +60,7 @@
     "它的原理是「查看器的服务器去拉你的 URL」，所以本地开发（localhost）与内网地址一律不可用，这不是 bug。",
     "iframe 的 onError 对跨域加载失败**不会触发**，无法自动探测「查看器挂了」并降级；迁移前那段自动切 Google 的逻辑实际是死代码，现在改成手动按钮。",
     "微软查看器对单文件大小有上限（约 100MB 量级），超大文档会被它自己拒绝，插件这边拿不到原因。",
-    "文件必须允许匿名访问；带鉴权的 URL 需要临时签名或公开读权限。"
+    "文件必须允许匿名访问；带鉴权的 URL 需要临时签名或公开读权限。",
+    "权衡：删掉 allow-scripts 会让部分在线查看器无法工作（它们依赖前端渲染）；默认保留，因为内容在查看器自己的源里执行，拿不到宿主源。若只预览自家可信文件，可把 iframeSandbox 收窄到 \"allow-same-origin allow-popups allow-forms\"。"
   ]
 }

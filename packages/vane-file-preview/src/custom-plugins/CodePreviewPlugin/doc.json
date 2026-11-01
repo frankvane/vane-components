@@ -51,6 +51,12 @@
       "type": "number",
       "default": "2097152",
       "description": "超过这个大小时不做高亮、退化成纯文本（prism 是同步 CPU 活，2MB 压缩代码能卡住主线程好几秒）。0 表示不限制"
+    },
+    {
+      "name": "maxFileSize",
+      "type": "number",
+      "default": "20971520",
+      "description": "超过这个字节数直接拒绝读取（fetch 之前按 file.size 拦截）。maxBytes 只是「不亮但仍显示」，这一项是读也读不完的硬闸门。0 表示不限制"
     }
   ],
   "example": "import { createCodePreviewPlugin } from \"vane-file-preview/custom-plugins/CodePreviewPlugin\";\n\nconst plugins = [\n  createCodePreviewPlugin({ theme: \"auto\", wrapLongLines: false, maxBytes: 1024 * 1024 }),\n];\n// 别忘了装依赖：npm i react-syntax-highlighter",

@@ -60,6 +60,17 @@ export interface OfficePreviewPluginConfig {
    * 默认 false —— 本地解析（docx-preview / mammoth）不依赖公网，更可靠。
    */
   preferDocxOnline?: boolean;
+  /**
+   * iframe 的 sandbox 策略。默认 `"allow-scripts allow-same-origin allow-popups allow-forms"`。
+   *
+   * 这里允许 `allow-same-origin` 是安全的：目标是固定的第三方查看器域名
+   * （view.officeapps.live.com / docs.google.com），与宿主**不同源**，
+   * `allow-same-origin` 只还原查看器自身 origin，不会让脚本回到宿主源。
+   * 反过来说，如果把 `src` 换成同源地址就**必须**去掉这一项 —— 本插件不允许那样配。
+   */
+  iframeSandbox?: string;
+  /** iframe 的 referrerPolicy。默认 `"no-referrer"` */
+  iframeReferrerPolicy?: React.HTMLAttributeReferrerPolicy;
 }
 
 type ResolvedConfig = Required<OfficePreviewPluginConfig>;
@@ -206,6 +217,8 @@ function OfficeBody({
       <iframe
         src={buildViewerUrl(file.url, effective)}
         title={`${file.name} 预览`}
+        sandbox={config.iframeSandbox}
+        referrerPolicy={config.iframeReferrerPolicy}
         style={{ width: "100%", height: "100%", border: "none", display: "block" }}
       />
       {config.viewer === "auto" && (
@@ -275,6 +288,11 @@ function OfficeToolbar({
 
 // ============ 工厂 ============
 
+const DEFAULT_IFRAME_SANDBOX =
+  "allow-scripts allow-same-origin allow-popups allow-forms";
+const DEFAULT_IFRAME_REFERRER_POLICY: React.HTMLAttributeReferrerPolicy =
+  "no-referrer";
+
 export function createOfficePreviewPlugin(
   config: OfficePreviewPluginConfig = {}
 ): FilePreviewPlugin {
@@ -282,6 +300,9 @@ export function createOfficePreviewPlugin(
     viewer: config.viewer ?? "auto",
     showToolbar: config.showToolbar ?? true,
     preferDocxOnline: config.preferDocxOnline ?? false,
+    iframeSandbox: config.iframeSandbox ?? DEFAULT_IFRAME_SANDBOX,
+    iframeReferrerPolicy:
+      config.iframeReferrerPolicy ?? DEFAULT_IFRAME_REFERRER_POLICY,
   };
 
   return {

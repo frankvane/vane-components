@@ -108,15 +108,16 @@ describe("装配器 · 单赢家", () => {
     h.unmount();
   });
 
-  it("没有插件认领 → unsupported 面板，且 Core 停在 idle", async () => {
+  it("没有插件认领 → unsupported 面板，且 Core 落在 unsupported", async () => {
     const h = renderPreview([
       plugin("Pdf", {}, { supportedTypes: ["application/pdf"] }),
     ]);
     await flush();
 
     expect(h.container.querySelector("[data-vfp-unsupported]")).toBeTruthy();
-    // 关键：不是先 loading→loaded 再报错，而是根本不进加载流程
-    expect(h.ref.current?.getState().state).toBe("idle");
+    // P2-1：类型里一直声明了 `unsupported`，但 Core 之前只会落 idle，
+    // 宿主拿到 getState() 永远读不到「没人认领」这个事实。现在真的提交它。
+    expect(h.ref.current?.getState().state).toBe("unsupported");
     h.unmount();
   });
 });

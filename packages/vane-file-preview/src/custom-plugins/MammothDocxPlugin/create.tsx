@@ -41,6 +41,7 @@ import {
   ToolbarContainer,
   ToolbarSeparator,
 } from "../../components/FilePreviewPlugin/shared/ToolbarComponents";
+import { sanitizeHtml } from "../../components/FilePreviewPlugin/shared/sanitizeHtml";
 import {
   defaultOf,
   useDynamicModule,
@@ -118,7 +119,8 @@ function MammothBody({
         if (!alive) return;
         setState({
           status: "ready",
-          html: result.value || "",
+          // mammoth 的产物是文件内容，不能默认它已转义；入库前先过白名单（P1-5）
+          html: sanitizeHtml(result.value || ""),
           messages: (result.messages ?? []).map((m) =>
             typeof m === "string" ? m : String(m.message ?? m.value ?? "")
           ),

@@ -28,9 +28,10 @@
  * 却可能改坏数据。要格式化请用 `enableFormat` 之外的方案（比如装 prettier 插件）。
  */
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 import {
+  copyToClipboard,
   triggerDownload,
 } from "../../components/FilePreviewPlugin/shared/fileHelpers";
 import {
@@ -146,6 +147,17 @@ function XmlBody({
   const systemScheme = useSystemScheme();
   const [state, setState] = useState<XmlState>({ status: "loading" });
   const [term, setTerm] = useState("");
+  // 原来直接 `navigator.clipboard?.writeText`：http 内网页面里 clipboard 是
+  // undefined，按钮点了没反应也没有提示（P2-6）。
+  const [copied, setCopied] = useState(false);
+  const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (copyTimer.current !== null) clearTimeout(copyTimer.current);
+    },
+    []
+  );
 
   const dark =
     config.theme === "auto" ? systemScheme === "dark" : config.theme === "dark";
@@ -268,7 +280,14 @@ function XmlBody({
           <button
             type="button"
             onClick={() => {
-              void navigator.clipboard?.writeText(state.xml);
+              void copyToClipboard(state.xml).then((ok) => {
+                setCopied(ok);
+                if (copyTimer.current !== null) clearTimeout(copyTimer.current);
+                copyTimer.current = setTimeout(() => {
+                  copyTimer.current = null;
+                  setCopied(false);
+                }, 2000);
+              });
             }}
             style={{
               padding: "5px 12px",
@@ -280,7 +299,7 @@ function XmlBody({
               cursor: "pointer",
             }}
           >
-            📋 复制全文
+            {copied ? "✓ 已复制" : "📋 复制全文"}
           </button>
         )}
       </div>

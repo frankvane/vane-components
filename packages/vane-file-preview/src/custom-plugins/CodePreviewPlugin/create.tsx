@@ -27,7 +27,7 @@
  * （纯文本，零高亮零卡顿），并在顶部说明原因 —— 而不是让用户以为组件挂了。
  */
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 import {
   copyToClipboard,
@@ -93,6 +93,12 @@ export interface CodePreviewPluginConfig {
    * 设为 0 表示不限制（不建议：prism 是同步 CPU 活）。
    */
   maxBytes?: number;
+  /**
+   * 超过这个字节数直接拒绝读取。默认 20MB。
+   * `maxBytes` 只是「不亮但还显示」，这一项是硬闸门：读也读不完的大文件
+   * 不该进内存再截断。设为 0 表示不限制。
+   */
+  maxFileSize?: number;
 }
 
 type ResolvedConfig = Required<CodePreviewPluginConfig>;
@@ -205,6 +211,18 @@ function CodeBody({
 
     (async () => {
       try {
+        // fetch 之前按字节拦（P1-4）：这里原本没有任何门控，
+        // 一个 500MB 的日志会被整份读进内存再交给 prism。
+        if (config.maxFileSize > 0 && file.size > config.maxFileSize) {
+          throw new Error(
+            `文件 ${(file.size / 1024 / 1024).toFixed(1)}MB，超过读取上限 ${(
+              config.maxFileSize /
+              1024 /
+              1024
+            ).toFixed(1)}MB`
+          );
+        }
+
         const res = await fetch(file.url);
         if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
         const text = await res.text();
@@ -222,7 +240,7 @@ function CodeBody({
     return () => {
       alive = false;
     };
-  }, [file.url]);
+  }, [file.url, file.size, config.maxFileSize]);
 
   if (deps.status === "unavailable") {
     return (
@@ -246,7 +264,10 @@ function CodeBody({
   const resolved = resolveTheme(prefs.theme);
   const isDark = resolved === "dark";
   const lineCount = code.text ? code.text.split("\n").length : 0;
-  const tooLarge = config.maxBytes > 0 && code.text.length > config.maxBytes;
+  // 用字节而不是字符数判断：中文 / emoji 一个字符占 1~4 字节，
+  // `text.length` 会把 2MB 的 UTF-8 文件算成只有几百 KB，于是照样交给 prism（P1-4）
+  const byteSize = file.size > 0 ? file.size : code.text.length;
+  const tooLarge = config.maxBytes > 0 && byteSize > config.maxBytes;
 
   return (
     <div
@@ -304,7 +325,7 @@ function CodeBody({
               fontFamily: "inherit",
             }}
           >
-            文件 {formatBytes(code.text.length)}，超过高亮上限{" "}
+            文件 {formatBytes(byteSize)}，超过高亮上限{" "}
             {formatBytes(config.maxBytes)} —— 已退化成纯文本（高亮是同步 CPU 活，
             大文件会卡住页面）。
           </div>
@@ -350,6 +371,19 @@ function CodeToolbar({
 }) {
   const prefs = useCodePreferences(context, config);
   const [copied, setCopied] = useState<"idle" | "ok" | "fail">("idle");
+  /*
+   * 复制反馈的定时器必须能清：原来的 `setTimeout` 没有任何句柄，
+   * 组件卸载后仍会 setState（React 会警告），快速连点时旧定时器还会
+   * 把后一次「已复制」提前打回 idle（P2-3）。
+   */
+  const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (resetTimer.current !== null) clearTimeout(resetTimer.current);
+    },
+    []
+  );
 
   const handleCopy = async () => {
     // 工具栏拿不到正文的 text（正文是另一个组件），复制时再取一次。
@@ -363,7 +397,11 @@ function CodeToolbar({
     } catch {
       setCopied("fail");
     }
-    setTimeout(() => setCopied("idle"), 2000);
+    if (resetTimer.current !== null) clearTimeout(resetTimer.current);
+    resetTimer.current = setTimeout(() => {
+      resetTimer.current = null;
+      setCopied("idle");
+    }, 2000);
   };
 
   return (
@@ -477,6 +515,7 @@ export function createCodePreviewPlugin(
     theme: config.theme ?? "auto",
     storage: config.storage ?? true,
     maxBytes: config.maxBytes ?? 2 * 1024 * 1024,
+    maxFileSize: config.maxFileSize ?? 20 * 1024 * 1024,
   };
 
   return {

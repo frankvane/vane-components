@@ -42,6 +42,7 @@ import {
   ToolbarContainer,
   ToolbarSeparator,
 } from "../../components/FilePreviewPlugin/shared/ToolbarComponents";
+import { sanitizeHtml } from "../../components/FilePreviewPlugin/shared/sanitizeHtml";
 import {
   defaultOf,
   useDynamicModule,
@@ -58,6 +59,12 @@ export interface XlsxPreviewPluginConfig {
   maxRows?: number;
   /** 最多渲染多少列。默认 50 */
   maxCols?: number;
+  /**
+   * 超过这个字节数直接拒绝解析。默认 20MB。
+   * SheetJS 是全量内存解析，大文件会把标签页卡死；必须在 fetch 之前拦。
+   * 设为 0 表示不限制（不建议）。
+   */
+  maxFileSize?: number;
 }
 
 /** sharedData 的键：正文与工具栏共用，避免两边各存一份状态 */
@@ -117,6 +124,17 @@ function XlsxBody({
 
     (async () => {
       try {
+        // 先按 size 拦：SheetJS 解析不可中断，等读完再判断已经晚了（P1-4）
+        if (config.maxFileSize > 0 && file.size > config.maxFileSize) {
+          throw new Error(
+            `文件 ${(file.size / 1024 / 1024).toFixed(1)}MB，超过表格解析上限 ${(
+              config.maxFileSize /
+              1024 /
+              1024
+            ).toFixed(1)}MB`
+          );
+        }
+
         const res = await fetch(file.url);
         if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
         const buf = await res.arrayBuffer();
@@ -184,7 +202,8 @@ function XlsxBody({
       footer: "",
     });
 
-    return { html, truncated, rows: 0, cols: 0 };
+    // SheetJS 的 sheet_to_html 直接拼字符串，单元格内容来自文件；过白名单再进 DOM（P1-5）
+    return { html: sanitizeHtml(html), truncated, rows: 0, cols: 0 };
   }, [state, activeSheet, xlsxModule, config.maxRows, config.maxCols]);
 
   if (xlsxModule.status === "unavailable") {
@@ -316,6 +335,7 @@ export function createXlsxPreviewPlugin(
     defaultSheetIndex: config.defaultSheetIndex ?? 0,
     maxRows: config.maxRows ?? 200,
     maxCols: config.maxCols ?? 50,
+    maxFileSize: config.maxFileSize ?? 20 * 1024 * 1024,
   };
 
   return {

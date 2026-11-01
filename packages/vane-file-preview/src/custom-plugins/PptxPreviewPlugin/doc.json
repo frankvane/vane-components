@@ -9,6 +9,12 @@
       "type": "number",
       "default": "40",
       "description": "单页最多展示多少段，超出截断（防止一页塞了整个讲稿时把整块区域撑爆）"
+    },
+    {
+      "name": "maxFileSize",
+      "type": "number",
+      "default": "52428800",
+      "description": "超过这个字节数直接拒绝读取（fetch 之前按 file.size 拦截）：jszip 解包需要把整个文件读进内存。0 表示不限制"
     }
   ],
   "example": "import { createPptxPreviewPlugin } from \"vane-file-preview/custom-plugins/PptxPreviewPlugin\";\n\nconst plugins = [createPptxPreviewPlugin({ maxParagraphsPerSlide: 30 })];\n// 别忘了装依赖：npm i jszip",

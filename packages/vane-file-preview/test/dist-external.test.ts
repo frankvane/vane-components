@@ -17,7 +17,7 @@
  *
  * 1. 每个重依赖的 `import("x")` 必须原样出现在 dist 里 —— 说明它被当成外部模块了。
  * 2. dist 里不得出现各库的体积特征串（类名 / CSS 变量前缀 / 生成的 class）。
- * 3. **单文件 ≤ 60KB、全部 ≤ 220KB**。这条是兜底：不管将来换哪个库，
+ * 3. **单文件 ≤ 60KB、全部 ≤ 240KB**。这条是兜底：不管将来换哪个库，
  *    只要整库被内联，体积一定会跳一个数量级，签名没覆盖到的库也逃不掉。
  */
 
@@ -85,7 +85,13 @@ const FORBIDDEN_SIGNATURES = [
 ];
 
 const MAX_FILE_BYTES = 60 * 1024;
-const MAX_TOTAL_BYTES = 220 * 1024;
+/**
+ * 修正前是 220KB。P0-1 / P1 的安全与正确性修复（iframe sandbox、加载令牌、
+ * HTML 白名单清洗、体积门控、图片平移等）把自有代码推到约 231KB —— 仍远低于
+ * 「整库内联」的 MB 级（迁移前 985.97KB），所以把兜底上限调到 240KB，
+ * 而不是为了压回 220KB 去删功能。重依赖内联仍会立刻越过这条线。
+ */
+const MAX_TOTAL_BYTES = 240 * 1024;
 
 /**
  * 单文件上限对**桶入口**不适用：`custom-plugins/index.ts` 按定义就是
@@ -168,7 +174,7 @@ describe("dist 闸门 · 重依赖不得内联", () => {
     }
     expect(
       total,
-      `dist 全部 .js 合计 ${(total / 1024).toFixed(1)}KB（不含桶入口），超过 220KB 上限`
+      `dist 全部 .js 合计 ${(total / 1024).toFixed(1)}KB（不含桶入口），超过 240KB 上限`
     ).toBeLessThanOrEqual(MAX_TOTAL_BYTES);
   });
 });

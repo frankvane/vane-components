@@ -91,7 +91,13 @@ describe("Code · 渲染", { timeout: 15000 }, () => {
     const big = "x".repeat(500);
     stubFetch({ "blob:big": big });
     const h = renderPreview([createCodePreviewPlugin({ maxBytes: 100 })], {
-      file: file({ name: "big.js", type: "text/javascript", extension: "js", url: "blob:big" }),
+      file: file({
+        name: "big.js",
+        size: big.length,
+        type: "text/javascript",
+        extension: "js",
+        url: "blob:big",
+      }),
     });
 
     await waitFor(() => h.container.querySelector("[data-vfp-code-plain]") !== null);

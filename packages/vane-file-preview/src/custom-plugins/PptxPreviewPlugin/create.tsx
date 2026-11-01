@@ -52,6 +52,12 @@ import type {
 export interface PptxPreviewPluginConfig {
   /** 单页最多展示多少段，超出截断。默认 40 */
   maxParagraphsPerSlide?: number;
+  /**
+   * 超过这个字节数直接拒绝解析。默认 50MB。
+   * pptx 要整包解开并逐页解析 XML，超大文件必须在 fetch 之前拦（P1-4）。
+   * 设为 0 表示不限制。
+   */
+  maxFileSize?: number;
 }
 
 interface SlideData {
@@ -159,6 +165,16 @@ function PptxBody({
 
     (async () => {
       try {
+        if (config.maxFileSize > 0 && file.size > config.maxFileSize) {
+          throw new Error(
+            `文件 ${(file.size / 1024 / 1024).toFixed(1)}MB，超过 PPTX 解析上限 ${(
+              config.maxFileSize /
+              1024 /
+              1024
+            ).toFixed(1)}MB`
+          );
+        }
+
         const res = await fetch(file.url);
         if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
         const buf = await res.arrayBuffer();
@@ -203,7 +219,13 @@ function PptxBody({
     return () => {
       alive = false;
     };
-  }, [file.url, jszipModule, config.maxParagraphsPerSlide]);
+  }, [
+    file.url,
+    file.size,
+    jszipModule,
+    config.maxParagraphsPerSlide,
+    config.maxFileSize,
+  ]);
 
   const current = useMemo(
     () => (state.status === "ready" ? state.slides[active] : undefined),
@@ -388,6 +410,7 @@ export function createPptxPreviewPlugin(
 ): FilePreviewPlugin {
   const resolved: Required<PptxPreviewPluginConfig> = {
     maxParagraphsPerSlide: config.maxParagraphsPerSlide ?? 40,
+    maxFileSize: config.maxFileSize ?? 50 * 1024 * 1024,
   };
 
   return {

@@ -76,6 +76,58 @@ export function triggerDownload(url: string, filename: string): void {
  * 用户看到的是一个必然超时的空白框加一句话，而不是「这条路走不通」。
  * 现在提到渲染前判断，命中就直接给说明面板。
  */
+/** 私有 / 保留 IPv4 段：10/8、172.16-31/12、192.168/16、169.254/16、127/8、0/8 */
+function isPrivateIpv4(host: string): boolean {
+  const ipv4 = host.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (!ipv4) return false;
+  const [a, b] = [Number(ipv4[1]), Number(ipv4[2])];
+  if (a === 10) return true;
+  if (a === 172 && b >= 16 && b <= 31) return true;
+  if (a === 192 && b === 168) return true;
+  if (a === 169 && b === 254) return true;
+  if (a === 127) return true;
+  if (a === 0) return true;
+  return false;
+}
+
+/**
+ * 私有 / 不可达 IPv6。
+ *
+ * 迁移前只判了 `::1`，于是 `fc00::/7`（唯一本地地址，等价于 IPv4 私网）、
+ * `fe80::/10`（链路本地）以及 `::ffff:192.168.1.1`（IPv4 映射地址）都被当成公网，
+ * 插件会渲染一个第三方查看器永远拉不到的 iframe（P2-9）。
+ */
+function isBlockedIpv6(host: string): boolean {
+  // URL.hostname 对 IPv6 会保留方括号，先剥掉再比
+  const raw =
+    host.startsWith("[") && host.endsWith("]") ? host.slice(1, -1) : host;
+  const h = raw.toLowerCase();
+  // 不是 IPv6 的别往下走，避免 `fc.example.com` 这类主机名被误判
+  if (!h.includes(":")) return false;
+
+  if (h === "::1" || h === "::") return true;
+
+  // IPv4 映射地址有两种写法：`::ffff:192.168.1.1` 与 URL 规范化后的
+  // `::ffff:c0a8:101`（c0a8:0101 = 192.168.1.1）
+  const mappedDotted = h.match(/^::ffff:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/);
+  if (mappedDotted) return isPrivateIpv4(mappedDotted[1]);
+
+  const mappedHex = h.match(/^::ffff:([0-9a-f]{1,4}):([0-9a-f]{1,4})$/);
+  if (mappedHex) {
+    const hi = parseInt(mappedHex[1], 16);
+    const lo = parseInt(mappedHex[2], 16);
+    return isPrivateIpv4(
+      `${(hi >> 8) & 0xff}.${hi & 0xff}.${(lo >> 8) & 0xff}.${lo & 0xff}`
+    );
+  }
+
+  // fc00::/7（fc / fd 开头 = 唯一本地地址）、fe80::/10（fe8–feb 开头 = 链路本地）
+  if (/^f[cd]/.test(h)) return true;
+  if (/^fe[89ab]/.test(h)) return true;
+
+  return false;
+}
+
 export function isPubliclyReachableUrl(url: string): boolean {
   if (!url) return false;
   // 相对路径按当前页面解析后再判断
@@ -94,19 +146,11 @@ export function isPubliclyReachableUrl(url: string): boolean {
     return false;
   }
   if (host.endsWith(".localhost") || host.endsWith(".local")) return false;
-  // IPv6 回环
-  if (host === "[::1]" || host === "::1") return false;
+  // IPv6：回环 / 唯一本地 / 链路本地 / IPv4 映射私网
+  if (isBlockedIpv6(host)) return false;
 
-  // 私有网段：10.0.0.0/8、172.16.0.0/12、192.168.0.0/16、169.254.0.0/16
-  const ipv4 = host.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
-  if (ipv4) {
-    const [a, b] = [Number(ipv4[1]), Number(ipv4[2])];
-    if (a === 10) return false;
-    if (a === 172 && b >= 16 && b <= 31) return false;
-    if (a === 192 && b === 168) return false;
-    if (a === 169 && b === 254) return false;
-    if (a === 127) return false;
-  }
+  // 私有 IPv4 网段
+  if (isPrivateIpv4(host)) return false;
 
   // 无点主机名（如 `http://intranet/file.docx`）只在局域网可解析
   if (!host.includes(".") && !host.startsWith("[")) return false;

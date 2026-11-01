@@ -61,6 +61,12 @@ export interface CsvPreviewPluginConfig {
   enableSearch?: boolean;
   /** 显示「导出当前结果」按钮。默认 true */
   enableExport?: boolean;
+  /**
+   * 超过这个字节数直接拒绝解析。默认 20MB。
+   * 表格解析会把整个文件读进内存，大文件必须在 fetch 之前拦（P1-4）。
+   * 设为 0 表示不限制。
+   */
+  maxFileSize?: number;
 }
 
 type ResolvedConfig = Required<CsvPreviewPluginConfig>;
@@ -101,6 +107,17 @@ function CsvBody({
 
     (async () => {
       try {
+        const size = context.file.size;
+        if (config.maxFileSize > 0 && size > config.maxFileSize) {
+          throw new Error(
+            `文件 ${(size / 1024 / 1024).toFixed(1)}MB，超过表格解析上限 ${(
+              config.maxFileSize /
+              1024 /
+              1024
+            ).toFixed(1)}MB`
+          );
+        }
+
         const res = await fetch(context.file.url);
         if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
         // 读 arrayBuffer 而不是 text：只有字节才能判断编码
@@ -120,8 +137,9 @@ function CsvBody({
     return () => {
       alive = false;
     };
-    // 只跟 url 走（context 每次渲染都是新对象）
-  }, [context.file.url]);
+    // 只跟文件标识与阈值走（context 每次渲染都是新对象）
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- config 是稳定配置对象
+  }, [context.file.url, context.file.size, config.maxFileSize]);
 
   const parsed: ParsedCsv | null = useMemo(() => {
     if (papa.status !== "ready" || raw.status !== "ready") return null;
@@ -373,6 +391,7 @@ export function createCsvPreviewPlugin(
     maxPreviewRows: config.maxPreviewRows ?? 1000,
     enableSearch: config.enableSearch ?? true,
     enableExport: config.enableExport ?? true,
+    maxFileSize: config.maxFileSize ?? 20 * 1024 * 1024,
   };
 
   return {
