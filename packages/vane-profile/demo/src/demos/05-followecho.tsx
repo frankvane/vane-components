@@ -18,7 +18,7 @@ export const meta: DemoMeta = {
     {
       fn: "createFollowEchoPlugin",
       cfg: "size: 'md', onFollow: (next) => api.toggleFollow(uid, next)",
-      why: "负责关注按钮渲染 + 乐观切换；关系变 mutual 时触发 onMutual",
+      why: "负责关注按钮渲染 + 乐观切换；关系变 mutual 时触发 onMutual；mutual 状态下点击即取消关注（目标态 none），由宿主回写 followState",
     },
   ],
   props: ["followState={serverState}"],
@@ -46,6 +46,7 @@ export const meta: DemoMeta = {
     },
   ],
   stageHeight: 200,
+  note: "按钮是受控展示：点击只触发 onFollow（乐观 UI），真实关系以 props.followState 为准；互相关注点一次会变为未关注。",
 };
 
 export default function Stage({ cfg, log }: DemoStageProps) {
