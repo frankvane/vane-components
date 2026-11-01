@@ -154,5 +154,20 @@ export const PLUGINS: PluginInfo[] = DEFS.map((def) => {
     GROUP_ORDER.indexOf(a.group) - GROUP_ORDER.indexOf(b.group) || b.priority - a.priority
 );
 
-/** 默认全选：工坊初始就是「一个完整可用的签到面板」 */
-export const DEFAULT_ON = PLUGINS.map((p) => p.dir);
+/**
+ * 默认勾选：工坊初始就是「一个完整、好看、不挤的签到面板」。
+ * 全选 17 个会同时塞进 5 个头部插件（积分/统计重复展示 3680 分）、5 个操作按钮，
+ * 卡片过高还会把底部「活动规则」推出可视区。这里挑各槽位代表插件，覆盖五个区且无重复指标。
+ */
+export const DEFAULT_ON = [
+  "StreakStatePlugin",
+  "LevelBadgePlugin",
+  "CalendarStripPlugin",
+  "RewardPreviewPlugin",
+  "MilestonePlugin",
+  "TodayCheckInPlugin",
+  "MakeupSlotPlugin",
+  "SharePlugin",
+  "RuleExpandPlugin",
+  "RewardHistoryPlugin",
+];

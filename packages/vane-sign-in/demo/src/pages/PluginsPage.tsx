@@ -11,6 +11,7 @@ import {
   GROUP_LABEL,
   GROUP_ORDER,
   PLUGINS,
+  DEFAULT_ON,
   type PluginInfo,
 } from "../data/plugins";
 import { buildSignInData, buildCallbacks } from "../demos/lib/sampleData";
@@ -48,7 +49,7 @@ export default function Card() {
 }
 
 export function PluginsPage() {
-  const [on, setOn] = useState<Set<string>>(() => new Set(PLUGINS.map((p) => p.dir)));
+  const [on, setOn] = useState<Set<string>>(() => new Set(DEFAULT_ON));
   const [focus, setFocus] = useState<string>(PLUGINS[0].dir);
 
   const selected = useMemo(() => PLUGINS.filter((p) => on.has(p.dir)), [on]);

@@ -496,7 +496,7 @@ time {
 }
 .ws-scroll {
   padding: var(--s5) var(--s4);
-  max-height: 560px;
+  max-height: min(720px, calc(100vh - 200px));
   overflow: auto;
 }
 
