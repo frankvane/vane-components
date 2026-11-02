@@ -1,0 +1,11 @@
+{
+  "name": "AtsScore",
+  "description": "ATS 兼容性评分：扫描常见雷区（缺姓名/联系方式/量化亮点/命中 JD 关键词等），输出 0-100 评分与改进建议。纯分析不改数据。",
+  "since": "0.1.0",
+  "tags": ["ats", "transformData", "renderFooter", "renderOverlay"],
+  "config": [
+    { "name": "jobKeywords", "type": "string[]", "default": "[]", "description": "JD 关键词，命中加分" },
+    { "name": "rules", "type": "AtsRule[]", "default": "内置 8 条", "description": "可扩展评分规则" }
+  ],
+  "example": "withResumePlugins(ResumeCore, [createAtsScorePlugin({ jobKeywords: ['Go','分布式'] })])"
+}

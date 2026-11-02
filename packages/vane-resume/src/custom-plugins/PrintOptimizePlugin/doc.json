@@ -1,0 +1,12 @@
+{
+  "name": "PrintOptimize",
+  "description": "打印优化：注入 @media print 样式，分页不断行、隐藏工具条与遮罩、按 A4 出页，与 ExportPdf 协同。",
+  "since": "0.1.0",
+  "tags": ["print", "onMount"],
+  "config": [
+    { "name": "pageSize", "type": "\"A4\"|\"A3\"|\"letter\"", "default": "A4", "description": "纸张尺寸" },
+    { "name": "margin", "type": "string", "default": "14mm", "description": "页边距" },
+    { "name": "hideOnPrint", "type": "string[]", "default": "工具条等", "description": "打印时隐藏的选择器" }
+  ],
+  "example": "withResumePlugins(ResumeCore, [createPrintOptimizePlugin(), createExportPdfPlugin({ method: 'print' })])"
+}

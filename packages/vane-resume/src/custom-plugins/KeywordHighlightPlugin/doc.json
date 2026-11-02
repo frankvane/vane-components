@@ -1,0 +1,11 @@
+{
+  "name": "KeywordHighlight",
+  "description": "关键词高亮：输入 JD 关键词，核心文本中命中词以 <mark> 高亮，辅助定制与 ATS 自检。纯 state 驱动，不抢槽。",
+  "since": "0.1.0",
+  "tags": ["highlight", "state", "renderToolbar"],
+  "config": [
+    { "name": "keywords", "type": "string[] | ()=>string[]", "default": "[]", "description": "初始高亮关键词" },
+    { "name": "color", "type": "string", "default": "var(--vr-accent)", "description": "高亮标记 / 芯片描边色" }
+  ],
+  "example": "withResumePlugins(ResumeCore, [createKeywordHighlightPlugin({ keywords: ['React','性能优化'] })])"
+}

@@ -1,0 +1,13 @@
+{
+  "name": "MultiLang",
+  "description": "多语言：在预设语言间切换，整体翻译文本字段（缺失字段保留原文降级）。",
+  "since": "0.1.0",
+  "tags": ["i18n", "transformData", "renderToolbar", "onMount"],
+  "config": [
+    { "name": "locales", "type": "{code,label}[]", "default": "-", "description": "语言列表" },
+    { "name": "default", "type": "string", "default": "首个语言", "description": "默认语言 code" },
+    { "name": "detect", "type": "() => string", "default": "-", "description": "可选的运行时语言探测" },
+    { "name": "translations", "type": "Record<locale, Partial<ResumeData>>", "default": "-", "description": "各语言翻译（顶层字段整体覆盖）" }
+  ],
+  "example": "withResumePlugins(ResumeCore, [createMultiLangPlugin({ locales:[{code:'zh',label:'中'},{code:'en',label:'EN'}], translations: { en: { basics:{ name:'John', title:'Engineer', contacts:[] } } } })])"
+}

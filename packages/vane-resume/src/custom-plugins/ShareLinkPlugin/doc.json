@@ -1,0 +1,11 @@
+{
+  "name": "ShareLink",
+  "description": "分享链接：默认只生成宿主地址，不把简历数据内联进 URL；需要携带数据时由 onBuildUrl 生成脱敏短链。弹窗复制并反馈结果。",
+  "since": "0.1.0",
+  "tags": ["share", "renderToolbar", "renderOverlay"],
+  "config": [
+    { "name": "baseUrl", "type": "string", "default": "-", "description": "宿主基础地址（不含简历数据）" },
+    { "name": "onBuildUrl", "type": "(data) => string | Promise<string>", "default": "-", "description": "注入宿主链接构建（推荐，可在此生成脱敏短链）" }
+  ],
+  "example": "withResumePlugins(ResumeCore, [createShareLinkPlugin({ onBuildUrl: (d) => `https://cv.example.com/${encodeURIComponent(d.basics.name)}` })])"
+}

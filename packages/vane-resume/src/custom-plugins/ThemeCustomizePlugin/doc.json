@@ -1,0 +1,11 @@
+{
+  "name": "ThemeCustomize",
+  "description": "主题配色定制：预设强调色 + 自定义取色器，经 CSS 变量注入容器。",
+  "since": "0.1.0",
+  "tags": ["theme", "renderToolbar", "onMount"],
+  "config": [
+    { "name": "presets", "type": "ThemePreset[]", "default": "4 套内置", "description": "主题预设（id / label / vars）" },
+    { "name": "default", "type": "string", "default": "blue", "description": "默认主题 id" }
+  ],
+  "example": "withResumePlugins(ResumeCore, [createThemeCustomizePlugin()])"
+}

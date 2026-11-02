@@ -1,0 +1,10 @@
+{
+  "name": "StatSummary",
+  "description": "简历数据概览：在基本信息区追加工作段数 / 技能数 / 项目数 / 最高学历等统计徽章（装饰累积槽 renderBasics）。",
+  "since": "0.1.0",
+  "tags": ["stats", "renderBasics"],
+  "config": [
+    { "name": "items", "type": "StatKey[]", "default": "四项全开", "description": "展示指标：expYears | skillCount | projectCount | eduLevel" }
+  ],
+  "example": "withResumePlugins(ResumeCore, [createStatSummaryPlugin({ items: ['expYears','skillCount'] })])"
+}

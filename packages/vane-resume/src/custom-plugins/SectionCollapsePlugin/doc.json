@@ -1,0 +1,11 @@
+{
+  "name": "SectionCollapse",
+  "description": "板块折叠：为每个板块头部加折叠开关，折叠态隐藏正文。纯 state 驱动（collapseMode/collapsed），不抢槽，可与 TimelineView 并存。",
+  "since": "0.1.0",
+  "tags": ["collapse", "state", "renderToolbar"],
+  "config": [
+    { "name": "defaultOn", "type": "boolean", "default": "false", "description": "初始是否开启折叠模式" },
+    { "name": "defaultCollapsed", "type": "SectionKey[]", "default": "[]", "description": "初始折叠的板块" }
+  ],
+  "example": "withResumePlugins(ResumeCore, [createSectionCollapsePlugin({ defaultOn: true })])"
+}

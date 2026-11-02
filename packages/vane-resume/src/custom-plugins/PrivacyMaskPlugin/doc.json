@@ -1,0 +1,11 @@
+{
+  "name": "PrivacyMask",
+  "description": "隐私模式：整页毛玻璃视觉遮挡 + 配置字段的数据级隐藏（默认 summary/contacts）。毛玻璃不防复制，敏感信息请确保位于隐藏字段或已脱敏。",
+  "since": "0.1.0",
+  "tags": ["privacy", "renderOverlay", "transformData", "renderToolbar"],
+  "config": [
+    { "name": "mode", "type": "\"blur\" | \"hide\"", "default": "blur", "description": "毛玻璃视觉遮罩 / 仅字段级隐藏（两者都做数据级隐藏）" },
+    { "name": "fields", "type": "string[]", "default": "[\"summary\",\"contacts\"]", "description": "隐私模式下隐藏的字段" }
+  ],
+  "example": "withResumePlugins(ResumeCore, [createPrivacyMaskPlugin({ mode: 'blur' })])"
+}

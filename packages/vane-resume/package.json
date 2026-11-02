@@ -1,0 +1,181 @@
+{
+  "name": "vane-resume",
+  "version": "0.1.0",
+  "description": "插件式 React 简历系统",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./entries/core": {
+      "types": "./dist/entries/core.d.ts",
+      "import": "./dist/entries/core.js"
+    },
+    "./entries/plugins": {
+      "types": "./dist/entries/plugins.d.ts",
+      "import": "./dist/entries/plugins.js"
+    },
+    "./custom-plugins/AiPolishPlugin": {
+      "types": "./dist/custom-plugins/AiPolishPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/AiPolishPlugin/index.js"
+    },
+    "./custom-plugins/AtsScorePlugin": {
+      "types": "./dist/custom-plugins/AtsScorePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/AtsScorePlugin/index.js"
+    },
+    "./custom-plugins/AttachmentPreviewPlugin": {
+      "types": "./dist/custom-plugins/AttachmentPreviewPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/AttachmentPreviewPlugin/index.js"
+    },
+    "./custom-plugins/ContactDesensitizePlugin": {
+      "types": "./dist/custom-plugins/ContactDesensitizePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ContactDesensitizePlugin/index.js"
+    },
+    "./custom-plugins/DeliverTrackPlugin": {
+      "types": "./dist/custom-plugins/DeliverTrackPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/DeliverTrackPlugin/index.js"
+    },
+    "./custom-plugins/ExportPdfPlugin": {
+      "types": "./dist/custom-plugins/ExportPdfPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ExportPdfPlugin/index.js"
+    },
+    "./custom-plugins/KeywordHighlightPlugin": {
+      "types": "./dist/custom-plugins/KeywordHighlightPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/KeywordHighlightPlugin/index.js"
+    },
+    "./custom-plugins/MultiLangPlugin": {
+      "types": "./dist/custom-plugins/MultiLangPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/MultiLangPlugin/index.js"
+    },
+    "./custom-plugins/PrintOptimizePlugin": {
+      "types": "./dist/custom-plugins/PrintOptimizePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/PrintOptimizePlugin/index.js"
+    },
+    "./custom-plugins/PrivacyMaskPlugin": {
+      "types": "./dist/custom-plugins/PrivacyMaskPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/PrivacyMaskPlugin/index.js"
+    },
+    "./custom-plugins/QrCodePlugin": {
+      "types": "./dist/custom-plugins/QrCodePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/QrCodePlugin/index.js"
+    },
+    "./custom-plugins/SectionCollapsePlugin": {
+      "types": "./dist/custom-plugins/SectionCollapsePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/SectionCollapsePlugin/index.js"
+    },
+    "./custom-plugins/SectionReorderPlugin": {
+      "types": "./dist/custom-plugins/SectionReorderPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/SectionReorderPlugin/index.js"
+    },
+    "./custom-plugins/ShareLinkPlugin": {
+      "types": "./dist/custom-plugins/ShareLinkPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ShareLinkPlugin/index.js"
+    },
+    "./custom-plugins/SignatureStampPlugin": {
+      "types": "./dist/custom-plugins/SignatureStampPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/SignatureStampPlugin/index.js"
+    },
+    "./custom-plugins/StatSummaryPlugin": {
+      "types": "./dist/custom-plugins/StatSummaryPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/StatSummaryPlugin/index.js"
+    },
+    "./custom-plugins/TemplateSwitchPlugin": {
+      "types": "./dist/custom-plugins/TemplateSwitchPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/TemplateSwitchPlugin/index.js"
+    },
+    "./custom-plugins/ThemeCustomizePlugin": {
+      "types": "./dist/custom-plugins/ThemeCustomizePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ThemeCustomizePlugin/index.js"
+    },
+    "./custom-plugins/TimelineViewPlugin": {
+      "types": "./dist/custom-plugins/TimelineViewPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/TimelineViewPlugin/index.js"
+    },
+    "./custom-plugins/VersioningPlugin": {
+      "types": "./dist/custom-plugins/VersioningPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/VersioningPlugin/index.js"
+    },
+    "./custom-plugins": {
+      "types": "./dist/custom-plugins/index.d.ts",
+      "import": "./dist/custom-plugins/index.js"
+    },
+    "./custom-plugins/*": {
+      "types": "./dist/custom-plugins/*/index.d.ts",
+      "import": "./dist/custom-plugins/*/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "html2canvas": "^1.4.1",
+    "jspdf": "^2.5.2",
+    "qrcode": "^1.5.4"
+  },
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "react",
+    "plugin",
+    "resume",
+    "typescript"
+  ],
+  "author": "Frank Vane",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/frankvane/vane-components.git",
+    "directory": "packages/vane-resume"
+  },
+  "scripts": {
+    "dev": "vite --config demo/vite.config.ts",
+    "build": "vite build --mode lib",
+    "build:demo": "vite build --config demo/vite.config.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "lint": "eslint .",
+    "sync:exports": "node ../../scripts/sync-exports.mjs",
+    "prepublishOnly": "npm run build"
+  },
+  "vane": {
+    "demo": {
+      "brand": "R",
+      "subtitle": "结构化简历 / plugin index",
+      "title": "结构化简历 演示台",
+      "accent": "#ff7a29",
+      "bg": "#0b0a09"
+    },
+    "sizeBudgetKb": 30
+  },
+  "peerDependencies": {
+    "react": ">=16.8.0",
+    "react-dom": ">=16.8.0",
+    "vane-plugin-core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/qrcode": "^1.5.6",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vane/build-config": "workspace:*",
+    "@vane/eslint-config": "workspace:*",
+    "@vane/tsconfig": "workspace:*",
+    "@vane/vitest-config": "workspace:*",
+    "@vitejs/plugin-react": "^4.3.1",
+    "happy-dom": "^15.11.7",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.26.2",
+    "typescript": "^5.6.3",
+    "vane-plugin-core": "workspace:*",
+    "vite": "^5.4.1",
+    "vite-plugin-dts": "^4.5.4",
+    "vitest": "^2.1.8"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "name": "AttachmentPreview",
+  "description": "附件预览：列出附件卡片（PDF / 图片 / 链接），点击在灯箱中预览。",
+  "since": "0.1.0",
+  "tags": ["attachment", "renderAttachments", "renderOverlay", "transformData"],
+  "config": [
+    { "name": "items", "type": "AttachmentItem[]", "default": "[]", "description": "预置附件（合并进 data.attachments）" }
+  ],
+  "example": "withResumePlugins(ResumeCore, [createAttachmentPreviewPlugin({ items: [{ name: '作品集', kind: 'pdf', url: 'https://x.com/p.pdf' }] })])"
+}

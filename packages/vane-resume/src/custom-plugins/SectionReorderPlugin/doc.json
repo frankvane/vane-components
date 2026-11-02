@@ -1,0 +1,10 @@
+{
+  "name": "SectionReorder",
+  "description": "板块重排：调整基本信息 / 工作 / 教育 / 技能等板块顺序，顺序经 ctx.state.sectionOrder 驱动核心渲染。",
+  "since": "0.1.0",
+  "tags": ["layout", "renderToolbar", "renderOverlay"],
+  "config": [
+    { "name": "sections", "type": "SectionKey[]", "default": "全板块", "description": "可重排的板块集合" }
+  ],
+  "example": "withResumePlugins(ResumeCore, [createSectionReorderPlugin()])"
+}

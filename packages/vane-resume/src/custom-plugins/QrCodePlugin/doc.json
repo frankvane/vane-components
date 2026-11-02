@@ -1,0 +1,12 @@
+{
+  "name": "QrCode",
+  "description": "二维码：把联系方式 / 链接编码为二维码，作角标常显或弹窗展示（qrcode 按需加载）。",
+  "since": "0.1.0",
+  "tags": ["qr", "renderOverlay", "onMount", "renderToolbar"],
+  "config": [
+    { "name": "content", "type": "string | () => string", "default": "vCard(联系方式)", "description": "二维码内容" },
+    { "name": "position", "type": "\"corner\"|\"avatar\"|\"modal\"", "default": "corner", "description": "常显角标 / 弹窗" },
+    { "name": "size", "type": "number", "default": "96", "description": "像素尺寸" }
+  ],
+  "example": "withResumePlugins(ResumeCore, [createQrCodePlugin({ content: () => 'https://cv.example.com/me' })])"
+}

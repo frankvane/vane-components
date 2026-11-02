@@ -1,0 +1,14 @@
+{
+  "name": "SignatureStamp",
+  "description": "电子落款：文末加签名（姓名/图片）+ 签署日期；可选 CSS 圆形印章（renderOverlay 角标）。",
+  "since": "0.1.0",
+  "tags": ["signature", "stamp", "renderFooter", "renderOverlay"],
+  "config": [
+    { "name": "name", "type": "string", "default": "basics.name", "description": "签名姓名" },
+    { "name": "image", "type": "string", "default": "-", "description": "手写签名图片 URL" },
+    { "name": "date", "type": "()=>string", "default": "今天", "description": "签署日期" },
+    { "name": "stamp", "type": "'none'|'seal'", "default": "none", "description": "是否绘制印章" },
+    { "name": "stampText", "type": "string", "default": "已确认", "description": "印章文字" }
+  ],
+  "example": "withResumePlugins(ResumeCore, [createSignatureStampPlugin({ name: '张三', stamp: 'seal' })])"
+}

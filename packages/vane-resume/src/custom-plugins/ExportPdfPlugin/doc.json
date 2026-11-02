@@ -1,0 +1,12 @@
+{
+  "name": "ExportPdf",
+  "description": "导出 PDF：打印通道（配合 PrintOptimize）或 canvas 通道（html2canvas+jsPDF 拼页，按需加载）。",
+  "since": "0.1.0",
+  "tags": ["export", "renderToolbar"],
+  "config": [
+    { "name": "method", "type": "\"print\"|\"canvas\"", "default": "print", "description": "导出通道" },
+    { "name": "fileName", "type": "string", "default": "resume.pdf", "description": "canvas 模式文件名" },
+    { "name": "onBeforeExport", "type": "() => void", "default": "-", "description": "导出前回调（如先收起隐私遮罩）" }
+  ],
+  "example": "withResumePlugins(ResumeCore, [createExportPdfPlugin({ method: 'print' })])"
+}

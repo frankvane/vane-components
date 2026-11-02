@@ -1,0 +1,11 @@
+{
+  "name": "TimelineView",
+  "description": "时间轴可视化：把工作 / 教育经历从列表切换为竖向时间轴（圆点 + 连线 + 日期）。",
+  "since": "0.1.0",
+  "tags": ["view", "renderWork", "renderEducation", "renderToolbar"],
+  "config": [
+    { "name": "sections", "type": "(\"work\"|\"education\")[]", "default": "两者", "description": "启用时间轴的板块" },
+    { "name": "mode", "type": "\"list\"|\"timeline\"", "default": "list", "description": "初始视图" }
+  ],
+  "example": "withResumePlugins(ResumeCore, [createTimelineViewPlugin()])"
+}

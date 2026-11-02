@@ -1,0 +1,11 @@
+{
+  "name": "TemplateSwitch",
+  "description": "模板切换：在经典 / 现代 / 紧凑 / 学术等版式间切换，经 CSS 变量驱动整体观感。",
+  "since": "0.1.0",
+  "tags": ["layout", "template", "renderToolbar", "onMount"],
+  "config": [
+    { "name": "templates", "type": "TemplateDef[]", "default": "4 套内置", "description": "模板定义（id / label / vars 为 CSS 变量覆盖）" },
+    { "name": "defaultId", "type": "string", "default": "classic", "description": "默认模板 id" }
+  ],
+  "example": "withResumePlugins(ResumeCore, [createTemplateSwitchPlugin({ defaultId: 'modern' })])"
+}

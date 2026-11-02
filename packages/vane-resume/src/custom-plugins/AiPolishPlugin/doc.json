@@ -1,0 +1,12 @@
+{
+  "name": "AiPolish",
+  "description": "AI 润色：调用可插拔服务润色摘要 / 工作描述 / 项目描述，可一键还原（不硬编码密钥）。",
+  "since": "0.1.0",
+  "tags": ["ai", "transformData", "renderToolbar"],
+  "config": [
+    { "name": "fields", "type": "(\"summary\"|\"work\"|\"projects\")[]", "default": "三项全开", "description": "润色字段" },
+    { "name": "tone", "type": "string", "default": "-", "description": "语气偏好，透传给 polish" },
+    { "name": "polish", "type": "(text, field) => Promise<string>", "default": "-", "description": "可插拔润色服务（必填，否则按钮禁用）" }
+  ],
+  "example": "withResumePlugins(ResumeCore, [createAiPolishPlugin({ polish: async (t) => myAiRewrite(t) })])"
+}
