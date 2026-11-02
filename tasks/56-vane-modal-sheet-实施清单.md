@@ -6,18 +6,18 @@
 
 ## P1 构建
 
-- [ ] **脚手架**：`node scripts/create-component.mjs vane-modal-sheet --title "底部弹层" --desc "插件式 React 底部弹层（snap 吸附 + 原生拖拽 + 零第三方依赖）"` → `pnpm install` → `node scripts/sync-exports.mjs`
-- [ ] **自检扫描**：`check-structure.mjs` / `check-config.mjs` grep 得到 `vane-modal-sheet`（动态扫描，无需登记）
-- [ ] **依赖派系**：确认 `vane-plugin-core` 在 `peerDependencies`（`workspace:*`）；react/react-dom 仅 peer；运行时零第三方依赖（无 motion）
-- [ ] **入口聚合**：`src/index.ts`（ModalSheetCore + withModalSheetPlugins + 类型）/ `src/entries/core.ts` / `src/entries/plugins.ts`；根不桶导出插件（ADR-6）
-- [ ] **内核 ModalSheetCore**：Portal + snap 状态机（closed/opening/open@snap/dragging/resolve）+ Pointer Events 拖拽引擎（setPointerCapture、逐帧速度采样、拖拽期 transition:none 直写 translate3d）+ CSS transition 补间（prefersReducedMotion 跳过）；自检 ≤150 行（渲染+生命周期+几何，可变需求全交插件）
-- [ ] **决策引擎**：`resolveSnap({y, velocity, snapPoints, velocityThreshold, closeThreshold}) → {type:'snap',index} | {type:'close'}` 纯函数独立文件（`_shared` 或内核目录，非入口），供 CI 全量单测
-- [ ] **契约**：`forwardRef` + `useImperativeHandle`(snapTo/getProgress/getCurrentSnap/getContainer/forceUpdate) + `containerRefExternal` + onMount/onUnmount；工厂模块顶层调用；context 时基值（progress/currentSnap/height）用 getter；`getDragProps()` 拖拽面注册
-- [ ] **A 结构视觉槽插件 7 个**（三件套 + doc.json + `.meta`）：Backdrop(10) / DragHandle(20) / SnapDots(24) / Header(30) / StepFlow(32) / SearchBar(34) / Footer(40)
-- [ ] **B 行为插件 MVP 3 个**：KeyboardAvoid(50) / ScrollLock(52) / FocusTrap(54)
-- [ ] **插件三件套**：`src/custom-plugins/<Name>Plugin/{create.tsx,doc.json,index.ts}`，缺一 A3 FAIL；实现放 `src/custom-plugins/`（勿放 `components/**/custom-plugins/`）
-- [ ] **样式**：`src/styles/{tokens,components}.css`（`--vane-modal-sheet-*`，class 前缀 `vc-ms-`）→ css-copy 产 `dist/style.css` + `exports["./style.css"]`；`sideEffects: ["**/*.css"]`
-- [ ] **P1 门禁**：`./node_modules/.bin/tsc --noEmit` 0 → `../../node_modules/.bin/eslint .` 0 → `vite build --mode lib` 成功 → 仓库根 `node scripts/check-packages.mjs` 绿（先 build 再 check）；`check-structure.mjs --strict` 0
+- [x] **脚手架**：`node scripts/create-component.mjs vane-modal-sheet --title "底部弹层" --desc "插件式 React 底部弹层（snap 吸附 + 原生拖拽 + 零第三方依赖）"` → `pnpm install` → `node scripts/sync-exports.mjs`
+- [x] **自检扫描**：`check-structure.mjs` / `check-config.mjs` grep 得到 `vane-modal-sheet`（动态扫描，无需登记）
+- [x] **依赖派系**：确认 `vane-plugin-core` 在 `peerDependencies`（`workspace:*`）；react/react-dom 仅 peer；运行时零第三方依赖（无 motion）
+- [x] **入口聚合**：`src/index.ts`（ModalSheetCore + withModalSheetPlugins + 类型）/ `src/entries/core.ts` / `src/entries/plugins.ts`；根不桶导出插件（ADR-6）
+- [x] **内核 ModalSheetCore**：Portal + snap 状态机（closed/opening/open@snap/dragging/resolve）+ Pointer Events 拖拽引擎（setPointerCapture、逐帧速度采样、拖拽期 transition:none 直写 translate3d）+ CSS transition 补间（prefersReducedMotion 跳过）；自检 ≤150 行（渲染+生命周期+几何，可变需求全交插件）
+- [x] **决策引擎**：`resolveSnap({y, velocity, snapPoints, velocityThreshold, closeThreshold}) → {type:'snap',index} | {type:'close'}` 纯函数独立文件（`_shared` 或内核目录，非入口），供 CI 全量单测
+- [x] **契约**：`forwardRef` + `useImperativeHandle`(snapTo/getProgress/getCurrentSnap/getContainer/forceUpdate) + `containerRefExternal` + onMount/onUnmount；工厂模块顶层调用；context 时基值（progress/currentSnap/height）用 getter；`getDragProps()` 拖拽面注册
+- [x] **A 结构视觉槽插件 7 个**（三件套 + doc.json + `.meta`）：Backdrop(10) / DragHandle(20) / SnapDots(24) / Header(30) / StepFlow(32) / SearchBar(34) / Footer(40)
+- [x] **B 行为插件 MVP 3 个**：KeyboardAvoid(50) / ScrollLock(52) / FocusTrap(54)
+- [x] **插件三件套**：`src/custom-plugins/<Name>Plugin/{create.tsx,doc.json,index.ts}`，缺一 A3 FAIL；实现放 `src/custom-plugins/`（勿放 `components/**/custom-plugins/`）
+- [x] **样式**：`src/styles/{tokens,components}.css`（`--vane-modal-sheet-*`，class 前缀 `vc-ms-`）→ css-copy 产 `dist/style.css` + `exports["./style.css"]`；`sideEffects: ["**/*.css"]`
+- [x] **P1 门禁**：`./node_modules/.bin/tsc --noEmit` 0 → `../../node_modules/.bin/eslint .` 0 → `vite build --mode lib` 成功 → 仓库根 `node scripts/check-packages.mjs` 绿（先 build 再 check）；`check-structure.mjs --strict` 0
 
 ## P2 DEMO
 
