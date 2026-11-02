@@ -1,0 +1,27 @@
+{
+  "name": "StepFlowPlugin",
+  "description": "分步流程：头部步骤进度指示 + 底部上一步/下一步，适合分步表单与引导。",
+  "since": "0.1.0",
+  "tags": ["steps", "flow", "form"],
+  "config": [
+    {
+      "name": "steps",
+      "type": "string[]",
+      "default": "[]",
+      "description": "各步骤标题（决定总步数）"
+    },
+    {
+      "name": "initialStep",
+      "type": "number",
+      "default": "0",
+      "description": "起始步骤索引"
+    },
+    {
+      "name": "onFinish",
+      "type": "function",
+      "default": "-",
+      "description": "最后一步点击完成时触发"
+    }
+  ],
+  "example": "const Sheet = withModalSheetPlugins(ModalSheetCore, [createStepFlowPlugin({ steps: [\"基本信息\", \"确认\", \"完成\"] })]);"
+}

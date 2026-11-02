@@ -1,0 +1,135 @@
+{
+  "name": "vane-modal-sheet",
+  "version": "0.1.0",
+  "description": "插件式 React 底部弹层（snap 吸附 + 原生拖拽 + 零第三方依赖）",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./entries/core": {
+      "types": "./dist/entries/core.d.ts",
+      "import": "./dist/entries/core.js"
+    },
+    "./entries/plugins": {
+      "types": "./dist/entries/plugins.d.ts",
+      "import": "./dist/entries/plugins.js"
+    },
+    "./custom-plugins/BackdropPlugin": {
+      "types": "./dist/custom-plugins/BackdropPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/BackdropPlugin/index.js"
+    },
+    "./custom-plugins/DragHandlePlugin": {
+      "types": "./dist/custom-plugins/DragHandlePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/DragHandlePlugin/index.js"
+    },
+    "./custom-plugins/FocusTrapPlugin": {
+      "types": "./dist/custom-plugins/FocusTrapPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/FocusTrapPlugin/index.js"
+    },
+    "./custom-plugins/FooterPlugin": {
+      "types": "./dist/custom-plugins/FooterPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/FooterPlugin/index.js"
+    },
+    "./custom-plugins/HeaderPlugin": {
+      "types": "./dist/custom-plugins/HeaderPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/HeaderPlugin/index.js"
+    },
+    "./custom-plugins/KeyboardAvoidPlugin": {
+      "types": "./dist/custom-plugins/KeyboardAvoidPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/KeyboardAvoidPlugin/index.js"
+    },
+    "./custom-plugins/ScrollLockPlugin": {
+      "types": "./dist/custom-plugins/ScrollLockPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ScrollLockPlugin/index.js"
+    },
+    "./custom-plugins/SearchBarPlugin": {
+      "types": "./dist/custom-plugins/SearchBarPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/SearchBarPlugin/index.js"
+    },
+    "./custom-plugins/SnapDotsPlugin": {
+      "types": "./dist/custom-plugins/SnapDotsPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/SnapDotsPlugin/index.js"
+    },
+    "./custom-plugins/StepFlowPlugin": {
+      "types": "./dist/custom-plugins/StepFlowPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/StepFlowPlugin/index.js"
+    },
+    "./custom-plugins": {
+      "types": "./dist/custom-plugins/index.d.ts",
+      "import": "./dist/custom-plugins/index.js"
+    },
+    "./custom-plugins/*": {
+      "types": "./dist/custom-plugins/*/index.d.ts",
+      "import": "./dist/custom-plugins/*/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "react",
+    "plugin",
+    "modal-sheet",
+    "typescript"
+  ],
+  "author": "Frank Vane",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/frankvane/vane-components.git",
+    "directory": "packages/vane-modal-sheet"
+  },
+  "scripts": {
+    "dev": "vite --config demo/vite.config.ts",
+    "build": "vite build --mode lib",
+    "build:demo": "vite build --config demo/vite.config.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "lint": "eslint .",
+    "sync:exports": "node ../../scripts/sync-exports.mjs",
+    "prepublishOnly": "npm run build"
+  },
+  "vane": {
+    "demo": {
+      "brand": "M",
+      "subtitle": "底部弹层 / plugin index",
+      "title": "底部弹层 演示台",
+      "accent": "#ff7a29",
+      "bg": "#0b0a09"
+    },
+    "sizeBudgetKb": 15
+  },
+  "peerDependencies": {
+    "react": ">=16.8.0",
+    "react-dom": ">=16.8.0",
+    "vane-plugin-core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vane/build-config": "workspace:*",
+    "vane-plugin-core": "workspace:*",
+    "@vane/tsconfig": "workspace:*",
+    "@vitejs/plugin-react": "^4.3.1",
+    "happy-dom": "^15.11.7",
+    "react": "^18.3.1",
+    "react-router-dom": "^6.26.2",
+    "react-dom": "^18.3.1",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.1",
+    "vite-plugin-dts": "^4.5.4",
+    "vitest": "^2.1.8",
+    "@vane/vitest-config": "workspace:*",
+    "@vane/eslint-config": "workspace:*"
+  }
+}

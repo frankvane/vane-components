@@ -1,0 +1,21 @@
+{
+  "name": "BackdropPlugin",
+  "description": "遮罩：透明度随打开进度联动，点击关闭（可配置）。",
+  "since": "0.1.0",
+  "tags": ["backdrop", "visual"],
+  "config": [
+    {
+      "name": "color",
+      "type": "string",
+      "default": "\"rgba(0, 0, 0, 0.45)\"",
+      "description": "遮罩颜色（含透明度）"
+    },
+    {
+      "name": "dismissOnClick",
+      "type": "boolean",
+      "default": "true",
+      "description": "点击遮罩是否关闭"
+    }
+  ],
+  "example": "const Sheet = withModalSheetPlugins(ModalSheetCore, [createBackdropPlugin()]);"
+}

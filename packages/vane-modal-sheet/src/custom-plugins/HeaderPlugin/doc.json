@@ -1,0 +1,21 @@
+{
+  "name": "HeaderPlugin",
+  "description": "标题栏：标题 + 关闭按钮，整行兼拖拽面。",
+  "since": "0.1.0",
+  "tags": ["header", "visual"],
+  "config": [
+    {
+      "name": "title",
+      "type": "string",
+      "default": "\"\"",
+      "description": "标题文本，为空则只渲染关闭按钮"
+    },
+    {
+      "name": "closable",
+      "type": "boolean",
+      "default": "true",
+      "description": "是否显示关闭按钮"
+    }
+  ],
+  "example": "const Sheet = withModalSheetPlugins(ModalSheetCore, [createHeaderPlugin({ title: \"选择联系人\" })]);"
+}

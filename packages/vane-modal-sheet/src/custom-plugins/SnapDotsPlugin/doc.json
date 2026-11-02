@@ -1,0 +1,21 @@
+{
+  "name": "SnapDotsPlugin",
+  "description": "吸附档位指示点：当前档高亮，点击直接吸附到对应档。",
+  "since": "0.1.0",
+  "tags": ["snap", "indicator", "visual"],
+  "config": [
+    {
+      "name": "activeColor",
+      "type": "string",
+      "default": "\"--vane-modal-sheet-dot-active token (#1f2329)\"",
+      "description": "激活档颜色"
+    },
+    {
+      "name": "inactiveColor",
+      "type": "string",
+      "default": "\"--vane-modal-sheet-dot token (#7c8288)\"",
+      "description": "非激活档颜色"
+    }
+  ],
+  "example": "const Sheet = withModalSheetPlugins(ModalSheetCore, [createSnapDotsPlugin()]);"
+}

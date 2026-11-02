@@ -1,0 +1,21 @@
+{
+  "name": "DragHandlePlugin",
+  "description": "拖拽指示条：视觉提示 + 默认拖拽面，按住上下拖动切换吸附档或关闭。",
+  "since": "0.1.0",
+  "tags": ["drag", "handle", "visual"],
+  "config": [
+    {
+      "name": "color",
+      "type": "string",
+      "default": "\"--vane-modal-sheet-handle token (#6b7280)\"",
+      "description": "指示条颜色"
+    },
+    {
+      "name": "width",
+      "type": "number",
+      "default": "36",
+      "description": "指示条宽度 px"
+    }
+  ],
+  "example": "const Sheet = withModalSheetPlugins(ModalSheetCore, [createDragHandlePlugin()]);"
+}

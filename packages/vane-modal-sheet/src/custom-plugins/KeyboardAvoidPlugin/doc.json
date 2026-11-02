@@ -1,0 +1,15 @@
+{
+  "name": "KeyboardAvoidPlugin",
+  "description": "虚拟键盘避让：visualViewport 监听，经 setViewportInset 通知内核重算吸附几何。",
+  "since": "0.1.0",
+  "tags": ["keyboard", "mobile", "behavior"],
+  "config": [
+    {
+      "name": "snapToTop",
+      "type": "boolean",
+      "default": "true",
+      "description": "键盘弹出时自动吸附到最高档"
+    }
+  ],
+  "example": "const Sheet = withModalSheetPlugins(ModalSheetCore, [createKeyboardAvoidPlugin()]);"
+}

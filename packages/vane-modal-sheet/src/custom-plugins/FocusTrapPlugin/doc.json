@@ -1,0 +1,15 @@
+{
+  "name": "FocusTrapPlugin",
+  "description": "焦点圈定：打开时焦点进入面板并 Tab 循环，关闭时归还焦点（配合内核自带的 role=dialog / aria-modal）。",
+  "since": "0.1.0",
+  "tags": ["a11y", "focus", "behavior"],
+  "config": [
+    {
+      "name": "restoreFocus",
+      "type": "boolean",
+      "default": "true",
+      "description": "关闭时归还焦点"
+    }
+  ],
+  "example": "const Sheet = withModalSheetPlugins(ModalSheetCore, [createFocusTrapPlugin()]);"
+}

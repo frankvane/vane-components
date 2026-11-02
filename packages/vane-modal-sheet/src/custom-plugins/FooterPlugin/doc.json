@@ -1,0 +1,39 @@
+{
+  "name": "FooterPlugin",
+  "description": "吸底操作区：主/次按钮（44px 触达），适配底部安全区。",
+  "since": "0.1.0",
+  "tags": ["footer", "actions", "visual"],
+  "config": [
+    {
+      "name": "primaryText",
+      "type": "string",
+      "default": "-",
+      "description": "主按钮文案（必填）"
+    },
+    {
+      "name": "onPrimary",
+      "type": "function",
+      "default": "-",
+      "description": "主按钮点击"
+    },
+    {
+      "name": "secondaryText",
+      "type": "string",
+      "default": "-",
+      "description": "次按钮文案（不传则不渲染）"
+    },
+    {
+      "name": "onSecondary",
+      "type": "function",
+      "default": "-",
+      "description": "次按钮点击"
+    },
+    {
+      "name": "primaryLoading",
+      "type": "boolean",
+      "default": "false",
+      "description": "主按钮加载态"
+    }
+  ],
+  "example": "const Sheet = withModalSheetPlugins(ModalSheetCore, [createFooterPlugin({ primaryText: \"确定\" })]);"
+}

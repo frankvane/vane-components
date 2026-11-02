@@ -1,0 +1,15 @@
+{
+  "name": "ScrollLockPlugin",
+  "description": "body 滚动锁定：isOpen 时锁定背景滚动，关闭时恢复，防 iOS 滚动穿透。",
+  "since": "0.1.0",
+  "tags": ["scroll", "body", "behavior"],
+  "config": [
+    {
+      "name": "lockTouch",
+      "type": "boolean",
+      "default": "false",
+      "description": "是否锁定背景触摸滚动（touchmove 拦截）"
+    }
+  ],
+  "example": "const Sheet = withModalSheetPlugins(ModalSheetCore, [createScrollLockPlugin()]);"
+}
