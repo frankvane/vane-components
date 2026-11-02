@@ -1,6 +1,6 @@
 {
   "name": "DragHandlePlugin",
-  "description": "拖拽指示条：视觉提示 + 默认拖拽面，按住上下拖动切换吸附档或关闭。",
+  "description": "拖拽指示条：视觉提示 + 默认拖拽面，按住沿抽伸轴拖动切换吸附档或关闭。把手始终贴面板朝内容一侧的内边缘：底部在顶部、顶部在底部，左侧在右缘、右侧在左缘。",
   "since": "0.1.0",
   "tags": ["drag", "handle", "visual"],
   "config": [

@@ -8,6 +8,7 @@ import { createDragHandlePlugin } from "../../../src/custom-plugins/DragHandlePl
 import { createHeaderPlugin } from "../../../src/custom-plugins/HeaderPlugin";
 import { createSearchBarPlugin } from "../../../src/custom-plugins/SearchBarPlugin";
 import { createFooterPlugin } from "../../../src/custom-plugins/FooterPlugin";
+import { createScrollLockPlugin } from "../../../src/custom-plugins/ScrollLockPlugin";
 import { createFocusTrapPlugin } from "../../../src/custom-plugins/FocusTrapPlugin";
 import { resolveSnap } from "../../../src/components/ModalSheetPlugin/engine";
 
@@ -222,11 +223,26 @@ export async function runSelfTest(): Promise<SelfTestResult> {
     check("Header 关闭按钮存在", false);
   }
 
-  /* ---------- 9. 重新拉起 + 拖拽关闭：快速下滑 → onClose ---------- */
-  if (handle) {
-    ref.current?.snapTo(0); // 关闭态下命令式重新拉起
-    await waitTween();
-    firePointer(handle, "pointerdown", 300);
+  // 关闭后 portal 已卸载；新语义下 snapTo 不会从关闭态重新拉起，
+  // 因此关闭用例改用全新 mount 实例。
+  app.root.unmount();
+  await tick();
+
+  /* ---------- 9. 全新实例拖拽关闭：快速下滑 → onClose ---------- */
+  const closeApp = await mount(
+    <Enhanced
+      isOpen
+      onClose={() => (onCloseCount += 1)}
+      snapPoints={[0.6, 0.9]}
+      tweenDuration={120}
+    >
+      <p>关闭用例</p>
+    </Enhanced>,
+  );
+  await waitTween();
+  const closeHandle = closeApp.gq('[data-vane-ms-drag="true"]');
+  if (closeHandle) {
+    firePointer(closeHandle, "pointerdown", 300);
     await tick(16);
     fireWindowPointer("pointermove", 620); // 下滑 320px
     await tick(16);
@@ -237,11 +253,115 @@ export async function runSelfTest(): Promise<SelfTestResult> {
   } else {
     check("拖拽把手存在（关闭用例）", false);
   }
-
-  app.root.unmount();
+  closeApp.root.unmount();
   await tick();
 
-  /* ---------- 10. 面板文字对比度（静态 token 断言） ---------- */
+  /* ---------- 10. maxHeight 生效 ---------- */
+  const maxApp = await mount(
+    <Enhanced isOpen snapPoints={[1]} maxHeight={500} tweenDuration={0}>
+      <p>maxHeight</p>
+    </Enhanced>,
+  );
+  const cappedPanel = maxApp.gq(".vc-ms-panel");
+  check(
+    "maxHeight=500 面板高度夹到 500px",
+    cappedPanel?.style.height === "500px",
+    `height=${cappedPanel?.style.height}`,
+  );
+  maxApp.root.unmount();
+  await tick();
+
+  /* ---------- 11. 首帧 a11y：body 锁定 / 焦点进面板 / 卸载清理 ---------- */
+  const opener = document.createElement("button");
+  opener.textContent = "打开前";
+  document.body.appendChild(opener);
+  opener.focus();
+  const overflowBefore = document.body.style.overflow;
+
+  // 统计 document 上 keydown 监听的 add/remove，验证卸载后无残留
+  const origAdd = document.addEventListener;
+  const origRemove = document.removeEventListener;
+  let keydownAdds = 0;
+  let keydownRemoves = 0;
+  document.addEventListener = function (
+    type: string,
+    listener: EventListenerOrEventListenerObject,
+    options?: boolean | AddEventListenerOptions
+  ) {
+    if (type === "keydown") keydownAdds += 1;
+    (
+      origAdd as (
+        type: string,
+        listener: EventListenerOrEventListenerObject,
+        options?: boolean | AddEventListenerOptions
+      ) => void
+    ).call(document, type, listener, options);
+  } as typeof document.addEventListener;
+  document.removeEventListener = function (
+    type: string,
+    listener: EventListenerOrEventListenerObject,
+    options?: boolean | EventListenerOptions
+  ) {
+    if (type === "keydown") keydownRemoves += 1;
+    (
+      origRemove as (
+        type: string,
+        listener: EventListenerOrEventListenerObject,
+        options?: boolean | EventListenerOptions
+      ) => void
+    ).call(document, type, listener, options);
+  } as typeof document.removeEventListener;
+
+  const A11yEnhanced = withModalSheetPlugins(ModalSheetCore, [
+    createScrollLockPlugin(),
+    createFocusTrapPlugin(),
+  ]);
+  const a11yApp = await mount(
+    <A11yEnhanced isOpen snapPoints={[1]} tweenDuration={120}>
+      <input data-autofocus defaultValue="" aria-label="焦点输入" />
+    </A11yEnhanced>,
+  );
+  const a11yPanel = a11yApp.gq(".vc-ms-panel");
+  check(
+    "首帧 isOpen body 锁定",
+    document.body.style.overflow === "hidden",
+    `overflow=${document.body.style.overflow}`,
+  );
+  check(
+    "首帧 isOpen 焦点进面板",
+    !!a11yPanel &&
+      !!document.activeElement &&
+      a11yPanel.contains(document.activeElement),
+    `active=${document.activeElement?.tagName ?? "null"}`,
+  );
+
+  try {
+    a11yApp.root.unmount();
+    await tick();
+  } finally {
+    // 无论如何都恢复原方法，避免自测污染后续运行
+    document.addEventListener = origAdd;
+    document.removeEventListener = origRemove;
+  }
+
+  check(
+    "卸载后 body overflow 恢复",
+    document.body.style.overflow === overflowBefore,
+    `overflow=${document.body.style.overflow}`,
+  );
+  check(
+    "卸载后焦点归还",
+    document.activeElement === opener,
+    `active=${document.activeElement?.tagName ?? "null"}`,
+  );
+  check(
+    "卸载后 keydown 监听无残留",
+    keydownAdds === keydownRemoves,
+    `add=${keydownAdds} remove=${keydownRemoves}`,
+  );
+  opener.remove();
+
+  /* ---------- 12. 面板文字对比度（静态 token 断言） ---------- */
   // 面板白底 #ffffff + 正文 #1f2329 ≈ 16:1；muted #5d636a on #ffffff ≈ 5.9:1
   check("面板正文对比度 token 合规", true);
 

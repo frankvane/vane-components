@@ -4,7 +4,7 @@
  * 与「逐项示例」的区别：这里按产品场景组织（联系人选人 / 分步表单），
  * 一块场景板 = 完整可交互的最小产品切片。
  */
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { ModalSheetCore, withModalSheetPlugins } from "vane-modal-sheet";
 import { createBackdropPlugin } from "vane-modal-sheet/custom-plugins/BackdropPlugin";
 import { createDragHandlePlugin } from "vane-modal-sheet/custom-plugins/DragHandlePlugin";
@@ -27,6 +27,10 @@ function AssignScene() {
   const [open, setOpen] = useState(false);
   const [keyword, setKeyword] = useState("");
   const [picked, setPicked] = useState<string[]>([]);
+  // 动态主按钮文案走 ref：HOC 类型必须稳定，否则选中变化会重建组件类型，
+  // 整个弹层被卸载重挂（表现为点列表项时闪一下、sheet 重新弹出）
+  const pickedCountRef = useRef(picked.length);
+  pickedCountRef.current = picked.length;
 
   const Enhanced = useMemo(
     () =>
@@ -36,16 +40,19 @@ function AssignScene() {
         createHeaderPlugin({ title: "指派给" }),
         createSearchBarPlugin({
           placeholder: "搜索成员…",
-          onSearch: (v) => setKeyword(v),
+          onSearch: (v: string) => setKeyword(v),
         }),
         createFooterPlugin({
-          primaryText: picked.length ? `确认指派（${picked.length}）` : "确认指派",
+          primaryText: () =>
+            pickedCountRef.current > 0
+              ? `确认指派（${pickedCountRef.current}）`
+              : "确认指派",
           onPrimary: () => setOpen(false),
           secondaryText: "取消",
           onSecondary: () => setOpen(false),
         }),
       ]),
-    [picked.length],
+    [],
   );
 
   const list = MEMBERS.filter((m) =>
@@ -136,16 +143,14 @@ function PublishScene() {
       withModalSheetPlugins(ModalSheetCore, [
         createBackdropPlugin(),
         createDragHandlePlugin(),
+        // StepFlow 自己就在头部槽画步骤条、底部槽画上一步/下一步；
+        // 再加一个 FooterPlugin 会出现两排导航按钮
         createStepFlowPlugin({
           steps: ["填写信息", "预览确认", "完成"],
           onFinish: () => {
             setDone(true);
             window.setTimeout(() => setOpen(false), 500);
           },
-        }),
-        createFooterPlugin({
-          primaryText: "下一步",
-          secondaryText: "上一步",
         }),
       ]),
     [],
@@ -170,7 +175,7 @@ function PublishScene() {
       ) : null}
       <Enhanced isOpen={open} onClose={() => setOpen(false)} snapPoints={[0.5, 0.9]}>
         <div style={{ padding: "4px 16px 20px", color: "#1f2329", fontSize: 14, lineHeight: 1.8 }}>
-          步骤条挂在头部槽、上一步/下一步挂在底部槽——两个插件协作完成分步表单，
+          一个 StepFlow 插件同时占两个槽：头部槽是步骤条，底部槽是上一步/下一步，
           弹层本体只提供拖拽与吸附。点「下一步」走到最后一步触发 onFinish。
         </div>
       </Enhanced>
@@ -208,7 +213,7 @@ export function ScenariosPage() {
       <ScenarioCard
         title="分步发布"
         en="publish"
-        desc="StepFlow 步骤条 + Footer 双按钮；分步表单的弹层原生形态。"
+        desc="StepFlow 头部步骤条 + 底部上一步/下一步；分步表单的弹层原生形态。"
       >
         <PublishScene />
       </ScenarioCard>

@@ -14,7 +14,7 @@ export function HomePage() {
       <header className="page-head">
         <div>
           <p className="eyebrow">overview · 总览</p>
-          <h1 className="page-title">底部弹层</h1>
+          <h1 className="page-title">多向弹层</h1>
         </div>
         <div className="page-facts">
           <div>
@@ -29,8 +29,8 @@ export function HomePage() {
       </header>
 
       <p className="page-sub">
-        插件式 React 底部弹层：内核只做几何（snap 状态机 + Pointer Events 拖拽 + 纯函数
-        <code> resolveSnap</code> 决策），遮罩 / 把手 / 档位点 / 键盘避让 / 焦点圈定全是插件。
+        插件式 React 抽屉弹层：内核只做几何（上下左右四向抽伸 + snap 状态机 + Pointer Events
+        拖拽 + 纯函数 <code>resolveSnap</code> 决策），遮罩 / 把手 / 档位点 / 键盘避让 / 焦点圈定全是插件。
         对标 react-modal-sheet 的能力集，但零第三方运行时依赖 —— 动画与手势不靠
         motion，靠原生 Pointer Events + CSS transform 补间。
       </p>

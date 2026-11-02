@@ -23,6 +23,16 @@ export const createFocusTrapPlugin: ModalSheetPluginCreator<
   let savedFocus: HTMLElement | null = null;
   let keyHandler: ((e: KeyboardEvent) => void) | null = null;
 
+  /** 幂等释放：摘掉 keydown、归还焦点、清空 savedFocus */
+  const release = () => {
+    if (typeof document !== "undefined" && keyHandler) {
+      document.removeEventListener("keydown", keyHandler);
+    }
+    keyHandler = null;
+    if (restoreFocus) savedFocus?.focus?.();
+    savedFocus = null;
+  };
+
   const focusables = (panel: HTMLElement): HTMLElement[] =>
     Array.from(
       panel.querySelectorAll<HTMLElement>(
@@ -71,13 +81,11 @@ export const createFocusTrapPlugin: ModalSheetPluginCreator<
           };
           document.addEventListener("keydown", keyHandler);
         } else if (prev.isOpen && !next.isOpen) {
-          if (keyHandler) {
-            document.removeEventListener("keydown", keyHandler);
-            keyHandler = null;
-          }
-          if (restoreFocus) savedFocus?.focus?.();
-          savedFocus = null;
+          release();
         }
+      },
+      onUnmount: () => {
+        release();
       },
     },
   };

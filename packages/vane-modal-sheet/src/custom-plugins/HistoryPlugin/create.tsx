@@ -27,6 +27,26 @@ export const createHistoryPlugin: ModalSheetPluginCreator<HistoryPluginConfig> =
     close();
   };
 
+  /** pushState 安全封装：不可克隆的 state 回退 null，避免 DataCloneError 打断打开 */
+  const push = (value: unknown) => {
+    if (typeof history === "undefined" || typeof history.pushState !== "function") {
+      return;
+    }
+    try {
+      history.pushState(value, "");
+    } catch (error) {
+      console.warn(
+        "[vane-modal-sheet] HistoryPlugin pushState 失败，已用 null 重试",
+        error
+      );
+      try {
+        history.pushState(null, "");
+      } catch {
+        // history 不可写（沙箱 / 跨域限制）时静默放弃
+      }
+    }
+  };
+
   return {
     name: "history",
     version: "0.1.0",
@@ -38,17 +58,15 @@ export const createHistoryPlugin: ModalSheetPluginCreator<HistoryPluginConfig> =
         const handler = onPop(() => ctx.close());
         window.addEventListener("popstate", handler);
         return () => {
+          // 卸载只摘监听，不主动 history.back()，避免把用户带离当前页
           window.removeEventListener("popstate", handler);
-          if (armed) {
-            armed = false;
-            history.back();
-          }
+          armed = false;
         };
       },
       onPropsChange: (ctx: ModalSheetPluginContext, _prev: ModalSheetCoreProps, next: ModalSheetCoreProps) => {
         if (next.isOpen && !armed) {
           armed = true;
-          history.pushState(state, "");
+          push(state);
         } else if (!next.isOpen && armed) {
           armed = false;
           history.back();

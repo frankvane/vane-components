@@ -2,7 +2,8 @@ node_modules/
 dist/
 demo-dist/
 # 根 build:demo 的聚合产物（各包 demo 构建后聚合到这里，见 scripts/build-demos.mjs）
-demos/
+# 只忽略仓库根目录的聚合产物；packages/*/demo/src/demos 是逐项示例源码，必须入库
+/demos/
 # demo 本地示例视频：4K 原片体积大不入库；轻量转码版（sample-*.mp4，<1MB）入库，
 # 保证 clone 后演示台直接能跑「视频穿透」。
 packages/vane-danmaku/demo/public/samples/*.mp4

@@ -3,8 +3,8 @@ import type { ModalSheetPluginCreator } from "../../components/ModalSheetPlugin/
 import doc from "./doc.json";
 
 export interface FooterPluginConfig {
-  /** 主按钮文案 */
-  primaryText: string;
+  /** 主按钮文案；传函数时每次渲染求值，用于随页面状态变化的动态文案 */
+  primaryText: string | (() => string);
   /** 主按钮点击 */
   onPrimary?: () => void;
   /** 次按钮文案（不传则不渲染） */
@@ -84,7 +84,11 @@ export const createFooterPlugin: ModalSheetPluginCreator<FooterPluginConfig> = (
               opacity: primaryLoading ? 1 : undefined,
             }}
           >
-            {primaryLoading ? "处理中…" : primaryText}
+            {primaryLoading
+              ? "处理中…"
+              : typeof primaryText === "function"
+                ? primaryText()
+                : primaryText}
           </button>
         </div>
       ),

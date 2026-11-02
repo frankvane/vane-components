@@ -377,6 +377,505 @@ time {
   border-radius: 8px;
   padding: 6px 10px;
 }
+
+/* 面板内的演示控制条：弹层打开后会盖住页面工具栏，控件必须放进面板里才点得到 */
+.ms-sheet-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.ms-sheet-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #5d636a;
+}
+
+.ms-sheet-field select {
+  padding: 7px 10px;
+  border: 1px solid #dfe3e8;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1f2329;
+  accent-color: #0f766e;
+}
+
+.ms-sheet-btn {
+  padding: 8px 14px;
+  border: 1px solid #dfe3e8;
+  border-radius: 8px;
+  background: #f1f3f5;
+  color: #1f2329;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.ms-sheet-btn.is-primary {
+  border-color: transparent;
+  background: #1f2329;
+  color: #ffffff;
+}
+
+.ms-sheet-readout {
+  padding: 5px 9px;
+  border: 1px solid #b5f5ec;
+  border-radius: 8px;
+  background: #e6fffb;
+  color: #0f766e;
+  font-family: var(--ff-mono);
+  font-size: 12px;
+}
+
+/* 内容区内的吸顶控制条：滚到中部后仍够得着「回到顶部」 */
+.ms-sheet-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 10px 16px;
+  border-bottom: 1px solid #eef1f4;
+  background: #ffffff;
+}
 .ms-snippet {
   margin-top: 16px;
 }
+
+/* ---------------- 插件工坊 ---------------- */
+
+.ws {
+  display: grid;
+  grid-template-columns: 296px minmax(0, 1fr);
+  gap: var(--s5);
+  align-items: start;
+}
+
+.ws-panel {
+  position: sticky;
+  top: calc(var(--top-h) + 16px);
+  max-height: calc(100vh - var(--top-h) - 32px);
+  overflow-y: auto;
+  padding: var(--s3) var(--s3) var(--s4);
+  background: var(--ink-1);
+  border: 1px solid var(--rule);
+  border-radius: var(--r);
+  scrollbar-width: thin;
+}
+
+.ws-panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 4px 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--rule);
+  font-family: var(--ff-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.ws-panel-head code {
+  letter-spacing: 0.05em;
+  color: var(--accent);
+}
+
+.ws-group {
+  margin-bottom: var(--s4);
+}
+
+.ws-group h4 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 6px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--rule-soft);
+}
+
+.ws-group h4::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--rule-soft);
+}
+
+.ws-check {
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr);
+  gap: 9px;
+  padding: 6px 6px 6px 4px;
+  border-left: 2px solid transparent;
+  cursor: pointer;
+  color: var(--dim);
+  transition: background var(--dur-fast) ease, color var(--dur-fast) ease;
+}
+
+.ws-check:hover {
+  background: rgba(242, 237, 228, 0.035);
+  color: var(--text);
+}
+
+.ws-check.is-focus {
+  border-left-color: var(--accent);
+  background: linear-gradient(90deg, var(--accent-wash), transparent 80%);
+  color: var(--text);
+}
+
+.ws-check input {
+  appearance: none;
+  width: 13px;
+  height: 13px;
+  margin: 3px 0 0;
+  border: 1px solid var(--rule-2);
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+}
+
+.ws-check input:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.ws-check input:checked::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  background: var(--accent-ink);
+  clip-path: polygon(14% 52%, 38% 76%, 84% 22%, 96% 34%, 38% 94%, 4% 62%);
+}
+
+.ws-check .name {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-family: var(--ff-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.01em;
+}
+
+.ws-check .desc {
+  display: -webkit-box;
+  margin-top: 1px;
+  font-family: var(--ff-sans);
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--faint);
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.ws-check .prio {
+  font-style: normal;
+  font-size: 9.5px;
+  color: var(--accent);
+  opacity: 0.75;
+}
+
+.ws-stage {
+  border: 1px solid var(--rule);
+  background: var(--ink-1);
+  border-radius: var(--r);
+}
+
+.ws-stage-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--rule);
+  font-family: var(--ff-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  color: var(--faint);
+}
+
+.ws-stage-head b {
+  color: var(--accent);
+}
+
+.ws-stage-btns {
+  display: flex;
+  gap: 8px;
+}
+
+.ws-btn {
+  padding: 5px 10px;
+  border: 1px solid var(--accent-line);
+  border-radius: var(--r);
+  background: var(--accent-wash);
+  font-family: var(--ff-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  transition: background var(--dur-fast) ease, color var(--dur-fast) ease;
+}
+
+.ws-btn:hover {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.ws-btn--ghost {
+  border-color: var(--rule);
+  background: transparent;
+  color: var(--dim);
+}
+
+.ws-btn--ghost:hover {
+  background: var(--ink-3);
+  color: var(--text);
+}
+
+.ws-scroll {
+  padding: var(--s3);
+  background: var(--ink-0);
+  border-radius: 0 0 var(--r) var(--r);
+}
+
+.ws-hint {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--faint);
+}
+
+/* 面板默认白底深字，工坊预览文案跟着面板走 */
+.ws-preview-body {
+  padding: 8px 20px 24px;
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+.ws-preview-body p {
+  margin: 0 0 10px;
+}
+
+.ws-preview-title {
+  font-family: var(--ff-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #0f766e;
+}
+
+.doc-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--rule-soft);
+}
+
+.doc-head code {
+  font-size: 13px;
+  color: var(--accent);
+  word-break: break-word;
+}
+
+.doc-desc {
+  margin: 0 0 var(--s4);
+  font-size: 13px;
+  line-height: 1.75;
+  color: var(--dim);
+  max-width: 76ch;
+}
+
+.doc-table-wrap {
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.doc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  margin-bottom: var(--s4);
+}
+
+.doc-table th,
+.doc-table td {
+  text-align: left;
+  padding: 7px 10px 7px 0;
+  border-bottom: 1px solid var(--rule-soft);
+  vertical-align: top;
+}
+
+.doc-table th {
+  font-family: var(--ff-mono);
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--faint);
+  border-bottom-color: var(--rule);
+}
+
+.doc-table td:first-child code {
+  color: var(--text);
+}
+
+.doc-table code.dim {
+  color: var(--faint);
+}
+
+.doc-table td:last-child {
+  color: var(--dim);
+  min-width: 140px;
+}
+
+.doc-cols {
+  display: grid;
+  gap: var(--s5);
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+
+.doc-cols h5 {
+  margin: 0 0 6px;
+}
+
+.doc-cols ul {
+  margin: 0;
+  padding-left: 15px;
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--dim);
+}
+
+.doc-cols li::marker {
+  color: var(--accent);
+}
+
+/* ---------------- 代码块（CodeBlock） ---------------- */
+
+.code {
+  position: relative;
+  border: 1px solid var(--rule);
+  background: #070908;
+  border-radius: var(--r);
+  overflow: hidden;
+}
+
+.code-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--rule);
+  font-family: var(--ff-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  color: var(--faint);
+}
+
+.code-head > span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.code-copy {
+  flex: none;
+  min-height: 24px;
+  padding: 2px 9px;
+  border: 1px solid var(--rule);
+  font-family: var(--ff-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--dim);
+  transition: color var(--dur-fast) ease, border-color var(--dur-fast) ease,
+    background var(--dur-fast) ease;
+}
+
+.code-copy:hover {
+  color: var(--accent-ink);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.code-copy.is-ok {
+  color: var(--accent);
+  border-color: var(--accent-line);
+}
+
+.code-copy.is-ok:hover {
+  color: var(--accent-ink);
+}
+
+.code-copy.is-fail {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+.code pre {
+  margin: 0;
+  padding: 12px 14px;
+  overflow: auto;
+  max-height: 460px;
+  font-size: 11.5px;
+  line-height: 1.72;
+  color: #c9cec0;
+  tab-size: 2;
+  scrollbar-width: thin;
+}
+
+.code-more {
+  display: block;
+  width: 100%;
+  padding: 7px;
+  border-top: 1px solid var(--rule);
+  background: var(--ink-1);
+  font-family: var(--ff-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--faint);
+  transition: color var(--dur-fast) ease, background var(--dur-fast) ease;
+}
+
+.code-more:hover {
+  color: var(--accent);
+  background: var(--ink-2);
+}
+
+@media (max-width: 1080px) {
+  .ws {
+    grid-template-columns: 1fr;
+  }
+
+  .ws-panel {
+    position: static;
+    max-height: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .ws-stage-head {
+    align-items: flex-start;
+  }
+
+  .ws-stage-head > span:first-child {
+    word-break: break-word;
+  }
+
+  .ws-check .name {
+    flex-wrap: wrap;
+  }
+
+  .doc-table th,
+  .doc-table td {
+    padding-right: 8px;
+  }
+}
+

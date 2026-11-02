@@ -1,5 +1,6 @@
 # 56 · vane-modal-sheet 实施清单
 
+> 本清单为**历史实施记录**；范围与验收以 `tasks/57-vane-modal-sheet-核心功能评审.html` 与 `tasks/58-vane-modal-sheet-修复实施验收清单.md` 为准。
 > 对应 `tasks/55-vane-modal-sheet-分析.md`。阶段性完成自动提交推送（user 已授权），不逐项问。
 > 顺序铁律：`sync:exports` → `docs:plugins` → `docs:sync`；先 `vite build --mode lib` 再 `check-packages.mjs`。
 > 批次：本清单覆盖 **MVP 10 插件**（A 全部 + KeyboardAvoid / ScrollLock / FocusTrap）；二批（B 剩余 6 + C 全部 5）、三批（D 领域 5）在 MVP 验收后另列增补项。
@@ -16,7 +17,7 @@
 - [x] **A 结构视觉槽插件 7 个**（三件套 + doc.json + `.meta`）：Backdrop(10) / DragHandle(20) / SnapDots(24) / Header(30) / StepFlow(32) / SearchBar(34) / Footer(40)
 - [x] **B 行为插件 MVP 3 个**：KeyboardAvoid(50) / ScrollLock(52) / FocusTrap(54)
 - [x] **插件三件套**：`src/custom-plugins/<Name>Plugin/{create.tsx,doc.json,index.ts}`，缺一 A3 FAIL；实现放 `src/custom-plugins/`（勿放 `components/**/custom-plugins/`）
-- [x] **样式**：`src/styles/{tokens,components}.css`（`--vane-modal-sheet-*`，class 前缀 `vc-ms-`）→ css-copy 产 `dist/style.css` + `exports["./style.css"]`；`sideEffects: ["**/*.css"]`
+- [ ] **样式·独立样式产物（未交付 / 待排期）**：当前实现为**内联样式 + CSS 变量（`--vane-modal-sheet-*`）**，无独立 `dist/style.css` 产物、无 `exports["./style.css"]`（`sideEffects: false`）；若将来需要独立样式产物另开任务，不得把未完成项勾完成
 - [x] **P1 门禁**：`./node_modules/.bin/tsc --noEmit` 0 → `../../node_modules/.bin/eslint .` 0 → `vite build --mode lib` 成功 → 仓库根 `node scripts/check-packages.mjs` 绿（先 build 再 check）；`check-structure.mjs --strict` 0
 
 ## P2 DEMO
@@ -43,5 +44,5 @@
 
 - [x] 二批 B 剩余：EscClose(56) / NestedScroll(58) / SafeArea(60) / Responsive(62) / KeepMounted(64) / History(66)
 - [x] 二批 C 全部：ModalEffect(80) / Haptics(82) / Announcer(84) / LoadingState(86) / EmptyState(88)
-- [x] 三批 D 全部：ListSelect(90) / ActionSheet(92) / Confirm(94) / SharePanel(96) / FilterPanel(98)
-- [x] 四批 E 跨包组合：CartSheet / CommentSheet / ImageBrowser / CouponSelector / SignInSheet / ProfileCardSheet（逐项单独排期）
+- [ ] 三批 D 全部：ListSelect(90) / ActionSheet(92) / Confirm(94) / SharePanel(96) / FilterPanel(98)（**未交付 / 待排期**）
+- [ ] 四批 E 跨包组合：CartSheet / CommentSheet / ImageBrowser / CouponSelector / SignInSheet / ProfileCardSheet（**未交付 / 待排期**，逐项单独排期）

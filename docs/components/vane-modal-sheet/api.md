@@ -4,18 +4,22 @@
 
 | 属性 | 类型 | 默认值 | 说明 |
 | --- | --- | --- | --- |
-| `isOpen` | `boolean` | 必填 | 受控开关；关闭时整体不渲染（拖拽关闭会先补间再回调 `onClose`） |
+| `isOpen` | `boolean` | 必填 | 受控开关；置为 `false` 时先跑关闭补间（默认 240ms）再卸载，且外部关闭不重复回调用户 `onClose` |
 | `onClose` | `() => void` | - | 关闭回调（拖拽关闭 / `close()` / 插件触发统一走这里） |
-| `snapPoints` | `number[]` | `[1]` | 吸附点，升序；0–1 = 视口高度比例，>1 = 像素 |
+| `snapPoints` | `number[]` | `[1]` | 吸附点，升序；0–1 = 抽伸轴尺寸比例（纵向按视口高、横向按视口宽），>1 = 像素 |
 | `initialSnap` | `number` | `0` | 初始吸附档索引（0 = 最高档） |
-| `detent` | `"default" \| "content" \| "full"` | `"default"` | 高度语义：按 snapPoints / 按内容高 / 满视口 |
+| `detent` | `"default" \| "content" \| "full"` | `"default"` | 尺寸语义：按 snapPoints / 按内容自然尺寸 / 满视口 |
+| `placement` | `"bottom" \| "top" \| "left" \| "right"` | `"bottom"` | 抽伸方位：纵向（bottom/top）沿视口高、横向（left/right）沿视口宽；横向的 `snapPoints` 像素值即抽屉宽度，拖拽轴与把手方向自动切换 |
 | `dragVelocityThreshold` | `number` | `500` | 快速下滑关闭速度阈值（px/s） |
 | `dragCloseThreshold` | `number` | `0.6` | 拖出比例关闭阈值（0–1） |
 | `tweenDuration` | `number` | `240` | 补间时长 ms |
 | `prefersReducedMotion` | `boolean` | `false` | 跳过动画（无障碍） |
 | `zIndex` | `number` | `1000` | 弹层根节点 z-index |
-| `width` | `number \| string` | `"100%"` | 面板宽度（px 数字或任意 CSS 宽度） |
-| `horizontalAlign` | `"left" \| "center" \| "right"` | `"center"` | 面板水平停靠（width 非全宽时生效） |
+| `width` | `number \| string` | `"100%"` | 面板宽度：数字按 px，字符串按任意 CSS 宽度；PC 浮窗常用 `width={560}`；横向方位（left/right）忽略，抽屉宽度由 `snapPoints` 决定 |
+| `maxHeight` | `number \| string` | 不设（无上限） | 面板最大高度：数字按 px，字符串支持 `"480px"` / `"72vh"` / `"80%"`（`vh` / `%` 按视口高度换算）；非法或 ≤0 视为无上限，每档尺寸都会夹到该值；横向方位下作为交叉轴（高度）上限并垂直居中 |
+| `horizontalAlign` | `"left" \| "center" \| "right"` | `"center"` | 面板水平停靠；仅纵向方位且 `width` 非全宽时生效（PC 浮窗常用 `"center"`，全宽时无视觉差异） |
+| `ariaLabel` | `string` | - | 无障碍名称；与 `ariaLabelledby` 都为空时不写 aria 名称属性 |
+| `ariaLabelledby` | `string` | - | 关联标题元素的 id（与 `HeaderPlugin` 的 `titleId` 配套） |
 | `onSnap` / `onOpen` | 回调 | - | 吸附 / 打开补间完成（HOC 会在其上再跑插件钩子链） |
 | `panelStyle` / `contentStyle` | `React.CSSProperties` | - | 面板 / 内容区样式覆盖（背景色等 token） |
 | `containerClassName` / `containerStyle` | - | - | 弹层根节点类名/样式 |
@@ -28,13 +32,19 @@
 | --- | --- |
 | `getContainer()` | 取弹层根 DOM |
 | `getPanel()` | 取面板 DOM |
-| `snapTo(index)` | 吸附到指定档 |
-| `close()` | 关闭（带补间） |
+| `snapTo(index)` | 吸附到指定档；关闭中 / 已关闭时 no-op |
+| `close()` | 关闭（带补间，时长由 `tweenDuration` 控制） |
 | `getProgress()` | 取当前打开进度（0–1） |
 | `getCurrentSnap()` | 取当前档索引 |
 | `setViewportInset(px)` | 设置视口占用 inset（键盘避让用） |
 | `getDragProps()` | 取拖拽面 props（spread 到任意元素即成拖拽面） |
 | `forceUpdate()` | 强制刷新 |
+
+关闭语义：
+
+- `ref.snapTo(index)` 在 `closing` / `closed` 阶段是 **no-op**，不会把面板从关闭态拉回；
+- 父级把 `isOpen` 置为 `false` 时，内核先跑 240ms 关闭补间（可用 `tweenDuration` 调整），补间完成后才卸载 portal；
+- 这次**外部受控关闭不再重复调用用户的 `onClose`**（父级已经知道关闭发生），插件的 `onClose` 钩子仍会执行收尾。
 
 ## `withModalSheetPlugins(Core, plugins)`
 

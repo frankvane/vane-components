@@ -15,6 +15,7 @@ export type {
   SheetDetent,
   SheetEngineState,
   SheetPhase,
+  SheetPlacement,
 } from "./components/ModalSheetPlugin/engine";
 export type {
   ModalSheetCoreProps,

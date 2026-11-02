@@ -21,7 +21,22 @@ export const createScrollLockPlugin: ModalSheetPluginCreator<
 > = (config = {}) => {
   const { lockTouch = false } = config;
   let savedOverflow = "";
+  let locked = false;
   let touchHandler: ((e: TouchEvent) => void) | null = null;
+
+  /** 幂等解锁：恢复 body overflow 并移除 touchmove 监听 */
+  const unlock = () => {
+    if (typeof document === "undefined") return;
+    if (locked) {
+      document.body.style.overflow = savedOverflow;
+      savedOverflow = "";
+      locked = false;
+    }
+    if (touchHandler) {
+      document.removeEventListener("touchmove", touchHandler);
+      touchHandler = null;
+    }
+  };
 
   return {
     name: "scroll-lock",
@@ -40,6 +55,7 @@ export const createScrollLockPlugin: ModalSheetPluginCreator<
         if (!prev.isOpen && next.isOpen) {
           savedOverflow = body.style.overflow;
           body.style.overflow = "hidden";
+          locked = true;
           if (lockTouch) {
             touchHandler = (e) => {
               // 面板内容区可滚，锁的是背景穿透（content 内滚动由 overscroll-behavior 收口）
@@ -52,13 +68,11 @@ export const createScrollLockPlugin: ModalSheetPluginCreator<
             });
           }
         } else if (prev.isOpen && !next.isOpen) {
-          body.style.overflow = savedOverflow;
-          savedOverflow = "";
-          if (touchHandler) {
-            document.removeEventListener("touchmove", touchHandler);
-            touchHandler = null;
-          }
+          unlock();
         }
+      },
+      onUnmount: () => {
+        unlock();
       },
     },
   };

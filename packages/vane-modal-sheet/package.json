@@ -1,7 +1,7 @@
 {
   "name": "vane-modal-sheet",
   "version": "0.1.0",
-  "description": "插件式 React 底部弹层（snap 吸附 + 原生拖拽 + 零第三方依赖）",
+  "description": "插件式 React 多向抽屉弹层（上下左右抽伸 + snap 吸附 + 原生拖拽 + 零第三方依赖）",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -145,8 +145,8 @@
   "vane": {
     "demo": {
       "brand": "M",
-      "subtitle": "底部弹层 / plugin index",
-      "title": "底部弹层 演示台",
+      "subtitle": "抽屉弹层 / plugin index",
+      "title": "多向弹层 演示台",
       "accent": "#4fd1c5",
       "bg": "#0b0a09"
     },

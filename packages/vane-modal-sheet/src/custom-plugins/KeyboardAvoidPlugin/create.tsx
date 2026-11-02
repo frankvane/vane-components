@@ -20,6 +20,8 @@ export const createKeyboardAvoidPlugin: ModalSheetPluginCreator<
   KeyboardAvoidPluginConfig
 > = (config = {}) => {
   const { snapToTop = true } = config;
+  /** onMount 注册的 visualViewport 解绑函数；onUnmount 兜底复用（幂等） */
+  let detachViewport: (() => void) | null = null;
 
   return {
     name: "keyboard-avoid",
@@ -43,11 +45,21 @@ export const createKeyboardAvoidPlugin: ModalSheetPluginCreator<
         };
         vv.addEventListener("resize", sync);
         vv.addEventListener("scroll", sync);
-        return () => {
+        const detach = () => {
           vv.removeEventListener("resize", sync);
           vv.removeEventListener("scroll", sync);
+          detachViewport = null;
+        };
+        detachViewport = detach;
+        return () => {
+          detach();
           ctx.setViewportInset(0);
         };
+      },
+      onUnmount: (ctx: ModalSheetPluginContext) => {
+        detachViewport?.();
+        detachViewport = null;
+        ctx.setViewportInset(0);
       },
       onPropsChange: (
         ctx: ModalSheetPluginContext,

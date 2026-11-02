@@ -15,5 +15,8 @@
       "description": "推入 history 的状态标记"
     }
   ],
+  "notes": [
+    "仅在需要返回键关闭的页面启用：会向 history 栈推入一条记录，卸载时只摘监听、不主动 history.back()"
+  ],
   "example": "const Sheet = withModalSheetPlugins(ModalSheetCore, [createHistoryPlugin()]);"
 }

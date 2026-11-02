@@ -24,7 +24,7 @@ const ScenariosPage = lazy(() =>
 export const demoConfig: DemoShellConfig<DemoEntry> = {
   pkg: "vane-modal-sheet",
   brand: "M",
-  subtitle: "底部弹层 / plugin index",
+  subtitle: "抽屉弹层 / plugin index",
   nav: [
     { to: "/", label: "总览", hint: "overview" },
     { to: "/plugins", label: "插件工坊", hint: `${PLUGINS.length} plugins` },

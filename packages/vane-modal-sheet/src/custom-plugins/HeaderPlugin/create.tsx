@@ -10,6 +10,8 @@ export interface HeaderPluginConfig {
   title?: string;
   /** 是否显示关闭按钮（默认 true） */
   closable?: boolean;
+  /** 标题元素 id，供 Core 的 ariaLabelledby 关联 */
+  titleId?: string;
 }
 
 /**
@@ -19,7 +21,7 @@ export interface HeaderPluginConfig {
 export const createHeaderPlugin: ModalSheetPluginCreator<HeaderPluginConfig> = (
   config = {}
 ) => {
-  const { title = "", closable = true } = config;
+  const { title = "", closable = true, titleId } = config;
 
   return {
     name: "header",
@@ -33,7 +35,6 @@ export const createHeaderPlugin: ModalSheetPluginCreator<HeaderPluginConfig> = (
         const drag = ctx.getDragProps();
         return (
           <div
-            {...drag}
             data-vane-ms-header=""
             style={{
               display: "flex",
@@ -46,7 +47,10 @@ export const createHeaderPlugin: ModalSheetPluginCreator<HeaderPluginConfig> = (
             }}
           >
             <div
+              {...drag}
+              id={titleId || undefined}
               style={{
+                ...drag.style,
                 flex: 1,
                 minWidth: 0,
                 fontSize: 16,
@@ -62,6 +66,7 @@ export const createHeaderPlugin: ModalSheetPluginCreator<HeaderPluginConfig> = (
               <button
                 type="button"
                 aria-label="关闭"
+                onPointerDown={(e) => e.stopPropagation()}
                 onClick={() => ctx.close()}
                 style={{
                   width: 32,

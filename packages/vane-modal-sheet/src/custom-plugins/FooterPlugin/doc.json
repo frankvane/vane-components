@@ -6,9 +6,9 @@
   "config": [
     {
       "name": "primaryText",
-      "type": "string",
+      "type": "string | () => string",
       "default": "-",
-      "description": "主按钮文案（必填）"
+      "description": "主按钮文案（必填）；传函数时每次渲染求值，可随选中数等状态变化"
     },
     {
       "name": "onPrimary",

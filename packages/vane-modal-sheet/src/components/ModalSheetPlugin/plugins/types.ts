@@ -1,6 +1,6 @@
 import type React from "react";
 import type { Plugin, PluginContext, PluginCreator, PluginDoc, PluginHooks, WithPluginsConfig } from "vane-plugin-core";
-import type { SheetDetent, SheetEngineState } from "../engine";
+import type { SheetDetent, SheetEngineState, SheetPlacement } from "../engine";
 
 /**
  * 领域类型：核心组件 props / ref + 领域钩子。
@@ -21,7 +21,8 @@ export interface ModalSheetDragProps {
 export interface ModalSheetEngineCallbacks {
   onSnap?(index: number): void;
   onOpen?(): void;
-  onClose?(): void;
+  /** fromExternal = 由父级受控关闭触发（用户 onClose 不再重复回调） */
+  onClose?(fromExternal?: boolean): void;
 }
 
 export interface ModalSheetCoreProps {
@@ -29,11 +30,17 @@ export interface ModalSheetCoreProps {
   isOpen: boolean;
   /** 关闭回调（拖拽关闭 / close() / 插件触发，统一走这里） */
   onClose?: () => void;
-  /** 吸附点，升序；0–1 = 视口高度比例，>1 = 像素 */
+  /**
+   * 抽伸方位（默认 "bottom"）。
+   * bottom/top 沿视口高抽伸，snapPoints 比例按视口高折算；
+   * left/right 沿视口宽抽伸，snapPoints 比例按视口宽折算（宽度即档位尺寸）。
+   */
+  placement?: SheetPlacement;
+  /** 吸附点，升序；0–1 = 抽伸轴尺寸比例（纵向视口高 / 横向视口宽），>1 = 像素 */
   snapPoints?: number[];
   /** 初始吸附档索引（默认 0 = 最高档） */
   initialSnap?: number;
-  /** 高度语义：default=按 snapPoints / content=按内容高 / full=满视口 */
+  /** 尺寸语义：default=按 snapPoints / content=按内容尺寸 / full=满抽伸轴 */
   detent?: SheetDetent;
   /** 快速下滑关闭速度阈值（px/s，默认 500） */
   dragVelocityThreshold?: number;
@@ -45,9 +52,19 @@ export interface ModalSheetCoreProps {
   prefersReducedMotion?: boolean;
   /** 弹层根节点 z-index（默认 1000） */
   zIndex?: number;
-  /** 面板宽度（px 数字或任意 CSS 宽度；默认 "100%" 全宽） */
+  /** 面板宽度（仅 bottom/top；px 数字或任意 CSS 宽度；默认 "100%" 全宽） */
   width?: number | string;
-  /** 面板水平停靠（默认 "center"；width 不为全宽时生效：left/center/right） */
+  /**
+   * 面板最大高度；不设时无上限。
+   * bottom/top：限制主尺寸（高度）；left/right：限制交叉轴高度（水平垂直居中）。
+   * 支持数字（px）、"480px"、"72vh"、"80%"。
+   */
+  maxHeight?: number | string;
+  /** 无障碍名称（二者都空时不写 aria 属性） */
+  ariaLabel?: string;
+  /** 关联标题元素的 id（与 HeaderPlugin 的 titleId 配套） */
+  ariaLabelledby?: string;
+  /** 面板水平停靠（仅 bottom/top；默认 "center"；width 不为全宽时生效） */
   horizontalAlign?: "left" | "center" | "right";
   /** 吸附/打开/关闭事件（HOC 会在此之上再跑插件钩子链） */
   onSnap?: (index: number) => void;
@@ -130,4 +147,4 @@ export type ModalSheetPluginCreator<Config = any> = {
 
 export type ModalSheetWithPluginsConfig = WithPluginsConfig<ModalSheetCoreProps>;
 
-export type { PluginDoc, SheetDetent, SheetEngineState };
+export type { PluginDoc, SheetDetent, SheetEngineState, SheetPlacement };

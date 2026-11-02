@@ -1,6 +1,6 @@
 {
   "name": "ResponsivePlugin",
-  "description": "断点策略：窄屏 bottom sheet，宽屏居中悬浮弹窗（限宽 + 四角圆角 + 悬浮间距）。",
+  "description": "断点策略：窄屏 bottom sheet，宽屏居中悬浮弹窗（限宽 + 四角圆角 + 悬浮间距）；横向抽屉（left/right）由 placement 决定几何，本插件自动跳过。",
   "since": "0.1.0",
   "tags": [
     "responsive",

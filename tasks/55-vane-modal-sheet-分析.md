@@ -2,7 +2,7 @@
 
 > 按 vane-package-builder 标准流程（P1→P2→P3）。user 已拍板方向：参照 [react-modal-sheet](https://github.com/Temzasse/react-modal-sheet) 的能力面（snap points / 拖拽 / detent / 键盘避让），但**全面 vane 化**为插件家族。
 > 已纠偏两点：① 命名为 `vane-modal-sheet`（modal 非 model）；② react-modal-sheet 依赖 `motion`（原 framer-motion）作 peer，与 vane「peer 只有 react/react-dom + plugin-core」铁律冲突 → **零第三方运行时依赖**，原生 Pointer Events + CSS transform + rAF 补间。
-> 插件规模：**26 个（四面）+ 6 个跨包组合候选**，分三批交付（见 §6）。
+> 插件规模：**实际交付 21 个**（A 视觉 7 + B 行为 9 + C 反馈 5）；D 领域 5 与 E 跨包组合 6 为**未交付候选**。
 
 ## 1. 目标与边界
 
@@ -73,7 +73,7 @@ resolveSnap({ y, velocity, snapPoints, velocityThreshold, closeThreshold }): Sna
 - `forwardRef` + `useImperativeHandle`（snapTo / getProgress / getCurrentSnap / getContainer / forceUpdate）。
 - 自检 ≤150 行：渲染 + 生命周期 + 几何，可变需求全交插件。
 
-## 5. 插件清单与插槽（26 个，分四面）
+## 5. 插件清单与插槽（21 个已交付 + 未交付候选）
 
 **A 结构视觉槽（priority 10–49，renderBackdrop / renderHandle / renderHeader / renderFooter）：**
 
@@ -111,7 +111,9 @@ resolveSnap({ y, velocity, snapPoints, velocityThreshold, closeThreshold }): Sna
 | 20 | LoadingStatePlugin | 86 | 骨架/加载态，期间拖拽锁定 |
 | 21 | EmptyStatePlugin | 88 | 空态占位 + 引导动作 |
 
-**D 领域内容（priority 90–98，transformData + 槽）：**
+**D 领域内容（priority 90–98，transformData + 槽）—— 未交付 / 待排期：**
+
+下表 5 个均为**未交付 / 待排期**候选，`src/custom-plugins/` 下不存在对应目录：
 
 | # | 插件 | priority | 职责 |
 |---|------|----------|------|
@@ -121,7 +123,7 @@ resolveSnap({ y, velocity, snapPoints, velocityThreshold, closeThreshold }): Sna
 | 25 | SharePanelPlugin | 96 | 分享渠道网格 + 复制链接 |
 | 26 | FilterPanelPlugin | 98 | 筛选 chips + 重置/应用（与 FooterPlugin 联动） |
 
-**E 跨包组合候选池（单独排期，牵跨包联调）：** CartSheet（嵌 vane-sku）/ CommentSheet（嵌 vane-comment）/ ImageBrowser（嵌 vane-lazy-image + file-preview）/ CouponSelector（嵌 vane-coupon）/ SignInSheet（嵌 vane-sign-in）/ ProfileCardSheet（嵌 vane-profile）。
+**E 跨包组合候选池 —— 未交付 / 待排期（单独排期，牵跨包联调）：** CartSheet（嵌 vane-sku）/ CommentSheet（嵌 vane-comment）/ ImageBrowser（嵌 vane-lazy-image + file-preview）/ CouponSelector（嵌 vane-coupon）/ SignInSheet（嵌 vane-sign-in）/ ProfileCardSheet（嵌 vane-profile）。以上 6 项均**未交付 / 待排期**。
 
 **插槽**：`renderBackdrop` / `renderHandle` / `renderHeader` / `renderFooter` / `renderOverlay` + 核心钩子 `transformProps` / `transformData` / `onSnap` / `onOpen` / `onClose` / `onMount` / `onUnmount`。同槽多插件按 `config.order` 升序 → `priority` 降序；单插件抛错由 `PluginErrorBoundary` 隔离。priority 分带防撞车：10s 遮罩 / 20s 把手 / 30–40s 头尾 / 50–60s 行为 / 80s 反馈 / 90s 领域。
 
@@ -129,12 +131,12 @@ resolveSnap({ y, velocity, snapPoints, velocityThreshold, closeThreshold }): Sna
 
 | 批次 | 内容 | 数量 |
 |---|---|---|
-| MVP（P1 首发） | A 全部 7 个 + KeyboardAvoid / ScrollLock / FocusTrap | **10** |
-| 二批 | B 剩余 6 个 + C 全部 5 个 | 11 |
-| 三批 | D 领域 5 个 | 5 |
-| 四批（独立排期） | E 跨包组合（每项牵跨包联调） | 6 候选 |
+| MVP（P1 首发，已交付） | A 全部 7 个 + KeyboardAvoid / ScrollLock / FocusTrap | **10** |
+| 二批（已交付） | B 剩余 6 个 + C 全部 5 个 | 11 |
+| 三批 | D 领域 5 个 | 5 **未交付** |
+| 四批（独立排期） | E 跨包组合（每项牵跨包联调） | 6 **未交付候选** |
 
-MVP 判据：「裸 Core + 视觉件 + 三大行为件」开箱可用；二批补齐环境适应与无障碍；三批上领域内容。
+**合计已交付 21**（10 + 11）。MVP 判据：「裸 Core + 视觉件 + 三大行为件」开箱可用；二批补齐环境适应与无障碍；三批 D 领域内容**未交付**；四批 E 跨包组合**未交付候选**。
 
 ## 7. 依赖派系
 
@@ -176,5 +178,5 @@ MVP 判据：「裸 Core + 视觉件 + 三大行为件」开箱可用；二批�
 - Pointer Events 为基线（现代浏览器全支持），**不做**老 Safari touch 事件兜底。
 - iOS 滚动穿透/橡皮筋 → ScrollLock + NestedScroll 插件职责，内核不处理。
 - demo 去 StrictMode；自测用 dispatchEvent + tick（pointer events 可模拟），不用 `React.act`。
-- 样式：`src/styles/{tokens,components}.css`（`--vane-modal-sheet-*`，class 前缀 `vc-ms-`）走 css-copy 产 `dist/style.css`，`sideEffects: ["**/*.css"]`；容器自带 `color`+`background`（ADR-13）；拖拽指示条 UI 元件 ≥3:1；不用 opacity 压字。
+- 样式：当前为**内联样式 + CSS 变量（`--vane-modal-sheet-*`）**，无独立 `dist/style.css` 产物（`sideEffects: false`）；容器自带 `color`+`background`（ADR-13）；拖拽指示条 UI 元件 ≥3:1；不用 opacity 压字。
 - KeyboardAvoid 优先 VirtualKeyboard API，老浏览器 visualViewport 兜底；两者都无则 no-op。

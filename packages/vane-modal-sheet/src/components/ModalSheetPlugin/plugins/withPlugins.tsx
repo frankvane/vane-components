@@ -122,17 +122,39 @@ export function withModalSheetPlugins(
         [runtime.manager]
       );
 
-      // onMount 钩子链（onUnmount 由内核卸载时统一执行）
-      useEffect(() => {
-        void execute("onMount");
-      }, [execute]);
-
-      // onPropsChange 钩子链：ScrollLock / FocusTrap / KeyboardAvoid 靠它响应 isOpen
+      // 生命周期钩子链（onMount 只跑一次；onUnmount / onMount cleanup 由
+      // usePluginRuntime 卸载时统一执行，这里不重复捕获返回值）。
+      // 首帧即 isOpen：先合成一次「关闭 → 打开」的 onPropsChange，让
+      // ScrollLock / FocusTrap / History 等行为插件收到翻转；再执行 onMount。
+      // 门控：只有在语义相关 props（开关 / 吸附点 / 高度语义 / 宽度）变化时
+      // 才跑 onPropsChange，children / 内联样式等高频 props 不触发插件链。
+      const changeKey = [
+        props.isOpen,
+        JSON.stringify(props.snapPoints),
+        props.detent,
+        props.maxHeight,
+        props.width,
+      ].join("|");
       const prevPropsRef = useRef<ModalSheetCoreProps | null>(null);
+      const prevKeyRef = useRef<string | null>(null);
+      const mountedRef = useRef(false);
       useEffect(() => {
+        const prevKey = prevKeyRef.current;
+        prevKeyRef.current = changeKey;
         const prev = prevPropsRef.current;
         prevPropsRef.current = props;
+        if (!mountedRef.current) {
+          mountedRef.current = true;
+          const first = props;
+          if (first.isOpen) {
+            void execute("onPropsChange", { ...first, isOpen: false }, first);
+          }
+          void execute("onMount");
+          return;
+        }
+        if (prevKey === changeKey) return;
         if (prev) void execute("onPropsChange", prev, props);
+        // 每次渲染都要比对 key；execute 在组件生命周期内稳定
       });
 
       // 引擎回调桥：用户回调 + 插件领域钩子链
@@ -145,8 +167,9 @@ export function withModalSheetPlugins(
           props.onOpen?.();
           void execute("onOpen");
         },
-        onClose: () => {
-          props.onClose?.();
+        onClose: (fromExternal?: boolean) => {
+          // 外部受控关闭时用户已在父级处理，不重复回调；插件链始终收尾
+          if (!fromExternal) props.onClose?.();
           void execute("onClose");
         },
       };

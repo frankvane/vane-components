@@ -10,6 +10,8 @@ export interface ResponsivePluginConfig {
   breakpoint?: number;
   /** 桌面态面板最大宽度（默认 560） */
   desktopWidth?: number;
+  /** 桌面态面板最大高度 px（默认不设，保持无上限） */
+  desktopMaxHeight?: number;
   /** 桌面态额外内边距（底部圆角 + 悬浮间距） */
   inset?: number;
 }
@@ -22,7 +24,12 @@ export interface ResponsivePluginConfig {
 export const createResponsivePlugin: ModalSheetPluginCreator<ResponsivePluginConfig> = (
   config = {}
 ) => {
-  const { breakpoint = 768, desktopWidth = 560, inset = 24 } = config;
+  const {
+    breakpoint = 768,
+    desktopWidth = 560,
+    desktopMaxHeight,
+    inset = 24,
+  } = config;
   let desktop = false;
 
   const isDesktop = () =>
@@ -37,9 +44,16 @@ export const createResponsivePlugin: ModalSheetPluginCreator<ResponsivePluginCon
     hooks: {
       transformProps: (props: ModalSheetCoreProps) => {
         desktop = isDesktop();
-        if (!desktop) return props;
+        // 横向抽屉（left/right）的宽高与贴边由 placement + 引擎决定，
+        // 桌面「居中浮窗」策略（限宽 / 自动外边距 / 四角圆角）会破坏抽屉贴边
+        if (!desktop || props.placement === "left" || props.placement === "right") {
+          return props;
+        }
         return {
           ...props,
+          // 用户显式设置的 maxHeight 优先；未设置时才注入桌面态默认上限
+          maxHeight:
+            props.maxHeight === undefined ? desktopMaxHeight : props.maxHeight,
           panelStyle: {
             ...props.panelStyle,
             maxWidth: desktopWidth,

@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>vane-modal-sheet · 核心功能评审</title>
+<style>
+  :root{
+    --bg:#f5f6f4; --card:#ffffff; --ink:#191c1e; --ink-2:#454b4f; --dim:#6b7378;
+    --line:#dfe3e1; --accent:#0f8f86; --accent-soft:#e3f4f1;
+    --p1:#c0392b; --p1-soft:#fbeceb; --p2:#a9660a; --p2-soft:#fdf3e3;
+    --ok:#1f7a4d; --ok-soft:#e8f5ee; --mono:"JetBrains Mono",Consolas,"SF Mono",monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
+    font-family:"PingFang SC","Microsoft YaHei",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  code{font-family:var(--mono);font-size:12.5px;background:#f1f3f2;border:1px solid var(--line);
+    border-radius:5px;padding:1px 5px;color:#2b3134;white-space:nowrap}
+  .wrap{max-width:1180px;margin:0 auto;padding:32px 28px 72px}
+  /* hero */
+  .hero{background:
+      radial-gradient(1200px 320px at 88% -10%, #d9efeb 0%, rgba(217,239,235,0) 60%),
+      linear-gradient(180deg,#ffffff 0%, #fbfcfb 100%);
+    border:1px solid var(--line);border-radius:20px;padding:34px 36px 28px;position:relative;overflow:hidden}
+  .hero::after{content:"";position:absolute;right:-60px;top:-60px;width:220px;height:220px;
+    border-radius:50%;background:radial-gradient(circle,#c8e9e3 0%,rgba(200,233,227,0) 70%)}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--accent);margin:0 0 12px}
+  h1{font-size:34px;line-height:1.2;margin:0 0 10px;letter-spacing:-.02em}
+  .hero p.lead{margin:0;color:var(--ink-2);max-width:820px}
+  .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+  .chip{font-family:var(--mono);font-size:11.5px;color:var(--ink-2);background:#fff;
+    border:1px solid var(--line);border-radius:999px;padding:4px 11px}
+  .chip b{color:var(--ink);font-weight:600}
+  /* verdict */
+  .verdict{margin-top:22px;display:grid;grid-template-columns:1.4fr .6fr;gap:16px}
+  @media(max-width:900px){.verdict{grid-template-columns:1fr}}
+  .verdict-main{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--p1);
+    border-radius:14px;padding:22px 24px}
+  .verdict-main h2{margin:0 0 8px;font-size:19px}
+  .verdict-main p{margin:0;color:var(--ink-2)}
+  .score-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+  .score{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+  .score span{display:block;font-size:11.5px;color:var(--dim);font-family:var(--mono);letter-spacing:.04em}
+  .score b{font-size:20px;letter-spacing:-.01em}
+  .score b.p1{color:var(--p1)} .score b.p2{color:var(--p2)} .score b.ok{color:var(--ok)}
+  /* sections */
+  section{margin-top:38px}
+  .sec-head{display:flex;align-items:baseline;gap:12px;margin:0 0 16px}
+  .sec-no{font-family:var(--mono);font-size:12px;color:var(--accent);letter-spacing:.1em}
+  h2.sec-title{font-size:22px;margin:0;letter-spacing:-.01em}
+  .sec-sub{color:var(--dim);font-size:13.5px;margin:-6px 0 16px;max-width:860px}
+  /* tables */
+  table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);
+    border-radius:12px;overflow:hidden;font-size:14px}
+  thead th{background:#f9faf9;text-align:left;font-size:12.5px;color:var(--dim);font-weight:600;
+    padding:11px 14px;border-bottom:1px solid var(--line);white-space:nowrap}
+  td{padding:11px 14px;border-bottom:1px solid #eceeed;vertical-align:top;color:var(--ink-2)}
+  tr:last-child td{border-bottom:none}
+  td strong{color:var(--ink)}
+  .tag{display:inline-block;font-family:var(--mono);font-size:11px;line-height:1.6;
+    padding:2px 8px;border-radius:999px;white-space:nowrap}
+  .t-p1{background:var(--p1-soft);color:var(--p1);border:1px solid #f0c8c3}
+  .t-p2{background:var(--p2-soft);color:var(--p2);border:1px solid #efdcb9}
+  .t-ok{background:var(--ok-soft);color:var(--ok);border:1px solid #c7e6d6}
+  .t-no{background:#f3f4f4;color:#6e7579;border:1px solid var(--line)}
+  .t-accent{background:var(--accent-soft);color:var(--accent);border:1px solid #c5e6e1}
+  /* finding cards */
+  .cards{display:grid;gap:14px}
+  .finding{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:0;overflow:hidden}
+  .finding-hd{display:flex;align-items:flex-start;gap:12px;padding:16px 18px 12px;border-bottom:1px solid #f0f2f1}
+  .finding-id{font-family:var(--mono);font-size:12px;font-weight:700;color:#fff;background:var(--p1);
+    border-radius:7px;padding:3px 8px;margin-top:1px;white-space:nowrap}
+  .finding.p2 .finding-id{background:var(--p2)}
+  .finding-hd h3{margin:0;font-size:16.5px;line-height:1.45;flex:1}
+  .finding-bd{padding:14px 18px 16px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:900px){.finding-bd{grid-template-columns:1fr}}
+  .finding-bd h4{margin:0 0 4px;font-size:11.5px;font-family:var(--mono);letter-spacing:.08em;
+    color:var(--dim);text-transform:uppercase}
+  .finding-bd p{margin:0;color:var(--ink-2);font-size:13.5px}
+  .finding-bd ul{margin:0;padding-left:18px;color:var(--ink-2);font-size:13.5px}
+  .finding-bd li{margin:2px 0}
+  .ev{font-family:var(--mono);font-size:12px;color:var(--dim);background:#f7f8f7;
+    border:1px dashed var(--line);border-radius:8px;padding:8px 10px;margin-top:6px;word-break:break-all}
+  .ev a{color:var(--accent)}
+  /* matrix */
+  .matrix{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  @media(max-width:900px){.matrix{grid-template-columns:1fr 1fr}}
+  .pl{display:flex;align-items:center;gap:9px;background:var(--card);border:1px solid var(--line);
+    border-radius:10px;padding:9px 11px;font-size:13px}
+  .pl .dot{width:7px;height:7px;border-radius:50%;background:#c9cecc;flex-shrink:0}
+  .pl.covered .dot{background:var(--ok)} .pl.selfonly .dot{background:var(--p2)}
+  .pl code{background:none;border:none;padding:0;font-size:12px}
+  .pl small{margin-left:auto;color:var(--dim);font-size:11px;white-space:nowrap}
+  /* note */
+  .note{background:var(--accent-soft);border:1px solid #c5e6e1;border-radius:12px;
+    padding:14px 16px;color:#145b57;font-size:13.5px;margin-top:14px}
+  .note.warn{background:var(--p2-soft);border-color:#efdcb9;color:#7d4d06}
+  .note strong{color:inherit}
+  /* roadmap */
+  .road{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  @media(max-width:900px){.road{grid-template-columns:1fr}}
+  .road-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+  .road-card .step{font-family:var(--mono);font-size:11.5px;color:var(--accent);letter-spacing:.1em;margin-bottom:6px}
+  .road-card h3{margin:0 0 8px;font-size:16px}
+  .road-card ul{margin:0;padding-left:17px;color:var(--ink-2);font-size:13.5px}
+  .road-card li{margin:3px 0}
+  /* footer */
+  footer{margin-top:44px;padding-top:18px;border-top:1px solid var(--line);color:var(--dim);
+    font-size:12.5px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .kbd{font-family:var(--mono);font-size:12px;background:#eef1ef;border:1px solid #d7dcd9;
+    border-bottom-width:2px;border-radius:5px;padding:1px 6px;color:#3a4043}
+  @media print{body{background:#fff}.wrap{max-width:100%;padding:0}.hero,.finding,table,.road-card{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <p class="eyebrow">component review · vane-modal-sheet</p>
+    <h1>底部弹层 · 核心功能评审</h1>
+    <p class="lead">
+      评审对象为 <code>packages/vane-modal-sheet</code>（v0.1.0）。范围覆盖内核几何引擎、插件装配 HOC、21 个插件、6 页逐项示例、场景板与自测链路；重点回答「核心功能是否存在问题」，并逐条核对命令式示例、插件工坊、react-modal-sheet 能力对齐、PC 端宽度/最大高度、20+ 插件示例配套五个关注点。
+    </p>
+    <div class="meta">
+      <span class="chip">日期 <b>2026-11-02</b></span>
+      <span class="chip">范围 <b>21 plugins / 6 demos / 2 plates</b></span>
+      <span class="chip">运行时依赖 <b>0 第三方</b></span>
+      <span class="chip">构建门禁 <b>pnpm verify</b></span>
+      <span class="chip">评审方式 <b>静态审查 + 运行链路推演</b></span>
+    </div>
+
+    <div class="verdict">
+      <div class="verdict-main">
+        <h2>结论：几何内核方向正确，但当前不建议对外宣称「稳定 / 已交付」</h2>
+        <p>
+          纯函数 snap 决策、Pointer Events 拖拽、progress CSS 变量、插件槽隔离这套骨架是成立的，且宽度/停靠能力已经落地。但存在 <b>1 组示例级阻断问题</b>（每渲染重建组件类型导致整块重挂，命令式示例实际不可用）、<b>1 项用户显式需求缺口</b>（maxHeight 完全缺失）、<b>3 处内核几何/生命周期缺口</b>（打开中改档不重算、detent:content 少算头部高度、卸载时锁滚/焦点不清理），以及 <b>示例与验收记录不完整</b>（21 个插件中 13 个无示例；56 清单把未交付内容勾成已完成）。建议先修 P1，再补示例与工坊，最后重新走门禁。
+        </p>
+      </div>
+      <div class="score-grid">
+        <div class="score"><span>P0</span><b class="ok">0</b></div>
+        <div class="score"><span>P1</span><b class="p1">8</b></div>
+        <div class="score"><span>P2</span><b class="p2">12</b></div>
+        <div class="score"><span>示例覆盖</span><b>8 / 21</b></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 01 -->
+  <section>
+    <div class="sec-head"><span class="sec-no">01</span><h2 class="sec-title">七个关注点逐条回应</h2></div>
+    <p class="sec-sub">先给结论，再在 02/03 给出证据与修复方向。</p>
+    <table>
+      <thead><tr><th style="width:22%">关注点</th><th style="width:14%">结论</th><th>评审发现</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>命令式控制示例有问题</strong></td>
+          <td><span class="tag t-p1">确认 · P1-1</span></td>
+          <td><code>05-imperative.tsx</code> 在组件函数体内调用 <code>withModalSheetPlugins()</code>，每次渲染都生成新的组件类型；<code>progress</code> 每 100ms setState → React 卸载重挂整个弹层 → 关闭/重开动画循环、ref 反复置空。同模式还出现在 02/03/04，其中 04 每敲一个字就重挂，输入框必然失焦。</td>
+        </tr>
+        <tr>
+          <td><strong>插件工坊参照 vane-profile 模式</strong></td>
+          <td><span class="tag t-p1">未达到 · P1-7</span></td>
+          <td>当前 <code>PluginsPage</code> 只是静态目录卡（名称 + priority + 描述），没有「勾选即装配」、实时预览、doc.config 表与装配代码生成。vane-profile 的工坊有四段式：勾选列表 / 真跑预览 / 插件文档 / 当前装配代码。</td>
+        </tr>
+        <tr>
+          <td><strong>能力对齐 react-modal-sheet</strong></td>
+          <td><span class="tag t-p2">大体对齐 · 有缺口</span></td>
+          <td>snapPoints / initialSnap / detent / onSnap / onClose / 命令式 snapTo / backdrop / header 均已具备。缺口：<code>disableDrag</code>、<code>disableContentDrag</code> 没有对外开关（只有 NestedScroll 的隐式锁）、backdrop 模糊、最大高度、外部关闭动画策略。</td>
+        </tr>
+        <tr>
+          <td><strong>主要面向 PC 端</strong></td>
+          <td><span class="tag t-p2">部分满足</span></td>
+          <td><code>width</code> + <code>horizontalAlign</code> 已支持（demo 01 有控件），ResponsivePlugin 也有桌面断点/最大宽度。但 PC 端最关键的「最大高度 / 垂直留白 / 居中浮窗」没有可靠落点：ResponsivePlugin 只改 <code>maxWidth</code>，内核 height 仍是视口比例。</td>
+        </tr>
+        <tr>
+          <td><strong>宽度可配、最大高度可配</strong></td>
+          <td><span class="tag t-p1">宽度 ✓ / 最大高度 ✗</span></td>
+          <td>宽度：<code>width?: number | string</code> 已进入 Core，居中/左右停靠可用。最大高度：全包 <code>src</code> 只有 ResponsivePlugin 的 <code>maxWidth</code>，没有任何 <code>maxHeight</code> 入口；<code>measure()</code> 直接把面板高度写成视口差值。</td>
+        </tr>
+        <tr>
+          <td><strong>20+ 插件的示例配套</strong></td>
+          <td><span class="tag t-p1">缺口较大 · P1-7</span></td>
+          <td>21 个插件中仅 8 个在 demo 中出现，1 个只在 selftest（FocusTrap），<b>13 个零示例</b>。场景板只做了 2 块，55 文档里承诺的 iOS modal effect、FocusTrap+Announcer、ActionSheet/Confirm、SharePanel/FilterPanel 都没有落地。</td>
+        </tr>
+        <tr>
+          <td><strong>核心功能是否存在问题</strong></td>
+          <td><span class="tag t-p1">存在 · 8 项 P1</span></td>
+          <td>几何引擎本身没有崩溃级问题，但边界条件（打开中改档、卸载清理、首帧即开、detent 内容测高）会直接造成「高度不对、页面被锁滚、焦点没进弹层」。详见 02。</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 02 -->
+  <section>
+    <div class="sec-head"><span class="sec-no">02</span><h2 class="sec-title">P1 · 真实接入必踩</h2></div>
+    <p class="sec-sub">按「用户可感知后果」排序，不按文件顺序。</p>
+
+    <div class="cards">
+
+      <article class="finding">
+        <div class="finding-hd">
+          <span class="finding-id">P1-1</span>
+          <h3>逐项示例在渲染期重建组件类型，命令式示例与表单示例实际不可用</h3>
+          <span class="tag t-p1">P1</span>
+        </div>
+        <div class="finding-bd">
+          <div>
+            <h4>证据</h4>
+            <div class="ev"><a href="../packages/vane-modal-sheet/demo/src/demos/05-imperative.tsx">demo/src/demos/05-imperative.tsx</a> L31–L35：<code>Enhanced</code> 在 Stage 函数体内创建；L42–L45 每 100ms <code>setProgress</code>；L48–L50 <code>ref.snapTo</code>。</div>
+            <div class="ev"><a href="../packages/vane-modal-sheet/demo/src/demos/04-keyboard-form.tsx">04-keyboard-form.tsx</a> L31–L45 同模式；L68–L71 输入框受控 value。</div>
+            <div class="ev"><a href="../packages/vane-modal-sheet/demo/src/demos/02-detent-content.tsx">02-detent-content.tsx</a> L31–L35、<a href="../packages/vane-modal-sheet/demo/src/demos/03-unstyled.tsx">03-unstyled.tsx</a> L25–L28 同模式。</div>
+            <p style="margin-top:8px">正确写法参考 <a href="../packages/vane-modal-sheet/demo/src/demos/00-basic.tsx">00-basic.tsx</a> L38–L50 的 <code>useMemo</code>，以及 <a href="../packages/vane-profile/demo/src/pages/PluginsPage.tsx">vane-profile PluginsPage</a> L69–L74 按勾选集合 <code>useMemo</code>。</p>
+          </div>
+          <div>
+            <h4>后果</h4>
+            <ul>
+              <li>05：每次 progress 更新都卸载重挂 → 弹层无限「重开」，命令式演示的连续性完全丢失；interval 永不停。</li>
+              <li>04：每输入一个字符重挂 → 输入框失焦，表单示例无法正常输入。</li>
+              <li>02/03：切换内容/交互时弹层闪闭重开，滚动位置与补间状态丢失。</li>
+            </ul>
+            <h4>修复方向</h4>
+            <p>工厂调用移到模块顶层，或按「插件配置签名」<code>useMemo</code> 缓存；禁止在渲染体内直接调用 <code>withModalSheetPlugins</code>。同时在 docs/recipes 写一条反例。</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="finding">
+        <div class="finding-hd">
+          <span class="finding-id">P1-2</span>
+          <h3>最大高度（maxHeight）能力完全缺失，PC 场景无法限制弹层高度</h3>
+          <span class="tag t-p1">P1</span>
+        </div>
+        <div class="finding-bd">
+          <div>
+            <h4>证据</h4>
+            <div class="ev"><a href="../packages/vane-modal-sheet/src/components/ModalSheetPlugin/plugins/types.ts">plugins/types.ts</a> L27–L70：仅有 <code>width</code> / <code>horizontalAlign</code>，无 <code>maxHeight</code>。</div>
+            <div class="ev"><a href="../packages/vane-modal-sheet/src/components/ModalSheetPlugin/engine.ts">engine.ts</a> L205–L222：<code>panel.style.height = hiddenY - snapYs[0]</code>，高度只由视口与 snapPoints 决定。</div>
+            <div class="ev">全包检索 <code>maxHeight|max-height</code> 命中 0 处；仅 <a href="../packages/vane-modal-sheet/src/custom-plugins/ResponsivePlugin/create.tsx">ResponsivePlugin/create.tsx</a> L45 有 <code>maxWidth</code>。</div>
+          </div>
+          <div>
+            <h4>后果</h4>
+            <ul>
+              <li>PC 宽屏下 <code>snapPoints=[1]</code> 永远铺满视口高度，无法做 560×720 这类浮窗。</li>
+              <li>ResponsivePlugin 的「桌面浮窗」只限宽，不限高，视觉上是「通栏抽屉」而不是对话框。</li>
+              <li>与用户明确提出的「最大高度应该也可以设置」直接冲突。</li>
+            </ul>
+            <h4>修复方向</h4>
+            <p>Core 增加 <code>maxHeight?: number | string</code>；在 <code>resolveSnapPixels</code> / <code>measure</code> 中先算目标高度再夹到 maxHeight，最高档 <code>y = viewportH - clampedH</code>；补纯函数单测与 demo 控件。</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="finding">
+        <div class="finding-hd">
+          <span class="finding-id">P1-3</span>
+          <h3>打开状态下修改 snapPoints / detent 不会重算几何，档位与面板高度保持旧值</h3>
+          <span class="tag t-p1">P1</span>
+        </div>
+        <div class="finding-bd">
+          <div>
+            <h4>证据</h4>
+            <div class="ev"><a href="../packages/vane-modal-sheet/src/components/ModalSheetPlugin/ModalSheetCore.tsx">ModalSheetCore.tsx</a> L124–L128 只在 <code>isOpen</code> 变化时 <code>engine.open()</code>；L138–L146 只监听 <code>resize</code>。</div>
+            <div class="ev"><a href="../packages/vane-modal-sheet/demo/src/demos/01-multi-snap.tsx">01-multi-snap.tsx</a> L54–L60、L126–L131：预设档位与宽度在打开状态下可实时切换。</div>
+            <p style="margin-top:8px"><code>measure()</code> 仅由 open / snapTo / setViewportInset 触发，没有「snapPoints / detent / content 变化」的 effect。</p>
+          </div>
+          <div>
+            <h4>后果</h4>
+            <ul>
+              <li>demo 01 打开后切预设：SnapDots 数量、当前档、面板高度仍按旧 snapYs，UI 与声明不一致。</li>
+              <li>业务侧根据筛选结果动态改档位时会「点了没反应」，直到触发 resize 或重开。</li>
+            </ul>
+            <h4>修复方向</h4>
+            <p>Core 增加对 <code>snapPoints</code>（序列化签名）、<code>detent</code>、内容变化的 <code>useEffect</code>：调用 <code>engine.measure()</code> 并保持当前档（或夹紧索引后 <code>snapTo</code>）。</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="finding">
+        <div class="finding-hd">
+          <span class="finding-id">P1-4</span>
+          <h3>detent:content 只量内容区 scrollHeight，漏掉把手/标题/底栏高度，内容被裁出滚动条</h3>
+          <span class="tag t-p1">P1</span>
+        </div>
+        <div class="finding-bd">
+          <div>
+            <h4>证据</h4>
+            <div class="ev"><a href="../packages/vane-modal-sheet/src/components/ModalSheetPlugin/engine.ts">engine.ts</a> L210：<code>contentH = getContent()?.scrollHeight</code>；L133：最高档 <code>h = Math.min(h, contentH)</code>；L220：面板高度 = <code>hiddenY - snapYs[0]</code>。</div>
+            <div class="ev"><a href="../packages/vane-modal-sheet/src/components/ModalSheetPlugin/ModalSheetCore.tsx">ModalSheetCore.tsx</a> L209–L225：把手 + header + content(flex:1) + footer 共享面板高度。</div>
+            <p style="margin-top:8px">demo 02 的短内容场景：内容区测出 180px，面板也只给 180px，但把手+标题已占 ~64px，内容区实际只剩 116px。</p>
+          </div>
+          <div>
+            <h4>后果</h4>
+            <ul>
+              <li>「内容多高，弹层多高」的承诺不成立：短内容也出现内部滚动条，底部条目被裁。</li>
+              <li>带 FooterPlugin 时更严重，按钮区挤占内容高度。</li>
+            </ul>
+            <h4>修复方向</h4>
+            <p>改为测量「面板自然高度」：临时 <code>height:auto</code> 读 <code>panel.scrollHeight</code>（或 <code>content.scrollHeight + 各 chrome 子节点 offsetHeight</code>），再夹到视口/maxHeight；补 demo 02 的 3 条/12 条断言。</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="finding">
+        <div class="finding-hd">
+          <span class="finding-id">P1-5</span>
+          <h3>ScrollLock / FocusTrap 只在 isOpen 翻转时清理，打开状态卸载会永久锁死 body、泄漏键盘监听</h3>
+          <span class="tag t-p1">P1</span>
+        </div>
+        <div class="finding-bd">
+          <div>
+            <h4>证据</h4>
+            <div class="ev"><a href="../packages/vane-modal-sheet/src/custom-plugins/ScrollLockPlugin/create.tsx">ScrollLockPlugin/create.tsx</a> L33–L61：只有 <code>onPropsChange</code>，无 <code>onUnmount</code>；锁滚写 <code>body.style.overflow</code>。</div>
+            <div class="ev"><a href="../packages/vane-modal-sheet/src/custom-plugins/FocusTrapPlugin/create.tsx">FocusTrapPlugin/create.tsx</a> L40–L81：<code>keyHandler</code> 只在 <code>prev.isOpen && !next.isOpen</code> 时移除。</div>
+            <div class="ev"><a href="../packages/vane-modal-sheet/src/components/ModalSheetPlugin/plugins/withPlugins.tsx">withPlugins.tsx</a> L126–L136：HOC 没有执行插件 <code>onUnmount</code> 钩子链。</div>
+          </div>
+          <div>
+            <h4>后果</h4>
+            <ul>
+              <li>路由切换 / 条件卸载 / demo 重挂（P1-1）时，<code>body{overflow:hidden}</code> 永久残留，整页无法滚动。</li>
+              <li>document 上的 Tab 监听不释放；多实例叠加后焦点在错误面板里循环。</li>
+              <li>焦点不会归还给打开前元素。</li>
+            </ul>
+            <h4>修复方向</h4>
+            <p>HOC 卸载时执行 <code>onUnmount</code> 链；两个插件实现 <code>onUnmount</code> 清理（恢复 overflow、移除 keydown、restoreFocus）。补「open 状态直接 unmount」单测。</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="finding">
+        <div class="finding-hd">
+          <span class="finding-id">P1-6</span>
+          <h3>首帧即 isOpen=true 时，依赖 onPropsChange 的插件全部不启动</h3>
+          <span class="tag t-p1">P1</span>
+        </div>
+        <div class="finding-bd">
+          <div>
+            <h4>证据</h4>
+            <div class="ev"><a href="../packages/vane-modal-sheet/src/components/ModalSheetPlugin/plugins/withPlugins.tsx">withPlugins.tsx</a> L131–L136：<code>prevPropsRef.current</code> 首帧为 <code>null</code>，直接跳过 <code>onPropsChange</code>。</div>
+            <div class="ev">受影响：<a href="../packages/vane-modal-sheet/src/custom-plugins/ScrollLockPlugin/create.tsx">ScrollLock</a>、<a href="../packages/vane-modal-sheet/src/custom-plugins/FocusTrapPlugin/create.tsx">FocusTrap</a>、<a href="../packages/vane-modal-sheet/src/custom-plugins/KeepMountedPlugin/create.tsx">KeepMounted</a>、<a href="../packages/vane-modal-sheet/src/custom-plugins/HistoryPlugin/create.tsx">History</a>。</div>
+            <div class="ev"><a href="../packages/vane-modal-sheet/demo/src/lib/selftest.tsx">selftest.tsx</a> L121–L134 正是 <code>isOpen</code> 常量初值 → focus trap 实际未激活，但自测仍 PASS。</div>
+          </div>
+          <div>
+            <h4>后果</h4>
+            <ul>
+              <li>首屏即开的引导弹层：背景不锁滚、焦点不进面板、不 pushState。</li>
+              <li>selftest 给了「FocusTrap 已验证」的假绿灯。</li>
+            </ul>
+            <h4>修复方向</h4>
+            <p>HOC 挂载时以合成 prev（<code>{...props, isOpen:false}</code>）跑一次 <code>onPropsChange</code>，或让上述插件在 <code>onMount</code> 里按当前 isOpen 初始化。补首帧开启用例。</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="finding">
+        <div class="finding-hd">
+          <span class="finding-id">P1-7</span>
+          <h3>插件工坊退化为静态清单，21 个插件里 13 个没有任何示例</h3>
+          <span class="tag t-p1">P1</span>
+        </div>
+        <div class="finding-bd">
+          <div>
+            <h4>证据</h4>
+            <div class="ev"><a href="../packages/vane-modal-sheet/demo/src/pages/PluginsPage.tsx">PluginsPage.tsx</a> L9–L72：只 map 出名称/priority/描述，无勾选、无预览、无 doc、无代码。</div>
+            <div class="ev"><a href="../packages/vane-profile/demo/src/pages/PluginsPage.tsx">vane-profile PluginsPage</a> L62–L266：勾选集合 → useMemo 装配 → 真跑预览 + 文档表 + 装配代码。</div>
+            <div class="ev"><a href="../packages/vane-modal-sheet/demo/src/demos/registry.ts">registry.ts</a> L18–L32：仅发现 <code>[0-9]*.tsx</code> 六页；场景板仅 2 块。</div>
+          </div>
+          <div>
+            <h4>后果</h4>
+            <ul>
+              <li>用户无法验证「拔掉一个插件 = 拔掉一个能力」这一核心卖点。</li>
+              <li>ScrollLock / EscClose / History / Responsive / KeepMounted / ModalEffect / Haptics / Announcer / LoadingState / EmptyState / SafeArea / NestedScroll / FocusTrap 无可见示例。</li>
+              <li>README 只给 3 插件示例，20+ 插件只存在于源码树。</li>
+            </ul>
+            <h4>修复方向</h4>
+            <p>工坊改成 vane-profile 四段式；示例按主题补 4 页（环境行为 / 无障碍与反馈 / PC 浮窗 / 加载空态），每个插件至少一处可触发入口。详见 58 清单 D 组。</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="finding">
+        <div class="finding-hd">
+          <span class="finding-id">P1-8</span>
+          <h3>实施清单与仓库实际不一致：26→21、D 组 5 个勾完成但源码不存在、style.css 不存在</h3>
+          <span class="tag t-p1">P1</span>
+        </div>
+        <div class="finding-bd">
+          <div>
+            <h4>证据</h4>
+            <div class="ev"><a href="../tasks/55-vane-modal-sheet-分析.md">55-分析.md</a> L76–L126 承诺 26 个插件（A/B/C/D 四面）；实际 <code>src/custom-plugins</code> 只有 21 个目录。</div>
+            <div class="ev"><a href="../tasks/56-vane-modal-sheet-实施清单.md">56-实施清单.md</a> L42–L47：D 组 ListSelect/ActionSheet/Confirm/SharePanel/FilterPanel 与 E 组跨包组合均标 <code>[x]</code>，但仓库内无对应源码/包。</div>
+            <div class="ev"><a href="../tasks/56-vane-modal-sheet-实施清单.md">56-实施清单.md</a> L19：声称产出 <code>dist/style.css</code> 与 <code>exports["./style.css"]</code>；实际 <a href="../packages/vane-modal-sheet/package.json">package.json</a> L9–L113 无该导出，<code>dist</code> 也无该文件。</div>
+          </div>
+          <div>
+            <h4>后果</h4>
+            <ul>
+              <li>验收文档不可信，后续排期会基于错误事实。</li>
+              <li>发布说明若照抄 56，会对外承诺不存在的领域插件。</li>
+            </ul>
+            <h4>修复方向</h4>
+            <p>二选一：补齐 D 组 5 个插件与样式产物；或修订 55/56 把范围收敛为 21 个并删除虚假勾选。推荐后者先做（本轮只做评审与清单，不改源码）。</p>
+          </div>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- 03 -->
+  <section>
+    <div class="sec-head"><span class="sec-no">03</span><h2 class="sec-title">P2 · 契约、性能、无障碍与可维护性</h2></div>
+    <p class="sec-sub">不阻断使用，但会在真实业务里累积成「偶发 bug」。</p>
+    <table>
+      <thead><tr><th style="width:8%">编号</th><th style="width:28%">问题</th><th>证据与影响</th><th style="width:10%">级别</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>P2-1</td><td><strong>状态机 phase 形同虚设</strong></td>
+          <td><a href="../packages/vane-modal-sheet/src/components/ModalSheetPlugin/engine.ts">engine.ts</a> 只写 <code>open/closed</code>，从不进入 opening/snapping/dragging/closing。后果：打开补间中 <code>close()</code> 因 <code>phase==="closed"</code> 直接 return；关闭补间中 <code>phase</code> 仍是 open，可再次发起拖拽。</td>
+          <td><span class="tag t-p2">P2</span></td>
+        </tr>
+        <tr>
+          <td>P2-2</td><td><strong>open 的 32ms 兜底 timer 未登记</strong></td>
+          <td><a href="../packages/vane-modal-sheet/src/components/ModalSheetPlugin/engine.ts">engine.ts</a> L266–L278：<code>setTimeout(startTween, 32)</code> 没有被 <code>clearTimer</code> 管理；<code>destroy()</code> L370–L374 只清 tween timer。卸载后仍可能回调 <code>onOpen/onSnap</code>。</td>
+          <td><span class="tag t-p2">P2</span></td>
+        </tr>
+        <tr>
+          <td>P2-3</td><td><strong>外部 isOpen=false 瞬间卸载</strong></td>
+          <td><a href="../packages/vane-modal-sheet/src/components/ModalSheetPlugin/ModalSheetCore.tsx">Core.tsx</a> L161 直接 <code>return null</code>。业务按钮 setOpen(false) 时没有关闭补间，<code>onClose</code> 插件链也不跑（KeepMounted 不存滚动位置）。</td>
+          <td><span class="tag t-p2">P2</span></td>
+        </tr>
+        <tr>
+          <td>P2-4</td><td><strong>onPropsChange 每次渲染都执行</strong></td>
+          <td><a href="../packages/vane-modal-sheet/src/components/ModalSheetPlugin/plugins/withPlugins.tsx">withPlugins.tsx</a> L132–L136 的 effect 无依赖数组；21 个插件的钩子链在任一父级状态变化（如输入）都会重跑。</td>
+          <td><span class="tag t-p2">P2</span></td>
+        </tr>
+        <tr>
+          <td>P2-5</td><td><strong>拖拽面覆盖 touchAction，关闭按钮落在拖拽面内</strong></td>
+          <td>DragHandle L33–L42 / Header L35–L46 / SnapDots L39–L50 先用 <code>{...drag}</code> 再用 <code>style</code> 覆盖，<code>touchAction:"none"</code> 丢失；Header 的关闭按钮位于 pointerdown 拖拽面里，轻扫会先启动拖拽再触发 click。</td>
+          <td><span class="tag t-p2">P2</span></td>
+        </tr>
+        <tr>
+          <td>P2-6</td><td><strong>dialog 没有可访问名称</strong></td>
+          <td><a href="../packages/vane-modal-sheet/src/components/ModalSheetPlugin/ModalSheetCore.tsx">Core.tsx</a> L180–L181 有 <code>role="dialog" aria-modal="true"</code>，但没有 aria-label / aria-labelledby；HeaderPlugin 的标题只是普通 div，读屏无法读出弹层名称。</td>
+          <td><span class="tag t-p2">P2</span></td>
+        </tr>
+        <tr>
+          <td>P2-7</td><td><strong>HistoryPlugin 的卸载副作用</strong></td>
+          <td><a href="../packages/vane-modal-sheet/src/custom-plugins/HistoryPlugin/create.tsx">HistoryPlugin/create.tsx</a> L40–L46：卸载时若已 armed 会 <code>history.back()</code>，可能把用户带离当前页；<code>state?: unknown</code> 传入不可结构化克隆的值会抛 DataCloneError。</td>
+          <td><span class="tag t-p2">P2</span></td>
+        </tr>
+        <tr>
+          <td>P2-8</td><td><strong>高速轻扫误关</strong></td>
+          <td><a href="../packages/vane-modal-sheet/src/components/ModalSheetPlugin/engine.ts">engine.ts</a> L90–L110：速度阈值判断优先于位置，在最高档向下轻扫 10px 也会立即 close，缺少「最小位移」保护。</td>
+          <td><span class="tag t-p2">P2</span></td>
+        </tr>
+        <tr>
+          <td>P2-9</td><td><strong>Core 体积超出自检目标</strong></td>
+          <td><a href="../packages/vane-modal-sheet/src/components/ModalSheetPlugin/ModalSheetCore.tsx">Core.tsx</a> 全文 239 行（含注释），55 文档 L67–L74 定的目标是 ≤150 行；渲染槽位与布局可拆子组件。</td>
+          <td><span class="tag t-p2">P2</span></td>
+        </tr>
+        <tr>
+          <td>P2-10</td><td><strong>SSR 不安全且未声明</strong></td>
+          <td><a href="../packages/vane-modal-sheet/src/components/ModalSheetPlugin/ModalSheetCore.tsx">Core.tsx</a> L236 <code>document.body</code> 在 render 期求值；Next.js/SSR 且 isOpen 为 true 时直接抛 <code>document is not defined</code>。README 未声明 client-only。</td>
+          <td><span class="tag t-p2">P2</span></td>
+        </tr>
+        <tr>
+          <td>P2-11</td><td><strong>文档没有覆盖 PC 用法</strong></td>
+          <td><a href="../packages/vane-modal-sheet/README.md">README.md</a> L12–L52 只给全宽 bottom sheet 示例；未写 width/horizontalAlign/maxHeight、21 个插件清单、示例覆盖矩阵、客户端限定。</td>
+          <td><span class="tag t-p2">P2</span></td>
+        </tr>
+        <tr>
+          <td>P2-12</td><td><strong>渲染期改写 propsRef</strong></td>
+          <td><a href="../packages/vane-modal-sheet/src/components/ModalSheetPlugin/ModalSheetCore.tsx">Core.tsx</a> L52–L53 <code>propsRef.current = props</code> 在 render 中执行；并发渲染下引擎可能读到未提交的 props，建议移到 layout effect。</td>
+          <td><span class="tag t-p2">P2</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 04 -->
+  <section>
+    <div class="sec-head"><span class="sec-no">04</span><h2 class="sec-title">21 个插件 · 示例覆盖矩阵</h2></div>
+    <p class="sec-sub">数据源：<code>src/custom-plugins/*</code> 目录 + <code>demo/src</code> 的 import 扫描。绿色 = demo 可交互；橙色 = 仅 selftest；灰色 = 零示例。</p>
+    <div class="matrix">
+      <div class="pl covered"><span class="dot"></span><code>BackdropPlugin</code><small>demo 00/01/02/05</small></div>
+      <div class="pl covered"><span class="dot"></span><code>DragHandlePlugin</code><small>demo 00–05</small></div>
+      <div class="pl covered"><span class="dot"></span><code>SnapDotsPlugin</code><small>demo 01</small></div>
+      <div class="pl covered"><span class="dot"></span><code>HeaderPlugin</code><small>demo 00–05</small></div>
+      <div class="pl covered"><span class="dot"></span><code>StepFlowPlugin</code><small>scenario 分步发布</small></div>
+      <div class="pl covered"><span class="dot"></span><code>SearchBarPlugin</code><small>demo 00 / scenario</small></div>
+      <div class="pl covered"><span class="dot"></span><code>FooterPlugin</code><small>demo 04 / scenario</small></div>
+      <div class="pl covered"><span class="dot"></span><code>KeyboardAvoidPlugin</code><small>demo 04</small></div>
+      <div class="pl selfonly"><span class="dot"></span><code>FocusTrapPlugin</code><small>仅 selftest</small></div>
+      <div class="pl"><span class="dot"></span><code>ScrollLockPlugin</code><small>缺示例</small></div>
+      <div class="pl"><span class="dot"></span><code>EscClosePlugin</code><small>缺示例</small></div>
+      <div class="pl"><span class="dot"></span><code>NestedScrollPlugin</code><small>缺示例</small></div>
+      <div class="pl"><span class="dot"></span><code>SafeAreaPlugin</code><small>缺示例</small></div>
+      <div class="pl"><span class="dot"></span><code>ResponsivePlugin</code><small>缺示例</small></div>
+      <div class="pl"><span class="dot"></span><code>KeepMountedPlugin</code><small>缺示例</small></div>
+      <div class="pl"><span class="dot"></span><code>HistoryPlugin</code><small>缺示例</small></div>
+      <div class="pl"><span class="dot"></span><code>ModalEffectPlugin</code><small>缺示例</small></div>
+      <div class="pl"><span class="dot"></span><code>HapticsPlugin</code><small>缺示例</small></div>
+      <div class="pl"><span class="dot"></span><code>AnnouncerPlugin</code><small>缺示例</small></div>
+      <div class="pl"><span class="dot"></span><code>LoadingStatePlugin</code><small>缺示例</small></div>
+      <div class="pl"><span class="dot"></span><code>EmptyStatePlugin</code><small>缺示例</small></div>
+    </div>
+    <div class="note warn">
+      <strong>覆盖结论：8 / 21 有可交互示例，1 / 21 仅自测，13 / 21 零示例。</strong>
+      这与 55 文档 §9 承诺的 demo 场景差距明显；也是「20 多个插件，示例没有配套吗」的直接答案——确实没有配套。
+    </div>
+  </section>
+
+  <!-- 05 -->
+  <section>
+    <div class="sec-head"><span class="sec-no">05</span><h2 class="sec-title">与 react-modal-sheet 的能力对照</h2></div>
+    <p class="sec-sub">对照公开 API 的能力面，不做逐行实现比对；「插件等价」视为可用但形态不同。</p>
+    <table>
+      <thead><tr><th style="width:26%">能力</th><th style="width:18%">react-modal-sheet</th><th style="width:18%">vane-modal-sheet</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td>snapPoints / initialSnap</td><td><span class="tag t-ok">有</span></td><td><span class="tag t-ok">有</span></td><td>纯函数 <code>resolveSnapPixels</code>，支持比例与像素。</td></tr>
+        <tr><td>detent（content / full / default）</td><td><span class="tag t-ok">有</span></td><td><span class="tag t-p1">有但测高有缺陷</span></td><td>见 P1-4：content 少算 chrome。</td></tr>
+        <tr><td>命令式 snapTo / 状态读取</td><td><span class="tag t-ok">有</span></td><td><span class="tag t-ok">有</span></td><td>ref.snapTo / getProgress / getCurrentSnap。</td></tr>
+        <tr><td>disableDrag / disableContentDrag</td><td><span class="tag t-ok">有</span></td><td><span class="tag t-p2">无显式开关</span></td><td>NestedScroll 只在内容滚过顶时写 dragLock，业务无法主动禁用。</td></tr>
+        <tr><td>backdrop / header 作为 props</td><td><span class="tag t-ok">有</span></td><td><span class="tag t-accent">插件等价</span></td><td>BackdropPlugin / HeaderPlugin，可拔插是优势。</td></tr>
+        <tr><td>背景模糊 / 遮罩变体</td><td><span class="tag t-ok">有</span></td><td><span class="tag t-no">无</span></td><td>BackdropPlugin 只支持 color / dismissOnClick。</td></tr>
+        <tr><td>最大高度 / 首选高度</td><td><span class="tag t-ok">有</span></td><td><span class="tag t-p1">无</span></td><td>P1-2，PC 场景硬伤。</td></tr>
+        <tr><td>外部 isOpen=false 关闭动画</td><td><span class="tag t-ok">有</span></td><td><span class="tag t-p2">瞬间卸载</span></td><td>P2-3；拖拽/Esc/遮罩路径有补间。</td></tr>
+        <tr><td>键盘避让 / 锁滚 / 焦点圈定</td><td><span class="tag t-no">部分/无</span></td><td><span class="tag t-ok">插件齐全</span></td><td>KeyboardAvoid / ScrollLock / FocusTrap / EscClose。</td></tr>
+        <tr><td>运行时依赖</td><td><span class="tag t-no">motion</span></td><td><span class="tag t-ok">0 第三方</span></td><td>核心优势，应保留并在 README 首屏强调。</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 06 -->
+  <section>
+    <div class="sec-head"><span class="sec-no">06</span><h2 class="sec-title">安全审查</h2></div>
+    <p class="sec-sub">按 security-best-practices 的「可证实、可利用、本次代码引入」三原则，只报真实风险。</p>
+    <table>
+      <thead><tr><th style="width:24%">检查项</th><th style="width:14%">结论</th><th>依据</th></tr></thead>
+      <tbody>
+        <tr><td>XSS / HTML 注入</td><td><span class="tag t-ok">未发现</span></td><td>全包无 <code>dangerouslySetInnerHTML</code> / <code>innerHTML</code>；Header title、children 均走 React 文本/节点。插件配置中的颜色只进 style 值，属于开发者可信输入。</td></tr>
+        <tr><td>全局副作用可恢复性</td><td><span class="tag t-p1">有风险</span></td><td>ScrollLock 直接改写 <code>body.style.overflow</code>，卸载不恢复（P1-5）→ 页面功能性拒绝服务。HistoryPlugin 卸载时 <code>history.back()</code> 属于无手势导航副作用（P2-7）。</td></tr>
+        <tr><td>事件监听泄漏</td><td><span class="tag t-p1">有风险</span></td><td>FocusTrap 的 document keydown 只在 isOpen 翻转时移除；打开状态卸载即泄漏（P1-5）。</td></tr>
+        <tr><td>history state 序列化</td><td><span class="tag t-p2">低风险</span></td><td><code>state?: unknown</code> 直接 <code>pushState</code>；不可克隆值会抛 DataCloneError，属于健壮性问题而非安全问题。</td></tr>
+        <tr><td>SSR / 服务端执行</td><td><span class="tag t-p2">需声明</span></td><td>render 期访问 <code>document.body</code>，SSR 下抛错；应在 README 声明 client-only 或加 <code>typeof document</code> 守卫。</td></tr>
+        <tr><td>CSP 兼容</td><td><span class="tag t-p2">已知取舍</span></td><td>全部为内联 style，需要 <code>style-src 'unsafe-inline'</code>；这是零依赖 CSS-in-JS 的必然代价，应在文档说明。</td></tr>
+        <tr><td>第三方运行时依赖</td><td><span class="tag t-ok">0</span></td><td>无 motion / framer-motion，无供应链新增面。</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 07 -->
+  <section>
+    <div class="sec-head"><span class="sec-no">07</span><h2 class="sec-title">React / 性能审查</h2></div>
+    <p class="sec-sub">按 vercel-react-best-practices 的核心原则：稳定组件类型、避免无谓渲染、把高频更新移出 React。</p>
+    <table>
+      <thead><tr><th style="width:26%">原则</th><th style="width:14%">结论</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td>不在 render 中创建组件类型</td><td><span class="tag t-p1">违反</span></td><td>demo 02–05 在函数体内调用 HOC 工厂（P1-1）。这是当前最高频的真实事故源。</td></tr>
+        <tr><td>高频值移出 React 渲染</td><td><span class="tag t-ok">做得好</span></td><td>拖拽逐帧只写 DOM transform + CSS 变量，不触发 React；时基值用 getter 而非快照。</td></tr>
+        <tr><td>context 稳定性</td><td><span class="tag t-ok">基本稳定</span></td><td>SlotProvider 用 useMemo；插件 context 为 getter 代理，无逐帧重建。</td></tr>
+        <tr><td>避免每次渲染跑副作用链</td><td><span class="tag t-p2">违反</span></td><td>onPropsChange effect 无依赖守卫（P2-4）；输入场景下 21 个钩子链每键重跑。</td></tr>
+        <tr><td>布局读取与写入分离</td><td><span class="tag t-ok">可接受</span></td><td><code>useLayoutEffect</code> 打开时 measure 一次；每次 pointermove 只写 transform，不读 layout。</td></tr>
+        <tr><td>并发安全</td><td><span class="tag t-p2">有隐患</span></td><td>render 期改 <code>propsRef.current</code>（P2-12）；建议 layout effect 同步。</td></tr>
+        <tr><td>包体积</td><td><span class="tag t-ok">预算内</span></td><td>根入口声明 15KB 预算，子路径插件独立；但未实际复核产物大小，发布前需跑 check-packages。</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 08 -->
+  <section>
+    <div class="sec-head"><span class="sec-no">08</span><h2 class="sec-title">门禁与验收记录可信度</h2></div>
+    <p class="sec-sub">本轮只做静态审查，不代替运行门禁；以下为需要复核的偏差。</p>
+    <table>
+      <thead><tr><th style="width:26%">项目</th><th style="width:16%">记录状态</th><th>复核结果</th></tr></thead>
+      <tbody>
+        <tr><td>插件数量</td><td>55 文档 26 个；56 清单全勾</td><td>实际 21 个（A 7 + B 9 + C 5）。D 组 5 个领域插件不存在（P1-8）。</td></tr>
+        <tr><td>样式产物</td><td>56 声称 <code>dist/style.css</code> + exports</td><td>不存在；组件样式以内联 style 为主。</td></tr>
+        <tr><td>demo 场景</td><td>56 声称 P2 全部完成</td><td>6 页 + 2 场景，覆盖 8/21 插件；55 §9 的 4 个承诺场景缺失（P1-7）。</td></tr>
+        <tr><td>自测</td><td>56 声称 selftest PASS</td><td>用例存在且覆盖核心拖拽链路，但首帧开启的 FocusTrap、ScrollLock 清理、maxHeight 均未断言（P1-6）。</td></tr>
+        <tr><td>E 组跨包组合</td><td>56 标 <code>[x]</code></td><td>仓库内无 CartSheet / CommentSheet / ImageBrowser / CouponSelector / SignInSheet / ProfileCardSheet。</td></tr>
+        <tr><td>docs 四件</td><td>已完成</td><td>已确认存在 api / plugins / recipes / index 四份。</td></tr>
+      </tbody>
+    </table>
+    <div class="note">
+      建议本轮先「校正事实」再谈发布：将 55/56 的范围收敛为 21 个已交付插件，把 D 组与 E 组移回待办；否则后续任何基于清单的排期都会失真。
+    </div>
+  </section>
+
+  <!-- 09 -->
+  <section>
+    <div class="sec-head"><span class="sec-no">09</span><h2 class="sec-title">修复顺序建议</h2></div>
+    <p class="sec-sub">严格按「先阻断、再核心、后体验」推进；每批一个 commit，修完跑全量门禁。</p>
+    <div class="road">
+      <div class="road-card">
+        <div class="step">BATCH 1 · 阻断</div>
+        <h3>示例与事实校正</h3>
+        <ul>
+          <li>P1-1 六个 demo 的 HOC 创建方式</li>
+          <li>P1-7 工坊改四段式（先骨架）</li>
+          <li>P1-8 修订 55/56 范围与勾选</li>
+        </ul>
+      </div>
+      <div class="road-card">
+        <div class="step">BATCH 2 · 核心几何</div>
+        <h3>尺寸与生命周期</h3>
+        <ul>
+          <li>P1-2 maxHeight 全链路</li>
+          <li>P1-3 snapPoints/detent 变更重算</li>
+          <li>P1-4 detent:content 测高修正</li>
+          <li>P1-5 / P1-6 卸载清理与首帧初始化</li>
+        </ul>
+      </div>
+      <div class="road-card">
+        <div class="step">BATCH 3 · 体验与契约</div>
+        <h3>P2 清扫与示例补齐</h3>
+        <ul>
+          <li>phase 状态机、timer、外部关闭策略</li>
+          <li>无障碍名称、拖拽面、误关保护</li>
+          <li>13 个插件示例 / README PC 用法</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 -->
+  <section>
+    <div class="sec-head"><span class="sec-no">10</span><h2 class="sec-title">复验标准</h2></div>
+    <p class="sec-sub">修复后按以下命令与人工用例复验；未通过不得宣称「已修复」。</p>
+    <table>
+      <thead><tr><th style="width:30%">层级</th><th>命令 / 用例</th></tr></thead>
+      <tbody>
+        <tr><td>单包静态</td><td><span class="kbd">pnpm --filter vane-modal-sheet typecheck</span> · <span class="kbd">lint</span> · <span class="kbd">test</span> 全绿</td></tr>
+        <tr><td>单包构建</td><td><span class="kbd">vite build --mode lib</span> → 仓库根 <span class="kbd">node scripts/check-packages.mjs</span>（体积预算 15KB）</td></tr>
+        <tr><td>demo 构建</td><td><span class="kbd">pnpm --filter vane-modal-sheet build:demo</span> 成功</td></tr>
+        <tr><td>浏览器自测</td><td><span class="kbd">?selftest=1</span> → <code>document.title = SELFTEST PASS n/n</code>；新增首帧开启、卸载清理、maxHeight 三条断言</td></tr>
+        <tr><td>人工回归</td><td>05 打开后 progress 连续跳动且不重开；04 连续输入 20 字不失焦；01 打开中切档立即生效；02 短内容无滚动条；PC 宽屏 560×720 浮窗高度正确；卸载打开中的弹层后页面可滚动</td></tr>
+        <tr><td>全量门禁</td><td><span class="kbd">pnpm verify</span>（lint && typecheck && test && check && check:structure && check:config && check:demo）</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <footer>
+    <span>vane-modal-sheet · 核心功能评审 · 2026-11-02</span>
+    <span>配套实施清单：<a href="./58-vane-modal-sheet-修复实施验收清单.md">58-修复实施验收清单.md</a></span>
+  </footer>
+
+</div>
+</body>
+</html>

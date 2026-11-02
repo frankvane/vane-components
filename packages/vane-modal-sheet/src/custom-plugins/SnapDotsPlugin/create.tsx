@@ -58,6 +58,7 @@ export const createSnapDotsPlugin: ModalSheetPluginCreator<SnapDotsPluginConfig>
                   type="button"
                   aria-label={`吸附到第 ${i + 1} 档`}
                   aria-current={active ? "true" : undefined}
+                  onPointerDown={(e) => e.stopPropagation()}
                   onClick={() => ctx.snapTo(i)}
                   style={{
                     width: active ? 16 : 8,

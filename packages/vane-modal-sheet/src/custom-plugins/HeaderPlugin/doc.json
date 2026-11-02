@@ -15,6 +15,12 @@
       "type": "boolean",
       "default": "true",
       "description": "是否显示关闭按钮"
+    },
+    {
+      "name": "titleId",
+      "type": "string",
+      "default": "\"\"",
+      "description": "标题元素 id；配合 Core 的 ariaLabelledby 关联对话框名称"
     }
   ],
   "example": "const Sheet = withModalSheetPlugins(ModalSheetCore, [createHeaderPlugin({ title: \"选择联系人\" })]);"
