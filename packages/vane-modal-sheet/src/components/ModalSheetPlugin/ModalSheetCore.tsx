@@ -89,6 +89,9 @@ export const ModalSheetCore = forwardRef<ModalSheetCoreRef, ModalSheetCoreProps>
       });
     }
     const engine = engineRef.current;
+    // 回写到共享 state，供 HOC 的 context.getDragProps 在首帧渲染期就能拿到
+    // （槽位渲染发生在本组件 useImperativeHandle 之前）
+    s.engine = engine;
 
     const getDragProps = (): ModalSheetDragProps => ({
       onPointerDown: (e) => {
@@ -122,7 +125,13 @@ export const ModalSheetCore = forwardRef<ModalSheetCoreRef, ModalSheetCoreProps>
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOpen]);
 
-    useEffect(() => () => engine.destroy(), [engine]);
+    useEffect(
+      () => () => {
+        engine.destroy();
+        s.engine = null;
+      },
+      [engine, s],
+    );
 
     // 视口变化（旋转/缩放）重算吸附；稳态下回到当前档
     useEffect(() => {

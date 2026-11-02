@@ -83,12 +83,26 @@ export function withModalSheetPlugins(
             configurable: true,
           },
         });
-        ctx.snapTo = (index: number) => coreRef.current?.snapTo(index);
-        ctx.close = () => coreRef.current?.close();
+        // 命令入口与拖拽面都从共享 state 上的 engine 读（Core 创建后回写），
+        // 不走 forwardRef：槽位渲染发生在 useImperativeHandle 之前，首帧 ref 为空。
+        ctx.snapTo = (index: number) =>
+          sheetStateRef.current.engine?.snapTo(index);
+        ctx.close = () => sheetStateRef.current.engine?.close();
         ctx.getPanel = () => coreRef.current?.getPanel() ?? null;
-        ctx.getDragProps = () => coreRef.current?.getDragProps() ?? {};
+        ctx.getDragProps = () => {
+          const engine = sheetStateRef.current.engine;
+          if (!engine) return {};
+          return {
+            onPointerDown: (e: { clientY: number; preventDefault(): void }) => {
+              e.preventDefault();
+              engine.handlePointerDown(e);
+            },
+            style: { touchAction: "none" as const },
+            "data-vane-ms-drag": "true",
+          };
+        };
         ctx.setViewportInset = (px: number) =>
-          coreRef.current?.setViewportInset(px);
+          sheetStateRef.current.engine?.setViewportInset(px);
         return ctx;
       }, []);
 

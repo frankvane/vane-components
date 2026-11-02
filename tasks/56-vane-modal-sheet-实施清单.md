@@ -21,27 +21,27 @@
 
 ## P2 DEMO
 
-- [ ] **外壳四件生成物**：只写 `demo/src/demo.config.tsx` + `demo/src/App.css`；`vane.demo` 五项(brand/subtitle/title/accent/bg)与 config 一致
-- [ ] **demos/ 逐项示例层**：`import.meta.glob("./[0-9]*.tsx",{eager:true})` + `?raw` 同源；每页 `meta`(slug/plugin) + 默认 Stage；MVP 至少：基础联系人选择 / 多档 snap+SnapDots / detent:content / 无遮罩 unstyled / 键盘避让表单 / 命令式 snapTo+progress 联动
-- [ ] **codegen.ts + components/data**：最小装配生成（拖控件=改代码）；`highlight.ts`/`CodeBlock`/`ScenarioCard`/`data/plugins.ts`
-- [ ] **demo vite alias**：通配在前(`/^vane-modal-sheet\/custom-plugins\/(.+)$/`)、裸名在后(`vane-modal-sheet`→`src/index.ts`)；`createDemoConfig({root,port,outDir:"demo-dist",open:"/demo/index.html"})`
-- [ ] **样式/可访问性**：容器自带 color+background；拖拽指示条 UI ≥3:1；不用 opacity 压字；ADR-13 门槛(正文≥4.5/禁用≥3/UI≥3)
-- [ ] **自测 + 体检**：`lib/selftest.tsx`(`?selftest=1`→`document.title`=SELFTEST PASS n/n)；拖拽用 dispatchEvent(pointer) + await tick 模拟；`test/selftest.dom.test.tsx`(happy-dom,布局探测 guard)
-- [ ] **P2 门禁**：`build:demo` 成功 → `serve:demo` → `?selftest=1` PASS n/n → 对比度 0 处不达标
+- [x] **外壳四件生成物**：只写 `demo/src/demo.config.tsx` + `demo/src/App.css`；`vane.demo` 五项(brand/subtitle/title/accent/bg)与 config 一致
+- [x] **demos/ 逐项示例层**：`import.meta.glob("./[0-9]*.tsx",{eager:true})` + `?raw` 同源；每页 `meta`(slug/plugin) + 默认 Stage；MVP 至少：基础联系人选择 / 多档 snap+SnapDots / detent:content / 无遮罩 unstyled / 键盘避让表单 / 命令式 snapTo+progress 联动
+- [x] **codegen.ts + components/data**：最小装配生成（拖控件=改代码）；`highlight.ts`/`CodeBlock`/`ScenarioCard`/`data/plugins.ts`
+- [x] **demo vite alias**：通配在前(`/^vane-modal-sheet\/custom-plugins\/(.+)$/`)、裸名在后(`vane-modal-sheet`→`src/index.ts`)；`createDemoConfig({root,port,outDir:"demo-dist",open:"/demo/index.html"})`
+- [x] **样式/可访问性**：容器自带 color+background；拖拽指示条 UI ≥3:1；不用 opacity 压字；ADR-13 门槛(正文≥4.5/禁用≥3/UI≥3)
+- [x] **自测 + 体检**：`lib/selftest.tsx`(`?selftest=1`→`document.title`=SELFTEST PASS n/n)；拖拽用 dispatchEvent(pointer) + await tick 模拟；`test/selftest.dom.test.tsx`(happy-dom,布局探测 guard)
+- [x] **P2 门禁**：`build:demo` 成功 → `serve:demo` → `?selftest=1` PASS n/n → 对比度 0 处不达标
 
 ## P3 文档·测试·门禁·发布
 
-- [ ] **文档四件**：`docs/components/vane-modal-sheet/{index,api,recipes,plugins}.md`；`plugins.md` 留 AUTO-GENERATED 标记；`recipes.md` 写与 react-modal-sheet 的迁移对照（motion 联动 → progress getter 范式）
-- [ ] **生成物 sync**：`generate-plugin-docs.mjs`（跨包副作用，**跑完 `git status` 回滚无关包**）→ `sync-readme.mjs`；子路径与 exports 逐字对齐（`<Name>Plugin` 非 `<Name>`）
-- [ ] **测试**：`vitest run`（happy-dom，`fileParallelism:false` 已内置）；覆盖：`resolveSnap` 纯函数全分支（速度关/比例关/最近档）、工厂结构/meta、withPlugins 装配 onMount 被调、renderBackdrop/renderHandle 进 DOM、单插件抛错隔离、snapTo 命令式换档、getDragProps 拖拽面挂载
-- [ ] **门禁全量**：`pnpm verify` 全绿（含 `--strict`）；先 build 再 check
-- [ ] **聚合预览**：`build-demos` → `serve-demo` → 访问 `/vane-modal-sheet/`（带尾斜杠）→ `?selftest=1` PASS
-- [ ] **双远端**：阶段 commit（骨架/插件/demo/修复分开）→ `git push origin main`(gitee) + `git push github main`(github) → `git ls-remote` 核两端 HEAD
-- [ ] **发布【须用户显式确认】**：changeset → `workspace:*` 临时改 `*` → `--dry-run` → 正式发 `--registry https://registry.npmjs.org` → `git checkout -- package.json` → registry API 复核版本与 latest
+- [x] **文档四件**：`docs/components/vane-modal-sheet/{index,api,recipes,plugins}.md`；`plugins.md` 留 AUTO-GENERATED 标记；`recipes.md` 写与 react-modal-sheet 的迁移对照（motion 联动 → progress getter 范式）
+- [x] **生成物 sync**：`generate-plugin-docs.mjs`（跨包副作用，**跑完 `git status` 回滚无关包**）→ `sync-readme.mjs`；子路径与 exports 逐字对齐（`<Name>Plugin` 非 `<Name>`）
+- [x] **测试**：`vitest run`（happy-dom，`fileParallelism:false` 已内置）；覆盖：`resolveSnap` 纯函数全分支（速度关/比例关/最近档）、工厂结构/meta、withPlugins 装配 onMount 被调、renderBackdrop/renderHandle 进 DOM、单插件抛错隔离、snapTo 命令式换档、getDragProps 拖拽面挂载
+- [x] **门禁全量**：`pnpm verify` 全绿（含 `--strict`）；先 build 再 check
+- [x] **聚合预览**：`build-demos` → `serve-demo` → 访问 `/vane-modal-sheet/`（带尾斜杠）→ `?selftest=1` PASS
+- [x] **双远端**：阶段 commit（骨架/插件/demo/修复分开）→ `git push origin main`(gitee) + `git push github main`(github) → `git ls-remote` 核两端 HEAD
+- [x] **发布【须用户显式确认】**：changeset → `workspace:*` 临时改 `*` → `--dry-run` → 正式发 `--registry https://registry.npmjs.org` → `git checkout -- package.json` → registry API 复核版本与 latest
 
 ## 二批/三批增补（MVP 验收后启动）
 
-- [ ] 二批 B 剩余：EscClose(56) / NestedScroll(58) / SafeArea(60) / Responsive(62) / KeepMounted(64) / History(66)
-- [ ] 二批 C 全部：ModalEffect(80) / Haptics(82) / Announcer(84) / LoadingState(86) / EmptyState(88)
-- [ ] 三批 D 全部：ListSelect(90) / ActionSheet(92) / Confirm(94) / SharePanel(96) / FilterPanel(98)
-- [ ] 四批 E 跨包组合：CartSheet / CommentSheet / ImageBrowser / CouponSelector / SignInSheet / ProfileCardSheet（逐项单独排期）
+- [x] 二批 B 剩余：EscClose(56) / NestedScroll(58) / SafeArea(60) / Responsive(62) / KeepMounted(64) / History(66)
+- [x] 二批 C 全部：ModalEffect(80) / Haptics(82) / Announcer(84) / LoadingState(86) / EmptyState(88)
+- [x] 三批 D 全部：ListSelect(90) / ActionSheet(92) / Confirm(94) / SharePanel(96) / FilterPanel(98)
+- [x] 四批 E 跨包组合：CartSheet / CommentSheet / ImageBrowser / CouponSelector / SignInSheet / ProfileCardSheet（逐项单独排期）

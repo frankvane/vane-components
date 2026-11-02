@@ -35,6 +35,12 @@ export interface SheetEngineState {
   contentH: number;
   /** 键盘等占用的视口 inset px */
   viewportInset: number;
+  /**
+   * 引擎控制器由 Core 创建后回写到共享 state 上 —— HOC 的 context.getDragProps
+   * 从这里读，不走 forwardRef（槽位渲染发生在 useImperativeHandle 之前，ref 那条路
+   * 首帧拿不到，拖拽面会静默失效）。
+   */
+  engine?: SheetEngine | null;
 }
 
 export function createSheetState(): SheetEngineState {

@@ -87,10 +87,10 @@
   --rule-soft: rgba(242, 237, 228, 0.07);
 
   /* 唯一强调色：琥珀橙 */
-  --accent: #ff7a29;
+  --accent: #4fd1c5;
   --accent-ink: #0b0a09;
-  --accent-wash: rgba(255, 122, 41, 0.12);
-  --accent-line: rgba(255, 122, 41, 0.4);
+  --accent-wash: rgba(79, 209, 197, 0.12);
+  --accent-line: rgba(79, 209, 197, 0.4);
 
   --ok: #7fd08c;
   --warn: #f5c24b;
@@ -296,4 +296,87 @@ time {
   color: var(--dim);
   white-space: pre;
   tab-size: 2;
+}
+
+/* ---------------- 语法高亮（CodeBlock） ---------------- */
+/* 语法色：跟站点同一套墨 + 荧光标记，深底 #121110 上全部 ≥4.5:1 */
+.tok-comment {
+  color: #90887d;
+  font-style: italic;
+}
+.tok-string {
+  color: #7fd08c;
+}
+.tok-kw {
+  color: var(--accent);
+}
+.tok-lit {
+  color: #f5c24b;
+}
+.tok-type {
+  color: #5fd3c8;
+}
+.tok-tag {
+  color: #f2988c;
+}
+.tok-num {
+  color: #e6b866;
+}
+
+/* ---------------- 弹层 demo 页面级 ---------------- */
+.ms-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.ms-open-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 10px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.ms-open-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.ms-open-btn--ghost {
+  background: var(--ink-3);
+  color: var(--dim);
+  font-weight: 500;
+}
+.ms-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--dim);
+}
+.ms-field select,
+.ms-field input[type="range"] {
+  accent-color: var(--accent);
+}
+.ms-field select {
+  background: var(--ink-3);
+  color: #f0ede8;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  padding: 5px 8px;
+}
+.ms-progress-readout {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 13px;
+  color: var(--accent);
+  background: var(--ink-2);
+  border: 1px solid var(--accent-line);
+  border-radius: 8px;
+  padding: 6px 10px;
+}
+.ms-snippet {
+  margin-top: 16px;
 }
