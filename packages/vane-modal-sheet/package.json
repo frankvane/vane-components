@@ -19,6 +19,10 @@
       "types": "./dist/entries/plugins.d.ts",
       "import": "./dist/entries/plugins.js"
     },
+    "./custom-plugins/AnnouncerPlugin": {
+      "types": "./dist/custom-plugins/AnnouncerPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/AnnouncerPlugin/index.js"
+    },
     "./custom-plugins/BackdropPlugin": {
       "types": "./dist/custom-plugins/BackdropPlugin/index.d.ts",
       "import": "./dist/custom-plugins/BackdropPlugin/index.js"
@@ -26,6 +30,14 @@
     "./custom-plugins/DragHandlePlugin": {
       "types": "./dist/custom-plugins/DragHandlePlugin/index.d.ts",
       "import": "./dist/custom-plugins/DragHandlePlugin/index.js"
+    },
+    "./custom-plugins/EmptyStatePlugin": {
+      "types": "./dist/custom-plugins/EmptyStatePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/EmptyStatePlugin/index.js"
+    },
+    "./custom-plugins/EscClosePlugin": {
+      "types": "./dist/custom-plugins/EscClosePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/EscClosePlugin/index.js"
     },
     "./custom-plugins/FocusTrapPlugin": {
       "types": "./dist/custom-plugins/FocusTrapPlugin/index.d.ts",
@@ -35,13 +47,45 @@
       "types": "./dist/custom-plugins/FooterPlugin/index.d.ts",
       "import": "./dist/custom-plugins/FooterPlugin/index.js"
     },
+    "./custom-plugins/HapticsPlugin": {
+      "types": "./dist/custom-plugins/HapticsPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/HapticsPlugin/index.js"
+    },
     "./custom-plugins/HeaderPlugin": {
       "types": "./dist/custom-plugins/HeaderPlugin/index.d.ts",
       "import": "./dist/custom-plugins/HeaderPlugin/index.js"
     },
+    "./custom-plugins/HistoryPlugin": {
+      "types": "./dist/custom-plugins/HistoryPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/HistoryPlugin/index.js"
+    },
+    "./custom-plugins/KeepMountedPlugin": {
+      "types": "./dist/custom-plugins/KeepMountedPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/KeepMountedPlugin/index.js"
+    },
     "./custom-plugins/KeyboardAvoidPlugin": {
       "types": "./dist/custom-plugins/KeyboardAvoidPlugin/index.d.ts",
       "import": "./dist/custom-plugins/KeyboardAvoidPlugin/index.js"
+    },
+    "./custom-plugins/LoadingStatePlugin": {
+      "types": "./dist/custom-plugins/LoadingStatePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/LoadingStatePlugin/index.js"
+    },
+    "./custom-plugins/ModalEffectPlugin": {
+      "types": "./dist/custom-plugins/ModalEffectPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ModalEffectPlugin/index.js"
+    },
+    "./custom-plugins/NestedScrollPlugin": {
+      "types": "./dist/custom-plugins/NestedScrollPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/NestedScrollPlugin/index.js"
+    },
+    "./custom-plugins/ResponsivePlugin": {
+      "types": "./dist/custom-plugins/ResponsivePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ResponsivePlugin/index.js"
+    },
+    "./custom-plugins/SafeAreaPlugin": {
+      "types": "./dist/custom-plugins/SafeAreaPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/SafeAreaPlugin/index.js"
     },
     "./custom-plugins/ScrollLockPlugin": {
       "types": "./dist/custom-plugins/ScrollLockPlugin/index.d.ts",

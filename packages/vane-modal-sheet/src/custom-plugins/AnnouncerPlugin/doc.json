@@ -1,0 +1,19 @@
+{
+  "name": "AnnouncerPlugin",
+  "description": "读屏播报：aria-live 区域在档位变化时播报当前进度。",
+  "since": "0.1.0",
+  "tags": [
+    "a11y",
+    "screen-reader",
+    "feedback"
+  ],
+  "config": [
+    {
+      "name": "labels",
+      "type": "string[]",
+      "default": "-",
+      "description": "各档播报文案，缺省播报已展开百分比"
+    }
+  ],
+  "example": "const Sheet = withModalSheetPlugins(ModalSheetCore, [createAnnouncerPlugin({ labels: [\"展开\", \"半屏\", \"全屏\"] })]);"
+}

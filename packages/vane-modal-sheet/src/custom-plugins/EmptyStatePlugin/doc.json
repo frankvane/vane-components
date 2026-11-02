@@ -1,0 +1,36 @@
+{
+  "name": "EmptyStatePlugin",
+  "description": "空态占位：empty 时内容区覆盖占位提示与引导动作。",
+  "since": "0.1.0",
+  "tags": [
+    "empty",
+    "feedback"
+  ],
+  "config": [
+    {
+      "name": "empty",
+      "type": "boolean",
+      "default": "false",
+      "description": "内容是否为空"
+    },
+    {
+      "name": "text",
+      "type": "string",
+      "default": "\"暂无内容\"",
+      "description": "占位文案"
+    },
+    {
+      "name": "actionText",
+      "type": "string",
+      "default": "-",
+      "description": "引导按钮文案"
+    },
+    {
+      "name": "onAction",
+      "type": "function",
+      "default": "-",
+      "description": "引导按钮点击"
+    }
+  ],
+  "example": "const Sheet = withModalSheetPlugins(ModalSheetCore, [createEmptyStatePlugin({ empty, actionText: \"刷新\", onAction: reload })]);"
+}

@@ -1,0 +1,11 @@
+{
+  "name": "KeepMountedPlugin",
+  "description": "关闭保活：关闭时记住内容区滚动位置，重新打开时恢复阅读进度。",
+  "since": "0.1.0",
+  "tags": [
+    "state",
+    "ux"
+  ],
+  "config": [],
+  "example": "const Sheet = withModalSheetPlugins(ModalSheetCore, [createKeepMountedPlugin()]);"
+}

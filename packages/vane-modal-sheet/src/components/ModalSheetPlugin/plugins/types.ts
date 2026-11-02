@@ -45,6 +45,10 @@ export interface ModalSheetCoreProps {
   prefersReducedMotion?: boolean;
   /** 弹层根节点 z-index（默认 1000） */
   zIndex?: number;
+  /** 面板宽度（px 数字或任意 CSS 宽度；默认 "100%" 全宽） */
+  width?: number | string;
+  /** 面板水平停靠（默认 "center"；width 不为全宽时生效：left/center/right） */
+  horizontalAlign?: "left" | "center" | "right";
   /** 吸附/打开/关闭事件（HOC 会在此之上再跑插件钩子链） */
   onSnap?: (index: number) => void;
   onOpen?: () => void;

@@ -14,6 +14,8 @@
 | `tweenDuration` | `number` | `240` | 补间时长 ms |
 | `prefersReducedMotion` | `boolean` | `false` | 跳过动画（无障碍） |
 | `zIndex` | `number` | `1000` | 弹层根节点 z-index |
+| `width` | `number \| string` | `"100%"` | 面板宽度（px 数字或任意 CSS 宽度） |
+| `horizontalAlign` | `"left" \| "center" \| "right"` | `"center"` | 面板水平停靠（width 非全宽时生效） |
 | `onSnap` / `onOpen` | 回调 | - | 吸附 / 打开补间完成（HOC 会在其上再跑插件钩子链） |
 | `panelStyle` / `contentStyle` | `React.CSSProperties` | - | 面板 / 内容区样式覆盖（背景色等 token） |
 | `containerClassName` / `containerStyle` | - | - | 弹层根节点类名/样式 |

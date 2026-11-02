@@ -15,13 +15,15 @@ import type { DemoStageProps } from "./types";
 // 装配一律写在模块顶层。
 // 写进组件体的后果：每次渲染都新建一个组件类型，React 只能整棵重挂 ——
 // 缩放归零、滚动位置丢失、PDF 的 iframe 重新加载（每次白闪一下）。
-const Default = withPlugins(FilePreviewCore, [createPdfPreviewPlugin()]);
-const Embed = withPlugins(FilePreviewCore, [createPdfPreviewPlugin({ useIframe: false })]);
+// 两档与 catalog.variants 对齐：pdf = 本站可信静态样本（关 sandbox 换内置查看器可见），
+// pdf:sandbox = 插件默认安全策略（sandbox "allow-scripts"）。
+const Default = withPlugins(FilePreviewCore, [createPdfPreviewPlugin({ sandbox: false })]);
+const Sandbox = withPlugins(FilePreviewCore, [createPdfPreviewPlugin()]);
 
 /** 档位 → 已经装配好的组件。切换只是换一个引用，不会新建类型。 */
 const MAP: Record<string, React.ElementType> = {
   "pdf": Default,
-  "pdf:embed": Embed,
+  "pdf:sandbox": Sandbox,
 };
 
 export const meta = { plugin: "pdf" };

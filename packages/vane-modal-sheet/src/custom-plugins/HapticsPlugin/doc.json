@@ -1,0 +1,25 @@
+{
+  "name": "HapticsPlugin",
+  "description": "触感反馈：吸附 / 关闭时 navigator.vibrate 短震，不支持的设备静默跳过。",
+  "since": "0.1.0",
+  "tags": [
+    "haptics",
+    "mobile",
+    "feedback"
+  ],
+  "config": [
+    {
+      "name": "snapMs",
+      "type": "number",
+      "default": "8",
+      "description": "吸附时震动时长 ms"
+    },
+    {
+      "name": "closeMs",
+      "type": "number",
+      "default": "12",
+      "description": "关闭时震动时长 ms"
+    }
+  ],
+  "example": "const Sheet = withModalSheetPlugins(ModalSheetCore, [createHapticsPlugin()]);"
+}

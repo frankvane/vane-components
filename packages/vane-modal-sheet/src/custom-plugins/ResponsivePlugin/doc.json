@@ -1,0 +1,30 @@
+{
+  "name": "ResponsivePlugin",
+  "description": "断点策略：窄屏 bottom sheet，宽屏居中悬浮弹窗（限宽 + 四角圆角 + 悬浮间距）。",
+  "since": "0.1.0",
+  "tags": [
+    "responsive",
+    "layout"
+  ],
+  "config": [
+    {
+      "name": "breakpoint",
+      "type": "number",
+      "default": "768",
+      "description": "桌面态断点 px"
+    },
+    {
+      "name": "desktopWidth",
+      "type": "number",
+      "default": "560",
+      "description": "桌面态面板最大宽度"
+    },
+    {
+      "name": "inset",
+      "type": "number",
+      "default": "24",
+      "description": "桌面态悬浮间距 px"
+    }
+  ],
+  "example": "const Sheet = withModalSheetPlugins(ModalSheetCore, [createResponsivePlugin()]);"
+}

@@ -1,0 +1,31 @@
+{
+  "name": "LoadingStatePlugin",
+  "description": "加载骨架：loading 时内容区覆盖骨架屏并锁定拖拽。",
+  "since": "0.1.0",
+  "tags": [
+    "loading",
+    "skeleton",
+    "feedback"
+  ],
+  "config": [
+    {
+      "name": "loading",
+      "type": "boolean",
+      "default": "false",
+      "description": "是否处于加载态"
+    },
+    {
+      "name": "rows",
+      "type": "number",
+      "default": "3",
+      "description": "骨架行数"
+    },
+    {
+      "name": "shimmerColor",
+      "type": "string",
+      "default": "\"#eef1f4\"",
+      "description": "骨架高亮色"
+    }
+  ],
+  "example": "const Sheet = withModalSheetPlugins(ModalSheetCore, [createLoadingStatePlugin({ loading })]);"
+}

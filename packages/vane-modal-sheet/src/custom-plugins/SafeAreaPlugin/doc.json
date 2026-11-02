@@ -1,0 +1,19 @@
+{
+  "name": "SafeAreaPlugin",
+  "description": "刘海屏 / 手势条适配：面板注入 env(safe-area-inset-*) 底部内边距。",
+  "since": "0.1.0",
+  "tags": [
+    "mobile",
+    "safe-area",
+    "layout"
+  ],
+  "config": [
+    {
+      "name": "extraBottom",
+      "type": "number",
+      "default": "0",
+      "description": "额外底部 padding px"
+    }
+  ],
+  "example": "const Sheet = withModalSheetPlugins(ModalSheetCore, [createSafeAreaPlugin()]);"
+}

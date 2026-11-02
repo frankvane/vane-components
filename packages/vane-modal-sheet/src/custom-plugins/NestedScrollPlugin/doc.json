@@ -1,0 +1,11 @@
+{
+  "name": "NestedScrollPlugin",
+  "description": "内容滚动联动拖拽：内容没滚回顶部时锁定拖拽（disableDrag 场景）。",
+  "since": "0.1.0",
+  "tags": [
+    "scroll",
+    "gesture"
+  ],
+  "config": [],
+  "example": "const Sheet = withModalSheetPlugins(ModalSheetCore, [createNestedScrollPlugin()]);"
+}

@@ -1,0 +1,19 @@
+{
+  "name": "HistoryPlugin",
+  "description": "Android 返回手势 / 浏览器后退关闭：打开时 pushState，popstate 触发关闭。",
+  "since": "0.1.0",
+  "tags": [
+    "history",
+    "android",
+    "mobile"
+  ],
+  "config": [
+    {
+      "name": "state",
+      "type": "unknown",
+      "default": "{ vaneModalSheet: \"close\" }",
+      "description": "推入 history 的状态标记"
+    }
+  ],
+  "example": "const Sheet = withModalSheetPlugins(ModalSheetCore, [createHistoryPlugin()]);"
+}

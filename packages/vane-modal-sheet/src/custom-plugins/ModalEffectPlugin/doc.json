@@ -1,0 +1,25 @@
+{
+  "name": "ModalEffectPlugin",
+  "description": "iOS modal effect：背景页随打开进度轻微放大（Apple Maps 弹层感），走 CSS 变量零渲染成本。",
+  "since": "0.1.0",
+  "tags": [
+    "ios",
+    "effect",
+    "visual"
+  ],
+  "config": [
+    {
+      "name": "amount",
+      "type": "number",
+      "default": "0.06",
+      "description": "背景最大缩大量 0-1"
+    },
+    {
+      "name": "hostSelector",
+      "type": "string",
+      "default": "\"#root\"",
+      "description": "被缩放的宿主节点选择器"
+    }
+  ],
+  "example": "const Sheet = withModalSheetPlugins(ModalSheetCore, [createModalEffectPlugin()]);"
+}

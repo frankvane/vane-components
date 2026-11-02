@@ -36,6 +36,11 @@ export interface SheetEngineState {
   /** 键盘等占用的视口 inset px */
   viewportInset: number;
   /**
+   * 拖拽锁：NestedScroll / LoadingState 等插件置 true 时 handlePointerDown 直接
+   * 忽略（内容还没滚到顶 / 加载中不允许拖拽）。
+   */
+  dragLock?: boolean;
+  /**
    * 引擎控制器由 Core 创建后回写到共享 state 上 —— HOC 的 context.getDragProps
    * 从这里读，不走 forwardRef（槽位渲染发生在 useImperativeHandle 之前，ref 那条路
    * 首帧拿不到，拖拽面会静默失效）。
@@ -254,14 +259,22 @@ export function createSheetEngine(ops: SheetEngineOps): SheetEngine {
     const index = clampIndex(ops.getInitialSnap());
     s.snapIndex = index;
     applyY(s.hiddenY, false);
-    requestAnimationFrame(() => {
+    // 首帧渲染在隐藏位，下一帧补间到目标档。rAF 在后台标签页 / 部分无头
+    // 环境会被节流甚至不跑，必须挂 setTimeout 兜底（幂等，先到先执行），
+    // 否则弹层永远停在视口外、progress 停 0。
+    let started = false;
+    const startTween = () => {
+      if (started) return;
+      started = true;
       applyY(s.snapYs[index], true);
       waitTween(() => {
         s.phase = "open";
         ops.onOpen();
         ops.onSnap(index);
       });
-    });
+    };
+    requestAnimationFrame(startTween);
+    setTimeout(startTween, 32);
   }
 
   function close() {
@@ -344,6 +357,8 @@ export function createSheetEngine(ops: SheetEngineOps): SheetEngine {
   function handlePointerDown(e: { clientY: number }) {
     // 只能在稳态（open）下发起拖拽；snapping 中打断会出现半途速度误判
     if (s.phase !== "open") return;
+    // 插件拖拽锁（NestedScroll / LoadingState）
+    if (s.dragLock) return;
     clearTimer();
     const t = typeof performance !== "undefined" ? performance.now() : Date.now();
     drag = { startY: e.clientY, y0: s.y, lastY: e.clientY, lastT: t, velocity: 0 };

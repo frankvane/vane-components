@@ -31,6 +31,8 @@ export const ModalSheetCore = forwardRef<ModalSheetCoreRef, ModalSheetCoreProps>
       isOpen,
       children,
       zIndex = 1000,
+      width,
+      horizontalAlign = "center",
       containerClassName,
       containerStyle,
       panelStyle,
@@ -179,9 +181,19 @@ export const ModalSheetCore = forwardRef<ModalSheetCoreRef, ModalSheetCoreProps>
           aria-modal="true"
           style={{
             position: "absolute",
-            left: 0,
-            right: 0,
-            bottom: 0,
+            // 水平停靠：width 不为全宽时由 horizontalAlign 决定停靠边
+            left: horizontalAlign === "right" ? "auto" : 0,
+            right: horizontalAlign === "left" ? "auto" : 0,
+            margin:
+              horizontalAlign === "center" && width !== undefined
+                ? "0 auto"
+                : undefined,
+            width: width ?? "100%",
+            // 顶部锚定：engine 的 translateY(y) 语义是「面板顶部 = y」。
+            // 不能用 bottom:0 —— 那会让面板初始顶部落在 (viewportH - panelH)，
+            // 叠加 translateY 后实际位置系统性偏低同样的量：矮面板（detent:content
+            // 的 100px 条）会被整条推出视口外。
+            top: 0,
             display: "flex",
             flexDirection: "column",
             overflow: "hidden",

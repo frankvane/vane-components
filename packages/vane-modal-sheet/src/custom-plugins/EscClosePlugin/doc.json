@@ -1,0 +1,19 @@
+{
+  "name": "EscClosePlugin",
+  "description": "Esc 关闭：键盘 Escape 触发关闭；多层嵌套时只关最顶层（栈序）。",
+  "since": "0.1.0",
+  "tags": [
+    "keyboard",
+    "close",
+    "a11y"
+  ],
+  "config": [
+    {
+      "name": "topOnly",
+      "type": "boolean",
+      "default": "true",
+      "description": "只在自己是最高层 sheet 时才响应"
+    }
+  ],
+  "example": "const Sheet = withModalSheetPlugins(ModalSheetCore, [createEscClosePlugin()]);"
+}
