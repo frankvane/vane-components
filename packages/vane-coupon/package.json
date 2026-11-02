@@ -1,6 +1,6 @@
 {
   "name": "vane-coupon",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "券展示与领取：领取态 / 有效期 / 规则展开 / 叠加态",
   "type": "module",
   "main": "./dist/index.js",

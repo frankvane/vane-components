@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.0.2
+
+### Patch Changes
+
+- 修复核心链路 14 项缺陷并补回归用例。
+
+  - 价格、库存、变体选择、优惠叠加口径统一，空值与缺货降级修正，受控约束补齐。
+  - 新增 utils（coupon / sku / url）收敛重复逻辑。
+  - 插件槽位与 Core 渲染契约对齐 plugin-core 0.1.1 的 footer 槽与 key 策略。
+
 ## 2.0.0
 
 vane-card 2.0.0：插件系统内核换为 `vane-plugin-core`，钩子面 24 → 15，根入口不再桶导出。

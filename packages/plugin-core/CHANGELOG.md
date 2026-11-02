@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.1
+
+### Patch Changes
+
+- 修复槽位渲染与运行时上下文的三处缺陷。
+
+  - `renderPluginSlot` 支持 `position: footer`：footer 槽兼容历史 `after` 与缺省声明，底部插件不再被静默过滤。
+  - 槽位 key 改为按插件名生成，调整插件顺序不再导致整颗子树重挂载。
+  - `usePluginRuntime` 增加浅比较稳定化，props/data 内容不变时复用引用，避免宿主重渲染打穿 context。
+
 ## 0.1.0
 
 `vane-plugin-core` 首个发布版本：vane 系列组件共用的插件运行时内核。

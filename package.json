@@ -32,6 +32,7 @@
     "release:publish": "changeset publish"
   },
   "devDependencies": {
+    "@changesets/changelog-github": "^1.0.1",
     "@changesets/cli": "^2.27.9",
     "@vane/build-config": "workspace:*",
     "@vane/eslint-config": "workspace:*",

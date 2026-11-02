@@ -1,6 +1,6 @@
 {
   "name": "vane-sign-in",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "插件式 React 每日签到：连签状态 / 日历条 / 奖励预告 / 补签，各平台运营位通用",
   "type": "module",
   "main": "./dist/index.js",

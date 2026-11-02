@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.0.2
+
+### Patch Changes
+
+- 修复 15 项 P0/P1/P2 缺陷并补回归用例。
+
+  - HTML 渲染改走 `sanitizeHtml` 白名单，查看器沙箱与外部请求边界收紧。
+  - 文档解析竞态修复，共享数据不再串扰。
+  - 工具栏状态与预览器生命周期对齐。
+  - 新增 sanitize / 沙箱 / 竞态 / 体积门禁等 7 组回归用例。
+
 ## 2.0.0
 
 vane-file-preview 2.0.0：内核换成 `vane-plugin-core`，依赖全部 optional peer，对外契约基本兼容。

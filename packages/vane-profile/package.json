@@ -1,6 +1,6 @@
 {
   "name": "vane-profile",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "插件式个人主页引擎：头图 Banner + 数据行 StatRow + 内容页签 Tab 联动",
   "type": "module",
   "main": "./dist/index.js",

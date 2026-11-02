@@ -1,6 +1,6 @@
 {
   "name": "vane-sku",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "插件式 React SKU 规格选择引擎：组合矩阵 / 禁用推导 / 价格联动 / 限购校验",
   "type": "module",
   "main": "./dist/index.js",
