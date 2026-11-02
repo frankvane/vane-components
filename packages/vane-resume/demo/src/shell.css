@@ -256,7 +256,7 @@
 
 .topbar-btn[aria-pressed="true"] i {
   background: var(--accent);
-  box-shadow: 0 0 0 3px rgba(255, 122, 41, 0.16);
+  box-shadow: 0 0 0 3px rgba(204, 242, 75, 0.16);
 }
 
 .nav-toggle {
@@ -295,23 +295,23 @@
   opacity: 0;
   transition: opacity var(--dur) var(--ease);
   background-image:
-    repeating-linear-gradient(to bottom, rgba(255, 122, 41, 0.055) 0 1px, transparent 1px 8px),
+    repeating-linear-gradient(to bottom, rgba(204, 242, 75, 0.055) 0 1px, transparent 1px 8px),
     linear-gradient(
       to right,
       transparent calc(25% - 0.5px),
-      rgba(255, 122, 41, 0.22) calc(25% - 0.5px) calc(25% + 0.5px),
+      rgba(204, 242, 75, 0.22) calc(25% - 0.5px) calc(25% + 0.5px),
       transparent calc(25% + 0.5px)
     ),
     linear-gradient(
       to right,
       transparent calc(50% - 0.5px),
-      rgba(255, 122, 41, 0.22) calc(50% - 0.5px) calc(50% + 0.5px),
+      rgba(204, 242, 75, 0.22) calc(50% - 0.5px) calc(50% + 0.5px),
       transparent calc(50% + 0.5px)
     ),
     linear-gradient(
       to right,
       transparent calc(75% - 0.5px),
-      rgba(255, 122, 41, 0.22) calc(75% - 0.5px) calc(75% + 0.5px),
+      rgba(204, 242, 75, 0.22) calc(75% - 0.5px) calc(75% + 0.5px),
       transparent calc(75% + 0.5px)
     );
 }
