@@ -1,39 +1,27 @@
 /**
- * 代码块：标题栏（语言 + 行数 + 复制）+ 超长折叠
+ * 代码块：标题栏 + 复制按钮 + 超长折叠（复用 vane-waterfall 家族实现）
  *
- * 高亮用 react-syntax-highlighter 的 PrismLight，只注册演示站真正用到的几种语言。
- * 全量 prism 会把 200+ 语言打进产物（~640KB），而这里出现的只有 tsx/ts/js/json/
- * css/xml/markdown —— 按需注册后同一模块降到几十 KB 量级。
- * （包内的 CodePreviewPlugin 用的是同一套思路，只是它做得更彻底：连主题都只留两套。）
+ * 复制走两条路：`navigator.clipboard`（需要 secure context）不行时退到
+ * 隐藏 textarea + execCommand —— 示例站常被挂在 http://内网IP 上访问，
+ * 只走 clipboard API 会静默失败，用户点了没反应最难受。
  *
- * 复制保留两条路：`navigator.clipboard` 在 http://内网IP 这类非安全上下文下不可用，
- * 只走它会出现「点了没反应」；退路是隐藏 textarea + execCommand。
+ * 关键点（满足「复制的是示例 demo 的完整源码，不是简略代码」）：
+ * 传入的 `code` 就是 registry 用 import.meta.glob('?raw') 抓到的**完整文件内容**，
+ * 复制按钮原样复制这份完整源码，不做任何裁剪。
  */
 import React, { useCallback, useMemo, useState } from "react";
-import { PrismLight as SyntaxHighlighter } from "react-syntax-highlighter";
-import tsx from "react-syntax-highlighter/dist/esm/languages/prism/tsx";
-import typescript from "react-syntax-highlighter/dist/esm/languages/prism/typescript";
-import javascript from "react-syntax-highlighter/dist/esm/languages/prism/javascript";
-import json from "react-syntax-highlighter/dist/esm/languages/prism/json";
-import css from "react-syntax-highlighter/dist/esm/languages/prism/css";
-import markup from "react-syntax-highlighter/dist/esm/languages/prism/markup";
-import markdown from "react-syntax-highlighter/dist/esm/languages/prism/markdown";
-import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { tokenize } from "./highlight";
 
-// oneDark 的注释色 #5c6370 压在 #100f0e 上只有 3.17:1，注释又占源码块很大篇幅 —— 提到 #8b93a1
-const CODE_THEME = {
-  ...oneDark,
-  comment: { ...(oneDark as Record<string, React.CSSProperties>)["comment"], color: "#8b93a1" },
-  prolog: { ...(oneDark as Record<string, React.CSSProperties>)["prolog"], color: "#8b93a1" },
-};
-
-SyntaxHighlighter.registerLanguage("tsx", tsx);
-SyntaxHighlighter.registerLanguage("typescript", typescript);
-SyntaxHighlighter.registerLanguage("javascript", javascript);
-SyntaxHighlighter.registerLanguage("json", json);
-SyntaxHighlighter.registerLanguage("css", css);
-SyntaxHighlighter.registerLanguage("markup", markup);
-SyntaxHighlighter.registerLanguage("markdown", markdown);
+export interface CodeBlockProps {
+  /** 完整源码（逐项示例来自 ?raw glob，场景/装配来自真实装配字符串） */
+  code: string;
+  /** 标题栏左侧文案，如 `scenarios/photo-feed.tsx` */
+  title?: string;
+  /** 超过多少行折叠，默认 24；0 表示不折叠 */
+  collapseAfter?: number;
+  /** 代码区最大高度 */
+  maxHeight?: number;
+}
 
 type CopyState = "idle" | "ok" | "fail";
 
@@ -43,7 +31,7 @@ function fallbackCopy(text: string): boolean {
     ta.value = text;
     ta.setAttribute("readonly", "");
     ta.style.position = "fixed";
-    ta.style.top = "-9999px";
+    ta.style.opacity = "0";
     document.body.appendChild(ta);
     ta.select();
     const ok = document.execCommand("copy");
@@ -54,23 +42,7 @@ function fallbackCopy(text: string): boolean {
   }
 }
 
-export interface CodeBlockProps {
-  code: string;
-  /** 标题栏左侧：文件名或说明 */
-  title?: string;
-  language?: string;
-  /** 超过多少行折叠，默认 26；0 = 不折叠 */
-  collapseAfter?: number;
-  maxHeight?: number;
-}
-
-export const CodeBlock: React.FC<CodeBlockProps> = ({
-  code,
-  title,
-  language = "tsx",
-  collapseAfter = 26,
-  maxHeight,
-}) => {
+export function CodeBlock({ code, title = "tsx", collapseAfter = 24, maxHeight }: CodeBlockProps) {
   const [state, setState] = useState<CopyState>("idle");
   const [open, setOpen] = useState(false);
 
@@ -78,9 +50,11 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
   const needCollapse = collapseAfter > 0 && lines.length > collapseAfter;
   const shown = needCollapse && !open ? lines.slice(0, collapseAfter).join("\n") : code;
 
+  const tokens = useMemo(() => tokenize(shown), [shown]);
+
   const copy = useCallback(async () => {
     let ok = false;
-    if (navigator.clipboard?.writeText && window.isSecureContext) {
+    if (navigator.clipboard?.writeText) {
       try {
         await navigator.clipboard.writeText(code);
         ok = true;
@@ -97,43 +71,37 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
   return (
     <div className="code">
       <div className="code-head">
-        <span title={title}>{title ?? language}</span>
-        <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          {/* 不用 opacity 压字：压到 0.65 后只剩 2.9:1 */}
+        <span>{title}</span>
+        <span style={{ display: "flex", gap: 6, alignItems: "center" }}>
+          {/* 别用 opacity 压字：--faint 再乘 0.7 只剩 3.49:1，AA 正文线是 4.5 */}
           <span>{lines.length} 行</span>
           <button
             type="button"
             className={`code-copy${state === "ok" ? " is-ok" : state === "fail" ? " is-fail" : ""}`}
             onClick={copy}
-            aria-live="polite"
           >
             {state === "ok" ? "已复制" : state === "fail" ? "复制失败" : "复制"}
           </button>
         </span>
       </div>
-      <pre style={maxHeight ? { maxHeight } : undefined}>
-        <SyntaxHighlighter
-          language={language}
-          style={CODE_THEME}
-          customStyle={{
-            margin: 0,
-            padding: 0,
-            background: "transparent",
-            fontSize: 12.5,
-            lineHeight: 1.72,
-            fontFamily: "var(--ff-mono)",
-          }}
-          codeTagProps={{ style: { fontFamily: "var(--ff-mono)" } }}
-          wrapLongLines
-        >
-          {shown}
-        </SyntaxHighlighter>
+      <pre style={maxHeight ? { maxHeight } : { maxHeight: "none" }}>
+        <code>
+          {tokens.map((t, i) =>
+            t.cls ? (
+              <span key={i} className={t.cls}>
+                {t.text}
+              </span>
+            ) : (
+              <React.Fragment key={i}>{t.text}</React.Fragment>
+            )
+          )}
+        </code>
       </pre>
-      {needCollapse && (
+      {needCollapse ? (
         <button type="button" className="code-more" onClick={() => setOpen((v) => !v)}>
           {open ? "收起" : `展开余下 ${lines.length - collapseAfter} 行`}
         </button>
-      )}
+      ) : null}
     </div>
   );
-};
+}

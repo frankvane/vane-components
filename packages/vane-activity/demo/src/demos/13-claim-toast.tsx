@@ -40,7 +40,6 @@ export const meta = {
   slug: "claim-toast",
   title: "领取提示 ClaimToastPlugin",
   group: "plugin",
-  plugins: ["ClaimToastPlugin", "RewardClaimPlugin", "ProgressFxPlugin", "TaskListPlugin"],
   intro: "领取后右下角淡入「已领取：xx」，2.6s 自动消失；多张排队、互不吞没。",
 };
 

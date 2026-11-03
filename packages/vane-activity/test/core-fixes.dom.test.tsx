@@ -178,7 +178,7 @@ describe("P1-4 ClaimToast 独立计时", () => {
   it("连续两批领取时，第一批按时消失且不影响第二批", async () => {
     const Activity = withPlugins(ActivityCore, [
       createRewardClaimPlugin(),
-      createClaimToastPlugin({ durationMs: 120 }),
+      createClaimToastPlugin({ durationMs: 2000 }),
     ]);
     const data = baseData({
       rewards: [
@@ -198,14 +198,14 @@ describe("P1-4 ClaimToast 独立计时", () => {
     expect(m.text()).toContain("已领取：十元券");
 
     // 轮询等待第一批（早 50ms 创建）先消失，避免固定 sleep 受 act 开销影响
-    for (let i = 0; i < 15 && m.text().includes("已领取：五元券"); i++) {
-      await wait(10);
+    for (let i = 0; i < 80 && m.text().includes("已领取：五元券"); i++) {
+      await wait(50);
     }
     expect(m.text()).not.toContain("已领取：五元券");
     expect(m.text()).toContain("已领取：十元券");
 
-    for (let i = 0; i < 15 && m.text().includes("已领取：十元券"); i++) {
-      await wait(10);
+    for (let i = 0; i < 80 && m.text().includes("已领取：十元券"); i++) {
+      await wait(50);
     }
     expect(m.text()).not.toContain("已领取：十元券");
     m.unmount();

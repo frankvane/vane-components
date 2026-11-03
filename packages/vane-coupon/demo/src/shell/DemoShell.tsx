@@ -170,7 +170,10 @@ function DemoRoute<D extends ShellDemoEntry>({ demos }: { demos: DemoShellConfig
   const { slug } = useParams();
   const { entries, detail } = demos;
   const entry = slug ? entries.find((d) => d.meta.slug === slug) : undefined;
-  if (!entry) return <Navigate to={`/demo/${entries[0].meta.slug}`} replace />;
+  // 新包开发初期（S7 之前）可能还没有任何逐项示例，entries 为空时
+  // 读 entries[0].meta 会直接炸整页，这里回退到首页而不是第一个示例。
+  const firstSlug = entries[0]?.meta.slug;
+  if (!entry) return <Navigate to={firstSlug ? `/demo/${firstSlug}` : "/"} replace />;
   const order = entries.indexOf(entry) + 1;
   // key 必须带 slug：路由切换时同一个组件类型会被复用，
   // 详情页里的 useState(() => initialCfg(...)) 就只跑第一次 —— 现象是
@@ -204,6 +207,8 @@ function Shell<D extends ShellDemoEntry>({ config }: { config: DemoShellConfig<D
   }, []);
 
   const demos = config.demos;
+  // 还没有逐项示例时（新包开发初期），/demo 兜底不要读 entries[0].meta 直接炸整页。
+  const firstDemo = demos.entries[0]?.meta.slug;
   const crumb = useMemo(() => {
     if (!pathname.startsWith("/demo")) return config.crumb(pathname);
     const slug = pathname.replace(/^\/demo\/?/, "");
@@ -320,7 +325,7 @@ function Shell<D extends ShellDemoEntry>({ config }: { config: DemoShellConfig<D
               ))}
               <Route
                 path="/demo"
-                element={<Navigate to={`/demo/${config.demos.entries[0].meta.slug}`} replace />}
+                element={<Navigate to={firstDemo ? `/demo/${firstDemo}` : "/"} replace />}
               />
               <Route path="/demo/:slug" element={<DemoRoute demos={config.demos} />} />
               <Route path="*" element={<Navigate to="/" replace />} />

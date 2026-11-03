@@ -45,7 +45,6 @@ export const meta = {
   slug: "redeem-code",
   title: "兑换码 RedeemCodePlugin",
   group: "plugin",
-  plugins: ["RedeemCodePlugin", "RewardClaimPlugin", "ProgressFxPlugin"],
   intro: "输入框 + 长度/前缀校验 + 成功失败回执；与奖励列表同槽共存。",
 };
 

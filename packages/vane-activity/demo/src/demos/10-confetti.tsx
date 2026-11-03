@@ -43,7 +43,6 @@ export const meta = {
   slug: "confetti",
   title: "彩纸庆祝 ConfettiPlugin",
   group: "plugin",
-  plugins: ["ProgressFxPlugin", "ConfettiPlugin", "RewardClaimPlugin", "TaskListPlugin"],
   intro:
     "100% 时彩纸下落；与 ProgressFx 的文字横幅同屏共存——overlay 槽位可叠加、不独占。",
 };

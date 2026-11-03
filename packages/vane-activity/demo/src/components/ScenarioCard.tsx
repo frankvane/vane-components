@@ -74,7 +74,14 @@ export function ScenarioCard({ entry }: { entry: ScenarioEntry }) {
         <div className="scn-api">
           <h4 className="scn-api-title">上面这几个插件的属性 / 事件 / 方法</h4>
           {plugins.map((p) => (
-            <PluginDocCard key={p.dir} plugin={p} defaultOpen={false} />
+            <PluginDocCard
+              key={p.dir}
+              factory={p.factory}
+              priority={p.priority}
+              summary={p.summary}
+              doc={p.doc}
+              defaultOpen={false}
+            />
           ))}
         </div>
       ) : null}

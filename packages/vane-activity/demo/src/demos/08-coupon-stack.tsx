@@ -37,7 +37,6 @@ export const meta = {
   slug: "coupon-stack",
   title: "券堆叠 CouponStackPlugin",
   group: "plugin",
-  plugins: ["CouponStackPlugin", "TaskListPlugin"],
   intro:
     "票券式卡面替代 RewardClaim 的行式列表；两者同槽独占，同时挂载时高 priority 者胜。",
 };

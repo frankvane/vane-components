@@ -44,7 +44,6 @@ export const meta = {
   slug: "leaderboard",
   title: "好友榜 LeaderboardPlugin",
   group: "plugin",
-  plugins: ["LeaderboardPlugin", "ShareBoostPlugin", "TaskListPlugin"],
   intro: "前 3 名 + 我的名次高亮；与助力条同槽靠 order 定序，互不重影。",
 };
 

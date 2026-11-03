@@ -16,12 +16,6 @@ export interface DemoMeta {
   group: DemoGroup;
   /** 这页在演示什么，一句话 */
   intro?: string;
-  /**
-   * 本页用到的插件目录名（如 "ProgressFxPlugin"）。
-   * 示例页据此自动挂出该插件的属性 / 事件 / 方法三件表 —— 数据来自 doc.json，
-   * 不在这里手抄，所以表里的内容与插件发布物永远一致。
-   */
-  plugins?: string[];
 }
 
 /** 页内控件的值。模板只给空壳，需要控件时按 key 自行扩展 */

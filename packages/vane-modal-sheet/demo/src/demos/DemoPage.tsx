@@ -9,16 +9,16 @@
  * 想加控件就自己接：把 cfg 提到这一层，用 useState 控制再传给 Stage。
  * 完整的「参数控件 + 代码随控件变」范式见 vane-sku 的 demos/DemoPage.tsx。
  */
-import React, { useMemo } from "react";
-import { tokenize } from "../components/highlight";
+import React from "react";
+import { CodeBlock } from "../components/CodeBlock";
+import { PluginApiSection } from "../components/PluginApiSection";
+import { PLUGINS } from "../data/plugins";
 import type { DemoEntry } from "./registry";
 import { GROUP_META } from "./types";
 
 export function DemoPage({ entry, order }: { entry: DemoEntry; order: number }) {
   const { meta, Stage, source, file } = entry;
   const no = String(order).padStart(2, "0");
-  // 源码与 CodeBlock 共用同一套 tokenizer，tok-* 类由 App.css 上色
-  const tokens = useMemo(() => tokenize(source), [source]);
 
   return (
     <article>
@@ -42,20 +42,9 @@ export function DemoPage({ entry, order }: { entry: DemoEntry; order: number }) 
           <span className="demo-src-title">源码 · {file}</span>
           <span className="demo-src-hint">下面这份就是上面正在跑的那份</span>
         </div>
-        <pre className="demo-src">
-          <code>
-            {tokens.map((t, i) =>
-              t.cls ? (
-                <span key={i} className={t.cls}>
-                  {t.text}
-                </span>
-              ) : (
-                <React.Fragment key={i}>{t.text}</React.Fragment>
-              )
-            )}
-          </code>
-        </pre>
+        <CodeBlock code={source} title={file} collapseAfter={28} maxHeight={460} />
       </section>
+      <PluginApiSection source={source} plugins={PLUGINS} />
     </article>
   );
 }

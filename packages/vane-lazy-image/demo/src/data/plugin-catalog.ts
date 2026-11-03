@@ -4,6 +4,7 @@
 // 工厂通过 doc.name 推导：create${doc.name}，在 PluginPreview 中实时调用。
 
 import * as VL from "vane-lazy-image";
+import type { PluginDocLike } from "../components/PluginDoc";
 
 export type Category =
   | "ecommerce"
@@ -134,6 +135,8 @@ export interface PluginMeta {
   features: string[];
   useCases: string[];
   notes: string[];
+  /** 完整 doc.json：共享三件表同时兼容 config / props / events / methods */
+  doc: PluginDocLike;
 }
 
 function slugify(dir: string): string {
@@ -171,6 +174,7 @@ export const PLUGINS: PluginMeta[] = Object.keys(docs)
       features: doc.features || [],
       useCases: doc.useCases || [],
       notes: doc.notes || [],
+      doc,
     } as PluginMeta;
   })
   .filter(Boolean) as PluginMeta[];

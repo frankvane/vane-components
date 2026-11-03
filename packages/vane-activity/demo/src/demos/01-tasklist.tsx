@@ -48,7 +48,6 @@ export const meta = {
   slug: "tasklist",
   title: "任务清单 TaskListPlugin",
   group: "plugin",
-  plugins: ["TaskListPlugin"],
   intro:
     "只挂 TaskListPlugin 时，活动只剩「任务清单」区：每行展示标题 / 描述 / 进度与状态，并带「去完成」动作按钮。",
 };

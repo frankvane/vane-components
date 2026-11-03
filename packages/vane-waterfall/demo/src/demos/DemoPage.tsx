@@ -11,6 +11,8 @@
  */
 import React, { useCallback, useMemo, useState } from "react";
 import { CodeBlock } from "../components/CodeBlock";
+import { PluginApiSection } from "../components/PluginApiSection";
+import { PLUGINS } from "../data/plugins";
 import { buildDemoCode } from "./codegen";
 import { ControlBar, EventLog, type LogLine } from "./panels";
 import { GROUP_META, initialCfg, type DemoCfg, type DemoLogKind } from "./types";
@@ -171,6 +173,7 @@ export function DemoPage({ entry, order }: { entry: DemoEntry; order: number }) 
           maxHeight={420}
         />
       </div>
+      <PluginApiSection source={source} plugins={PLUGINS} />
     </section>
   );
 }

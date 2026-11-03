@@ -39,7 +39,6 @@ export const meta = {
   slug: "milestone",
   title: "里程碑 MilestoneBarPlugin",
   group: "plugin",
-  plugins: ["ProgressFxPlugin", "MilestoneBarPlugin", "TaskListPlugin"],
   intro:
     "把奖励阈值画成轨道节点（绿=已领 / 橙=可领 / 灰=未达标），与数字进度条上下互补。",
 };

@@ -41,7 +41,6 @@ export const meta = {
   slug: "progress-ring",
   title: "环形进度 ProgressRingPlugin",
   group: "plugin",
-  plugins: ["ProgressRingPlugin", "ProgressFxPlugin", "TaskListPlugin"],
   intro: "SVG 双环 + 中心百分比 + 「距下一档还差 N%」；与进度条同槽上下互补。",
 };
 

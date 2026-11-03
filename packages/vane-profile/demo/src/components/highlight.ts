@@ -1,5 +1,5 @@
 /**
- * 极简 TSX 高亮
+ * 极简 TSX 高亮（复用 vane-waterfall 家族实现）
  *
  * 不引 react-syntax-highlighter：那份依赖会把 demo 产物撑大 300KB+，而示例页只需要
  * 认出注释 / 字符串 / 关键字 / JSX 标签四类 token。这里用一条合并正则扫一遍，

@@ -33,7 +33,6 @@ export const meta = {
   slug: "ruleexpand",
   title: "规则折叠 RuleExpandPlugin",
   group: "plugin",
-  plugins: ["RuleExpandPlugin"],
   intro:
     "只挂 RuleExpandPlugin 时，活动只剩「活动规则」可折叠面板：折叠态按行数截断长文，点击展开并同步 aria-expanded。",
 };

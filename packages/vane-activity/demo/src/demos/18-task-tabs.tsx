@@ -50,7 +50,6 @@ export const meta = {
   slug: "task-tabs",
   title: "分组任务 TaskTabsPlugin",
   group: "plugin",
-  plugins: ["TaskTabsPlugin", "ProgressFxPlugin", "RewardClaimPlugin"],
   intro: "页签切换 + 每组完成度计数；独占 renderTasks，与 TaskList 二选一。",
 };
 

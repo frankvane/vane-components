@@ -1,33 +1,37 @@
-import React from "react";
-import { PrismLight as SyntaxHighlighter } from "react-syntax-highlighter";
-import tsx from "react-syntax-highlighter/dist/esm/languages/prism/tsx";
-import javascript from "react-syntax-highlighter/dist/esm/languages/prism/javascript";
-import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
-
-// 只注册演示站真正用到的两种语言：Prism 全量包会把 200+ 语言打进产物（~640KB），
-// 按需注册后同一模块降到 30KB 量级。
-SyntaxHighlighter.registerLanguage("tsx", tsx);
-SyntaxHighlighter.registerLanguage("javascript", javascript);
-
 /**
- * 复制到剪贴板：优先 Clipboard API；http 局域网等非安全上下文下
- * Clipboard API 不可用，回退 execCommand('copy')。
+ * 代码块：标题栏 + 复制按钮 + 超长折叠（复用 vane-waterfall 家族实现）
+ *
+ * 复制走两条路：`navigator.clipboard`（需要 secure context）不行时退到
+ * 隐藏 textarea + execCommand —— 示例站常被挂在 http://内网IP 上访问，
+ * 只走 clipboard API 会静默失败，用户点了没反应最难受。
+ *
+ * 关键点（满足「复制的是示例 demo 的完整源码，不是简略代码」）：
+ * 传入的 `code` 就是 registry 用 import.meta.glob('?raw') 抓到的**完整文件内容**，
+ * 复制按钮原样复制这份完整源码，不做任何裁剪。
  */
-export async function copyText(text: string): Promise<boolean> {
-  try {
-    if (navigator.clipboard && window.isSecureContext) {
-      await navigator.clipboard.writeText(text);
-      return true;
-    }
-  } catch {
-    /* 落到回退分支 */
-  }
+import React, { useCallback, useMemo, useState } from "react";
+import { tokenize } from "./highlight";
+
+export interface CodeBlockProps {
+  /** 完整源码（逐项示例来自 ?raw glob，场景/装配来自真实装配字符串） */
+  code: string;
+  /** 标题栏左侧文案，如 `scenarios/photo-feed.tsx` */
+  title?: string;
+  /** 超过多少行折叠，默认 24；0 表示不折叠 */
+  collapseAfter?: number;
+  /** 代码区最大高度 */
+  maxHeight?: number;
+}
+
+type CopyState = "idle" | "ok" | "fail";
+
+function fallbackCopy(text: string): boolean {
   try {
     const ta = document.createElement("textarea");
     ta.value = text;
     ta.setAttribute("readonly", "");
     ta.style.position = "fixed";
-    ta.style.top = "-9999px";
+    ta.style.opacity = "0";
     document.body.appendChild(ta);
     ta.select();
     const ok = document.execCommand("copy");
@@ -38,77 +42,66 @@ export async function copyText(text: string): Promise<boolean> {
   }
 }
 
-// 代码块统一成「编辑器面板」：等宽字体、发丝边框、顶部一条语言标签 + 复制按钮，
-// 与整站暗场语言保持一致（oneDark 的 token 配色本身可读，只换容器）。
-//
-// 唯一需要改的是注释色：oneDark 的 #5c6370 压在 #0a0908 上只有 3.29:1，
-// 而注释占了源码块里相当大的篇幅 —— 提到 #8b93a1（5.6:1），观感仍是"灰的"。
-const CODE_THEME = {
-  ...oneDark,
-  comment: { ...(oneDark as Record<string, React.CSSProperties>)["comment"], color: "#8b93a1" },
-  prolog: { ...(oneDark as Record<string, React.CSSProperties>)["prolog"], color: "#8b93a1" },
-};
+export function CodeBlock({ code, title = "tsx", collapseAfter = 24, maxHeight }: CodeBlockProps) {
+  const [state, setState] = useState<CopyState>("idle");
+  const [open, setOpen] = useState(false);
 
-export const CodeBlock: React.FC<{
-  code: string;
-  language?: string;
-  /** 顶栏左侧标签，默认取 language */
-  label?: string;
-  copyable?: boolean;
-}> = ({ code, language = "tsx", label, copyable = true }) => {
-  const [state, setState] = React.useState<"idle" | "ok" | "fail">("idle");
+  const lines = useMemo(() => code.replace(/\s+$/, "").split("\n"), [code]);
+  const needCollapse = collapseAfter > 0 && lines.length > collapseAfter;
+  const shown = needCollapse && !open ? lines.slice(0, collapseAfter).join("\n") : code;
 
-  React.useEffect(() => {
-    if (state === "idle") return;
-    const t = window.setTimeout(() => setState("idle"), 1500);
-    return () => window.clearTimeout(t);
-  }, [state]);
+  const tokens = useMemo(() => tokenize(shown), [shown]);
 
-  const onCopy = async () => {
-    setState((await copyText(code)) ? "ok" : "fail");
-  };
+  const copy = useCallback(async () => {
+    let ok = false;
+    if (navigator.clipboard?.writeText) {
+      try {
+        await navigator.clipboard.writeText(code);
+        ok = true;
+      } catch {
+        ok = fallbackCopy(code);
+      }
+    } else {
+      ok = fallbackCopy(code);
+    }
+    setState(ok ? "ok" : "fail");
+    window.setTimeout(() => setState("idle"), 1600);
+  }, [code]);
 
   return (
-    <div className="code-shell">
-      <div className="code-bar">
-        <span className="code-lang">{label ?? language}</span>
-        <span className="code-actions">
-          {copyable && (
-            <button
-              type="button"
-              className={`code-copy${state === "ok" ? " is-ok" : ""}${
-                state === "fail" ? " is-fail" : ""
-              }`}
-              onClick={onCopy}
-              aria-live="polite"
-            >
-              {state === "ok" ? "已复制" : state === "fail" ? "复制失败" : "复制"}
-            </button>
-          )}
-          <span className="code-dots" aria-hidden="true">
-            <i />
-            <i />
-            <i />
-          </span>
+    <div className="code">
+      <div className="code-head">
+        <span>{title}</span>
+        <span style={{ display: "flex", gap: 6, alignItems: "center" }}>
+          {/* 别用 opacity 压字：--faint 再乘 0.7 只剩 3.49:1，AA 正文线是 4.5 */}
+          <span>{lines.length} 行</span>
+          <button
+            type="button"
+            className={`code-copy${state === "ok" ? " is-ok" : state === "fail" ? " is-fail" : ""}`}
+            onClick={copy}
+          >
+            {state === "ok" ? "已复制" : state === "fail" ? "复制失败" : "复制"}
+          </button>
         </span>
       </div>
-      <SyntaxHighlighter
-        language={language}
-        style={CODE_THEME}
-        customStyle={{
-          margin: 0,
-          padding: "14px 16px",
-          background: "transparent",
-          borderRadius: 0,
-          fontSize: 12.5,
-          lineHeight: 1.7,
-          fontFamily: "var(--ff-mono)",
-        }}
-        codeTagProps={{ style: { fontFamily: "var(--ff-mono)" } }}
-        wrapLongLines
-      >
-        {code}
-      </SyntaxHighlighter>
+      <pre style={maxHeight ? { maxHeight } : { maxHeight: "none" }}>
+        <code>
+          {tokens.map((t, i) =>
+            t.cls ? (
+              <span key={i} className={t.cls}>
+                {t.text}
+              </span>
+            ) : (
+              <React.Fragment key={i}>{t.text}</React.Fragment>
+            )
+          )}
+        </code>
+      </pre>
+      {needCollapse ? (
+        <button type="button" className="code-more" onClick={() => setOpen((v) => !v)}>
+          {open ? "收起" : `展开余下 ${lines.length - collapseAfter} 行`}
+        </button>
+      ) : null}
     </div>
   );
-};
+}

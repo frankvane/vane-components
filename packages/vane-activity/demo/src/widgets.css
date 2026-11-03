@@ -1,0 +1,308 @@
+/*
+ * 逐项示例层「组件样式」真源（由 scripts/sync-demo-shell.mjs 生成到各包 demo/src/widgets.css）
+ *
+ * 承载三个模板化组件（CodeBlock / PluginDoc）的样式：
+ *   - .code-*  + 语法 token 色：源码高亮 + 复制按钮
+ *   - .doc-*  + .api-*    ：属性 / 事件 / 方法三件表 + 折叠卡
+ *
+ * 全部引用包级 CSS 令牌（--accent / --text / --dim / --faint / --ink-* / --rule /
+ * --ff-mono / --s* / --dur-fast …），这些令牌由各包 demo/src/App.css 的 :root 定义，
+ * 本文件在 App.css 之后引入（见模板 App.tsx），故可安全取到。
+ * 代码区底色与语法色写成字面量（深色代码区任何主题下都可读，ADR-13）。
+ */
+
+/* ---------------- 代码块 + 语法高亮 ---------------- */
+.code {
+  position: relative;
+  border: 1px solid var(--rule);
+  background: #070908;
+  overflow: hidden;
+}
+
+.code-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--rule);
+  font-family: var(--ff-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  color: var(--faint);
+}
+
+.code-head > span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.code-copy {
+  flex: none;
+  min-height: 24px;
+  padding: 2px 9px;
+  border: 1px solid var(--rule);
+  font-family: var(--ff-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--dim);
+  transition: color var(--dur-fast) ease, border-color var(--dur-fast) ease,
+    background var(--dur-fast) ease;
+}
+
+.code-copy:hover {
+  color: var(--accent-ink);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.code-copy.is-ok {
+  color: var(--accent);
+  border-color: var(--accent-line);
+}
+
+.code-copy.is-ok:hover {
+  color: var(--accent-ink);
+}
+
+.code-copy.is-fail {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+.code pre {
+  margin: 0;
+  padding: 12px 14px;
+  overflow: auto;
+  max-height: 460px;
+  font-size: 11.5px;
+  line-height: 1.72;
+  color: #c9cec0;
+  tab-size: 2;
+  scrollbar-width: thin;
+}
+
+.code-more {
+  display: block;
+  width: 100%;
+  padding: 7px;
+  border-top: 1px solid var(--rule);
+  background: var(--ink-1);
+  font-family: var(--ff-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--faint);
+  transition: color var(--dur-fast) ease, background var(--dur-fast) ease;
+}
+
+.code-more:hover {
+  color: var(--accent);
+  background: var(--ink-2);
+}
+
+/* 语法色：跟站点同一套墨 + 荧光标记，不引入第二套调色板 */
+.tok-comment {
+  color: #7f8778;
+  font-style: italic;
+}
+.tok-string {
+  color: #a9d98a;
+}
+.tok-kw {
+  color: var(--accent);
+}
+.tok-lit {
+  color: #e9b64b;
+}
+.tok-type {
+  color: #8fc9bd;
+}
+.tok-tag {
+  color: #e9a08a;
+}
+.tok-num {
+  color: #d8c98a;
+}
+
+/* ---------------- 属性 / 事件 / 方法 三件表 ---------------- */
+.doc-sec {
+  margin-bottom: var(--s4);
+}
+
+.doc-sec h5 {
+  margin: 0 0 8px;
+  font-family: var(--ff-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+.doc-sec h5::before {
+  content: "";
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  margin-right: 7px;
+  vertical-align: middle;
+  background: var(--accent);
+}
+
+.doc-note {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--dim);
+}
+
+.doc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  margin-bottom: var(--s4);
+}
+
+.doc-table th,
+.doc-table td {
+  text-align: left;
+  padding: 7px 10px 7px 0;
+  border-bottom: 1px solid var(--rule-soft);
+  vertical-align: top;
+}
+
+.doc-table th {
+  font-family: var(--ff-mono);
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--faint);
+  border-bottom-color: var(--rule);
+}
+
+.doc-table td:first-child code {
+  color: var(--text);
+}
+
+.doc-table code.dim {
+  color: var(--faint);
+}
+
+.doc-cols {
+  display: grid;
+  gap: var(--s5);
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+
+.doc-cols h5 {
+  margin: 0 0 6px;
+}
+
+.doc-cols ul {
+  margin: 0;
+  padding-left: 15px;
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--dim);
+}
+
+.doc-cols li::marker {
+  color: var(--accent);
+}
+
+/* ---------------- 示例页「本页用到的插件」区块 + 折叠卡 ---------------- */
+.api-sec {
+  margin-top: var(--s6);
+  padding-top: var(--s5);
+  border-top: 1px solid var(--rule);
+}
+
+.api-sec-head {
+  margin-bottom: var(--s4);
+}
+
+.api-sec-title {
+  margin: 0 0 6px;
+  font-family: var(--ff-display);
+  font-size: var(--fs-md);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.api-sec-sub {
+  margin: 0;
+  max-width: 78ch;
+  font-size: 12.5px;
+  line-height: 1.75;
+  color: var(--dim);
+}
+
+.api-sec-sub code {
+  color: var(--text);
+}
+
+.api-plug {
+  margin-bottom: 10px;
+  border: 1px solid var(--rule);
+  background: var(--ink-1);
+}
+
+.api-plug > summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  list-style: none;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.api-plug > summary::-webkit-details-marker {
+  display: none;
+}
+
+.api-plug > summary::before {
+  content: "▸";
+  font-size: 11px;
+  color: var(--accent);
+  transition: transform var(--dur-fast) ease;
+}
+
+.api-plug[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+.api-plug > summary:hover {
+  background: var(--ink-2);
+}
+
+.api-plug > summary code {
+  font-size: 12px;
+  color: var(--accent);
+}
+
+.api-plug-desc {
+  flex: 1 1 260px;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--dim);
+}
+
+.api-plug-n {
+  font-family: var(--ff-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--faint);
+}
+
+.api-plug-body {
+  padding: 12px 12px 4px;
+  border-top: 1px solid var(--rule-soft);
+}

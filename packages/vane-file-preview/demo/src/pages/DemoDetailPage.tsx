@@ -15,10 +15,11 @@ import { Link, useParams } from "react-router-dom";
 import type { FileInfo, PreviewStateInfo } from "vane-file-preview";
 import { CodeBlock } from "../components/CodeBlock";
 import { ConfigTable } from "../components/ConfigTable";
+import { PluginApiSection } from "../components/PluginApiSection";
 import { EventLog, type LogLine } from "../components/EventLog";
 import { Stage } from "../components/Stage";
 import { VariantBar } from "../components/VariantBar";
-import { GROUP_LABELS, folioOf, getPlugin } from "../data/plugin-catalog";
+import { GROUP_LABELS, PLUGINS, folioOf, getPlugin } from "../data/plugin-catalog";
 import { pick } from "../data/samples";
 import { findDemo } from "../demos/registry";
 import { auditPreviews, summarizeIssues } from "../lib/audit";
@@ -26,6 +27,13 @@ import { stamp } from "../lib/format";
 import { assemblyCode, previewOf, type LogKind } from "../lib/previews";
 
 type CodeTab = "example" | "source";
+
+const API_PLUGINS = PLUGINS.map((plugin, index) => ({
+  factory: plugin.factoryName,
+  priority: index,
+  summary: plugin.oneLiner,
+  doc: plugin.doc,
+}));
 
 const PluginPage: React.FC<{ id: string }> = ({ id }) => {
   const plugin = getPlugin(id)!;
@@ -185,6 +193,8 @@ const PluginPage: React.FC<{ id: string }> = ({ id }) => {
           maxHeight={440}
         />
       </div>
+
+      <PluginApiSection source={demo.source} plugins={API_PLUGINS} />
 
       <p className="muted" style={{ marginTop: 14, fontSize: 12 }}>
         <Link to="/demos">← 全部逐项示例</Link>

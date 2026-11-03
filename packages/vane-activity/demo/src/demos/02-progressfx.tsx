@@ -34,7 +34,6 @@ export const meta = {
   slug: "progressfx",
   title: "进度特效 ProgressFxPlugin",
   group: "plugin",
-  plugins: ["ProgressFxPlugin"],
   intro:
     "顶部进度条 + 百分比数字。本例三项任务全完成 → 3/3 = 100%，弹出庆祝浮层；把任务进度改成 1/0.6/0 就是 53%。",
 };

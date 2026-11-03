@@ -79,7 +79,6 @@ export const meta = {
   slug: "basic",
   title: "基础闭环：内核 + 4 官方插件",
   group: "basic",
-  plugins: ["ProgressFxPlugin", "TaskListPlugin", "RewardClaimPlugin", "RuleExpandPlugin"],
   intro:
     "营销活动的最小完整形态——进度特效 / 任务清单 / 奖励领取 / 规则折叠各管一块，内核只负责骨架与生命周期转发。",
 };

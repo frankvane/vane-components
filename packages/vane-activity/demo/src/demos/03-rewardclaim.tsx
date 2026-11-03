@@ -33,7 +33,6 @@ export const meta = {
   slug: "rewardclaim",
   title: "奖励领取 RewardClaimPlugin",
   group: "plugin",
-  plugins: ["RewardClaimPlugin"],
   intro:
     "只挂 RewardClaimPlugin 时，活动只剩「奖励领取」区：按钮状态按「总体进度 vs 阈值」派生（可领 / 已领 / 锁定），点击调 onClaim。",
 };

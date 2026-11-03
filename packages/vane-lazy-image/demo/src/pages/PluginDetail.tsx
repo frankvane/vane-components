@@ -4,6 +4,7 @@ import { getPluginById, CATEGORY_LABELS } from "../data/plugin-catalog";
 import { PluginPreview } from "../components/PluginPreview";
 import { ExampleCard } from "../components/ExampleCard";
 import { CodeBlock } from "../components/CodeBlock";
+import { PluginDocCard } from "../components/PluginDoc";
 
 export const PluginDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -63,33 +64,12 @@ export const PluginDetail: React.FC = () => {
           <PluginPreview pluginId={meta.id} />
         </div>
         <div className="detail-right">
-          <h4 className="block-title">配置项（doc.json）</h4>
-          {meta.config.length ? (
-            <table className="config-table">
-              <thead>
-                <tr>
-                  <th>参数</th>
-                  <th>类型</th>
-                  <th>说明</th>
-                </tr>
-              </thead>
-              <tbody>
-                {meta.config.map((c) => (
-                  <tr key={c.name}>
-                    <td>
-                      <code>{c.name}</code>
-                    </td>
-                    <td>
-                      <code className="type-cell">{c.type}</code>
-                    </td>
-                    <td>{c.description || "—"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <p className="muted">该插件无可配置参数。</p>
-          )}
+          <PluginDocCard
+            factory={meta.factoryName}
+            priority={0}
+            summary={meta.description}
+            doc={meta.doc}
+          />
 
           <h4 className="block-title">用法示例</h4>
           <CodeBlock code={usageCode} />

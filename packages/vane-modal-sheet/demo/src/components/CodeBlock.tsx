@@ -1,14 +1,19 @@
 /**
- * 代码块：标题栏 + 复制按钮 + 超长折叠
+ * 代码块：标题栏 + 复制按钮 + 超长折叠（复用 vane-waterfall 家族实现）
  *
  * 复制走两条路：`navigator.clipboard`（需要 secure context）不行时退到
  * 隐藏 textarea + execCommand —— 示例站常被挂在 http://内网IP 上访问，
  * 只走 clipboard API 会静默失败，用户点了没反应最难受。
+ *
+ * 关键点（满足「复制的是示例 demo 的完整源码，不是简略代码」）：
+ * 传入的 `code` 就是 registry 用 import.meta.glob('?raw') 抓到的**完整文件内容**，
+ * 复制按钮原样复制这份完整源码，不做任何裁剪。
  */
 import React, { useCallback, useMemo, useState } from "react";
 import { tokenize } from "./highlight";
 
 export interface CodeBlockProps {
+  /** 完整源码（逐项示例来自 ?raw glob，场景/装配来自真实装配字符串） */
   code: string;
   /** 标题栏左侧文案，如 `scenarios/photo-feed.tsx` */
   title?: string;
@@ -79,7 +84,7 @@ export function CodeBlock({ code, title = "tsx", collapseAfter = 24, maxHeight }
           </button>
         </span>
       </div>
-      <pre style={maxHeight ? { maxHeight } : undefined}>
+      <pre style={maxHeight ? { maxHeight } : { maxHeight: "none" }}>
         <code>
           {tokens.map((t, i) =>
             t.cls ? (

@@ -8,8 +8,17 @@
  */
 import React, { Suspense } from "react";
 import { CodeBlock } from "../components/CodeBlock";
+import { PluginApiSection } from "../components/PluginApiSection";
+import { PLUGINS } from "../data/plugin-catalog";
 import type { DemoEntry } from "./types";
 import { GROUP_META } from "./types";
+
+const API_PLUGINS = PLUGINS.map((plugin, index) => ({
+  factory: plugin.factoryName,
+  priority: index,
+  summary: plugin.description,
+  doc: plugin.doc,
+}));
 
 export function DemoPage({ entry, order }: { entry: DemoEntry; order: number }) {
   const { meta, Stage, file, source } = entry;
@@ -59,9 +68,10 @@ export function DemoPage({ entry, order }: { entry: DemoEntry; order: number }) 
       {source ? (
         <div className="demo-source">
           <h4 className="block-title">完整源码 · {file}</h4>
-          <CodeBlock code={source} label={file} />
+          <CodeBlock code={source} title={file} />
         </div>
       ) : null}
+      {source ? <PluginApiSection source={source} plugins={API_PLUGINS} /> : null}
     </section>
   );
 }

@@ -44,7 +44,6 @@ export const meta = {
   slug: "header",
   title: "头部横幅 ActivityHeaderPlugin",
   group: "plugin",
-  plugins: ["ActivityHeaderPlugin", "ProgressFxPlugin", "TaskListPlugin"],
   intro: "标题 + 副标题 + 标签 + 状态徽章；徽章由 data.endTime 派生，不写死文案。",
 };
 

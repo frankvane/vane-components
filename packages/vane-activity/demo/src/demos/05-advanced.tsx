@@ -72,7 +72,6 @@ export const meta = {
   slug: "advanced",
   title: "进阶：带配置的完整闭环 + 100% 庆祝",
   group: "advanced",
-  plugins: ["ProgressFxPlugin", "TaskListPlugin", "RewardClaimPlugin", "RuleExpandPlugin"],
   intro:
     "四个插件都传了配置（进度条加高、完成态文案、已领文案、规则折叠到 2 行），并用全完成任务触发 100% 庆祝浮层——生产里最常见的形态。",
 };

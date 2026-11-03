@@ -45,7 +45,6 @@ export const meta = {
   slug: "share-boost",
   title: "好友助力 ShareBoostPlugin",
   group: "plugin",
-  plugins: ["ShareBoostPlugin", "ProgressFxPlugin", "TaskListPlugin"],
   intro: "分段名额 + 头像堆 + 「还差 N 人」；满额按钮切深灰，不用 opacity 压字。",
 };
 

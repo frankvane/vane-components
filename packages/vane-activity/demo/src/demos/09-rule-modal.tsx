@@ -43,7 +43,6 @@ export const meta = {
   slug: "rule-modal",
   title: "弹窗规则 RuleModalPlugin",
   group: "plugin",
-  plugins: ["RuleModalPlugin", "TaskListPlugin"],
   intro:
     "规则折叠的弹窗形态：入口只剩一个按钮，规则长文收进模态窗；与 RuleExpand 同槽独占。",
 };

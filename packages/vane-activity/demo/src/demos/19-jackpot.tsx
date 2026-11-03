@@ -52,7 +52,6 @@ export const meta = {
   slug: "jackpot",
   title: "抽奖九宫格 JackpotPlugin",
   group: "plugin",
-  plugins: ["JackpotPlugin", "ProgressFxPlugin", "TaskListPlugin"],
   intro: "8 格奖池 + 中心按钮，高亮转两圈减速停格，次数用完自动禁用。",
 };
 

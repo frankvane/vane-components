@@ -40,7 +40,6 @@ export const meta = {
   slug: "checkin",
   title: "签到日历 CheckinCalendarPlugin",
   group: "plugin",
-  plugins: ["CheckinCalendarPlugin", "ProgressFxPlugin", "TaskListPlugin"],
   intro: "N 格三态日历（已签 / 今日 / 未开始），点「今日签到」乐观 +1；与进度条同槽靠 order 定序。",
 };
 

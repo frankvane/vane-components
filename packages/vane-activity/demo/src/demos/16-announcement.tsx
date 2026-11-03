@@ -44,7 +44,6 @@ export const meta = {
   slug: "announcement",
   title: "公告条 AnnouncementPlugin",
   group: "plugin",
-  plugins: ["AnnouncementPlugin", "ActivityHeaderPlugin", "ProgressFxPlugin", "TaskListPlugin"],
   intro: "纯 CSS 跑马灯播报多条公告，悬停暂停；与头部横幅同槽，靠 priority 定在横幅之上。",
 };
 

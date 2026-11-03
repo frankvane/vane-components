@@ -2,11 +2,13 @@
 /**
  * demo 外壳同步器（唯一真源：packages/templates/demo-shell/）
  *
- * 把标准外壳的四个文件生成到每个组件包的 demo 下：
- *   templates/demo-shell/DemoShell.tsx → <pkg>/demo/src/shell/DemoShell.tsx
- *   templates/demo-shell/App.tsx       → <pkg>/demo/src/App.tsx
- *   templates/demo-shell/shell.css     → <pkg>/demo/src/shell.css
- *   templates/demo-shell/index.html.tpl→ <pkg>/demo/index.html
+ * 把标准外壳与共享组件生成到每个组件包的 demo 下：
+ *   templates/demo-shell/DemoShell.tsx   → <pkg>/demo/src/shell/DemoShell.tsx
+ *   templates/demo-shell/App.tsx         → <pkg>/demo/src/App.tsx
+ *   templates/demo-shell/shell.css       → <pkg>/demo/src/shell.css
+ *   templates/demo-shell/widgets.css     → <pkg>/demo/src/widgets.css
+ *   templates/demo-shell/components/*    → <pkg>/demo/src/components/*
+ *   templates/demo-shell/index.html.tpl  → <pkg>/demo/index.html
  *
  * 各包只保留一份 demo/src/demo.config.tsx（导航 / 路由 / 品牌 / 页脚）与
  * demo/src/App.css（页面级样式 + 主题令牌），差异只允许出现在这两处。
@@ -30,6 +32,7 @@ const files = {
   demoShell: path.join(shellDir, "DemoShell.tsx"),
   app: path.join(shellDir, "App.tsx"),
   css: path.join(shellDir, "shell.css"),
+  widgets: path.join(shellDir, "widgets.css"),
   html: path.join(shellDir, "index.html.tpl"),
 };
 
@@ -40,10 +43,22 @@ for (const f of Object.values(files)) {
   }
 }
 
-const [tplShell, tplApp, tplCss, tplHtml] = await Promise.all([
+// 模板化的纯组件（逐项示例层通用，与包私有装配无关）：CodeBlock（高亮+复制）、
+// highlight（自研 tokenizer）、PluginDoc（属性/事件/方法三件表，兼容 config 降级）。
+const componentsDir = path.join(shellDir, "components");
+const componentNames = existsSync(componentsDir)
+  ? (await readdir(componentsDir)).filter((f) => /\.(ts|tsx)$/.test(f))
+  : [];
+const componentSources = new Map();
+for (const name of componentNames) {
+  componentSources.set(name, await readFile(path.join(componentsDir, name), "utf-8"));
+}
+
+const [tplShell, tplApp, tplCss, tplWidgets, tplHtml] = await Promise.all([
   readFile(files.demoShell, "utf-8"),
   readFile(files.app, "utf-8"),
   readFile(files.css, "utf-8"),
+  readFile(files.widgets, "utf-8"),
   readFile(files.html, "utf-8"),
 ]);
 
@@ -91,8 +106,15 @@ for (const dir of dirs) {
     [path.join(packagesDir, dir, "demo", "src", "shell", "DemoShell.tsx"), tplShell],
     [path.join(packagesDir, dir, "demo", "src", "App.tsx"), tplApp],
     [path.join(packagesDir, dir, "demo", "src", "shell.css"), tplCss],
+    [path.join(packagesDir, dir, "demo", "src", "widgets.css"), tplWidgets],
     [path.join(packagesDir, dir, "demo", "index.html"), html],
   ];
+  for (const name of componentNames) {
+    targets.push([
+      path.join(packagesDir, dir, "demo", "src", "components", name),
+      componentSources.get(name),
+    ]);
+  }
 
   let changed = false;
   for (const [file, content] of targets) {

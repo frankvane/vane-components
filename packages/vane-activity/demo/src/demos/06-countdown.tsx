@@ -36,7 +36,6 @@ export const meta = {
   slug: "countdown",
   title: "倒计时 CountdownTimerPlugin",
   group: "plugin",
-  plugins: ["ProgressFxPlugin", "CountdownTimerPlugin", "TaskListPlugin"],
   intro:
     "进度条下方追加每秒自走的倒计时行，截止时间读 data.endTime；最后 1 小时变紧急色。",
 };

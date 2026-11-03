@@ -99,7 +99,7 @@ export const ScenarioCard: React.FC<{ meta: ScenarioMeta }> = ({ meta }) => {
             ) : (
               <CodeBlock
                 code={code}
-                label={mode === "min" ? "tsx · 最小可用" : `tsx · ${meta.id}.tsx`}
+                title={mode === "min" ? "tsx · 最小可用" : `tsx · ${meta.id}.tsx`}
               />
             )}
           </div>

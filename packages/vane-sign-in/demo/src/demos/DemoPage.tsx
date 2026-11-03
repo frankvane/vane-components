@@ -13,6 +13,8 @@ import React from "react";
 import type { DemoEntry } from "./registry";
 import { GROUP_META } from "./types";
 import { CodeBlock } from "../components/CodeBlock";
+import { PluginApiSection } from "../components/PluginApiSection";
+import { PLUGINS } from "../data/plugins";
 
 export function DemoPage({ entry, order }: { entry: DemoEntry; order: number }) {
   const { meta, Stage, source, file } = entry;
@@ -42,6 +44,8 @@ export function DemoPage({ entry, order }: { entry: DemoEntry; order: number }) 
         </div>
         <CodeBlock code={source} title={file} collapseAfter={28} maxHeight={460} />
       </section>
+    <PluginApiSection source={source} plugins={PLUGINS} />
+
     </article>
   );
 }

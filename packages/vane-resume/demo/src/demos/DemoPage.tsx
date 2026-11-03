@@ -11,6 +11,8 @@
  */
 import React, { useCallback, useMemo, useState } from "react";
 import { CodeBlock } from "../components/CodeBlock";
+import { PluginApiSection } from "../components/PluginApiSection";
+import { PLUGINS } from "../data/plugins";
 import { buildDemoCode, buildFullSource } from "./codegen";
 import { ControlBar, EventLog, type LogLine } from "./panels";
 import { GROUP_META, initialCfg, type DemoCfg, type DemoLogKind } from "./types";
@@ -19,7 +21,7 @@ import type { DemoEntry } from "./registry";
 type CodeTab = "minimal" | "full";
 
 export function DemoPage({ entry, order }: { entry: DemoEntry; order: number }) {
-  const { meta, Stage, file } = entry;
+  const { meta, Stage, file, source } = entry;
   const [cfg, setCfg] = useState<DemoCfg>(() => initialCfg(meta));
   const [lines, setLines] = useState<LogLine[]>([]);
   const [tab, setTab] = useState<CodeTab>("minimal");
@@ -172,6 +174,7 @@ export function DemoPage({ entry, order }: { entry: DemoEntry; order: number }) 
           maxHeight={420}
         />
       </div>
+      <PluginApiSection source={source} plugins={PLUGINS} />
     </section>
   );
 }
