@@ -53,7 +53,7 @@ export const createStarPlugin: CandidatePluginCreator<StarConfig> = (
               cursor: "pointer",
               fontSize: 14,
               padding: "2px 4px",
-              color: on ? "#e8590c" : tokens.faint,
+              color: on ? "#c2410c" : tokens.muted,
               lineHeight: 1,
             }}
           >

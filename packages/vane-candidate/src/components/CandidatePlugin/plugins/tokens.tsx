@@ -9,7 +9,7 @@ export const tokens = {
   bg: "#ffffff",
   text: "#1f2328", // 约 16:1
   muted: "#5d636a", // 约 5:1（次级正文可用）
-  faint: "#8a9099", // 约 3.3:1（仅 UI 元素/装饰，不用于正文）
+  faint: "#767d87", // 约 3.7:1（禁用/装饰，不用于正文）
   line: "#e3e6ea",
   lineStrong: "#d4d8de",
   accent: "#2563eb",
