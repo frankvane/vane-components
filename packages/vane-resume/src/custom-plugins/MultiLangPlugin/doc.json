@@ -3,6 +3,30 @@
   "description": "多语言：在预设语言间切换，整体翻译文本字段（缺失字段保留原文降级）。",
   "since": "0.1.0",
   "tags": ["i18n", "transformData", "renderToolbar", "onMount"],
+  "events": [
+    {
+      "name": "onMount",
+      "when": "简历组件挂载完成",
+      "description": "初始化副作用（读取本地版本、恢复状态）"
+    },
+    {
+      "name": "transformData",
+      "when": "渲染前，对简历数据链式改写",
+      "description": "模板 / 语言切换、字段脱敏、结构调整"
+    },
+    {
+      "name": "renderToolbar",
+      "when": "每次渲染，工具栏槽位",
+      "description": "模板切换、导出、语言、版本等全局操作"
+    },
+    {
+      "name": "resume:lang-change",
+      "when": "切换简历语言时",
+      "description": "广播语言 code，触发数据与文案切换"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "locales", "type": "{code,label}[]", "default": "-", "description": "语言列表" },
     { "name": "default", "type": "string", "default": "首个语言", "description": "默认语言 code" },

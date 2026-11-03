@@ -3,6 +3,20 @@
   "description": "弹幕审计：不增删弹幕，对每条触发 onLog 回调（审核/风控/落库），可选经 bus 广播 danmaku:audit。",
   "since": "0.1.0",
   "tags": ["audit", "log", "data"],
+  "events": [
+    {
+      "name": "transformData",
+      "when": "渲染前，对弹幕列表链式改写",
+      "description": "过滤、去重、着色、限流；下游看到的是改写后的待渲染列表"
+    },
+    {
+      "name": "danmaku:audit",
+      "when": "每条弹幕进入审核队列时",
+      "description": "携带 { item } 供外部审核系统接管"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "onLog", "type": "(item, context) => void", "default": "undefined", "description": "每条弹幕的审计回调" },
     { "name": "emit", "type": "boolean", "default": "false", "description": "是否经 bus 广播 danmaku:audit" }

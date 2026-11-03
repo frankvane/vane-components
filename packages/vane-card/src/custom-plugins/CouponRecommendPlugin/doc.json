@@ -3,6 +3,30 @@
   "description": "按当前小计推荐可用券，可自动套用最优券；套用结果写进总线 coupon.applied，与手选券（CouponPlugin）共用同一个键。",
   "since": "2.0.0",
   "tags": ["buy", "coupon", "bus-source"],
+  "events": [
+    {
+      "name": "onMount",
+      "when": "卡片挂载完成、插件注册后执行一次",
+      "description": "建立观察器 / 监听器，返回清理函数以便卸载时释放"
+    },
+    {
+      "name": "renderOverlay",
+      "when": "每次渲染，绝对定位覆盖在卡片内容之上",
+      "description": "卡片浮层：角标、收藏按钮、动画、骨架遮罩等"
+    },
+    {
+      "name": "renderFooter",
+      "when": "每次渲染，卡片底部槽位",
+      "description": "卡片底部内容（操作行、价格补充、来源）"
+    },
+    {
+      "name": "renderPriceArea",
+      "when": "渲染价格区时（卡片按 usePluginSlot(\"priceArea\") 读取）",
+      "description": "价格区领域槽：比价、省钱徽章、单位价、可领券提示等，排序规则与内核插槽一致"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "coupons",

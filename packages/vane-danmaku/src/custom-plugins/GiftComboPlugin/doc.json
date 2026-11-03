@@ -3,6 +3,15 @@
   "description": "礼物连击聚合：同用户相同「基础词 xN」紧邻出现合并为一条并累加连击数，内核末尾绘制 xN 角标。",
   "since": "0.1.0",
   "tags": ["gift", "combo", "data"],
+  "events": [
+    {
+      "name": "transformData",
+      "when": "渲染前，对弹幕列表链式改写",
+      "description": "过滤、去重、着色、限流；下游看到的是改写后的待渲染列表"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "pattern", "type": "string", "default": "^(.*?)\\s*x(\\d+)$", "description": "连击识别正则（需捕获 基础词 与 次数）" }
   ],

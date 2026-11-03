@@ -7,6 +7,30 @@
     "android",
     "mobile"
   ],
+  "events": [
+    {
+      "name": "onMount",
+      "when": "组件挂载完成、插件注册后执行一次（返回的清理函数在 manager.clear 时逆序执行）",
+      "description": "初始化副作用：注册监听、起定时器、建观察器；必须返回清理函数或配合 onUnmount 收尾"
+    },
+    {
+      "name": "onPropsChange",
+      "when": "宿主 props 变化后（回传 prev / next 两份）",
+      "description": "按新旧 props 差分决定是否重算内部状态，避免无差别刷新"
+    },
+    {
+      "name": "onClose",
+      "when": "关闭补间动画完成后（受控关闭也会触发）",
+      "description": "关闭后的清理与上报"
+    }
+  ],
+  "methods": [
+    {
+      "name": "close",
+      "signature": "ctx.close(): void",
+      "description": "关闭面板：走关闭补间，动画结束后触发 onClose"
+    }
+  ],
   "config": [
     {
       "name": "state",

@@ -6,6 +6,15 @@
     "visual",
     "视觉"
   ],
+  "events": [
+    {
+      "name": "renderOverlay",
+      "when": "每次渲染，覆盖在图片容器之上",
+      "description": "骨架屏、错误占位、水印、加载动画"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "text", "type": "string | ((src: string) => string)", "default": "\"© 2024 Vane\"", "description": "水印文本；可传函数按 src 动态生成" },
     { "name": "position", "type": "\"top-left\" | \"top-right\" | \"bottom-left\" | \"bottom-right\" | \"center\"", "default": "\"bottom-right\"", "description": "水印位置" },

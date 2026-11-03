@@ -3,6 +3,25 @@
   "description": "附件预览：列出附件卡片（PDF / 图片 / 链接），点击在灯箱中预览。",
   "since": "0.1.0",
   "tags": ["attachment", "renderAttachments", "renderOverlay", "transformData"],
+  "events": [
+    {
+      "name": "transformData",
+      "when": "渲染前，对简历数据链式改写",
+      "description": "模板 / 语言切换、字段脱敏、结构调整"
+    },
+    {
+      "name": "renderOverlay",
+      "when": "每次渲染，绝对定位覆盖在主内容之上",
+      "description": "渲染浮层内容（角标、提示、动画、工具条），不挤占主内容布局"
+    },
+    {
+      "name": "renderAttachments",
+      "when": "每次渲染，附件区槽位",
+      "description": "作品集、证书、项目链接等附件列表"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "items", "type": "AttachmentItem[]", "default": "[]", "description": "预置附件（合并进 data.attachments）" }
   ],

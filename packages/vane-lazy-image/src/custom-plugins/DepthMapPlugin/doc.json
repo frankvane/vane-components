@@ -3,6 +3,15 @@
   "description": "3D 视差深度效果：鼠标跟随的倾斜 / 视差 / 浮动 / 3D 旋转，带光泽与阴影，纯 CSS transforms 无依赖。",
   "since": "2.0.0",
   "tags": ["interaction", "视觉效果与交互", "visual"],
+  "events": [
+    {
+      "name": "renderOverlay",
+      "when": "每次渲染，覆盖在图片容器之上",
+      "description": "骨架屏、错误占位、水印、加载动画"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "style", "type": "\"tilt\" | \"parallax\" | \"float\" | \"rotate-3d\"", "default": "\"tilt\"", "description": "深度效果样式" },
     { "name": "intensity", "type": "number", "default": "0.5", "description": "效果强度 0~1" },

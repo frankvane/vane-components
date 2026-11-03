@@ -3,6 +3,15 @@
   "description": "富编辑：底部评论框，支持 emoji 选择器 / 图片（DataURL）/ @提及（候选下拉），实时预览，提交时输出结构化 CommentNode[] 回调 onSubmit。各能力经 features 配置按平台开关。",
   "since": "0.1.0",
   "tags": ["ui", "富文本", "编辑器", "评论框"],
+  "events": [
+    {
+      "name": "renderFooter",
+      "when": "每次渲染，列表级底部槽位",
+      "description": "根评论框、加载更多、登录提示"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "features",

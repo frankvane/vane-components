@@ -3,6 +3,30 @@
   "description": "图片预览：原生 <img> 承载，工具栏提供缩放（±20%）、旋转（+90°）、复位与下载；双击图片也可复位。零依赖。",
   "since": "2.0.0",
   "tags": ["media", "image", "图片"],
+  "events": [
+    {
+      "name": "render",
+      "when": "本插件认领文件后，渲染预览主体",
+      "description": "输出该文件类型的预览 UI（图片 / 视频 / PDF / Office / 文本等）"
+    },
+    {
+      "name": "renderToolbar",
+      "when": "每次渲染，内容区顶部工具栏（内核侧桥接到 renderHeader）",
+      "description": "缩放、翻页、下载、全屏等预览操作"
+    }
+  ],
+  "methods": [
+    {
+      "name": "forceUpdate",
+      "signature": "ctx.forceUpdate(): void",
+      "description": "主动触发宿主重渲染；改了闭包里的可变状态后必须调用，否则视图不刷新"
+    },
+    {
+      "name": "reportState",
+      "signature": "ctx.reportState(patch: PreviewStatePatch): void",
+      "description": "上报预览状态（唯一写入路径，由内核转发给 Core）"
+    }
+  ],
   "config": [
     {
       "name": "enableZoom",

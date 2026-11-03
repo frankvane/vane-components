@@ -3,6 +3,15 @@
   "description": "弹幕统计条（UI 面）：读取领域 data 展示弹幕总数/置顶数/各模式计数，纯展示不修改弹幕流。",
   "since": "0.1.0",
   "tags": ["ui", "stats", "toolbar"],
+  "events": [
+    {
+      "name": "renderHeader",
+      "when": "每次渲染，播放器顶部槽位",
+      "description": "弹幕开关、密度设置、工具栏"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "showModes", "type": "boolean", "default": "true", "description": "是否显示各模式计数" }
   ],

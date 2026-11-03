@@ -3,6 +3,25 @@
   "description": "AI 润色：调用可插拔服务润色摘要 / 工作描述 / 项目描述，可一键还原（不硬编码密钥）。",
   "since": "0.1.0",
   "tags": ["ai", "transformData", "renderToolbar"],
+  "events": [
+    {
+      "name": "onMount",
+      "when": "简历组件挂载完成",
+      "description": "初始化副作用（读取本地版本、恢复状态）"
+    },
+    {
+      "name": "transformData",
+      "when": "渲染前，对简历数据链式改写",
+      "description": "模板 / 语言切换、字段脱敏、结构调整"
+    },
+    {
+      "name": "renderToolbar",
+      "when": "每次渲染，工具栏槽位",
+      "description": "模板切换、导出、语言、版本等全局操作"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "fields", "type": "(\"summary\"|\"work\"|\"projects\")[]", "default": "三项全开", "description": "润色字段" },
     { "name": "tone", "type": "string", "default": "-", "description": "语气偏好，透传给 polish" },

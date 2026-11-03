@@ -3,6 +3,15 @@
   "description": "弹幕去重：同一用户+相同文案在 window 秒内重复出现只保留首条，缓解刷屏。",
   "since": "0.1.0",
   "tags": ["dedup", "cleanup", "data"],
+  "events": [
+    {
+      "name": "transformData",
+      "when": "渲染前，对弹幕列表链式改写",
+      "description": "过滤、去重、着色、限流；下游看到的是改写后的待渲染列表"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "window", "type": "number", "default": "5", "description": "去重时间窗（秒）" }
   ],

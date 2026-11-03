@@ -3,6 +3,15 @@
   "description": "鉴权：为私有图片 URL 追加访问凭证 token（查询参数），并可配置 crossOrigin 与 referrerPolicy，满足需登录态才能访问的图片源鉴权需求。",
   "since": "2.0.0",
   "tags": ["network", "网络", "鉴权", "私有资源"],
+  "events": [
+    {
+      "name": "transformProps",
+      "when": "渲染前链式改写图片 props",
+      "description": "补 sizes / 占位色 / 解码策略等"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "token",

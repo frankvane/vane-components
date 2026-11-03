@@ -3,6 +3,15 @@
   "description": "低清预览（LQIP）：在清晰图加载期间叠加模糊的小图作为占位，加载完成后自动隐藏，实现渐进式加载体验。",
   "since": "2.0.0",
   "tags": ["other", "视觉", "占位", "渐进加载"],
+  "events": [
+    {
+      "name": "renderOverlay",
+      "when": "每次渲染，覆盖在图片容器之上",
+      "description": "骨架屏、错误占位、水印、加载动画"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "lqipSrc", "type": "string | ((src) => string)", "default": "undefined", "description": "低清预览图地址或生成函数" },
     { "name": "blur", "type": "number", "default": "12", "description": "模糊半径(px)" },

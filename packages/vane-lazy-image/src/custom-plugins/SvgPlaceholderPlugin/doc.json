@@ -3,6 +3,15 @@
   "description": "SVG 占位：在加载期间注入自定义 SVG 占位内容（如骨架、品牌图形），加载成功后淡出，增强加载反馈与品牌感。",
   "since": "2.0.0",
   "tags": ["other", "视觉", "占位"],
+  "events": [
+    {
+      "name": "renderOverlay",
+      "when": "每次渲染，覆盖在图片容器之上",
+      "description": "骨架屏、错误占位、水印、加载动画"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "svgContent", "type": "string | ((context) => string)", "default": "undefined", "description": "SVG 字符串或动态生成函数" },
     { "name": "background", "type": "string", "default": "\"transparent\"", "description": "叠加层背景" },

@@ -6,6 +6,20 @@
     "perf",
     "动效"
   ],
+  "events": [
+    {
+      "name": "onItemMount",
+      "when": "单个卡片挂载并拿到 DOM 元素时",
+      "description": "按卡片绑定监听、观察器、埋点"
+    },
+    {
+      "name": "onLayout",
+      "when": "布局计算完成、结果已确定",
+      "description": "读取每列高度、做二次修正或上报"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "duration",

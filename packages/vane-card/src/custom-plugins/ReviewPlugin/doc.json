@@ -3,6 +3,15 @@
   "description": "页脚评价区：星级 + 评分 + 评价数；可选开启用户打分与评论输入。",
   "since": "2.0.0",
   "tags": ["buy", "footer", "评价"],
+  "events": [
+    {
+      "name": "renderFooter",
+      "when": "每次渲染，卡片底部槽位",
+      "description": "卡片底部内容（操作行、价格补充、来源）"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "showRating",

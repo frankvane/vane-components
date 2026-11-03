@@ -3,6 +3,25 @@
   "description": "悬停时的视觉反馈：投影 / 轻微放大 / 描边。走 transformProps 注入容器样式，不额外包 DOM。",
   "since": "2.0.0",
   "tags": ["display", "interaction", "hover"],
+  "events": [
+    {
+      "name": "onHover",
+      "when": "指针进入 / 离开卡片（isHovered 布尔值）",
+      "description": "悬停态处理：预加载、浮层提示、动效触发"
+    },
+    {
+      "name": "transformProps",
+      "when": "渲染前链式改写卡片 props",
+      "description": "注入默认值、裁剪字段、按 config 覆盖宿主 props"
+    }
+  ],
+  "methods": [
+    {
+      "name": "getContainer",
+      "signature": "ctx.getContainer(): HTMLDivElement | null",
+      "description": "取宿主 DOM 容器，可能为 null，使用前需判空"
+    }
+  ],
   "config": [
     {
       "name": "enableShadow",

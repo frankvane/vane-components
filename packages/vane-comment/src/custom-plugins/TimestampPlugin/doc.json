@@ -3,6 +3,15 @@
   "description": "绝对时间：Core 默认展示相对时间，本插件在操作行补充绝对时间芯片（YYYY-MM-DD HH:mm），便于精确查看。",
   "since": "0.2.0",
   "tags": ["ui", "信息", "时间"],
+  "events": [
+    {
+      "name": "renderCommentActions",
+      "when": "逐条渲染评论的操作行（payload 为当前 comment）",
+      "description": "点赞、回复、复制、举报等单条操作按钮"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [],
   "example": "const Comment = withCommentPlugins(CommentCore, [\n  createTimestampPlugin(),\n]);",
   "features": ["操作行绝对时间芯片", "与 Core 相对时间并存"],

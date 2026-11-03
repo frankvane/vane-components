@@ -3,6 +3,20 @@
   "description": "响应式图片：注入 srcset/sizes 多宽度资源，浏览器按视口选择最佳尺寸，兼顾清晰度与流量。",
   "since": "2.0.0",
   "tags": ["a11y", "可访问性", "网络", "响应式"],
+  "events": [
+    {
+      "name": "onLoadSuccess",
+      "when": "图片成功解码可显示时",
+      "description": "拿到最终 displaySrc 做后续动作（上报、预取下张、淡入）"
+    },
+    {
+      "name": "transformProps",
+      "when": "渲染前链式改写图片 props",
+      "description": "补 sizes / 占位色 / 解码策略等"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "enabled", "type": "boolean", "default": "true", "description": "是否启用响应式" },
     { "name": "variants", "type": "{ width: number; src?: string }[]", "default": "[{400},{800},{1200}]", "description": "宽度变体列表" },

@@ -3,6 +3,15 @@
   "description": "月历网格：以 7 列网格形态呈现整轮签到进度，日历区渲染。",
   "since": "0.1.0",
   "tags": ["calendar", "grid", "calendar-slot"],
+  "events": [
+    {
+      "name": "renderCalendar",
+      "when": "每次渲染，日历区槽位",
+      "description": "日历条 / 月历网格 / 漏签标记"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "columns",

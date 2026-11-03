@@ -6,6 +6,25 @@
     "data",
     "加载更多"
   ],
+  "events": [
+    {
+      "name": "onUnmount",
+      "when": "瀑布流卸载前",
+      "description": "断开观察器、移除滚动监听"
+    },
+    {
+      "name": "onReachBottom",
+      "when": "滚动触底（distance 为距底像素）",
+      "description": "加载更多、预取下一页"
+    },
+    {
+      "name": "transformProps",
+      "when": "渲染前链式改写瀑布流 props",
+      "description": "补 gap / columns 默认值、按断点覆盖配置"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "threshold",

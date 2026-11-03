@@ -3,6 +3,15 @@
   "description": "@提及高亮：识别 @用户名 写入 renderHint.rich 带色分段，与 KeywordHighlight 共用分段机制。",
   "since": "0.1.0",
   "tags": ["mention", "highlight", "data"],
+  "events": [
+    {
+      "name": "transformData",
+      "when": "渲染前，对弹幕列表链式改写",
+      "description": "过滤、去重、着色、限流；下游看到的是改写后的待渲染列表"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "color", "type": "string", "default": "\"#4ea1ff\"", "description": "@提及着色" },
     { "name": "pattern", "type": "string", "default": "@[\\w\\u4e00-\\u9fa5]+", "description": "自定义提及正则" }

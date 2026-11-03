@@ -3,6 +3,20 @@
   "description": "WebP 优先：在支持 WebP 的环境中自动将图片重写为 .webp（或自定义链接），失败时回退原图，体积更小加载更快。",
   "since": "2.0.0",
   "tags": ["other", "网络", "性能", "WebP"],
+  "events": [
+    {
+      "name": "onLoad",
+      "when": "加载流程开始、需要确定最终图片地址时",
+      "description": "自定义加载逻辑，返回最终图片 URL（objectURL / dataURL / 原地址）"
+    },
+    {
+      "name": "onLoadError",
+      "when": "加载失败（网络错误、解码失败、超时）",
+      "description": "返回 true 表示错误已被处理（如切换备用源），否则继续走默认降级"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "enabled", "type": "boolean", "default": "true", "description": "是否启用" },
     { "name": "rewrite", "type": "(src, ctx) => string | undefined", "default": "undefined", "description": "自定义重写函数：返回 webp 链接" },

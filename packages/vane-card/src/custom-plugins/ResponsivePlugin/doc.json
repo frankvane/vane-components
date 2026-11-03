@@ -3,6 +3,35 @@
   "description": "按容器宽度切换布局方向与容器样式：手机/平板竖向、桌面横向，并在容器上写 data-layout 供 CSS 选择器使用。",
   "since": "2.0.0",
   "tags": ["media", "responsive", "布局"],
+  "events": [
+    {
+      "name": "onMount",
+      "when": "卡片挂载完成、插件注册后执行一次",
+      "description": "建立观察器 / 监听器，返回清理函数以便卸载时释放"
+    },
+    {
+      "name": "onResize",
+      "when": "容器尺寸变化（width / height，ResizeObserver 驱动）",
+      "description": "按尺寸切换排版或降级（如窄卡隐藏副标题）"
+    },
+    {
+      "name": "transformProps",
+      "when": "渲染前链式改写卡片 props",
+      "description": "注入默认值、裁剪字段、按 config 覆盖宿主 props"
+    }
+  ],
+  "methods": [
+    {
+      "name": "getContainer",
+      "signature": "ctx.getContainer(): HTMLDivElement | null",
+      "description": "取宿主 DOM 容器，可能为 null，使用前需判空"
+    },
+    {
+      "name": "getSize",
+      "signature": "ctx.getSize(): CardSize",
+      "description": "读取宿主容器当前尺寸（px），用于按尺寸排版或降级"
+    }
+  ],
   "config": [
     {
       "name": "breakpoints",

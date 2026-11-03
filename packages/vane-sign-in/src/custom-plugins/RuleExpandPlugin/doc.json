@@ -3,6 +3,15 @@
   "description": "规则折叠展开：将活动规则折叠为可展开列表，底部区渲染；无规则时静默跳过。",
   "since": "0.1.0",
   "tags": ["rule", "footer", "collapse"],
+  "events": [
+    {
+      "name": "renderFooter",
+      "when": "每次渲染，底部区槽位",
+      "description": "规则展开、领取记录入口"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "defaultOpen",

@@ -6,6 +6,35 @@
     "interaction",
     "埋点"
   ],
+  "events": [
+    {
+      "name": "onMount",
+      "when": "瀑布流挂载完成",
+      "description": "初始化观察器与滚动监听，返回清理函数"
+    },
+    {
+      "name": "onItemClick",
+      "when": "单个卡片被点击",
+      "description": "卡片级跳转与点击埋点"
+    },
+    {
+      "name": "onLayoutComplete",
+      "when": "DOM 落位完成（可安全测量）",
+      "description": "测量真实高度、懒加载判定、曝光上报"
+    },
+    {
+      "name": "renderOverlay",
+      "when": "每次渲染，滚动容器内的内容层之上",
+      "description": "回到顶部、加载提示、浮层工具"
+    },
+    {
+      "name": "analytics:click",
+      "when": "卡片点击后",
+      "description": "广播 { index, key, item, event, total } 点击埋点"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "log",

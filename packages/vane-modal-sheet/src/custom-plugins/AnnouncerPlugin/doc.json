@@ -7,6 +7,20 @@
     "screen-reader",
     "feedback"
   ],
+  "events": [
+    {
+      "name": "onSnap",
+      "when": "吸附到某一档位后（含打开补间结束）",
+      "description": "拿到目标档位 index，做联动（切换内容、上报展开高度）"
+    },
+    {
+      "name": "renderOverlay",
+      "when": "每次渲染，覆盖在面板内容之上",
+      "description": "面板内浮层（提示、下拉、加载遮罩）"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "labels",

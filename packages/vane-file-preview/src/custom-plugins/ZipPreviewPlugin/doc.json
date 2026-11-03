@@ -3,6 +3,20 @@
   "description": "压缩包条目列表：解出 zip 内部结构，目录在前、文件在后，显示未压缩大小。依赖 jszip（optional peer）。",
   "since": "2.0.0",
   "tags": ["archive", "zip", "压缩包", "data"],
+  "events": [
+    {
+      "name": "render",
+      "when": "本插件认领文件后，渲染预览主体",
+      "description": "输出该文件类型的预览 UI（图片 / 视频 / PDF / Office / 文本等）"
+    },
+    {
+      "name": "renderToolbar",
+      "when": "每次渲染，内容区顶部工具栏（内核侧桥接到 renderHeader）",
+      "description": "缩放、翻页、下载、全屏等预览操作"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "showFileSize",

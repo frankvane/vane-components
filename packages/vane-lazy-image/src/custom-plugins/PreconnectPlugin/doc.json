@@ -6,6 +6,30 @@
     "loading",
     "加载策略"
   ],
+  "events": [
+    {
+      "name": "onMount",
+      "when": "组件挂载完成、插件注册后执行一次（返回的清理函数在 manager.clear 时逆序执行）",
+      "description": "初始化副作用：注册监听、起定时器、建观察器；必须返回清理函数或配合 onUnmount 收尾"
+    },
+    {
+      "name": "onUnmount",
+      "when": "组件卸载前执行一次",
+      "description": "释放监听、定时器与观察器；与 onMount 成对出现，避免泄漏"
+    },
+    {
+      "name": "onSrcChange",
+      "when": "src 变化、切换到新图时",
+      "description": "重置状态、清理旧缓存、重新进入懒加载判定"
+    },
+    {
+      "name": "renderOverlay",
+      "when": "每次渲染，覆盖在图片容器之上",
+      "description": "骨架屏、错误占位、水印、加载动画"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "domains",

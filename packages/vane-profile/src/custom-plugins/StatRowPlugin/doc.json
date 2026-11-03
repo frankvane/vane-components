@@ -3,6 +3,15 @@
   "description": "数据行：把关注 / 粉丝 / 获赞 / 作品等指标横排展示，每项显示「值 + 标签」。数据源为 config.items 或 props.stats。",
   "since": "0.1.0",
   "tags": ["ui", "stats", "数据"],
+  "events": [
+    {
+      "name": "renderStatRow",
+      "when": "每次渲染，数据行槽位",
+      "description": "关注 / 粉丝 / 获赞 / 作品等指标"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "items",

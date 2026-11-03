@@ -3,6 +3,20 @@
   "description": "弹幕/指令输入框（UI 面）：提交经 bus 广播 danmaku:send {text}，由消费方追加弹幕或交给 CmdParse 解析指令。",
   "since": "0.1.0",
   "tags": ["ui", "input", "command"],
+  "events": [
+    {
+      "name": "renderFooter",
+      "when": "每次渲染，播放器底部槽位",
+      "description": "弹幕输入框、发送按钮、快捷指令入口"
+    },
+    {
+      "name": "danmaku:send",
+      "when": "输入框提交发送时",
+      "description": "广播待发送文本 { text }，由外部决定是否入列"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "placeholder", "type": "string", "default": "发条弹幕 / 指令（/clear）", "description": "输入框占位符" }
   ],

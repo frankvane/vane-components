@@ -3,6 +3,15 @@
   "description": "活跃度小结：最近活跃 / 本月发布 / 总阅读，一行小字。",
   "since": "0.1.0",
   "tags": ["activity", "meta", "renderBioArea"],
+  "events": [
+    {
+      "name": "renderBioArea",
+      "when": "每次渲染，简介区槽位（头图与数据行之间）",
+      "description": "昵称、签名、所在地、加入时间"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "lastActive", "type": "string", "default": "-", "description": "最近活跃描述，如「2 小时前」" },
     { "name": "postsThisMonth", "type": "number", "default": "-", "description": "本月发布篇数" },

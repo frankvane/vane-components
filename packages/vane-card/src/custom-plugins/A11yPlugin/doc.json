@@ -3,6 +3,20 @@
   "description": "无障碍增强：给卡片补 role / aria-label、可选键盘导航与聚焦播报、高对比配色。",
   "since": "2.0.0",
   "tags": ["infra", "a11y", "无障碍"],
+  "events": [
+    {
+      "name": "onMount",
+      "when": "卡片挂载完成、插件注册后执行一次",
+      "description": "建立观察器 / 监听器，返回清理函数以便卸载时释放"
+    }
+  ],
+  "methods": [
+    {
+      "name": "getContainer",
+      "signature": "ctx.getContainer(): HTMLDivElement | null",
+      "description": "取宿主 DOM 容器，可能为 null，使用前需判空"
+    }
+  ],
   "config": [
     {
       "name": "announceOnFocus",

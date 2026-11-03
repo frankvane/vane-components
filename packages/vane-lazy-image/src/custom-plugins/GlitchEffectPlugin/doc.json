@@ -3,6 +3,15 @@
   "description": "故障艺术效果：赛博朋克风格 RGB 分离 / 扫描线 / 数字失真 / 混合 / 强烈五种风格，纯 CSS 无依赖，支持持续、一次性、悬停触发。",
   "since": "2.0.0",
   "tags": ["interaction", "视觉效果与交互", "visual"],
+  "events": [
+    {
+      "name": "renderOverlay",
+      "when": "每次渲染，覆盖在图片容器之上",
+      "description": "骨架屏、错误占位、水印、加载动画"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "style", "type": "\"rgb-split\" | \"scan-lines\" | \"digital\" | \"glitch-mix\" | \"intense\"", "default": "\"glitch-mix\"", "description": "故障风格" },
     { "name": "continuous", "type": "boolean", "default": "false", "description": "是否持续动画" },

@@ -3,6 +3,20 @@
   "description": "360° 环物旋转（gallery 核心插件）：把 images 当逐帧序列，拖拽或自动播放切换帧，覆盖主图显示。",
   "since": "2.1.0",
   "tags": ["gallery", "图集", "360", "环物", "旋转"],
+  "events": [
+    {
+      "name": "galleryOverlay",
+      "when": "渲染图库大图浮层时",
+      "description": "大图视图、切换器、关闭按钮等浮层内容"
+    }
+  ],
+  "methods": [
+    {
+      "name": "setFrameIndex",
+      "signature": "ctx.setFrameIndex(i: number): void",
+      "description": "切换 360° 环物当前帧（写入图集协调态，触发重新渲染）"
+    }
+  ],
   "config": [
     { "name": "sensitivity", "type": "number", "default": "6", "description": "拖拽灵敏度：像素位移超过该值才翻一帧" },
     { "name": "autoPlay", "type": "boolean", "default": "false", "description": "是否自动旋转" },

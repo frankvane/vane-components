@@ -3,6 +3,25 @@
   "description": "兜底插件：认领所有文件（priority -1 排最后），给出「这种格式预览不了，但可以下载」的卡片。零依赖。",
   "since": "2.0.0",
   "tags": ["other", "fallback", "下载"],
+  "events": [
+    {
+      "name": "canHandle",
+      "when": "内核询问「谁能预览这个文件」时（按优先级依次询问）",
+      "description": "返回 true 表示认领该文件；返回 false / undefined 表示不处理"
+    },
+    {
+      "name": "render",
+      "when": "本插件认领文件后，渲染预览主体",
+      "description": "输出该文件类型的预览 UI（图片 / 视频 / PDF / Office / 文本等）"
+    },
+    {
+      "name": "renderToolbar",
+      "when": "每次渲染，内容区顶部工具栏（内核侧桥接到 renderHeader）",
+      "description": "缩放、翻页、下载、全屏等预览操作"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "autoDownload",

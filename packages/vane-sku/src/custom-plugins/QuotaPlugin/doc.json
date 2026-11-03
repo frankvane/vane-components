@@ -3,6 +3,25 @@
   "description": "限购校验：读 variant.quota 与已购数渲染限购提示条，并把 canPurchase 写入内核 state 供宿主加购按钮门控。",
   "since": "0.1.0",
   "tags": ["sku", "quota", "limit"],
+  "events": [
+    {
+      "name": "onMount",
+      "when": "规格组件挂载完成",
+      "description": "初始化副作用（URL 同步、状态恢复）"
+    },
+    {
+      "name": "onSkuChange",
+      "when": "用户选择或命中变体变化后（回传 selection / variant）",
+      "description": "联动价格、库存、图片，或做埋点上报"
+    },
+    {
+      "name": "renderHeader",
+      "when": "每次渲染，规格面板头部槽位",
+      "description": "商品图、价格、已选摘要"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "purchasedCount",

@@ -3,6 +3,25 @@
   "description": "卡片状态初值与差分回调：把 cart / wishlist 初始化为 false，并在状态变化时回调 config 里的 onCartChange / onWishlistChange。",
   "since": "2.0.0",
   "tags": ["infra", "state", "生命周期"],
+  "events": [
+    {
+      "name": "onMount",
+      "when": "卡片挂载完成、插件注册后执行一次",
+      "description": "建立观察器 / 监听器，返回清理函数以便卸载时释放"
+    },
+    {
+      "name": "onStateChange",
+      "when": "setState 提交后（回传 prevState / nextState 两份完整状态）",
+      "description": "状态差分后的联动：刷新派生值、上报曝光、触发动效；setState updater 本身保持纯函数"
+    }
+  ],
+  "methods": [
+    {
+      "name": "setState",
+      "signature": "ctx.setState(updates: Partial<CardState>): void",
+      "description": "合并写入内核 state 并触发重渲染；只有字段真正变化时才更新"
+    }
+  ],
   "config": [
     {
       "name": "enableCart",

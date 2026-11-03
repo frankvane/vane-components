@@ -3,6 +3,15 @@
   "description": "日历条：横向滚动的逐日格，展示已签/今日/漏签/未来/奖励五态，带奖励格金点提示。",
   "since": "0.1.0",
   "tags": ["calendar", "strip", "status"],
+  "events": [
+    {
+      "name": "renderCalendar",
+      "when": "每次渲染，日历区槽位",
+      "description": "日历条 / 月历网格 / 漏签标记"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "showRewardDot",

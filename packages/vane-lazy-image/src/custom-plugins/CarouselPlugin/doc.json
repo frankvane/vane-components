@@ -3,6 +3,20 @@
   "description": "自动轮播（gallery 增强插件）：在工具条渲染 播放/暂停 按钮，按 interval 循环切换主图；悬停图集根容器可暂停。",
   "since": "2.1.0",
   "tags": ["gallery", "图集", "轮播", "自动播放"],
+  "events": [
+    {
+      "name": "galleryToolbarArea",
+      "when": "渲染图库工具栏时",
+      "description": "缩放、下载、分享等图库级操作"
+    }
+  ],
+  "methods": [
+    {
+      "name": "setActiveIndex",
+      "signature": "ctx.setActiveIndex(i: number): void",
+      "description": "切换图库当前激活图索引，并联动缩略图与预加载"
+    }
+  ],
   "config": [
     { "name": "interval", "type": "number", "default": "3000", "description": "每帧停留时长（ms）" },
     { "name": "autoStart", "type": "boolean", "default": "false", "description": "初始是否自动播放" },

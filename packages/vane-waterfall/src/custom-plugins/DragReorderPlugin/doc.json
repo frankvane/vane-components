@@ -6,6 +6,20 @@
     "interaction",
     "拖拽"
   ],
+  "events": [
+    {
+      "name": "renderItemWrapper",
+      "when": "渲染每个卡片时包裹其内容",
+      "description": "给单卡加包裹层（拖拽、无障碍语义、占位骨架）"
+    },
+    {
+      "name": "drag:reorder",
+      "when": "拖拽排序完成后",
+      "description": "广播 { from, to }，供业务层同步顺序"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "enabled",

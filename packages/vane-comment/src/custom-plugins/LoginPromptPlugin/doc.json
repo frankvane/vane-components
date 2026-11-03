@@ -3,6 +3,15 @@
   "description": "未登录引导：底部渲染「登录后参与评论」引导条，回调 onLogin；与 RichComposerPlugin 同槽共存。",
   "since": "0.2.0",
   "tags": ["ui", "转化", "登录"],
+  "events": [
+    {
+      "name": "renderFooter",
+      "when": "每次渲染，列表级底部槽位",
+      "description": "根评论框、加载更多、登录提示"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [],
   "example": "const Comment = withCommentPlugins(CommentCore, [\n  createLoginPromptPlugin(),\n]);",
   "features": ["底部登录引导条", "回调 onLogin"],

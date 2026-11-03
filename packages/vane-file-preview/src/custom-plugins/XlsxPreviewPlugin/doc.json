@@ -3,6 +3,25 @@
   "description": "XLSX / XLSM / XLS 离线解析成表格，多 Sheet 页签切换，超大表按行列上限截断。依赖 xlsx（SheetJS，optional peer）。",
   "since": "2.0.0",
   "tags": ["document", "spreadsheet", "excel", "表格"],
+  "events": [
+    {
+      "name": "render",
+      "when": "本插件认领文件后，渲染预览主体",
+      "description": "输出该文件类型的预览 UI（图片 / 视频 / PDF / Office / 文本等）"
+    },
+    {
+      "name": "renderToolbar",
+      "when": "每次渲染，内容区顶部工具栏（内核侧桥接到 renderHeader）",
+      "description": "缩放、翻页、下载、全屏等预览操作"
+    }
+  ],
+  "methods": [
+    {
+      "name": "forceUpdate",
+      "signature": "ctx.forceUpdate(): void",
+      "description": "主动触发宿主重渲染；改了闭包里的可变状态后必须调用，否则视图不刷新"
+    }
+  ],
   "config": [
     {
       "name": "defaultSheetIndex",

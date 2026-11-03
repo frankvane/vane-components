@@ -7,6 +7,15 @@
     "layout-hook",
     "响应式"
   ],
+  "events": [
+    {
+      "name": "calculateColumns",
+      "when": "每次布局前，询问列数",
+      "description": "返回列数则覆盖 props.columns；返回 undefined 沿用配置"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "breakpoints",

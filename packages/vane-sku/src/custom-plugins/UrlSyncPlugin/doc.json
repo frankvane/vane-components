@@ -3,6 +3,25 @@
   "description": "URL 同步：把规格选择写进查询串（?sku_颜色=red&sku_尺码=s），挂载时反向解析还原，刷新与分享都能保持选择。",
   "since": "0.1.0",
   "tags": ["sku", "url", "share"],
+  "events": [
+    {
+      "name": "onMount",
+      "when": "规格组件挂载完成",
+      "description": "初始化副作用（URL 同步、状态恢复）"
+    },
+    {
+      "name": "onSkuChange",
+      "when": "用户选择或命中变体变化后（回传 selection / variant）",
+      "description": "联动价格、库存、图片，或做埋点上报"
+    }
+  ],
+  "methods": [
+    {
+      "name": "setSelection",
+      "signature": "ctx.setSelection(selection: SkuSelection): void",
+      "description": "写入已选规格（内核 state，触发价格 / 库存 / 图片联动）"
+    }
+  ],
   "config": [
     { "name": "paramPrefix", "type": "string", "default": "\"sku_\"", "description": "查询参数前缀，避免与页面其它参数冲突" },
     { "name": "useReplace", "type": "boolean", "default": "true", "description": "true=replaceState（不污染前进后退），false=pushState" }

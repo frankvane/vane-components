@@ -8,6 +8,25 @@
     "limit",
     "after"
   ],
+  "events": [
+    {
+      "name": "onMount",
+      "when": "券组件挂载完成、插件注册后执行一次",
+      "description": "初始化副作用，可返回清理函数"
+    },
+    {
+      "name": "onPropsChange",
+      "when": "宿主 props 变化后（回传 prev / next 两份）",
+      "description": "按新旧 props 差分决定是否重算内部状态，避免无差别刷新"
+    },
+    {
+      "name": "renderHeader",
+      "when": "每次渲染，券面头部槽位",
+      "description": "面额、券名、标签等券面主视觉"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "quota",

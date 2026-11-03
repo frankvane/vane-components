@@ -3,6 +3,15 @@
   "description": "库存状态：命中变体后展示「现货 / 仅剩 N 件 / 缺货」，低库存阈值可配。",
   "since": "0.1.0",
   "tags": ["sku", "stock", "inventory"],
+  "events": [
+    {
+      "name": "renderHeader",
+      "when": "每次渲染，规格面板头部槽位",
+      "description": "商品图、价格、已选摘要"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "lowStockThreshold", "type": "number", "default": "5", "description": "低库存预警阈值：库存 ≤ 该值时显示「仅剩 N 件」" },
     { "name": "soldOutText", "type": "string", "default": "\"暂时缺货\"", "description": "缺货文案" },

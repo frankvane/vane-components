@@ -3,6 +3,20 @@
   "description": "楼中楼：顶评论的 renderNested 槽递归渲染嵌套回复，maxDepth 限深折叠 + 展开/收起；操作行的「回复」经 renderCommentActions 唤起内联回复框。嵌套回复同样走同一组槽，子回复也能点赞与继续回复。",
   "since": "0.1.0",
   "tags": ["ui", "楼中楼", "回复", "嵌套"],
+  "events": [
+    {
+      "name": "renderNested",
+      "when": "逐条渲染楼中楼嵌套区（payload 为当前 comment）",
+      "description": "展开 / 收起子回复、嵌套列表"
+    },
+    {
+      "name": "renderCommentActions",
+      "when": "逐条渲染评论的操作行（payload 为当前 comment）",
+      "description": "点赞、回复、复制、举报等单条操作按钮"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "maxDepth",

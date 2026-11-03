@@ -3,6 +3,20 @@
   "description": "互动指令：/clear、#lottery 等弹幕在 transformData 阶段被识别、从渲染流移除，并经 bus 事件触发业务动作。",
   "since": "0.1.0",
   "tags": ["command", "interaction", "data"],
+  "events": [
+    {
+      "name": "transformData",
+      "when": "渲染前，对弹幕列表链式改写",
+      "description": "过滤、去重、着色、限流；下游看到的是改写后的待渲染列表"
+    },
+    {
+      "name": "danmaku:command",
+      "when": "命中指令语法（如 /clear）时",
+      "description": "广播 { type, payload, item } 给业务层执行动作"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "prefixes", "type": "string[]", "default": "[\"/\", \"#\"]", "description": "指令前缀" },
     { "name": "commands", "type": "Record<string, string>", "default": "{ clear, lottery }", "description": "指令名 -> bus 事件 type" }

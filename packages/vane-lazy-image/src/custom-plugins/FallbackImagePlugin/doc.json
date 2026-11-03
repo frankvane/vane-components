@@ -3,6 +3,15 @@
   "description": "兜底图：图片加载失败时自动切换到备用图片地址，避免出现破图空白，是最基础的失败降级手段。",
   "since": "2.0.0",
   "tags": ["network", "网络", "兜底", "降级"],
+  "events": [
+    {
+      "name": "onLoadError",
+      "when": "加载失败（网络错误、解码失败、超时）",
+      "description": "返回 true 表示错误已被处理（如切换备用源），否则继续走默认降级"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "fallbackSrc",

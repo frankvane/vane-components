@@ -3,6 +3,20 @@
   "description": "电量感知：当设备电量低于阈值或开启省流模式时，自动将图片请求宽度降级并禁用预连接，兼顾体验与续航/流量。",
   "since": "2.0.0",
   "tags": ["other", "加载策略", "性能", "省流量"],
+  "events": [
+    {
+      "name": "onLoad",
+      "when": "加载流程开始、需要确定最终图片地址时",
+      "description": "自定义加载逻辑，返回最终图片 URL（objectURL / dataURL / 原地址）"
+    },
+    {
+      "name": "transformProps",
+      "when": "渲染前链式改写图片 props",
+      "description": "补 sizes / 占位色 / 解码策略等"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "enabled", "type": "boolean", "default": "true", "description": "是否启用" },
     { "name": "lowBatteryThreshold", "type": "number", "default": "0.2", "description": "低电量阈值(0~1)" },

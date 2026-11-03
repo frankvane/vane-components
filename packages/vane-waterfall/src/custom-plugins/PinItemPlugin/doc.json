@@ -7,6 +7,20 @@
     "layout-hook",
     "置顶"
   ],
+  "events": [
+    {
+      "name": "onBeforeLayout",
+      "when": "开始一次布局之前",
+      "description": "返回 false 可阻止本次布局（如数据仍在加载）"
+    },
+    {
+      "name": "calculateItemPosition",
+      "when": "每个卡片参与布局时（拿到 index / item / columns）",
+      "description": "返回坐标片段可覆盖列分配结果（置顶、跨列、错位）"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "pinnedIndices",

@@ -3,6 +3,15 @@
   "description": "会员 / VIP 等级角标：浮于头图右上，与认证徽标同区并排。",
   "since": "0.1.0",
   "tags": ["ui", "badge", "vip", "renderBadgeArea"],
+  "events": [
+    {
+      "name": "renderBadgeArea",
+      "when": "每次渲染，认证徽标区（默认头图右上角）",
+      "description": "认证标识、等级徽章、状态角标"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "level", "type": "1 | 2 | 3", "default": "1", "description": "会员等级，决定配色与默认文案" },
     { "name": "label", "type": "ReactNode", "default": "-", "description": "覆盖默认文案；缺省按 level 给 VIP{n}" },

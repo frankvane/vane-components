@@ -6,6 +6,15 @@
     "ecommerce",
     "电商核心"
   ],
+  "events": [
+    {
+      "name": "onLoad",
+      "when": "加载流程开始、需要确定最终图片地址时",
+      "description": "自定义加载逻辑，返回最终图片 URL（objectURL / dataURL / 原地址）"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "localeMap", "type": "Record<string, string>", "default": "undefined", "description": "语言 → 图片 URL 映射" },
     { "name": "defaultLocale", "type": "string", "default": "\"en\"", "description": "默认语言（后备）" },

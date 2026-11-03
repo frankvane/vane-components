@@ -3,6 +3,20 @@
   "description": "遮罩：透明度随打开进度联动，点击关闭（可配置）。",
   "since": "0.1.0",
   "tags": ["backdrop", "visual"],
+  "events": [
+    {
+      "name": "renderBackdrop",
+      "when": "每次渲染，遮罩层专用槽位",
+      "description": "自定义遮罩样式或再加一层内容（模糊、点击关闭提示）"
+    }
+  ],
+  "methods": [
+    {
+      "name": "close",
+      "signature": "ctx.close(): void",
+      "description": "关闭面板：走关闭补间，动画结束后触发 onClose"
+    }
+  ],
   "config": [
     {
       "name": "color",

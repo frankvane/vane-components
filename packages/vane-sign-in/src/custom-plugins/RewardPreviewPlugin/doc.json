@@ -3,6 +3,15 @@
   "description": "奖励预告：从当前连签天数起，逐日展示后续可领奖励（积分 / 券 / 礼包 / 徽章）。",
   "since": "0.1.0",
   "tags": ["reward", "preview", "rewards"],
+  "events": [
+    {
+      "name": "renderRewards",
+      "when": "每次渲染，奖励区槽位",
+      "description": "逐日奖励预告、领取态、里程碑奖励"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "limit",

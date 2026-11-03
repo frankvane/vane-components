@@ -3,6 +3,15 @@
   "description": "在线 / 直播状态指示：圆点 + 文案，直播态高亮。",
   "since": "0.1.0",
   "tags": ["status", "live", "renderBioArea"],
+  "events": [
+    {
+      "name": "renderBioArea",
+      "when": "每次渲染，简介区槽位（头图与数据行之间）",
+      "description": "昵称、签名、所在地、加入时间"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "status", "type": "\"online\" | \"away\" | \"busy\" | \"offline\" | \"live\"", "default": "online", "description": "状态类型，决定圆点颜色与文案" },
     { "name": "liveTitle", "type": "string", "default": "-", "description": "status=live 时的直播标题" },

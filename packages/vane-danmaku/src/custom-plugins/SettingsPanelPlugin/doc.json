@@ -3,6 +3,20 @@
   "description": "弹幕设置面板（UI 面）：不透明度/速度/轨道高度滑块，变更经 bus 广播 danmaku:settings，由消费方更新 props。",
   "since": "0.1.0",
   "tags": ["ui", "settings", "overlay"],
+  "events": [
+    {
+      "name": "renderOverlay",
+      "when": "每次渲染，覆盖在播放器画面之上",
+      "description": "渲染在飞弹幕、特效层、命中区域"
+    },
+    {
+      "name": "danmaku:settings",
+      "when": "设置面板任一配置变更时",
+      "description": "广播完整配置快照，供持久化"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "opacity", "type": "number", "default": "1", "description": "初始不透明度" },
     { "name": "speed", "type": "number", "default": "1", "description": "初始速度系数" },

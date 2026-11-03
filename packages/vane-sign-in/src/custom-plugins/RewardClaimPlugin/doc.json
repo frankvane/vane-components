@@ -3,6 +3,15 @@
   "description": "当日奖励领取：提供已达天数待领奖励的领取按钮，奖励区渲染。",
   "since": "0.1.0",
   "tags": ["reward", "claim", "rewards-slot"],
+  "events": [
+    {
+      "name": "renderRewards",
+      "when": "每次渲染，奖励区槽位",
+      "description": "逐日奖励预告、领取态、里程碑奖励"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "pendingText",

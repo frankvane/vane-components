@@ -6,6 +6,35 @@
     "cache",
     "缓存"
   ],
+  "events": [
+    {
+      "name": "onUnmount",
+      "when": "组件卸载前执行一次",
+      "description": "释放监听、定时器与观察器；与 onMount 成对出现，避免泄漏"
+    },
+    {
+      "name": "onLoad",
+      "when": "加载流程开始、需要确定最终图片地址时",
+      "description": "自定义加载逻辑，返回最终图片 URL（objectURL / dataURL / 原地址）"
+    },
+    {
+      "name": "onLoadSuccess",
+      "when": "图片成功解码可显示时",
+      "description": "拿到最终 displaySrc 做后续动作（上报、预取下张、淡入）"
+    },
+    {
+      "name": "onSrcChange",
+      "when": "src 变化、切换到新图时",
+      "description": "重置状态、清理旧缓存、重新进入懒加载判定"
+    },
+    {
+      "name": "cache:hit",
+      "when": "命中 IndexedDB 缓存、跳过网络请求时",
+      "description": "携带 { level, src }，可用于统计缓存命中率"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "enabled",

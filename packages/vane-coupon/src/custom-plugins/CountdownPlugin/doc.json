@@ -8,6 +8,25 @@
     "timer",
     "before"
   ],
+  "events": [
+    {
+      "name": "onMount",
+      "when": "券组件挂载完成、插件注册后执行一次",
+      "description": "初始化副作用，可返回清理函数"
+    },
+    {
+      "name": "renderHeader",
+      "when": "每次渲染，券面头部槽位",
+      "description": "面额、券名、标签等券面主视觉"
+    }
+  ],
+  "methods": [
+    {
+      "name": "setPhase",
+      "signature": "ctx.setPhase(phase: CouponPhase): void",
+      "description": "写入业务相位（写入即触发 context 重建与视图切换）"
+    }
+  ],
   "config": [
     {
       "name": "startAt",

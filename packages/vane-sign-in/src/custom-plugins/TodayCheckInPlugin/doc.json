@@ -3,6 +3,15 @@
   "description": "今日签到：主 CTA，已签置灰、未签高亮，点击经回调下发签到动作。",
   "since": "0.1.0",
   "tags": ["checkin", "actions", "cta"],
+  "events": [
+    {
+      "name": "renderActions",
+      "when": "每次渲染，操作区槽位",
+      "description": "签到 CTA、补签、分享、提醒、邀请"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "signedText",

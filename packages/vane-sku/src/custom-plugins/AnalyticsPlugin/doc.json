@@ -3,6 +3,25 @@
   "description": "规格选择埋点：sku:mount / sku:change / sku:invalid 三类事件，回调（onEvent）与总线（sku:analytics）双通道，自身不渲染 UI。",
   "since": "0.1.0",
   "tags": ["sku", "analytics", "event"],
+  "events": [
+    {
+      "name": "onMount",
+      "when": "规格组件挂载完成",
+      "description": "初始化副作用（URL 同步、状态恢复）"
+    },
+    {
+      "name": "onSkuChange",
+      "when": "用户选择或命中变体变化后（回传 selection / variant）",
+      "description": "联动价格、库存、图片，或做埋点上报"
+    },
+    {
+      "name": "sku:analytics",
+      "when": "挂载 / 命中变更 / 无效组合时",
+      "description": "广播埋点事件对象，供外部 SDK 上报"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "onEvent", "type": "(event) => void", "default": "-", "description": "统一事件出口，推荐接自己的埋点 SDK" },
     { "name": "onlyMatched", "type": "boolean", "default": "false", "description": "只在命中变体时上报；关闭时未命中也上报，便于发现「选不出来」的组合" }

@@ -6,6 +6,20 @@
     "layout",
     "网格"
   ],
+  "events": [
+    {
+      "name": "onResize",
+      "when": "容器宽度变化触发重排前",
+      "description": "按新宽度调整列数或卡片密度"
+    },
+    {
+      "name": "transformProps",
+      "when": "渲染前链式改写瀑布流 props",
+      "description": "补 gap / columns 默认值、按断点覆盖配置"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "itemHeight",

@@ -3,6 +3,15 @@
   "description": "联系信息卡：邮箱 / 电话 / 官网 / 地址，安全链接。",
   "since": "0.1.0",
   "tags": ["contact", "info", "renderBioArea"],
+  "events": [
+    {
+      "name": "renderBioArea",
+      "when": "每次渲染，简介区槽位（头图与数据行之间）",
+      "description": "昵称、签名、所在地、加入时间"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "email", "type": "string", "default": "-", "description": "邮箱，渲染为 mailto: 链接" },
     { "name": "phone", "type": "string", "default": "-", "description": "电话，渲染为 tel: 链接" },

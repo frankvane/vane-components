@@ -3,6 +3,20 @@
   "description": "商品主图（占位实现）：固定 1:1、加载前可占位、失败可兜底；选中变体带图时自动换图。要真正的懒加载/模糊占位请用 vane-lazy-image。",
   "since": "2.0.0",
   "tags": ["media", "header", "图片"],
+  "events": [
+    {
+      "name": "onMount",
+      "when": "卡片挂载完成、插件注册后执行一次",
+      "description": "建立观察器 / 监听器，返回清理函数以便卸载时释放"
+    },
+    {
+      "name": "renderHeader",
+      "when": "每次渲染，卡片头部槽位",
+      "description": "卡片头部内容（标题行、标签、状态条）"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "src",

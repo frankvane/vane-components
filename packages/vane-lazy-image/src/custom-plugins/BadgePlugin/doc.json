@@ -3,6 +3,15 @@
   "description": "角标徽章：在图片四角或中心叠加文字徽章，可按加载状态（always/loading/loaded/error）显示，支持自定义文字、颜色、字号与形状。",
   "since": "2.0.0",
   "tags": ["other", "视觉", "徽标"],
+  "events": [
+    {
+      "name": "renderOverlay",
+      "when": "每次渲染，覆盖在图片容器之上",
+      "description": "骨架屏、错误占位、水印、加载动画"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "text", "type": "string | ((context) => string)", "default": "\"Badge\"", "description": "徽章文字（支持函数动态生成）" },
     { "name": "position", "type": "\"top-left\" | \"top-right\" | \"bottom-left\" | \"bottom-right\" | \"center\"", "default": "\"top-left\"", "description": "徽章位置（四角或中心）" },

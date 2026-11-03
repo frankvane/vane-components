@@ -6,6 +6,30 @@
     "layout",
     "间距"
   ],
+  "events": [
+    {
+      "name": "onMount",
+      "when": "瀑布流挂载完成",
+      "description": "初始化观察器与滚动监听，返回清理函数"
+    },
+    {
+      "name": "onResize",
+      "when": "容器宽度变化触发重排前",
+      "description": "按新宽度调整列数或卡片密度"
+    },
+    {
+      "name": "transformProps",
+      "when": "渲染前链式改写瀑布流 props",
+      "description": "补 gap / columns 默认值、按断点覆盖配置"
+    },
+    {
+      "name": "props:invalidate",
+      "when": "内部布局参数变更需要重排时",
+      "description": "通知宿主刷新 props 触发重新布局"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "columnGap",

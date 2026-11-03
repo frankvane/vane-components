@@ -3,6 +3,25 @@
   "description": "焦点圈定：打开时焦点进入面板并 Tab 循环，关闭时归还焦点（配合内核自带的 role=dialog / aria-modal）。",
   "since": "0.1.0",
   "tags": ["a11y", "focus", "behavior"],
+  "events": [
+    {
+      "name": "onUnmount",
+      "when": "组件卸载前执行一次",
+      "description": "释放监听、定时器与观察器；与 onMount 成对出现，避免泄漏"
+    },
+    {
+      "name": "onPropsChange",
+      "when": "宿主 props 变化后（回传 prev / next 两份）",
+      "description": "按新旧 props 差分决定是否重算内部状态，避免无差别刷新"
+    }
+  ],
+  "methods": [
+    {
+      "name": "getPanel",
+      "signature": "ctx.getPanel(): HTMLDivElement | null",
+      "description": "取面板 DOM 节点，用于测量或聚焦，可能为 null"
+    }
+  ],
   "config": [
     {
       "name": "restoreFocus",

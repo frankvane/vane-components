@@ -7,6 +7,20 @@
     "mobile",
     "feedback"
   ],
+  "events": [
+    {
+      "name": "onClose",
+      "when": "关闭补间动画完成后（受控关闭也会触发）",
+      "description": "关闭后的清理与上报"
+    },
+    {
+      "name": "onSnap",
+      "when": "吸附到某一档位后（含打开补间结束）",
+      "description": "拿到目标档位 index，做联动（切换内容、上报展开高度）"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "snapMs",

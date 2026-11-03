@@ -3,6 +3,20 @@
   "description": "离线降级（v2 真实实现）：在线时把资源预热进 Cache Storage；离线时优先从缓存取同域资源，否则回退 offlineSrc / 内置 SVG 占位图，并在离线时显示状态徽标。不再是纯提示层。",
   "since": "2.0.0",
   "tags": ["loading", "加载策略", "离线", "省流"],
+  "events": [
+    {
+      "name": "onLoad",
+      "when": "加载流程开始、需要确定最终图片地址时",
+      "description": "自定义加载逻辑，返回最终图片 URL（objectURL / dataURL / 原地址）"
+    },
+    {
+      "name": "renderOverlay",
+      "when": "每次渲染，覆盖在图片容器之上",
+      "description": "骨架屏、错误占位、水印、加载动画"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "offlineSrc", "type": "string", "default": "内置 SVG 离线占位图（data URI）", "description": "离线且无缓存时回退的占位图，建议用 data URI 避免再次走网络" },
     { "name": "cacheName", "type": "string", "default": "vane-lazy-image-offline", "description": "Cache Storage 名称，用于预热与离线回退" },

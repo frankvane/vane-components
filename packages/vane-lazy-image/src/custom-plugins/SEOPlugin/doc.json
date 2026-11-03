@@ -3,6 +3,20 @@
   "description": "SEO 增强：alt/title 回退、固定容器宽高比减少 CLS、将首屏关键图设为 LCP 优先（eager + preload），提升搜索排名与加载体验。",
   "since": "2.0.0",
   "tags": ["a11y", "可访问性", "SEO"],
+  "events": [
+    {
+      "name": "onMount",
+      "when": "组件挂载完成、插件注册后执行一次（返回的清理函数在 manager.clear 时逆序执行）",
+      "description": "初始化副作用：注册监听、起定时器、建观察器；必须返回清理函数或配合 onUnmount 收尾"
+    },
+    {
+      "name": "transformProps",
+      "when": "渲染前链式改写图片 props",
+      "description": "补 sizes / 占位色 / 解码策略等"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "enabled", "type": "boolean", "default": "true", "description": "是否启用" },
     { "name": "altFallback", "type": "string", "default": "undefined", "description": "未提供 alt 时的回退值" },

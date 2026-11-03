@@ -3,6 +3,15 @@
   "description": "在卡片角落渲染一枚角标（甄选 / 热卖 / 新品 / 促销）。config 优先，未配置时回落到数据里的 badge 与 badgeType 字段。",
   "since": "2.0.0",
   "tags": ["display", "overlay", "角标"],
+  "events": [
+    {
+      "name": "renderOverlay",
+      "when": "每次渲染，绝对定位覆盖在卡片内容之上",
+      "description": "卡片浮层：角标、收藏按钮、动画、骨架遮罩等"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "text",

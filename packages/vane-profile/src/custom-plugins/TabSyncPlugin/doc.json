@@ -3,6 +3,25 @@
   "description": "页签系统：渲染页签栏（underline / pill / segmented 三种样式），点击切换 activeTab，并联动内容区重渲染。切换时默认把容器滚到顶部。",
   "since": "0.1.0",
   "tags": ["ui", "tab", "页签"],
+  "events": [
+    {
+      "name": "onTabChange",
+      "when": "activeTab 变化后（回传 newTab / oldTab）",
+      "description": "切页副作用：懒加载、埋点、滚动复位"
+    },
+    {
+      "name": "renderTabBar",
+      "when": "每次渲染，页签栏槽位",
+      "description": "页签按钮；点击经 ctx.setActiveTab 驱动内容区联动"
+    }
+  ],
+  "methods": [
+    {
+      "name": "setActiveTab",
+      "signature": "ctx.setActiveTab(id: string | null): void",
+      "description": "切换页签并触发内容区联动（写入内核 state）"
+    }
+  ],
   "config": [
     {
       "name": "tabs",

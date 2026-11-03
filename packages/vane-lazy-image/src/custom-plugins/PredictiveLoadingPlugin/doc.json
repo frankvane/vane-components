@@ -3,6 +3,15 @@
   "description": "预测性预加载（v2 真实实现）：未提供 predict 时，内置启发式按 URL 末尾数字段递增/递减派生「下一张」并注入 <link rel=\"preload\"> 预取；也可传入 predict 自定义预测目标。",
   "since": "2.0.0",
   "tags": ["loading", "加载策略", "预取"],
+  "events": [
+    {
+      "name": "onMount",
+      "when": "组件挂载完成、插件注册后执行一次（返回的清理函数在 manager.clear 时逆序执行）",
+      "description": "初始化副作用：注册监听、起定时器、建观察器；必须返回清理函数或配合 onUnmount 收尾"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "model", "type": "\"heuristic\" | \"ml\"", "default": "\"heuristic\"", "description": "预测模型；ml 当前同样走启发式（真正模型由 predict 提供）" },
     { "name": "strategy", "type": "\"increment\" | \"decrement\"", "default": "\"increment\"", "description": "内置启发式：派生方向（递增/递减 URL 末尾数字段）" },

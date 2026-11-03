@@ -3,6 +3,15 @@
   "description": "价格区间：未选全或组合无货时，按当前选择过滤变体后取 min/max 展示价格区间（如 ¥199–¥269）；命中变体后默认退场，把价格区让给 PriceLink。",
   "since": "0.1.0",
   "tags": ["sku", "price", "range"],
+  "events": [
+    {
+      "name": "renderOverlay",
+      "when": "每次渲染，覆盖在规格面板之上",
+      "description": "浮层选择器、库存提示、加载遮罩"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "currency", "type": "string", "default": "\"¥\"", "description": "货币符号" },
     { "name": "separator", "type": "string", "default": "\"–\"", "description": "区间连接符" },

@@ -3,6 +3,20 @@
   "description": "清空重选：一键重置全部规格选择，走 context.clearSelection()。未选任何规格时不渲染。",
   "since": "0.1.0",
   "tags": ["sku", "reset", "ux"],
+  "events": [
+    {
+      "name": "renderHeader",
+      "when": "每次渲染，规格面板头部槽位",
+      "description": "商品图、价格、已选摘要"
+    }
+  ],
+  "methods": [
+    {
+      "name": "clearSelection",
+      "signature": "ctx.clearSelection(): void",
+      "description": "清空全部已选规格，回到未选状态"
+    }
+  ],
   "config": [
     { "name": "text", "type": "string", "default": "\"清空重选\"", "description": "按钮文案" },
     { "name": "onReset", "type": "() => void", "default": "-", "description": "清空后回调" }

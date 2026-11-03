@@ -3,6 +3,25 @@
   "description": "在卡片头部区域渲染 16:9 视频；可选悬停自动播放/暂停。与 GalleryPlugin 同时启用时自动让位，避免重复渲染。",
   "since": "2.0.0",
   "tags": ["media", "header", "视频"],
+  "events": [
+    {
+      "name": "onHover",
+      "when": "指针进入 / 离开卡片（isHovered 布尔值）",
+      "description": "悬停态处理：预加载、浮层提示、动效触发"
+    },
+    {
+      "name": "renderHeader",
+      "when": "每次渲染，卡片头部槽位",
+      "description": "卡片头部内容（标题行、标签、状态条）"
+    }
+  ],
+  "methods": [
+    {
+      "name": "getContainer",
+      "signature": "ctx.getContainer(): HTMLDivElement | null",
+      "description": "取宿主 DOM 容器，可能为 null，使用前需判空"
+    }
+  ],
   "config": [
     {
       "name": "src",

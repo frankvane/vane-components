@@ -3,6 +3,15 @@
   "description": "简介区：昵称 + 签名 + 所在地 / 加入时间。",
   "since": "0.1.0",
   "tags": ["intro", "bio", "renderBioArea"],
+  "events": [
+    {
+      "name": "renderBioArea",
+      "when": "每次渲染，简介区槽位（头图与数据行之间）",
+      "description": "昵称、签名、所在地、加入时间"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "name", "type": "ReactNode", "default": "-", "description": "昵称（头图已用 overlay 显示时留空，避免重复）" },
     { "name": "subtitle", "type": "ReactNode", "default": "-", "description": "副标题 / 职业，显示在昵称下方小字" },

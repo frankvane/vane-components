@@ -3,6 +3,25 @@
   "description": "内存压力降级 + 离开中止（v2 真实实现）：低内存 / 移动端 / 省流时把图片重写为低清版本；离开视口且仍在加载时，调用 context.reset() 真正取消在途元素加载，回收内存。",
   "since": "2.0.0",
   "tags": ["loading", "加载策略", "降质", "中止", "低端设备"],
+  "events": [
+    {
+      "name": "onLoad",
+      "when": "加载流程开始、需要确定最终图片地址时",
+      "description": "自定义加载逻辑，返回最终图片 URL（objectURL / dataURL / 原地址）"
+    },
+    {
+      "name": "onLeaveViewport",
+      "when": "元素离开视口",
+      "description": "暂停 / 中止在途请求、回收资源"
+    }
+  ],
+  "methods": [
+    {
+      "name": "reset",
+      "signature": "ctx.reset(): void",
+      "description": "重置到初始状态（清空错误与进度，不主动重新发起加载）"
+    }
+  ],
   "config": [
     { "name": "enabled", "type": "boolean", "default": "true", "description": "是否启用" },
     { "name": "deviceMemoryThreshold", "type": "number", "default": "4", "description": "设备内存 ≤ 该阈值(GB)时启用降质" },

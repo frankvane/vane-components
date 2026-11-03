@@ -10,7 +10,7 @@
 | [ConfettiPlugin](#confettiplugin) | 庆祝彩纸：进度达成阈值（默认 100%）时容器内下落彩纸动画；与 ProgressFx 文字浮层同槽共存。 | `count` = 28<br/>`durationSec` = 2.6<br/>`threshold` = 1 | 0.1.0 | ui, 庆祝, 浮层, 动画 |
 | [CountdownTimerPlugin](#countdowntimerplugin) | 活动倒计时：在进度区下方渲染「距活动结束 x天HH:MM:SS」，每秒自走；与 ProgressFx 同槽共存。 | `endTime` = -<br/>`label` = 距活动结束<br/>`urgentMs` = 3600000<br/>`order` = 0 | 0.1.0 | ui, 倒计时, 进度区 |
 | [CouponStackPlugin](#couponstackplugin) | 券堆叠：把奖励渲染成一摞错位的票券卡（RewardClaim 的变体渲染），同槽位独占。 | `stackOffset` = 6<br/>`claimLabel` = 领取<br/>`claimedLabel` = 已领取<br/>`lockedLabel` = 未解锁 | 0.1.0 | ui, 奖励, 变体, 独占 |
-| [JackpotPlugin](#jackpotplugin) | 幸运抽奖九宫格：8 个奖励格围绕中心按钮，点击后高亮逐格推进并逐渐减速，停在随机中奖格；次数用完自动禁用。生产建议用 `drawResult` 由服务端决定结果。 | `title` = "幸运抽奖"<br/>`prizes` = 8 个内置奖励<br/>`times` = 3<br/>`remainingTimes` = undefined<br/>`drawResult` = undefined<br/>`onDraw` = undefined<br/>`order` = 0 | 0.1.0 | ui, 玩法, 抽奖, 九宫格, 底部 |
+| [JackpotPlugin](#jackpotplugin) | 九宫格抽奖：8 格环绕中心按钮，逐格高亮减速后停在中奖格；次数用完自动禁用。 | `title` = "幸运抽奖"<br/>`prizes` = 8 个内置奖励<br/>`times` = 3<br/>`remainingTimes` = undefined<br/>`drawResult` = undefined<br/>`onDraw` = undefined<br/>`order` = 0 | 0.1.0 | ui, 玩法, 抽奖, 九宫格, 底部 |
 | [LeaderboardPlugin](#leaderboardplugin) | 好友榜：按 score 降序取前 N 名，第一名强调橙名次牌，isMe 行浅橙底高亮；自己不在前 N 时底部补真实名次。 | `title` = "好友榜"<br/>`topN` = 3<br/>`unit` = "分"<br/>`highlightMe` = true<br/>`emptyText` = "暂无排行数据"<br/>`order` = 0 | 0.1.0 | ui, 底部, 社交, 榜单 |
 | [MilestoneBarPlugin](#milestonebarplugin) | 里程碑进度：把奖励阈值映射为轨道节点（已领取实心绿 / 可领警示橙 / 未达标灰），展示离下一档的空间距离。 | `height` = 6<br/>`dotSize` = 18<br/>`order` = 0 | 0.1.0 | ui, 里程碑, 进度区 |
 | [ProgressFxPlugin](#progressfxplugin) | 进度特效：顶部进度条 fill + 百分比数字；进度达成 100% 时浮层庆祝条。 | `height` = 8<br/>`order` = 0 | 0.1.0 | ui, 进度, 特效 |
@@ -36,7 +36,7 @@
 | `tags` | `string[]` | `[]` | 标签行（如「限时」「新人专享」），浅橙 chip 逐个渲染 |
 | `badge` | `string` | `按 endTime 派生` | 状态徽章文案；显式传入时优先，传空串则不显示徽章 |
 | `icon` | `string` | `—` | 标题前图标（emoji 或单字符），已标 aria-hidden 不干扰读屏 |
-| `align` | `"left" | "center"` | `left` | 内容对齐方式，center 适合抽奖 / 节日大促类页头 |
+| `align` | `"left" \| "center"` | `left` | 内容对齐方式，center 适合抽奖 / 节日大促类页头 |
 
 **事件 Events**
 
@@ -70,7 +70,7 @@
 
 | 方法 | 签名 | 说明 |
 | --- | --- | --- |
-| `ctx.data.announcements` | `string[] | undefined` | 读取公告数据源；非空时优先于 config.items |
+| `ctx.data.announcements` | `string[] \| undefined` | 读取公告数据源；非空时优先于 config.items |
 
 ### CheckinCalendarPlugin
 
@@ -107,7 +107,7 @@
 | --- | --- | --- | --- |
 | `durationMs` | `number` | `2400` | 单条 toast 停留时长（毫秒） |
 | `max` | `number` | `3` | 同屏最多条数，超出丢弃最早的 |
-| `position` | `"bottom-right" | "top-center"` | `bottom-right` | 出现位置；bottom-right 适合移动端底部拇指区，top-center 适合桌面端 |
+| `position` | `"bottom-right" \| "top-center"` | `bottom-right` | 出现位置；bottom-right 适合移动端底部拇指区，top-center 适合桌面端 |
 | `message` | `(title: string) => string` | `(t) => `已领取：${t}`` | 自定义文案函数，入参是奖励标题 |
 
 **事件 Events**
@@ -150,7 +150,7 @@
 
 | 属性 | 类型 | 默认值 | 说明 |
 | --- | --- | --- | --- |
-| `endTime` | `string | number` | `-` | 截止时间（ISO 或时间戳）；不传则回退读 data.endTime，两者皆无则不渲染 |
+| `endTime` | `string \| number` | `-` | 截止时间（ISO 或时间戳）；不传则回退读 data.endTime，两者皆无则不渲染 |
 | `label` | `string` | `距活动结束` | 倒计时前缀文案 |
 | `urgentMs` | `number` | `3600000` | 剩余不足该毫秒数时进入紧急态（文字变警示色 #cf4407） |
 | `order` | `number` | `0` | 同槽位排序键（升序靠前）：默认排在 ProgressFx 之后（priority 更低） |
@@ -194,25 +194,25 @@
 | 属性 | 类型 | 默认值 | 说明 |
 | --- | --- | --- | --- |
 | `title` | `string` | `幸运抽奖` | 卡片标题 |
-| `prizes` | `JackpotPrize[]` | `8 个内置奖励` | 奖池，每项 { id, label, icon? }；固定 8 格，不足补「谢谢参与」，超出取前 8 |
-| `times` | `number` | `3` | 未传 `remainingTimes` 时的剩余次数初值；每次点击按 `drawResult` 返回或本地 -1，归零后禁用 |
-| `remainingTimes` | `number` | `undefined` | 受控剩余次数；传入后组件不自行递减，由业务侧回写 |
-| `drawResult` | `() => JackpotDrawResult \| Promise<JackpotDrawResult>` | `undefined` | 服务端权威抽奖：返回 `{ index, remaining? }`；传入后不再使用本地 `Math.random`，请求期间按钮禁用 |
-| `onDraw` | `(prize: JackpotPrize, index: number) => void` | `undefined` | 中奖通知（动画结束后触发）；仅通知，不负责扣次数，生产应由服务端发奖 |
+| `prizes` | `JackpotPrize[]` | `8 个内置奖励` | 奖池 { id, label, icon? }；固定 8 格，不足补「谢谢参与」 |
+| `times` | `number` | `3` | 未传 remainingTimes 时的初值；每抽按服务端返回或本地 -1，归零禁用 |
+| `remainingTimes` | `number` | `undefined` | 受控次数；传入后组件不递减，由业务侧回写 |
+| `drawResult` | `() => JackpotDrawResult \| Promise<JackpotDrawResult>` | `undefined` | 服务端抽奖返回 { index, remaining? }；传入后不用本地随机 |
+| `onDraw` | `(prize: JackpotPrize, index: number) => void` | `undefined` | 中奖通知（动画结束后）；仅通知不扣次数 |
 | `order` | `number` | `0` | 同槽位排序键：与助力条 / 榜单同在 renderFooter 时定上下 |
 
 **事件 Events**
 
 | 事件 | 触发时机 | 说明 |
 | --- | --- | --- |
-| `onDraw` | 一次抽奖动画跑完（约 1.5–2.5 秒）并确定中奖格后 | 回传中奖奖励对象与其在奖池中的下标，供业务侧发奖 / 埋点 |
-| `renderFooter` | 每次渲染 | 在底部槽渲染抽奖卡片（九宫格 + 按钮 + 结果文案） |
+| `onDraw` | 抽奖动画跑完并确定中奖格后 | 回传中奖奖励与下标，供发奖 / 埋点 |
+| `renderFooter` | 每次渲染 | 底部槽渲染九宫格卡片（含按钮与结果文案） |
 
 **方法 Methods**
 
 | 方法 | 签名 | 说明 |
 | --- | --- | --- |
-| `内部 draw()` | `() => Promise<void>` | 开始一轮抽取；drawing 中或次数为 0 时直接返回（防连点）；`drawResult` 失败会展示错误并恢复按钮 |
+| `内部 draw()` | `() => Promise<void>` | 开始抽取；drawing 或次数为 0 时忽略；失败展示错误并恢复按钮 |
 
 ### LeaderboardPlugin
 
@@ -316,21 +316,21 @@
 | `minLength` | `number` | `8` | 兑换码最短长度 |
 | `placeholder` | `string` | `如 VANE-8888` | 输入框占位文案 |
 | `successText` | `string` | `兑换成功，奖励已入账` | 校验通过后的成功文案 |
-| `onRedeem` | `(code: string) => boolean | void` | `undefined` | 兑换回调，入参是 trim + 转大写后的码；返回 false 表示无效码，组件展示失败文案 |
+| `onRedeem` | `(code: string) => boolean \| void \| Promise<boolean \| void>` | `undefined` | 兑换回调，入参是 trim + 转大写后的码；返回 false 表示无效码；支持异步，等待期按钮禁用 |
 | `order` | `number` | `0` | 同槽位排序键：与 RewardClaimPlugin 同在 renderRewards 时定上下 |
 
 **事件 Events**
 
 | 事件 | 触发时机 | 说明 |
 | --- | --- | --- |
-| `onRedeem` | 表单提交（点「兑换」或回车）且本地校验全部通过后 | 把规范化后的兑换码交给业务侧核销；返回 false 则视为无效，界面转失败态 |
+| `onRedeem` | 表单提交（点「兑换」或回车）且本地校验全部通过后 | 把规范化后的兑换码交给业务侧核销；返回 false 视为无效，异常转失败文案 |
 | `renderRewards` | 每次渲染 | 在奖励槽渲染兑换卡 |
 
 **方法 Methods**
 
 | 方法 | 签名 | 说明 |
 | --- | --- | --- |
-| `内部 handleSubmit(event)` | `(event: React.FormEvent) => void` | 阻止表单默认提交 → trim/大写 → 空值 / 长度 / 前缀三重校验 → 调 onRedeem |
+| `内部 handleSubmit(event)` | `(event: React.FormEvent) => void` | 阻止默认提交 → trim/大写 → 三重校验 → await onRedeem，期间 pending 禁点 |
 
 ### RewardClaimPlugin
 
@@ -346,13 +346,13 @@
 | 事件 | 触发时机 | 说明 |
 | --- | --- | --- |
 | `renderRewards` | 每次渲染；奖励槽位无更高 order 的插件接管时 | 输出奖励行：可领（实心橙按钮）/ 已领（绿字禁用）/ 未解锁（灰字禁用） |
-| `onClaim` | 点击「领取」按钮（仅 claimable 态可点） | 先走 ctx.claim(rewardId)；非受控直接更新内部态，受控则等待宿主回写 claimedRewardIds |
+| `onClaim` | 点击「领取」按钮（仅 claimable 态可点） | 先走 ctx.claim(rewardId) 更新内部态，再由内核透传 ActivityCore 的 onClaim(rewardId) |
 
 **方法 Methods**
 
 | 方法 | 签名 | 说明 |
 | --- | --- | --- |
-| `claim` | `ctx.claim(rewardId: string): void` | 领取指定奖励：仅 claimable 生效，未知 id / locked / claimed 直接忽略并告警；非受控写入内核 claimedIds，受控只调 onClaim |
+| `claim` | `ctx.claim(rewardId: string): void` | 领取指定奖励：非受控时写入内核 claimedIds 并触发重渲染；受控（传了 claimedRewardIds）时只回调 onClaim |
 
 ### RuleExpandPlugin
 

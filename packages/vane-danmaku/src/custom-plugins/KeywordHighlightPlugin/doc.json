@@ -3,6 +3,15 @@
   "description": "关键词高亮：命中词写入 renderHint.rich 带色分段，内核按段着色，其余保持原色。",
   "since": "0.1.0",
   "tags": ["highlight", "keyword", "data"],
+  "events": [
+    {
+      "name": "transformData",
+      "when": "渲染前，对弹幕列表链式改写",
+      "description": "过滤、去重、着色、限流；下游看到的是改写后的待渲染列表"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "keywords", "type": "string[]", "default": "[]", "description": "要高亮的词" },
     { "name": "color", "type": "string", "default": "\"#ff7a29\"", "description": "高亮色" }

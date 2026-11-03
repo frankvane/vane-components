@@ -7,6 +7,20 @@
     "close",
     "a11y"
   ],
+  "events": [
+    {
+      "name": "onMount",
+      "when": "组件挂载完成、插件注册后执行一次（返回的清理函数在 manager.clear 时逆序执行）",
+      "description": "初始化副作用：注册监听、起定时器、建观察器；必须返回清理函数或配合 onUnmount 收尾"
+    }
+  ],
+  "methods": [
+    {
+      "name": "close",
+      "signature": "ctx.close(): void",
+      "description": "关闭面板：走关闭补间，动画结束后触发 onClose"
+    }
+  ],
   "config": [
     {
       "name": "topOnly",

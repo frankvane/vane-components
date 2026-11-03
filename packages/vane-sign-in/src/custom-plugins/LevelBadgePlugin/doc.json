@@ -3,6 +3,15 @@
   "description": "会员等级徽标：展示等级名与进度条，头部区渲染；无等级数据时静默跳过。",
   "since": "0.1.0",
   "tags": ["level", "header", "badge"],
+  "events": [
+    {
+      "name": "renderHeader",
+      "when": "每次渲染，头部区槽位",
+      "description": "连签天数、积分、等级、倒计时"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [],
   "example": "withSignInPlugins(SignInCore, [createLevelBadgePlugin()])",
   "examples": [

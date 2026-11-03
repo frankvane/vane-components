@@ -3,6 +3,15 @@
   "description": "键盘漫游：方向键在两行规格按钮间移动焦点（←→ 同属性、↑↓ 跨属性），Enter / Space 才选中，自动跳过被禁用推导置灰的选项。",
   "since": "0.1.0",
   "tags": ["sku", "a11y", "keyboard"],
+  "events": [
+    {
+      "name": "onMount",
+      "when": "规格组件挂载完成",
+      "description": "初始化副作用（URL 同步、状态恢复）"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "preventDefault", "type": "boolean", "default": "true", "description": "是否阻止方向键的默认滚动行为" }
   ],

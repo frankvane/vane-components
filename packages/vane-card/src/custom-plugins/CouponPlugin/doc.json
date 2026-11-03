@@ -3,6 +3,20 @@
   "description": "展示可选优惠券并写入总线（coupon.applied），供 OrderSummary / PriceCalculator 等消费。可配置自动套用第一张。",
   "since": "2.0.0",
   "tags": ["buy", "footer", "优惠券", "bus-source"],
+  "events": [
+    {
+      "name": "onMount",
+      "when": "卡片挂载完成、插件注册后执行一次",
+      "description": "建立观察器 / 监听器，返回清理函数以便卸载时释放"
+    },
+    {
+      "name": "renderFooter",
+      "when": "每次渲染，卡片底部槽位",
+      "description": "卡片底部内容（操作行、价格补充、来源）"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "coupons",

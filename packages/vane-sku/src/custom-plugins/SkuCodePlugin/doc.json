@@ -3,6 +3,15 @@
   "description": "货号展示：命中变体后显示 SKU 编码，便于客服对单、用户报修与订单核对。",
   "since": "0.1.0",
   "tags": ["sku", "code", "meta"],
+  "events": [
+    {
+      "name": "renderHeader",
+      "when": "每次渲染，规格面板头部槽位",
+      "description": "商品图、价格、已选摘要"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "label", "type": "string", "default": "\"货号\"", "description": "前缀文案" }
   ],

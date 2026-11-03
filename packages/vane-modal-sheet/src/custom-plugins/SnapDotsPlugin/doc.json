@@ -3,6 +3,30 @@
   "description": "吸附档位指示点：当前档高亮，点击直接吸附到对应档。",
   "since": "0.1.0",
   "tags": ["snap", "indicator", "visual"],
+  "events": [
+    {
+      "name": "onSnap",
+      "when": "吸附到某一档位后（含打开补间结束）",
+      "description": "拿到目标档位 index，做联动（切换内容、上报展开高度）"
+    },
+    {
+      "name": "renderHandle",
+      "when": "每次渲染，拖拽把手槽位",
+      "description": "把手的视觉与拖拽提示"
+    }
+  ],
+  "methods": [
+    {
+      "name": "getDragProps",
+      "signature": "ctx.getDragProps(): ModalSheetDragProps",
+      "description": "取拖拽把手所需的 props（事件处理器与样式），透传给把手元素"
+    },
+    {
+      "name": "snapTo",
+      "signature": "ctx.snapTo(index: number): void",
+      "description": "吸附到指定档位（带补间动画，结束后触发 onSnap）"
+    }
+  ],
   "config": [
     {
       "name": "activeColor",

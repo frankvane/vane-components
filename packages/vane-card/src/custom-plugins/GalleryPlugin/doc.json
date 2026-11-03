@@ -3,6 +3,15 @@
   "description": "图片/视频轮播头图：指示点、缩略图、点击放大，视频可插到指定位置。一张图时退化为静态图。",
   "since": "2.0.0",
   "tags": ["media", "header", "画廊"],
+  "events": [
+    {
+      "name": "renderHeader",
+      "when": "每次渲染，卡片头部槽位",
+      "description": "卡片头部内容（标题行、标签、状态条）"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "images",

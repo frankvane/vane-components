@@ -3,6 +3,30 @@
   "description": "曝光 / 点击 / 加购 / 心愿单上报。曝光复用 CardCore 的可见性观测（不自建 IntersectionObserver），可接自定义 transport 或第三方 SDK。",
   "since": "2.0.0",
   "tags": ["infra", "analytics", "埋点"],
+  "events": [
+    {
+      "name": "onMount",
+      "when": "卡片挂载完成、插件注册后执行一次",
+      "description": "建立观察器 / 监听器，返回清理函数以便卸载时释放"
+    },
+    {
+      "name": "onClick",
+      "when": "用户点击卡片主体（内部按钮的点击也会冒泡到这里，需自行判 target）",
+      "description": "整卡点击行为：跳转、埋点、展开详情"
+    },
+    {
+      "name": "onVisibilityChange",
+      "when": "IntersectionObserver 判定可见性变化（首次判定也会触发）",
+      "description": "曝光 / 离开视口的上报与懒执行入口"
+    },
+    {
+      "name": "onStateChange",
+      "when": "setState 提交后（回传 prevState / nextState 两份完整状态）",
+      "description": "状态差分后的联动：刷新派生值、上报曝光、触发动效；setState updater 本身保持纯函数"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "transport",

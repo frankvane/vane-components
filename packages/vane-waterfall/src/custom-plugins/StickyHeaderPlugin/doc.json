@@ -6,6 +6,15 @@
     "ui",
     "吸顶"
   ],
+  "events": [
+    {
+      "name": "renderOverlay",
+      "when": "每次渲染，滚动容器内的内容层之上",
+      "description": "回到顶部、加载提示、浮层工具"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "title",

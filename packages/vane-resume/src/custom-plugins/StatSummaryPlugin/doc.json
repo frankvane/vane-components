@@ -3,6 +3,15 @@
   "description": "简历数据概览：在基本信息区追加工作段数 / 技能数 / 项目数 / 最高学历等统计徽章（装饰累积槽 renderBasics）。",
   "since": "0.1.0",
   "tags": ["stats", "renderBasics"],
+  "events": [
+    {
+      "name": "renderBasics",
+      "when": "每次渲染，基本信息区槽位",
+      "description": "姓名、职位、联系方式等抬头信息"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "items", "type": "StatKey[]", "default": "四项全开", "description": "展示指标：expYears | skillCount | projectCount | eduLevel" }
   ],

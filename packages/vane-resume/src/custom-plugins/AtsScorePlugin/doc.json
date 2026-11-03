@@ -3,6 +3,25 @@
   "description": "ATS 兼容性评分：扫描常见雷区（缺姓名/联系方式/量化亮点/命中 JD 关键词等），输出 0-100 评分与改进建议。纯分析不改数据。",
   "since": "0.1.0",
   "tags": ["ats", "transformData", "renderFooter", "renderOverlay"],
+  "events": [
+    {
+      "name": "transformData",
+      "when": "渲染前，对简历数据链式改写",
+      "description": "模板 / 语言切换、字段脱敏、结构调整"
+    },
+    {
+      "name": "renderOverlay",
+      "when": "每次渲染，绝对定位覆盖在主内容之上",
+      "description": "渲染浮层内容（角标、提示、动画、工具条），不挤占主内容布局"
+    },
+    {
+      "name": "renderFooter",
+      "when": "每次渲染，页脚槽位",
+      "description": "版权、更新时间、导出提示"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "jobKeywords", "type": "string[]", "default": "[]", "description": "JD 关键词，命中加分" },
     { "name": "rules", "type": "AtsRule[]", "default": "内置 8 条", "description": "可扩展评分规则" }

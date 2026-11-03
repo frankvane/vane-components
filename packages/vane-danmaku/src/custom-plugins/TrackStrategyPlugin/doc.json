@@ -3,6 +3,15 @@
   "description": "轨道分配策略：vipTop 把管理员/高等级滚动弹幕建议钉到顶部轨道；spread 让其余分散起始轨道。仅产出建议，是否采用由调度器裁决。",
   "since": "0.1.0",
   "tags": ["track", "strategy", "data"],
+  "events": [
+    {
+      "name": "transformData",
+      "when": "渲染前，对弹幕列表链式改写",
+      "description": "过滤、去重、着色、限流；下游看到的是改写后的待渲染列表"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "vipTop", "type": "boolean", "default": "true", "description": "管理员/高等级钉顶部轨道" },
     { "name": "vipLevel", "type": "number", "default": "18", "description": "触发 vipTop 的等级阈值" },

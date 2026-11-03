@@ -3,6 +3,15 @@
   "description": "表情短码转义：把 :shortcode:（如 :rocket:）替换为 unicode 表情，内核按普通文字绘制。",
   "since": "0.1.0",
   "tags": ["emoji", "text", "data"],
+  "events": [
+    {
+      "name": "transformData",
+      "when": "渲染前，对弹幕列表链式改写",
+      "description": "过滤、去重、着色、限流；下游看到的是改写后的待渲染列表"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "map", "type": "Record<string,string>", "default": "{...内置常用表}", "description": "短码->表情映射，可覆盖/扩充内置表" }
   ],

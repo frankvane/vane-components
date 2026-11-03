@@ -3,6 +3,30 @@
   "description": "隐私模式：整页毛玻璃视觉遮挡 + 配置字段的数据级隐藏（默认 summary/contacts）。毛玻璃不防复制，敏感信息请确保位于隐藏字段或已脱敏。",
   "since": "0.1.0",
   "tags": ["privacy", "renderOverlay", "transformData", "renderToolbar"],
+  "events": [
+    {
+      "name": "onMount",
+      "when": "简历组件挂载完成",
+      "description": "初始化副作用（读取本地版本、恢复状态）"
+    },
+    {
+      "name": "transformData",
+      "when": "渲染前，对简历数据链式改写",
+      "description": "模板 / 语言切换、字段脱敏、结构调整"
+    },
+    {
+      "name": "renderOverlay",
+      "when": "每次渲染，绝对定位覆盖在主内容之上",
+      "description": "渲染浮层内容（角标、提示、动画、工具条），不挤占主内容布局"
+    },
+    {
+      "name": "renderToolbar",
+      "when": "每次渲染，工具栏槽位",
+      "description": "模板切换、导出、语言、版本等全局操作"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "mode", "type": "\"blur\" | \"hide\"", "default": "blur", "description": "毛玻璃视觉遮罩 / 仅字段级隐藏（两者都做数据级隐藏）" },
     { "name": "fields", "type": "string[]", "default": "[\"summary\",\"contacts\"]", "description": "隐私模式下隐藏的字段" }

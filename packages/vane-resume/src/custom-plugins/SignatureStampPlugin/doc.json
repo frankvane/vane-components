@@ -3,6 +3,30 @@
   "description": "电子落款：文末加签名（姓名/图片）+ 签署日期；可选 CSS 圆形印章（renderOverlay 角标）。",
   "since": "0.1.0",
   "tags": ["signature", "stamp", "renderFooter", "renderOverlay"],
+  "events": [
+    {
+      "name": "onMount",
+      "when": "简历组件挂载完成",
+      "description": "初始化副作用（读取本地版本、恢复状态）"
+    },
+    {
+      "name": "renderOverlay",
+      "when": "每次渲染，绝对定位覆盖在主内容之上",
+      "description": "渲染浮层内容（角标、提示、动画、工具条），不挤占主内容布局"
+    },
+    {
+      "name": "renderFooter",
+      "when": "每次渲染，页脚槽位",
+      "description": "版权、更新时间、导出提示"
+    },
+    {
+      "name": "renderToolbar",
+      "when": "每次渲染，工具栏槽位",
+      "description": "模板切换、导出、语言、版本等全局操作"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "name", "type": "string", "default": "basics.name", "description": "签名姓名" },
     { "name": "image", "type": "string", "default": "-", "description": "手写签名图片 URL" },

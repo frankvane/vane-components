@@ -3,6 +3,15 @@
   "description": "敏感词过滤：命中词按 mode 打码或删除；打码条保留并标记 masked，避免弹幕流闪烁。",
   "since": "0.1.0",
   "tags": ["filter", "safety", "data"],
+  "events": [
+    {
+      "name": "transformData",
+      "when": "渲染前，对弹幕列表链式改写",
+      "description": "过滤、去重、着色、限流；下游看到的是改写后的待渲染列表"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "words", "type": "string[]", "default": "[]", "description": "敏感词列表（子串匹配）" },
     { "name": "mask", "type": "string", "default": "\"*\"", "description": "打码字符" },

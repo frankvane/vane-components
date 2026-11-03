@@ -3,6 +3,35 @@
   "description": "领取状态机：8 态相位流转（未开始/可领取/领取中/已领取/已使用/已抢空/已过期/已达限领上限），点击触发异步领取，联动有效期、库存、限领与订单可用性自动门控。",
   "since": "0.1.0",
   "tags": ["coupon", "claim", "state-machine", "footer"],
+  "events": [
+    {
+      "name": "onMount",
+      "when": "券组件挂载完成、插件注册后执行一次",
+      "description": "初始化副作用，可返回清理函数"
+    },
+    {
+      "name": "onUnmount",
+      "when": "组件卸载前执行一次",
+      "description": "释放监听、定时器与观察器；与 onMount 成对出现，避免泄漏"
+    },
+    {
+      "name": "onPropsChange",
+      "when": "宿主 props 变化后（回传 prev / next 两份）",
+      "description": "按新旧 props 差分决定是否重算内部状态，避免无差别刷新"
+    },
+    {
+      "name": "onValidityChange",
+      "when": "可用性判定结果变化（门槛、时间窗、库存等条件重算）",
+      "description": "根据可用性变更刷新外部状态或提示"
+    },
+    {
+      "name": "renderFooter",
+      "when": "每次渲染，券面底部槽位",
+      "description": "有效期、使用门槛、领取 / 使用按钮"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "initialPhase",

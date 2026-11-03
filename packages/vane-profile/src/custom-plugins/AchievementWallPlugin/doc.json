@@ -3,6 +3,15 @@
   "description": "成就 / 勋章墙：随 activeTab 联动的内容区插件。",
   "since": "0.1.0",
   "tags": ["content", "achievement", "renderContentArea"],
+  "events": [
+    {
+      "name": "renderContentArea",
+      "when": "每次渲染，内容区槽位（随 activeTab 联动）",
+      "description": "插件贡献的内容面板；有内容插件时覆盖 children"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "items", "type": "AchievementItem[]", "default": "[]", "description": "成就列表，每项含 id / title / 可选 desc / glyph / color" },
     { "name": "columns", "type": "number", "default": "4", "description": "网格列数" },

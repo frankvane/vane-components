@@ -23,6 +23,11 @@ function propsOf(doc) {
   return doc.props ?? doc.config ?? [];
 }
 
+/** Markdown 表格里的竖线必须转义：联合类型（`HTMLElement | null`）会直接把单元格撑开成多列 */
+function escapePipes(value) {
+  return String(value).replace(/\|/g, "\\|");
+}
+
 function configCell(doc) {
   const props = propsOf(doc);
   if (props.length === 0) return "-";
@@ -59,7 +64,7 @@ function detailSection(doc) {
     );
     for (const p of props) {
       const def = p.default ? `\`${String(p.default).replace(/^"|"$/g, "")}\`` : "-";
-      lines.push(`| \`${p.name}\` | \`${p.type}\` | ${def} | ${escapeHtml(p.description)} |`);
+      lines.push(`| \`${p.name}\` | \`${escapePipes(p.type)}\` | ${def} | ${escapeHtml(p.description)} |`);
     }
     lines.push("");
   }
@@ -76,7 +81,7 @@ function detailSection(doc) {
   if (doc.methods?.length) {
     lines.push("| 方法 | 签名 | 说明 |", "| --- | --- | --- |");
     for (const m of doc.methods) {
-      lines.push(`| \`${m.name}\` | \`${m.signature}\` | ${escapeHtml(m.description)} |`);
+      lines.push(`| \`${m.name}\` | \`${escapePipes(m.signature)}\` | ${escapeHtml(m.description)} |`);
     }
   } else {
     lines.push(doc.methodsNote ? escapeHtml(doc.methodsNote) : "—（本插件不调用上下文方法）");

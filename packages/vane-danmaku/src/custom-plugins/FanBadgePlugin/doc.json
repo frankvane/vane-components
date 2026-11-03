@@ -3,6 +3,15 @@
   "description": "粉丝牌：按 userId 富化 meta.fanBadge，canvas 内核据此绘制牌底块 + 白字。插件只写数据，绝不直绘。",
   "since": "0.1.0",
   "tags": ["badge", "enrich", "data"],
+  "events": [
+    {
+      "name": "transformData",
+      "when": "渲染前，对弹幕列表链式改写",
+      "description": "过滤、去重、着色、限流；下游看到的是改写后的待渲染列表"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "badges", "type": "Record<string, FanBadge>", "default": "{}", "description": "userId -> 粉丝牌（name/level/color）" },
     { "name": "defaultColor", "type": "string", "default": "\"#ff7a29\"", "description": "lookup 未提供 color 时的缺省牌底色" }

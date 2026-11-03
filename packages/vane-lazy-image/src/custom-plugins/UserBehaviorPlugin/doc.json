@@ -8,6 +8,45 @@
     "数据",
     "分析"
   ],
+  "events": [
+    {
+      "name": "onMount",
+      "when": "组件挂载完成、插件注册后执行一次（返回的清理函数在 manager.clear 时逆序执行）",
+      "description": "初始化副作用：注册监听、起定时器、建观察器；必须返回清理函数或配合 onUnmount 收尾"
+    },
+    {
+      "name": "onUnmount",
+      "when": "组件卸载前执行一次",
+      "description": "释放监听、定时器与观察器；与 onMount 成对出现，避免泄漏"
+    },
+    {
+      "name": "onLoadSuccess",
+      "when": "图片成功解码可显示时",
+      "description": "拿到最终 displaySrc 做后续动作（上报、预取下张、淡入）"
+    },
+    {
+      "name": "onEnterViewport",
+      "when": "元素进入视口（IntersectionObserver）",
+      "description": "触发懒加载、开始请求、曝光上报"
+    },
+    {
+      "name": "onLeaveViewport",
+      "when": "元素离开视口",
+      "description": "暂停 / 中止在途请求、回收资源"
+    },
+    {
+      "name": "transformProps",
+      "when": "渲染前链式改写图片 props",
+      "description": "补 sizes / 占位色 / 解码策略等"
+    },
+    {
+      "name": "renderOverlay",
+      "when": "每次渲染，覆盖在图片容器之上",
+      "description": "骨架屏、错误占位、水印、加载动画"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "enabled",

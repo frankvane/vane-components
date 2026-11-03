@@ -3,6 +3,20 @@
   "description": "收藏切换（gallery 增强插件）：在工具条渲染心形按钮，绑定 context.favorited 协调态，点击切换并回调 onChange。",
   "since": "2.1.0",
   "tags": ["gallery", "图集", "收藏", "喜欢"],
+  "events": [
+    {
+      "name": "galleryToolbarArea",
+      "when": "渲染图库工具栏时",
+      "description": "缩放、下载、分享等图库级操作"
+    }
+  ],
+  "methods": [
+    {
+      "name": "setFavorited",
+      "signature": "ctx.setFavorited(v: boolean): void",
+      "description": "写入收藏态并触发重渲染（收藏按钮的唯一致入口）"
+    }
+  ],
   "config": [
     { "name": "onChange", "type": "(favorited: boolean) => void", "default": "-", "description": "切换时回调（持久化/上报）" },
     { "name": "activeColor", "type": "string", "default": "#ff5a5f", "description": "激活态颜色" }

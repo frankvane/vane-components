@@ -3,6 +3,15 @@
   "description": "私信按钮：与关注回显同区并排，点击拉起会话。",
   "since": "0.1.0",
   "tags": ["ui", "message", "私信", "renderFollowArea"],
+  "events": [
+    {
+      "name": "renderFollowArea",
+      "when": "每次渲染，关注回显区槽位",
+      "description": "关注 / 已关注 / 互相关注的按钮与文案"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "size", "type": "\"sm\" | \"md\"", "default": "md", "description": "按钮尺寸" },
     { "name": "label", "type": "ReactNode", "default": "私信", "description": "按钮文案" },

@@ -3,6 +3,20 @@
   "description": "二维码：把联系方式 / 链接编码为二维码，作角标常显或弹窗展示（qrcode 按需加载）。",
   "since": "0.1.0",
   "tags": ["qr", "renderOverlay", "onMount", "renderToolbar"],
+  "events": [
+    {
+      "name": "renderOverlay",
+      "when": "每次渲染，绝对定位覆盖在主内容之上",
+      "description": "渲染浮层内容（角标、提示、动画、工具条），不挤占主内容布局"
+    },
+    {
+      "name": "renderToolbar",
+      "when": "每次渲染，工具栏槽位",
+      "description": "模板切换、导出、语言、版本等全局操作"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "content", "type": "string | () => string", "default": "vCard(联系方式)", "description": "二维码内容" },
     { "name": "position", "type": "\"corner\"|\"avatar\"|\"modal\"", "default": "corner", "description": "常显角标 / 弹窗" },

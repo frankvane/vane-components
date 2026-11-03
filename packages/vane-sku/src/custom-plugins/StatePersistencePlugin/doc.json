@@ -3,6 +3,25 @@
   "description": "选择态持久化：把上次选的规格存进 localStorage / sessionStorage，挂载时自动还原；清空选择时删除键。",
   "since": "0.1.0",
   "tags": ["sku", "persistence", "storage"],
+  "events": [
+    {
+      "name": "onMount",
+      "when": "规格组件挂载完成",
+      "description": "初始化副作用（URL 同步、状态恢复）"
+    },
+    {
+      "name": "onSkuChange",
+      "when": "用户选择或命中变体变化后（回传 selection / variant）",
+      "description": "联动价格、库存、图片，或做埋点上报"
+    }
+  ],
+  "methods": [
+    {
+      "name": "setSelection",
+      "signature": "ctx.setSelection(selection: SkuSelection): void",
+      "description": "写入已选规格（内核 state，触发价格 / 库存 / 图片联动）"
+    }
+  ],
   "config": [
     { "name": "key", "type": "string", "default": "\"vane-sku:selection\"", "description": "存储键" },
     { "name": "scope", "type": "\"local\" | \"session\"", "default": "\"local\"", "description": "local=localStorage，session=sessionStorage" }

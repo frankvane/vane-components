@@ -3,6 +3,15 @@
   "description": "叠加态角标：按 coupon.stackable 渲染「可叠加」强调角标或「不可叠加」灰标，可强制展示；渲染在票面顶部角标区。",
   "since": "0.1.0",
   "tags": ["coupon", "stack", "badge", "before"],
+  "events": [
+    {
+      "name": "renderHeader",
+      "when": "每次渲染，券面头部槽位",
+      "description": "面额、券名、标签等券面主视觉"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "text",

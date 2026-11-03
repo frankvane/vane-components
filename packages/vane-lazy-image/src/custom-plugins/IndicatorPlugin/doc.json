@@ -3,6 +3,20 @@
   "description": "圆点指示器（gallery 增强插件）：在工具条渲染圆点，点击第 N 点跳转到对应主图。",
   "since": "2.1.0",
   "tags": ["gallery", "图集", "指示点", "进度"],
+  "events": [
+    {
+      "name": "galleryToolbarArea",
+      "when": "渲染图库工具栏时",
+      "description": "缩放、下载、分享等图库级操作"
+    }
+  ],
+  "methods": [
+    {
+      "name": "setActiveIndex",
+      "signature": "ctx.setActiveIndex(i: number): void",
+      "description": "切换图库当前激活图索引，并联动缩略图与预加载"
+    }
+  ],
   "config": [
     { "name": "size", "type": "number", "default": "8", "description": "圆点直径（px）" },
     { "name": "gap", "type": "number", "default": "6", "description": "圆点间距（px）" },

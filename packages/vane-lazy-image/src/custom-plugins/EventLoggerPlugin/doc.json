@@ -3,6 +3,40 @@
   "description": "事件日志：在控制台记录图片加载全生命周期事件（before-load / load-success / load-error / enter-viewport / leave-viewport / progress），便于调试与监控。",
   "since": "2.0.0",
   "tags": ["other", "监控", "调试"],
+  "events": [
+    {
+      "name": "onBeforeLoad",
+      "when": "发起图片请求之前",
+      "description": "返回 false 可阻断本次加载（如权限校验、占位策略）"
+    },
+    {
+      "name": "onLoadSuccess",
+      "when": "图片成功解码可显示时",
+      "description": "拿到最终 displaySrc 做后续动作（上报、预取下张、淡入）"
+    },
+    {
+      "name": "onLoadError",
+      "when": "加载失败（网络错误、解码失败、超时）",
+      "description": "返回 true 表示错误已被处理（如切换备用源），否则继续走默认降级"
+    },
+    {
+      "name": "onProgress",
+      "when": "加载进度更新（由 withPlugins 订阅 bus 的 \"progress\" 桥接）",
+      "description": "展示进度条 / 百分比；仅对支持进度上报的 loader 生效"
+    },
+    {
+      "name": "onEnterViewport",
+      "when": "元素进入视口（IntersectionObserver）",
+      "description": "触发懒加载、开始请求、曝光上报"
+    },
+    {
+      "name": "onLeaveViewport",
+      "when": "元素离开视口",
+      "description": "暂停 / 中止在途请求、回收资源"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "enabled", "type": "boolean", "default": "true", "description": "是否启用日志" },
     { "name": "prefix", "type": "string", "default": "\"[LLI]\"", "description": "日志前缀，便于过滤" }

@@ -3,6 +3,30 @@
   "description": "价格区核心：展示单价、划线原价、折扣、节省额与合计，并在价格/数量/券变化时发布 price:change 事件。",
   "since": "2.0.0",
   "tags": ["buy", "price", "bus-source"],
+  "events": [
+    {
+      "name": "onMount",
+      "when": "卡片挂载完成、插件注册后执行一次",
+      "description": "建立观察器 / 监听器，返回清理函数以便卸载时释放"
+    },
+    {
+      "name": "renderFooter",
+      "when": "每次渲染，卡片底部槽位",
+      "description": "卡片底部内容（操作行、价格补充、来源）"
+    },
+    {
+      "name": "renderPriceArea",
+      "when": "渲染价格区时（卡片按 usePluginSlot(\"priceArea\") 读取）",
+      "description": "价格区领域槽：比价、省钱徽章、单位价、可领券提示等，排序规则与内核插槽一致"
+    }
+  ],
+  "methods": [
+    {
+      "name": "forceUpdate",
+      "signature": "ctx.forceUpdate(): void",
+      "description": "主动触发宿主重渲染；改了闭包里的可变状态后必须调用，否则视图不刷新"
+    }
+  ],
   "config": [
     {
       "name": "showOriginalPrice",

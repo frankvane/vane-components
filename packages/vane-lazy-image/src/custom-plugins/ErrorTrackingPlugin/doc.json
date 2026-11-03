@@ -3,6 +3,20 @@
   "description": "错误追踪：在图片加载失败时上报失败详情（地址 / 错误信息 / 网络 / 设备 / 次数）到自定义函数或上报端点，并可显示错误计数角标，用于生产环境图片错误监控。",
   "since": "2.0.0",
   "tags": ["error", "错误处理", "监控", "可观测"],
+  "events": [
+    {
+      "name": "onLoadError",
+      "when": "加载失败（网络错误、解码失败、超时）",
+      "description": "返回 true 表示错误已被处理（如切换备用源），否则继续走默认降级"
+    },
+    {
+      "name": "renderOverlay",
+      "when": "每次渲染，覆盖在图片容器之上",
+      "description": "骨架屏、错误占位、水印、加载动画"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "reportEndpoint",

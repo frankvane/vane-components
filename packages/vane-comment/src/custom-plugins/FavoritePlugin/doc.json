@@ -3,6 +3,15 @@
   "description": "收藏：每条评论操作行渲染收藏按钮，切换回调 onFavorite(id, nextFavorited)；收藏态读 comment.favorited。",
   "since": "0.2.0",
   "tags": ["ui", "互动", "收藏"],
+  "events": [
+    {
+      "name": "renderCommentActions",
+      "when": "逐条渲染评论的操作行（payload 为当前 comment）",
+      "description": "点赞、回复、复制、举报等单条操作按钮"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [],
   "example": "const Comment = withCommentPlugins(CommentCore, [\n  createFavoritePlugin(),\n]);",
   "features": ["操作行 ☆/★ 收藏按钮", "回调 onFavorite(id, next)", "读 comment.favorited 反映后端态"],

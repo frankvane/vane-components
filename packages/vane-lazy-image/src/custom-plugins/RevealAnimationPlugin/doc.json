@@ -3,6 +3,15 @@
   "description": "图片揭示动画：为图片加载添加各种进场动画（淡入/缩放/旋转/翻转/弹跳/弹性等 16 种预设 + 自定义），纯 CSS 无依赖。",
   "since": "2.0.0",
   "tags": ["interaction", "视觉效果与交互", "visual"],
+  "events": [
+    {
+      "name": "onLoadSuccess",
+      "when": "图片成功解码可显示时",
+      "description": "拿到最终 displaySrc 做后续动作（上报、预取下张、淡入）"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "animation", "type": "\"fade\" | \"fade-up\" | \"fade-down\" | \"fade-left\" | \"fade-right\" | \"zoom-in\" | \"zoom-out\" | \"rotate-in\" | \"flip-x\" | \"flip-y\" | \"slide-up\" | \"slide-down\" | \"slide-left\" | \"slide-right\" | \"bounce\" | \"elastic\" | \"custom\"", "default": "\"fade-up\"", "description": "动画类型" },
     { "name": "duration", "type": "number", "default": "600", "description": "持续时间（毫秒）" },

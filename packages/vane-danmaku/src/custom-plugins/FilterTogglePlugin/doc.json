@@ -3,6 +3,20 @@
   "description": "过滤开关条（UI 面）：一排过滤项 chip，点击经 bus 广播 danmaku:filter {key,enabled}，由消费方重建对应数据面插件。",
   "since": "0.1.0",
   "tags": ["ui", "filter", "toolbar"],
+  "events": [
+    {
+      "name": "renderHeader",
+      "when": "每次渲染，播放器顶部槽位",
+      "description": "弹幕开关、密度设置、工具栏"
+    },
+    {
+      "name": "danmaku:filter",
+      "when": "过滤开关切换时",
+      "description": "广播 { key, enabled }，同步过滤策略"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "defaults", "type": "string[]", "default": "全部开启", "description": "默认开启的过滤项 key" }
   ],

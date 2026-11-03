@@ -3,6 +3,25 @@
   "description": "CDN 回退：主 CDN 域名加载失败时，按序切换备用 CDN 域名（保留路径与查询参数），实现跨厂商容灾，避免单点故障导致破图。",
   "since": "2.0.0",
   "tags": ["network", "网络", "CDN", "容灾"],
+  "events": [
+    {
+      "name": "onUnmount",
+      "when": "组件卸载前执行一次",
+      "description": "释放监听、定时器与观察器；与 onMount 成对出现，避免泄漏"
+    },
+    {
+      "name": "onLoadError",
+      "when": "加载失败（网络错误、解码失败、超时）",
+      "description": "返回 true 表示错误已被处理（如切换备用源），否则继续走默认降级"
+    },
+    {
+      "name": "onSrcChange",
+      "when": "src 变化、切换到新图时",
+      "description": "重置状态、清理旧缓存、重新进入懒加载判定"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "cdnBases",

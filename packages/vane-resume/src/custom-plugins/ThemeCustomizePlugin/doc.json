@@ -3,6 +3,20 @@
   "description": "主题配色定制：预设强调色 + 自定义取色器，经 CSS 变量注入容器。",
   "since": "0.1.0",
   "tags": ["theme", "renderToolbar", "onMount"],
+  "events": [
+    {
+      "name": "onMount",
+      "when": "简历组件挂载完成",
+      "description": "初始化副作用（读取本地版本、恢复状态）"
+    },
+    {
+      "name": "renderToolbar",
+      "when": "每次渲染，工具栏槽位",
+      "description": "模板切换、导出、语言、版本等全局操作"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "presets", "type": "ThemePreset[]", "default": "4 套内置", "description": "主题预设（id / label / vars）" },
     { "name": "default", "type": "string", "default": "blue", "description": "默认主题 id" }

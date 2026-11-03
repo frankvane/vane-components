@@ -3,6 +3,15 @@
   "description": "高赞置顶：高等级弹幕标记 pinned + ring，内核钉在顶部带、居中停留并加高赞环高亮，不随风滚动。",
   "since": "0.1.0",
   "tags": ["pin", "highlight", "data"],
+  "events": [
+    {
+      "name": "transformData",
+      "when": "渲染前，对弹幕列表链式改写",
+      "description": "过滤、去重、着色、限流；下游看到的是改写后的待渲染列表"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "minLevel", "type": "number", "default": "18", "description": "高赞阈值：meta.level >= 该值即置顶 + 高赞环" }
   ],

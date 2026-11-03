@@ -6,6 +6,40 @@
     "ui",
     "持久化"
   ],
+  "events": [
+    {
+      "name": "onMount",
+      "when": "瀑布流挂载完成",
+      "description": "初始化观察器与滚动监听，返回清理函数"
+    },
+    {
+      "name": "onUnmount",
+      "when": "瀑布流卸载前",
+      "description": "断开观察器、移除滚动监听"
+    },
+    {
+      "name": "onPropsChange",
+      "when": "props 变化后",
+      "description": "数据或配置变化时请求重排"
+    },
+    {
+      "name": "onLayoutComplete",
+      "when": "DOM 落位完成（可安全测量）",
+      "description": "测量真实高度、懒加载判定、曝光上报"
+    },
+    {
+      "name": "transformProps",
+      "when": "渲染前链式改写瀑布流 props",
+      "description": "补 gap / columns 默认值、按断点覆盖配置"
+    },
+    {
+      "name": "state:restored",
+      "when": "从持久化恢复滚动位置 / 顺序后",
+      "description": "广播恢复后的状态快照"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "storageKey",

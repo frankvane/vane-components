@@ -6,6 +6,20 @@
     "visual",
     "视觉"
   ],
+  "events": [
+    {
+      "name": "onUnmount",
+      "when": "组件卸载前执行一次",
+      "description": "释放监听、定时器与观察器；与 onMount 成对出现，避免泄漏"
+    },
+    {
+      "name": "onLoadSuccess",
+      "when": "图片成功解码可显示时",
+      "description": "拿到最终 displaySrc 做后续动作（上报、预取下张、淡入）"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "scale", "type": "number", "default": "1.08", "description": "放大倍数" },
     { "name": "durationMs", "type": "number", "default": "180", "description": "过渡时长 ms" }

@@ -3,6 +3,15 @@
   "description": "分享成就：触发分享回调的无状态按钮，操作区渲染。",
   "since": "0.1.0",
   "tags": ["share", "actions", "social"],
+  "events": [
+    {
+      "name": "renderActions",
+      "when": "每次渲染，操作区槽位",
+      "description": "签到 CTA、补签、分享、提醒、邀请"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "text",

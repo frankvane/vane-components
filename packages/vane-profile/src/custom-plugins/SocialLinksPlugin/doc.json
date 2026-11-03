@@ -3,6 +3,15 @@
   "description": "社交外链行：一排可点击的平台入口（微博 / 知乎 / GitHub …）。",
   "since": "0.1.0",
   "tags": ["social", "links", "renderBioArea"],
+  "events": [
+    {
+      "name": "renderBioArea",
+      "when": "每次渲染，简介区槽位（头图与数据行之间）",
+      "description": "昵称、签名、所在地、加入时间"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "links", "type": "SocialLink[]", "default": "[]", "description": "外链列表，每项含 platform / href / 可选 label / glyph" },
     { "name": "showLabel", "type": "boolean", "default": "true", "description": "是否显示文案（仅图标字时为 false）" },

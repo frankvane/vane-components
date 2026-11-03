@@ -3,6 +3,15 @@
   "description": "用户静音：users 中的用户弹幕被删除；allowAdmins 时管理员豁免，避免误伤房管。",
   "since": "0.1.0",
   "tags": ["mute", "user", "data"],
+  "events": [
+    {
+      "name": "transformData",
+      "when": "渲染前，对弹幕列表链式改写",
+      "description": "过滤、去重、着色、限流；下游看到的是改写后的待渲染列表"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "users", "type": "string[]", "default": "[]", "description": "被静音的用户 id" },
     { "name": "allowAdmins", "type": "boolean", "default": "true", "description": "管理员豁免静音" }

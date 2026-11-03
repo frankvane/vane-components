@@ -3,6 +3,30 @@
   "description": "视口感知加载：真正把 IntersectionObserver 的 rootMargin / threshold / once 下发给核心，控制图片「提前多少距离 / 多灵敏」才触发加载，并在四角显示绿/灰指示点辅助观察。",
   "since": "2.0.0",
   "tags": ["viewport", "视口与交互", "懒加载"],
+  "events": [
+    {
+      "name": "onEnterViewport",
+      "when": "元素进入视口（IntersectionObserver）",
+      "description": "触发懒加载、开始请求、曝光上报"
+    },
+    {
+      "name": "onLeaveViewport",
+      "when": "元素离开视口",
+      "description": "暂停 / 中止在途请求、回收资源"
+    },
+    {
+      "name": "transformProps",
+      "when": "渲染前链式改写图片 props",
+      "description": "补 sizes / 占位色 / 解码策略等"
+    },
+    {
+      "name": "renderOverlay",
+      "when": "每次渲染，覆盖在图片容器之上",
+      "description": "骨架屏、错误占位、水印、加载动画"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "rootMargin", "type": "string", "default": "未设置（沿用 Core 默认 0px）", "description": "IO 边距，控制提前/延后触发。如 \"200px\" 表示进入视口前 200px 就开始加载（预加载），\"-50px\" 表示进入后再等 50px" },
     { "name": "threshold", "type": "number | number[]", "default": "未设置", "description": "IO 触发阈值（0~1），控制加载灵敏度" },

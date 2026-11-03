@@ -7,6 +7,30 @@
     "analytics",
     "event"
   ],
+  "events": [
+    {
+      "name": "onMount",
+      "when": "券组件挂载完成、插件注册后执行一次",
+      "description": "初始化副作用，可返回清理函数"
+    },
+    {
+      "name": "onError",
+      "when": "任一插件钩子抛错、被沙箱隔离之后",
+      "description": "上报或降级处理错误；自身抛错不会影响其他插件"
+    },
+    {
+      "name": "onPhaseChange",
+      "when": "券相位变化后（如 available → used / expired）",
+      "description": "相位切换时的副作用：埋点、提示、动效"
+    },
+    {
+      "name": "coupon:analytics",
+      "when": "曝光 / 领取 / 使用等动作发生时",
+      "description": "统一埋点出口 { event, ...payload }"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "onEvent",

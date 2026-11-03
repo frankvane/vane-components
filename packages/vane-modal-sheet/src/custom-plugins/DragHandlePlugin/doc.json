@@ -3,6 +3,20 @@
   "description": "拖拽指示条：视觉提示 + 默认拖拽面，按住沿抽伸轴拖动切换吸附档或关闭。把手始终贴面板朝内容一侧的内边缘：底部在顶部、顶部在底部，左侧在右缘、右侧在左缘。",
   "since": "0.1.0",
   "tags": ["drag", "handle", "visual"],
+  "events": [
+    {
+      "name": "renderHandle",
+      "when": "每次渲染，拖拽把手槽位",
+      "description": "把手的视觉与拖拽提示"
+    }
+  ],
+  "methods": [
+    {
+      "name": "getDragProps",
+      "signature": "ctx.getDragProps(): ModalSheetDragProps",
+      "description": "取拖拽把手所需的 props（事件处理器与样式），透传给把手元素"
+    }
+  ],
   "config": [
     {
       "name": "color",

@@ -3,6 +3,25 @@
   "description": "竞品比价：列出其它平台价格，标出最低价，并高亮「比我们便宜」的项。当前价取自总线 skuPrice，变化时会重算高亮。",
   "since": "2.0.0",
   "tags": ["buy", "price", "比价"],
+  "events": [
+    {
+      "name": "onMount",
+      "when": "卡片挂载完成、插件注册后执行一次",
+      "description": "建立观察器 / 监听器，返回清理函数以便卸载时释放"
+    },
+    {
+      "name": "renderFooter",
+      "when": "每次渲染，卡片底部槽位",
+      "description": "卡片底部内容（操作行、价格补充、来源）"
+    },
+    {
+      "name": "renderPriceArea",
+      "when": "渲染价格区时（卡片按 usePluginSlot(\"priceArea\") 读取）",
+      "description": "价格区领域槽：比价、省钱徽章、单位价、可领券提示等，排序规则与内核插槽一致"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "competitors",

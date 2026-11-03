@@ -3,6 +3,15 @@
   "description": "角色配色策略：未显式指定 color 时按角色着色——管理员红、高等级金，普通保持白。放在流水线靠后避免覆盖业务配色。",
   "since": "0.1.0",
   "tags": ["color", "policy", "data"],
+  "events": [
+    {
+      "name": "transformData",
+      "when": "渲染前，对弹幕列表链式改写",
+      "description": "过滤、去重、着色、限流；下游看到的是改写后的待渲染列表"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "adminColor", "type": "string", "default": "\"#ff4d4f\"", "description": "管理员弹幕色" },
     { "name": "vipColor", "type": "string", "default": "\"#ffd54a\"", "description": "高等级弹幕色" },

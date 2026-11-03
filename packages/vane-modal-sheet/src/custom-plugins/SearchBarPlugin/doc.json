@@ -3,6 +3,15 @@
   "description": "搜索框：非受控输入，onSearch 回调 + bus 广播（modal-sheet:search），供列表过滤联动。",
   "since": "0.1.0",
   "tags": ["search", "form", "header"],
+  "events": [
+    {
+      "name": "renderHeader",
+      "when": "每次渲染，面板顶部槽位",
+      "description": "面板标题、关闭按钮、步骤指示"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "placeholder",

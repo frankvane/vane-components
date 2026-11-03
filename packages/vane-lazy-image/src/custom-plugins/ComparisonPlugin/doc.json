@@ -3,6 +3,15 @@
   "description": "前后对比（v2 真实实现）：用可拖拽分隔条对比 beforeSrc / afterSrc 两张图，拖动实时比较差异（如调色前后、装修前后、A/B 图）。不再是写死文字角标。",
   "since": "2.0.0",
   "tags": ["other", "视觉", "对比", "交互"],
+  "events": [
+    {
+      "name": "renderOverlay",
+      "when": "每次渲染，覆盖在图片容器之上",
+      "description": "骨架屏、错误占位、水印、加载动画"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "beforeSrc", "type": "string", "default": "主图 src", "description": "左侧（拖动前）对比图；默认用主图" },
     { "name": "afterSrc", "type": "string", "default": "主图 src", "description": "右侧（拖动后）对比图；默认用主图" },

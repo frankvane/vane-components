@@ -3,6 +3,30 @@
   "description": "时间轴可视化：把工作 / 教育经历从列表切换为竖向时间轴（圆点 + 连线 + 日期）。",
   "since": "0.1.0",
   "tags": ["view", "renderWork", "renderEducation", "renderToolbar"],
+  "events": [
+    {
+      "name": "onMount",
+      "when": "简历组件挂载完成",
+      "description": "初始化副作用（读取本地版本、恢复状态）"
+    },
+    {
+      "name": "renderToolbar",
+      "when": "每次渲染，工具栏槽位",
+      "description": "模板切换、导出、语言、版本等全局操作"
+    },
+    {
+      "name": "renderWork",
+      "when": "每次渲染，工作经历区槽位",
+      "description": "公司、职位、时间段的排版与补充字段"
+    },
+    {
+      "name": "renderEducation",
+      "when": "每次渲染，教育经历区槽位",
+      "description": "学校、专业、时间段的排版与补充字段"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "sections", "type": "(\"work\"|\"education\")[]", "default": "两者", "description": "启用时间轴的板块" },
     { "name": "mode", "type": "\"list\"|\"timeline\"", "default": "list", "description": "初始视图" }

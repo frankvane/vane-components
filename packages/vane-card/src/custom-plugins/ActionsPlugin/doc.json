@@ -3,6 +3,30 @@
   "description": "页脚的操作按钮区：加入购物车 / 加入心愿单，状态写在卡片 state 上（cart / wishlist），并向外抛出 cart:change 事件。",
   "since": "2.0.0",
   "tags": ["interaction", "footer", "按钮"],
+  "events": [
+    {
+      "name": "renderFooter",
+      "when": "每次渲染，卡片底部槽位",
+      "description": "卡片底部内容（操作行、价格补充、来源）"
+    },
+    {
+      "name": "cart:change",
+      "when": "点击加购按钮后",
+      "description": "广播加购结果 { id, count }，供外部购物车同步"
+    },
+    {
+      "name": "wishlist:change",
+      "when": "点击收藏按钮后",
+      "description": "广播收藏状态 { id, active }"
+    }
+  ],
+  "methods": [
+    {
+      "name": "setState",
+      "signature": "ctx.setState(updates: Partial<CardState>): void",
+      "description": "合并写入内核 state 并触发重渲染；只有字段真正变化时才更新"
+    }
+  ],
   "config": [
     {
       "name": "showCartButton",

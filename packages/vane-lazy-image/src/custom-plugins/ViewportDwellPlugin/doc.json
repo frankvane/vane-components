@@ -3,6 +3,30 @@
   "description": "视口驻留门控（v2 真实实现）：在真正加载前要求图片在视口内持续停留 dwellMs，快速划过（停留不足且离开）则中止加载；超过 maxWaitMs 后放行以防饥饿。",
   "since": "2.0.0",
   "tags": ["viewport", "视口与交互", "驻留", "省流量"],
+  "events": [
+    {
+      "name": "onUnmount",
+      "when": "组件卸载前执行一次",
+      "description": "释放监听、定时器与观察器；与 onMount 成对出现，避免泄漏"
+    },
+    {
+      "name": "onBeforeLoad",
+      "when": "发起图片请求之前",
+      "description": "返回 false 可阻断本次加载（如权限校验、占位策略）"
+    },
+    {
+      "name": "onEnterViewport",
+      "when": "元素进入视口（IntersectionObserver）",
+      "description": "触发懒加载、开始请求、曝光上报"
+    },
+    {
+      "name": "onLeaveViewport",
+      "when": "元素离开视口",
+      "description": "暂停 / 中止在途请求、回收资源"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "dwellMs", "type": "number", "default": "250", "description": "需要在视口中持续停留的时间（毫秒），不足视为「划过」不加载" },
     { "name": "maxWaitMs", "type": "number", "default": "1500", "description": "最长等待时间（毫秒），超时仍允许加载以防饥饿" },

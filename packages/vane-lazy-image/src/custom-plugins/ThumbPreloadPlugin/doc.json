@@ -3,6 +3,15 @@
   "description": "相邻图预加载（gallery 增强插件）：监听主图切换事件，预加载后续若干张到浏览器缓存，使切换近乎瞬时。",
   "since": "2.1.0",
   "tags": ["gallery", "图集", "预加载", "性能"],
+  "events": [
+    {
+      "name": "onActiveChange",
+      "when": "图库当前激活图切换后",
+      "description": "同步缩略图高亮、预加载相邻图、更新 URL"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "lookahead", "type": "number", "default": "1", "description": "向后预加载张数" },
     { "name": "alsoPrevious", "type": "boolean", "default": "false", "description": "是否也预加载前一张" }

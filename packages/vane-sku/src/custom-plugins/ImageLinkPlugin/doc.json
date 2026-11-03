@@ -3,6 +3,25 @@
   "description": "规格切主图：命中变体带 image 时抛事件（回调 + 总线 sku:image），自身不渲染任何 UI。",
   "since": "0.1.0",
   "tags": ["sku", "image", "event"],
+  "events": [
+    {
+      "name": "onMount",
+      "when": "规格组件挂载完成",
+      "description": "初始化副作用（URL 同步、状态恢复）"
+    },
+    {
+      "name": "onSkuChange",
+      "when": "用户选择或命中变体变化后（回传 selection / variant）",
+      "description": "联动价格、库存、图片，或做埋点上报"
+    },
+    {
+      "name": "sku:image",
+      "when": "命中变体带图、需要切换主图时",
+      "description": "广播目标图片地址，由外部图区响应"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "onImageChange",

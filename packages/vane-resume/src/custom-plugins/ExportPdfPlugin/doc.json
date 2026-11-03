@@ -3,6 +3,25 @@
   "description": "导出 PDF：打印通道（配合 PrintOptimize）或 canvas 通道（html2canvas+jsPDF 拼页，按需加载）。",
   "since": "0.1.0",
   "tags": ["export", "renderToolbar"],
+  "events": [
+    {
+      "name": "renderOverlay",
+      "when": "每次渲染，绝对定位覆盖在主内容之上",
+      "description": "渲染浮层内容（角标、提示、动画、工具条），不挤占主内容布局"
+    },
+    {
+      "name": "renderToolbar",
+      "when": "每次渲染，工具栏槽位",
+      "description": "模板切换、导出、语言、版本等全局操作"
+    },
+    {
+      "name": "resume:export",
+      "when": "点击导出并选定方式后",
+      "description": "广播 { method }，由外部执行打印 / 下载"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "method", "type": "\"print\"|\"canvas\"", "default": "print", "description": "导出通道" },
     { "name": "fileName", "type": "string", "default": "resume.pdf", "description": "canvas 模式文件名" },

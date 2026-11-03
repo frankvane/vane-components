@@ -3,6 +3,15 @@
   "description": "主页二维码分享：浮于头图右上的分享按钮，点击展开二维码与复制链接。",
   "since": "0.1.0",
   "tags": ["ui", "share", "qr", "renderBadgeArea"],
+  "events": [
+    {
+      "name": "renderBadgeArea",
+      "when": "每次渲染，认证徽标区（默认头图右上角）",
+      "description": "认证标识、等级徽章、状态角标"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "url", "type": "string", "default": "props.data.homeUrl", "description": "要分享的主页地址；缺省读 props.data.homeUrl，都没有则不渲染分享按钮" },
     { "name": "buttonLabel", "type": "ReactNode", "default": "分享", "description": "按钮文案" },

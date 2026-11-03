@@ -3,6 +3,20 @@
   "description": "分步流程：头部步骤进度指示 + 底部上一步/下一步，适合分步表单与引导。",
   "since": "0.1.0",
   "tags": ["steps", "flow", "form"],
+  "events": [
+    {
+      "name": "renderHeader",
+      "when": "每次渲染，面板顶部槽位",
+      "description": "面板标题、关闭按钮、步骤指示"
+    },
+    {
+      "name": "renderFooter",
+      "when": "每次渲染，面板底部槽位",
+      "description": "操作按钮、二次确认、安全区占位"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "steps",

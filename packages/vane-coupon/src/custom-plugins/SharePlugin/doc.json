@@ -7,6 +7,15 @@
     "share",
     "footer"
   ],
+  "events": [
+    {
+      "name": "renderFooter",
+      "when": "每次渲染，券面底部槽位",
+      "description": "有效期、使用门槛、领取 / 使用按钮"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "text",

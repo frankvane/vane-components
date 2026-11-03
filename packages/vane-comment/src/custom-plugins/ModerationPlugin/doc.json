@@ -3,6 +3,15 @@
   "description": "审核：经 transformData 屏蔽敏感词（替换为 **）并过滤待审 / 已删评论；属于数据级插件，不渲染 UI。",
   "since": "0.2.0",
   "tags": ["治理", "审核", "安全"],
+  "events": [
+    {
+      "name": "transformData",
+      "when": "渲染前，对评论列表链式改写",
+      "description": "排序、过滤、审核隐藏、敏感词替换；下游拿到的 context.data 即可见列表"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "words",

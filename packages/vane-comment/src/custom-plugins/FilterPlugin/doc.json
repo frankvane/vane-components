@@ -3,6 +3,20 @@
   "description": "筛选：顶栏「全部/有图/有回复」筛选，经 transformData 过滤评论列表（读 state.filter）。",
   "since": "0.2.0",
   "tags": ["ui", "组织", "筛选"],
+  "events": [
+    {
+      "name": "transformData",
+      "when": "渲染前，对评论列表链式改写",
+      "description": "排序、过滤、审核隐藏、敏感词替换；下游拿到的 context.data 即可见列表"
+    },
+    {
+      "name": "renderToolbar",
+      "when": "每次渲染，列表级顶栏槽位",
+      "description": "排序栏、计数、筛选开关等列表级工具"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "options",

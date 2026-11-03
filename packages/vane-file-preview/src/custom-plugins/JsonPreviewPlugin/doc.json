@@ -3,6 +3,20 @@
   "description": "JSON 树视图：折叠 / 展开、关键字搜索 + 路径复制、导出格式化 JSON，跟随系统深浅色。依赖 @uiw/react-json-view（optional peer）。",
   "since": "2.0.0",
   "tags": ["data", "json", "结构化数据"],
+  "events": [
+    {
+      "name": "render",
+      "when": "本插件认领文件后，渲染预览主体",
+      "description": "输出该文件类型的预览 UI（图片 / 视频 / PDF / Office / 文本等）"
+    },
+    {
+      "name": "renderToolbar",
+      "when": "每次渲染，内容区顶部工具栏（内核侧桥接到 renderHeader）",
+      "description": "缩放、翻页、下载、全屏等预览操作"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "maxFileSize",

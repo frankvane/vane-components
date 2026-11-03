@@ -6,6 +6,35 @@
     "interaction",
     "性能"
   ],
+  "events": [
+    {
+      "name": "onUnmount",
+      "when": "瀑布流卸载前",
+      "description": "断开观察器、移除滚动监听"
+    },
+    {
+      "name": "onItemUnmount",
+      "when": "单个卡片卸载时",
+      "description": "解绑该卡片的监听与观察器"
+    },
+    {
+      "name": "onItemEnterViewport",
+      "when": "单个卡片进入视口",
+      "description": "卡片级曝光、视频自动播放等"
+    },
+    {
+      "name": "onItemLeaveViewport",
+      "when": "单个卡片离开视口",
+      "description": "暂停播放、回收资源"
+    }
+  ],
+  "methods": [
+    {
+      "name": "getItemRef",
+      "signature": "ctx.getItemRef(index: number): HTMLElement | null",
+      "description": "取第 index 张卡片的 DOM 引用，可能为 null（尚未挂载 / 已回收）"
+    }
+  ],
   "config": [
     {
       "name": "poolSize",

@@ -3,6 +3,15 @@
   "description": "认证徽标：个人 / 机构两种认证对勾（内联 SVG，无外部资源），浮于头图右上角。verified 为 false 时不渲染。",
   "since": "0.1.0",
   "tags": ["ui", "badge", "认证"],
+  "events": [
+    {
+      "name": "renderBadgeArea",
+      "when": "每次渲染，认证徽标区（默认头图右上角）",
+      "description": "认证标识、等级徽章、状态角标"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "verified",

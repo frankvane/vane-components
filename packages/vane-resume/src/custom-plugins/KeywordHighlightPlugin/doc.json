@@ -3,6 +3,20 @@
   "description": "关键词高亮：输入 JD 关键词，核心文本中命中词以 <mark> 高亮，辅助定制与 ATS 自检。纯 state 驱动，不抢槽。",
   "since": "0.1.0",
   "tags": ["highlight", "state", "renderToolbar"],
+  "events": [
+    {
+      "name": "onMount",
+      "when": "简历组件挂载完成",
+      "description": "初始化副作用（读取本地版本、恢复状态）"
+    },
+    {
+      "name": "renderToolbar",
+      "when": "每次渲染，工具栏槽位",
+      "description": "模板切换、导出、语言、版本等全局操作"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "keywords", "type": "string[] | ()=>string[]", "default": "[]", "description": "初始高亮关键词" },
     { "name": "color", "type": "string", "default": "var(--vr-accent)", "description": "高亮标记 / 芯片描边色" }

@@ -7,6 +7,25 @@
     "video",
     "音视频"
   ],
+  "events": [
+    {
+      "name": "render",
+      "when": "本插件认领文件后，渲染预览主体",
+      "description": "输出该文件类型的预览 UI（图片 / 视频 / PDF / Office / 文本等）"
+    },
+    {
+      "name": "renderToolbar",
+      "when": "每次渲染，内容区顶部工具栏（内核侧桥接到 renderHeader）",
+      "description": "缩放、翻页、下载、全屏等预览操作"
+    }
+  ],
+  "methods": [
+    {
+      "name": "reportState",
+      "signature": "ctx.reportState(patch: PreviewStatePatch): void",
+      "description": "上报预览状态（唯一写入路径，由内核转发给 Core）"
+    }
+  ],
   "config": [
     {
       "name": "controls",

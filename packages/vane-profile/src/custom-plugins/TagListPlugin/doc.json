@@ -3,6 +3,15 @@
   "description": "兴趣 / 标签行：一排圆角小标签。",
   "since": "0.1.0",
   "tags": ["tags", "interest", "renderBioArea"],
+  "events": [
+    {
+      "name": "renderBioArea",
+      "when": "每次渲染，简介区槽位（头图与数据行之间）",
+      "description": "昵称、签名、所在地、加入时间"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "tags", "type": "string[]", "default": "[]", "description": "标签文本列表" },
     { "name": "align", "type": "'left' | 'center' | 'right'", "default": "'left'", "description": "整组对齐方式" }

@@ -3,6 +3,15 @@
   "description": "关键词硬屏蔽：命中词直接从弹幕流删除（区别于 SensitiveFilter 打码保留），用于违禁/竞品词。",
   "since": "0.1.0",
   "tags": ["block", "filter", "data"],
+  "events": [
+    {
+      "name": "transformData",
+      "when": "渲染前，对弹幕列表链式改写",
+      "description": "过滤、去重、着色、限流；下游看到的是改写后的待渲染列表"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "words", "type": "string[]", "default": "[]", "description": "硬屏蔽词" },
     { "name": "mode", "type": "\"contains\"|\"equals\"", "default": "\"contains\"", "description": "contains=包含即删；equals=整句相等才删" }

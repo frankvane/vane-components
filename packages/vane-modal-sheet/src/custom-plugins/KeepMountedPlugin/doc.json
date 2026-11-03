@@ -6,6 +6,25 @@
     "state",
     "ux"
   ],
+  "events": [
+    {
+      "name": "onPropsChange",
+      "when": "宿主 props 变化后（回传 prev / next 两份）",
+      "description": "按新旧 props 差分决定是否重算内部状态，避免无差别刷新"
+    },
+    {
+      "name": "onClose",
+      "when": "关闭补间动画完成后（受控关闭也会触发）",
+      "description": "关闭后的清理与上报"
+    }
+  ],
+  "methods": [
+    {
+      "name": "getPanel",
+      "signature": "ctx.getPanel(): HTMLDivElement | null",
+      "description": "取面板 DOM 节点，用于测量或聚焦，可能为 null"
+    }
+  ],
   "config": [],
   "example": "const Sheet = withModalSheetPlugins(ModalSheetCore, [createKeepMountedPlugin()]);"
 }

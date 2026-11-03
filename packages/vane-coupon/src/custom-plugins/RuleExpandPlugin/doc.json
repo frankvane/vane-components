@@ -3,6 +3,20 @@
   "description": "规则展开/收起：使用规则按条数折叠（默认 1 条），展开态写内核 state，可被宿主复位；不用 line-clamp 避免纵向裁切。",
   "since": "0.1.0",
   "tags": ["coupon", "rules", "expand", "after"],
+  "events": [
+    {
+      "name": "renderHeader",
+      "when": "每次渲染，券面头部槽位",
+      "description": "面额、券名、标签等券面主视觉"
+    }
+  ],
+  "methods": [
+    {
+      "name": "toggleRules",
+      "signature": "ctx.toggleRules(): void",
+      "description": "展开 / 收起规则面板（写入内部 UI 状态）"
+    }
+  ],
   "config": [
     {
       "name": "collapsedCount",

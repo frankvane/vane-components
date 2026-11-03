@@ -3,6 +3,20 @@
   "description": "缩略图联动（gallery 核心插件）：渲染缩略图条，点击缩略图切换主图，选中态描边高亮。",
   "since": "2.1.0",
   "tags": ["gallery", "图集", "缩略", "联动"],
+  "events": [
+    {
+      "name": "galleryThumbArea",
+      "when": "渲染图库缩略图条时",
+      "description": "底部 / 侧边缩略图列表"
+    }
+  ],
+  "methods": [
+    {
+      "name": "setActiveIndex",
+      "signature": "ctx.setActiveIndex(i: number): void",
+      "description": "切换图库当前激活图索引，并联动缩略图与预加载"
+    }
+  ],
   "config": [
     { "name": "gap", "type": "number", "default": "8", "description": "缩略图间距（px）" },
     { "name": "thumbWidth", "type": "number", "default": "64", "description": "缩略图宽（px）" },

@@ -3,6 +3,35 @@
   "description": "虚拟键盘避让：visualViewport 监听，经 setViewportInset 通知内核重算吸附几何。",
   "since": "0.1.0",
   "tags": ["keyboard", "mobile", "behavior"],
+  "events": [
+    {
+      "name": "onMount",
+      "when": "组件挂载完成、插件注册后执行一次（返回的清理函数在 manager.clear 时逆序执行）",
+      "description": "初始化副作用：注册监听、起定时器、建观察器；必须返回清理函数或配合 onUnmount 收尾"
+    },
+    {
+      "name": "onUnmount",
+      "when": "组件卸载前执行一次",
+      "description": "释放监听、定时器与观察器；与 onMount 成对出现，避免泄漏"
+    },
+    {
+      "name": "onPropsChange",
+      "when": "宿主 props 变化后（回传 prev / next 两份）",
+      "description": "按新旧 props 差分决定是否重算内部状态，避免无差别刷新"
+    }
+  ],
+  "methods": [
+    {
+      "name": "setViewportInset",
+      "signature": "ctx.setViewportInset(px: number): void",
+      "description": "设置面板与视口的安全内边距（避开刘海 / 底部手势区）"
+    },
+    {
+      "name": "snapTo",
+      "signature": "ctx.snapTo(index: number): void",
+      "description": "吸附到指定档位（带补间动画，结束后触发 onSnap）"
+    }
+  ],
   "config": [
     {
       "name": "snapToTop",

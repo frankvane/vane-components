@@ -3,6 +3,45 @@
   "description": "版本管理：快照数据 / 模板 / 语言 / 隐私态，保存命名版本，可恢复 / 删除；localStorage 持久化（数据留在本地，请自行按用户隔离 storageKey）。",
   "since": "0.1.0",
   "tags": ["version", "renderToolbar", "renderFooter", "renderOverlay"],
+  "events": [
+    {
+      "name": "onMount",
+      "when": "简历组件挂载完成",
+      "description": "初始化副作用（读取本地版本、恢复状态）"
+    },
+    {
+      "name": "renderOverlay",
+      "when": "每次渲染，绝对定位覆盖在主内容之上",
+      "description": "渲染浮层内容（角标、提示、动画、工具条），不挤占主内容布局"
+    },
+    {
+      "name": "renderFooter",
+      "when": "每次渲染，页脚槽位",
+      "description": "版权、更新时间、导出提示"
+    },
+    {
+      "name": "renderToolbar",
+      "when": "每次渲染，工具栏槽位",
+      "description": "模板切换、导出、语言、版本等全局操作"
+    },
+    {
+      "name": "resume:data-replace",
+      "when": "恢复某个版本时",
+      "description": "广播被恢复的数据，整体替换当前简历"
+    },
+    {
+      "name": "resume:version:delete",
+      "when": "删除版本时",
+      "description": "广播版本 id"
+    },
+    {
+      "name": "resume:version:save",
+      "when": "保存版本快照时",
+      "description": "广播快照对象，供持久化到外部存储"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "storage", "type": "\"local\"|\"memory\"", "default": "local", "description": "持久化方式；memory 仅当前页面有效" },
     { "name": "storageKey", "type": "string", "default": "\"vane-resume-versions\"", "description": "存储键，多实例 / 多用户请分别指定" },

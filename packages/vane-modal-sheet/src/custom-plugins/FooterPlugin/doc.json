@@ -3,6 +3,15 @@
   "description": "吸底操作区：主/次按钮（44px 触达），适配底部安全区。",
   "since": "0.1.0",
   "tags": ["footer", "actions", "visual"],
+  "events": [
+    {
+      "name": "renderFooter",
+      "when": "每次渲染，面板底部槽位",
+      "description": "操作按钮、二次确认、安全区占位"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "primaryText",

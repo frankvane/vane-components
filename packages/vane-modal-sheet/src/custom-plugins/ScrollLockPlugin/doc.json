@@ -3,6 +3,20 @@
   "description": "body 滚动锁定：isOpen 时锁定背景滚动，关闭时恢复，防 iOS 滚动穿透。",
   "since": "0.1.0",
   "tags": ["scroll", "body", "behavior"],
+  "events": [
+    {
+      "name": "onUnmount",
+      "when": "组件卸载前执行一次",
+      "description": "释放监听、定时器与观察器；与 onMount 成对出现，避免泄漏"
+    },
+    {
+      "name": "onPropsChange",
+      "when": "宿主 props 变化后（回传 prev / next 两份）",
+      "description": "按新旧 props 差分决定是否重算内部状态，避免无差别刷新"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     {
       "name": "lockTouch",

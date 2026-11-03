@@ -3,6 +3,15 @@
   "description": "主图热点标注（gallery 增强插件）：在 galleryOverlay 按百分比定位可交互热点，点击弹出标签气泡（含可选链接）。",
   "since": "2.1.0",
   "tags": ["gallery", "图集", "热点", "标注"],
+  "events": [
+    {
+      "name": "galleryOverlay",
+      "when": "渲染图库大图浮层时",
+      "description": "大图视图、切换器、关闭按钮等浮层内容"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "hotspots", "type": "Hotspot[]", "default": "[]", "description": "热点集合（图集级，所有主图共用），含 x/y(0-100)/label/href?" }
   ],

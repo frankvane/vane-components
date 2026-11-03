@@ -3,6 +3,20 @@
   "description": "分享链接：默认只生成宿主地址，不把简历数据内联进 URL；需要携带数据时由 onBuildUrl 生成脱敏短链。弹窗复制并反馈结果。",
   "since": "0.1.0",
   "tags": ["share", "renderToolbar", "renderOverlay"],
+  "events": [
+    {
+      "name": "renderOverlay",
+      "when": "每次渲染，绝对定位覆盖在主内容之上",
+      "description": "渲染浮层内容（角标、提示、动画、工具条），不挤占主内容布局"
+    },
+    {
+      "name": "renderToolbar",
+      "when": "每次渲染，工具栏槽位",
+      "description": "模板切换、导出、语言、版本等全局操作"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 context 字段（props / state / data），不调用上下文方法",
   "config": [
     { "name": "baseUrl", "type": "string", "default": "-", "description": "宿主基础地址（不含简历数据）" },
     { "name": "onBuildUrl", "type": "(data) => string | Promise<string>", "default": "-", "description": "注入宿主链接构建（推荐，可在此生成脱敏短链）" }

@@ -3,6 +3,20 @@
   "description": "按钮式缩放控制（gallery 增强插件）：在工具条渲染 − / 重置 / + 按钮，调整 context.zoom，GalleryCore 对主图施加 scale 变换。",
   "since": "2.1.0",
   "tags": ["gallery", "图集", "缩放", "放大"],
+  "events": [
+    {
+      "name": "galleryToolbarArea",
+      "when": "渲染图库工具栏时",
+      "description": "缩放、下载、分享等图库级操作"
+    }
+  ],
+  "methods": [
+    {
+      "name": "setZoom",
+      "signature": "ctx.setZoom(z: number): void",
+      "description": "设置图库缩放比例（按钮式缩放控制的写入入口）"
+    }
+  ],
   "config": [
     { "name": "step", "type": "number", "default": "0.5", "description": "每步缩放增量" },
     { "name": "min", "type": "number", "default": "1", "description": "最小缩放" },
