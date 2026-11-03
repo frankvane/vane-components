@@ -1,0 +1,16 @@
+{
+  "name": "ViewSwitch",
+  "description": "看板/列表视图切换：工具栏互斥按钮切换 state.view，list 模式经 renderCards 内容覆盖槽渲染紧凑表格视图，kanban 模式回落核心默认看板。",
+  "since": "0.1.0",
+  "tags": ["view-switch", "renderToolbar", "renderCards"],
+  "events": [
+    { "name": "renderToolbar", "when": "每次渲染，工具栏", "description": "看板/列表切换按钮组" },
+    { "name": "renderCards", "when": "state.view 为 list 时", "description": "渲染列表视图（覆盖默认看板）" }
+  ],
+  "methods": [],
+  "methodsNote": "通过 ctx.setState({ view }) 驱动",
+  "config": [
+    { "name": "pageSize", "type": "number", "default": "0", "description": "列表视图条数上限（0 = 不分页）" }
+  ],
+  "example": "withCandidatePlugins(CandidateCore, [createViewSwitchPlugin({ pageSize: 20 })])"
+}

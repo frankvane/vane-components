@@ -1,0 +1,15 @@
+{
+  "name": "Star",
+  "description": "星标收藏：卡片操作区 ☆/★ 一键切换星标，可选把星标候选人置顶到各自阶段列最前（transformData）。",
+  "since": "0.1.0",
+  "tags": ["star", "renderCardActions", "transformData"],
+  "events": [
+    { "name": "renderCardActions", "when": "每次渲染，每张候选人卡片", "description": "星标切换按钮（aria-pressed）" },
+    { "name": "transformData", "when": "pinTop 开启时，渲染前", "description": "星标候选人置顶排序" }
+  ],
+  "methods": ["updateCandidate(id, { starred })"],
+  "config": [
+    { "name": "pinTop", "type": "boolean", "default": "true", "description": "星标候选人在列内置顶" }
+  ],
+  "example": "withCandidatePlugins(CandidateCore, [createStarPlugin({ pinTop: false })])"
+}

@@ -1,0 +1,19 @@
+{
+  "name": "StageFlow",
+  "description": "阶段流转：卡片操作区「◀ 推进 ▶」按钮，按阶段定义推进/退回候选人（自动追加流转历史，越界自动禁用）。流转核心动作插件。",
+  "since": "0.1.0",
+  "tags": ["stage-flow", "renderCardActions"],
+  "events": [
+    {
+      "name": "renderCardActions",
+      "when": "每次渲染，每张候选人卡片",
+      "description": "渲染推进/退回按钮，边界禁用"
+    }
+  ],
+  "methods": ["moveCandidate(id, delta)"],
+  "config": [
+    { "name": "step", "type": "number", "default": "1", "description": "每次流转的步长" },
+    { "name": "allowBackward", "type": "boolean", "default": "true", "description": "是否允许回退" }
+  ],
+  "example": "withCandidatePlugins(CandidateCore, [createStageFlowPlugin({ allowBackward: false })])"
+}

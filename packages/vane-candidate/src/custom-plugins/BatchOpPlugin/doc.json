@@ -1,0 +1,15 @@
+{
+  "name": "BatchOp",
+  "description": "批量操作：工具栏「批量」进入选择模式，卡片出现复选框，支持全选/清空/批量流转到指定阶段/批量归档。写操作逐条走 updateCandidate / moveCandidate。",
+  "since": "0.1.0",
+  "tags": ["batch-op", "renderToolbar", "renderCardActions"],
+  "events": [
+    { "name": "renderToolbar", "when": "每次渲染，工具栏", "description": "批量开关与批量操作按钮组" },
+    { "name": "renderCardActions", "when": "批量模式开启时", "description": "卡片复选框" }
+  ],
+  "methods": ["moveCandidate(id, delta)", "updateCandidate(id, { stage | archived })"],
+  "config": [
+    { "name": "targetStages", "type": "StageConfig[]", "default": "跟随核心阶段定义", "description": "批量流转目标阶段" }
+  ],
+  "example": "withCandidatePlugins(CandidateCore, [createBatchOpPlugin()])"
+}

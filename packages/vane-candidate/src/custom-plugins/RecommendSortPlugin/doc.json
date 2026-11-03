@@ -1,0 +1,20 @@
+{
+  "name": "RecommendSort",
+  "description": "智能推荐排序：transformData 对候选人列表按匹配分（默认，同分按投递时间新在前）或投递时间排序，仅重排不增删。",
+  "since": "0.1.0",
+  "tags": ["recommend-sort", "transformData"],
+  "events": [
+    {
+      "name": "transformData",
+      "when": "渲染前，对列表排序",
+      "description": "score / fresh 两种排序模式，可升降序"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 candidate.score / appliedAt，不调用上下文方法",
+  "config": [
+    { "name": "by", "type": "'score' | 'fresh'", "default": "'score'", "description": "排序依据" },
+    { "name": "desc", "type": "boolean", "default": "true", "description": "是否降序" }
+  ],
+  "example": "withCandidatePlugins(CandidateCore, [createRecommendSortPlugin({ by: 'fresh' })])"
+}

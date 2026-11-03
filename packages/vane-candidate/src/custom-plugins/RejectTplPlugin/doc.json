@@ -1,0 +1,16 @@
+{
+  "name": "RejectTpl",
+  "description": "婉拒模板：卡片操作区「婉拒」入口，浮层内选择模板（可预览编辑），确认后候选人流转到婉拒阶段并保留流转历史。",
+  "since": "0.1.0",
+  "tags": ["reject-tpl", "renderCardActions", "renderOverlay"],
+  "events": [
+    { "name": "renderCardActions", "when": "每次渲染，每张候选人卡片", "description": "婉拒入口按钮" },
+    { "name": "renderOverlay", "when": "state.rejectEditingId 非空时", "description": "模板选择与编辑浮层" }
+  ],
+  "methods": ["updateCandidate(id, { stage })"],
+  "config": [
+    { "name": "templates", "type": "RejectTemplate[]", "default": "内置 2 套", "description": "婉拒信模板（id/title/body）" },
+    { "name": "targetStage", "type": "string", "default": "'rejected'", "description": "流转目标阶段 key" }
+  ],
+  "example": "withCandidatePlugins(CandidateCore, [createRejectTplPlugin({ targetStage: 'rejected' })])"
+}

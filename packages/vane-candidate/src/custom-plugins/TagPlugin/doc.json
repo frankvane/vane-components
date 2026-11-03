@@ -1,0 +1,16 @@
+{
+  "name": "Tag",
+  "description": "候选人标签：卡片徽章区展示标签 chips，浮层内可添加/删除标签（支持快捷建议标签），写回 candidate.tags。",
+  "since": "0.1.0",
+  "tags": ["tags", "renderCardBadges", "renderOverlay"],
+  "events": [
+    { "name": "renderCardBadges", "when": "每次渲染，每张候选人卡片", "description": "展示标签 chips 与管理入口" },
+    { "name": "renderOverlay", "when": "state.tagEditingId 非空时", "description": "标签管理浮层（添加/删除/快捷建议）" }
+  ],
+  "methods": ["updateCandidate(id, { tags })"],
+  "config": [
+    { "name": "suggestTags", "type": "string[]", "default": "['重点','备选','急招','内推']", "description": "快捷标签建议" },
+    { "name": "maxTags", "type": "number", "default": "8", "description": "每位候选人最多标签数" }
+  ],
+  "example": "withCandidatePlugins(CandidateCore, [createTagPlugin({ suggestTags: ['重点','银牌'] })])"
+}

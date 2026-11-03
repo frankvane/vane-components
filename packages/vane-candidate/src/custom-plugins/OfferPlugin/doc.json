@@ -1,0 +1,24 @@
+{
+  "name": "Offer",
+  "description": "Offer 状态徽章：候选人带 offer 字段时展示状态胶囊（审批中灰 / 已发出蓝 / 已接受绿 / 已婉拒红），可自定义文案。纯展示。",
+  "since": "0.1.0",
+  "tags": ["offer", "renderCardBadges"],
+  "events": [
+    {
+      "name": "renderCardBadges",
+      "when": "每次渲染，每张候选人卡片",
+      "description": "candidate.offer 存在时渲染状态徽章"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 candidate.offer，不调用上下文方法",
+  "config": [
+    {
+      "name": "labels",
+      "type": "Partial<Record<status, string>>",
+      "default": "内置中文文案",
+      "description": "各状态自定义文案"
+    }
+  ],
+  "example": "withCandidatePlugins(CandidateCore, [createOfferPlugin({ labels: { sent: '已发 Offer' } })])"
+}

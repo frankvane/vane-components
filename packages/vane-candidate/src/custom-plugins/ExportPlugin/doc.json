@@ -1,0 +1,20 @@
+{
+  "name": "Export",
+  "description": "CSV 导出：工具栏按钮把当前看板数据（经筛选/排序管道后）导出为带 BOM 的 UTF-8 CSV，内置公式注入防护与阶段名翻译，列可扩展。",
+  "since": "0.1.0",
+  "tags": ["export", "renderToolbar"],
+  "events": [
+    {
+      "name": "renderToolbar",
+      "when": "每次渲染，工具栏",
+      "description": "导出 CSV 按钮（点击触发 Blob 下载）"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 ctx.data，不调用上下文方法",
+  "config": [
+    { "name": "filename", "type": "string", "default": "'candidates'", "description": "导出文件名（自动带日期后缀）" },
+    { "name": "columns", "type": "{header, get}[]", "default": "内置 8 列", "description": "额外导出列" }
+  ],
+  "example": "withCandidatePlugins(CandidateCore, [createExportPlugin({ filename: '候选人清单' })])"
+}

@@ -1,0 +1,24 @@
+{
+  "name": "DupCheck",
+  "description": "重复候选人检测：按姓名/邮箱/手机号扫描列表，命中者在卡片上显示「疑似重复」警示徽章，辅助 HR 及时发现重复投递。",
+  "since": "0.1.0",
+  "tags": ["dup-check", "renderCardBadges"],
+  "events": [
+    {
+      "name": "renderCardBadges",
+      "when": "每次渲染，每张候选人卡片",
+      "description": "命中重复时渲染警示徽章"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 ctx.data 与 candidate 字段，不调用上下文方法",
+  "config": [
+    {
+      "name": "fields",
+      "type": "('name'|'email'|'phone')[]",
+      "default": "['name','email','phone']",
+      "description": "参与判重的字段"
+    }
+  ],
+  "example": "withCandidatePlugins(CandidateCore, [createDupCheckPlugin({ fields: ['email', 'phone'] })])"
+}

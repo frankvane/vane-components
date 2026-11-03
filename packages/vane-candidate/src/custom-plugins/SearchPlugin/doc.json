@@ -1,0 +1,21 @@
+{
+  "name": "Search",
+  "description": "关键词搜索：工具栏搜索框（姓名/岗位/摘要/标签/来源），transformData 实时过滤看板，空关键词不过滤。",
+  "since": "0.1.0",
+  "tags": ["search", "renderToolbar", "transformData"],
+  "events": [
+    { "name": "renderToolbar", "when": "每次渲染，工具栏", "description": "搜索输入框" },
+    { "name": "transformData", "when": "渲染前，关键词变化时重跑", "description": "按 searchKeyword 匹配过滤" }
+  ],
+  "methods": [],
+  "methodsNote": "通过 ctx.setState({ searchKeyword }) 驱动",
+  "config": [
+    {
+      "name": "fields",
+      "type": "('name'|'role'|'summary'|'tags'|'source')[]",
+      "default": "全部字段",
+      "description": "参与搜索的字段"
+    }
+  ],
+  "example": "withCandidatePlugins(CandidateCore, [createSearchPlugin({ fields: ['name', 'role'] })])"
+}

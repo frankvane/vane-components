@@ -1,0 +1,16 @@
+{
+  "name": "Filter",
+  "description": "阶段/标签筛选：工具栏阶段与标签下拉（标签选项可配置或自动从数据收集），transformData 按所选条件过滤看板。",
+  "since": "0.1.0",
+  "tags": ["filter", "renderToolbar", "transformData"],
+  "events": [
+    { "name": "renderToolbar", "when": "每次渲染，工具栏", "description": "阶段/标签筛选控件与清除按钮" },
+    { "name": "transformData", "when": "渲染前，筛选条件变化时重跑", "description": "按 filterStage / filterTag 过滤" }
+  ],
+  "methods": [],
+  "methodsNote": "通过 ctx.setState({ filterStage, filterTag }) 驱动",
+  "config": [
+    { "name": "tagOptions", "type": "string[]", "default": "自动从数据收集", "description": "可选的标签筛选项" }
+  ],
+  "example": "withCandidatePlugins(CandidateCore, [createFilterPlugin({ tagOptions: ['重点', '内推'] })])"
+}

@@ -1,0 +1,18 @@
+{
+  "name": "InterviewSlot",
+  "description": "面试安排：卡片操作区「安排面试」入口，浮层内从时间槽/面试官/形式中点选保存到 candidate.interview，卡片正文显示面试信息条。",
+  "since": "0.1.0",
+  "tags": ["interview-slot", "renderCardActions", "renderCardBody", "renderOverlay"],
+  "events": [
+    { "name": "renderCardActions", "when": "每次渲染，每张候选人卡片", "description": "安排/改期面试入口" },
+    { "name": "renderCardBody", "when": "candidate.interview 存在时", "description": "面试信息条（时间/形式/面试官）" },
+    { "name": "renderOverlay", "when": "state.interviewEditingId 非空时", "description": "面试安排浮层" }
+  ],
+  "methods": ["updateCandidate(id, { interview })"],
+  "config": [
+    { "name": "slots", "type": "string[]", "default": "['周二 14:00','周三 10:00','周四 16:00','周五 15:00']", "description": "可选时间槽" },
+    { "name": "interviewers", "type": "string[]", "default": "['王工','李总监']", "description": "可选面试官" },
+    { "name": "modes", "type": "('onsite'|'video'|'phone')[]", "default": "['onsite','video']", "description": "面试形式" }
+  ],
+  "example": "withCandidatePlugins(CandidateCore, [createInterviewSlotPlugin({ slots: ['周一 10:00', '周三 14:00'] })])"
+}

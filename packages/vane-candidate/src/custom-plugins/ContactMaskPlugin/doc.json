@@ -1,0 +1,21 @@
+{
+  "name": "ContactMask",
+  "description": "联系方式脱敏：transformData 把邮箱/手机号替换为掩码（138****5678 / a***c@example.com），指定阶段可豁免（招聘后期需完整联系方式）。数据管道末位执行，不影响排序。",
+  "since": "0.1.0",
+  "tags": ["contact-mask", "transformData"],
+  "events": [
+    {
+      "name": "transformData",
+      "when": "渲染前，对联系方式脱敏",
+      "description": "email / phone 掩码化，visibleStages 豁免"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 candidate.email / phone / stage，不调用上下文方法",
+  "config": [
+    { "name": "maskEmail", "type": "boolean", "default": "true", "description": "是否脱敏邮箱" },
+    { "name": "maskPhone", "type": "boolean", "default": "true", "description": "是否脱敏手机号" },
+    { "name": "visibleStages", "type": "string[]", "default": "[]", "description": "免脱敏阶段 key 列表" }
+  ],
+  "example": "withCandidatePlugins(CandidateCore, [createContactMaskPlugin({ visibleStages: ['offer'] })])"
+}

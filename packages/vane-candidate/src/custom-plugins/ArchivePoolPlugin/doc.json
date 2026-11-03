@@ -1,0 +1,17 @@
+{
+  "name": "ArchivePool",
+  "description": "人才库归档池：transformData 把已归档候选人从主看板滤除，工具栏「人才库」浮层支持一键恢复，卡片操作区提供归档入口。",
+  "since": "0.1.0",
+  "tags": ["archive-pool", "transformData", "renderToolbar", "renderOverlay", "renderCardActions"],
+  "events": [
+    { "name": "transformData", "when": "渲染前", "description": "滤除 archived 候选人" },
+    { "name": "renderToolbar", "when": "每次渲染，工具栏", "description": "人才库入口（带归档计数）" },
+    { "name": "renderOverlay", "when": "state.archivePoolOpen 时", "description": "人才库浮层（恢复/查看）" },
+    { "name": "renderCardActions", "when": "每次渲染，每张候选人卡片", "description": "归档按钮" }
+  ],
+  "methods": ["updateCandidate(id, { archived })"],
+  "config": [
+    { "name": "poolPageSize", "type": "number", "default": "0", "description": "人才库浮层条数上限（0 = 不限制）" }
+  ],
+  "example": "withCandidatePlugins(CandidateCore, [createArchivePoolPlugin({ poolPageSize: 50 })])"
+}

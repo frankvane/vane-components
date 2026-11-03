@@ -1,0 +1,16 @@
+{
+  "name": "ActivityLog",
+  "description": "操作日志：汇总所有候选人的 history 动作（流转/备注等，写操作链路自动记录），按时间倒序在浮层展示，页脚提供入口（带总数）。",
+  "since": "0.1.0",
+  "tags": ["activity-log", "renderFooter", "renderOverlay"],
+  "events": [
+    { "name": "renderFooter", "when": "每次渲染，页脚", "description": "日志入口按钮（带总数）" },
+    { "name": "renderOverlay", "when": "state.activityLogOpen 时", "description": "日志时间线浮层" }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 ctx.data 中各候选人的 history，不调用上下文方法",
+  "config": [
+    { "name": "maxEntries", "type": "number", "default": "100", "description": "浮层最多展示条数" }
+  ],
+  "example": "withCandidatePlugins(CandidateCore, [createActivityLogPlugin({ maxEntries: 50 })])"
+}

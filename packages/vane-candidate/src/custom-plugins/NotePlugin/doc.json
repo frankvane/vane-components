@@ -1,0 +1,16 @@
+{
+  "name": "Note",
+  "description": "招聘备注：卡片操作区备注按钮（带条数角标），浮层内查看/新增/删除备注，写回 candidate.notes。面试沟通、背调结论都记在这里。",
+  "since": "0.1.0",
+  "tags": ["note", "renderCardActions", "renderOverlay"],
+  "events": [
+    { "name": "renderCardActions", "when": "每次渲染，每张候选人卡片", "description": "备注入口按钮" },
+    { "name": "renderOverlay", "when": "state.noteEditingId 非空时", "description": "备注管理浮层" }
+  ],
+  "methods": ["updateCandidate(id, { notes })"],
+  "config": [
+    { "name": "authorName", "type": "string", "default": "'我'", "description": "备注作者署名" },
+    { "name": "maxNotes", "type": "number", "default": "50", "description": "每位候选人最多保留备注条数" }
+  ],
+  "example": "withCandidatePlugins(CandidateCore, [createNotePlugin({ authorName: '张HR' })])"
+}

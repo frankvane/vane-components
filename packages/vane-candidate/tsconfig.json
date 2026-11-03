@@ -1,0 +1,11 @@
+{
+  "//": "不要加 composite: true —— composite 会改变 d.ts 的 rootDir 推断，vite-plugin-dts 会把类型输出到 dist/src/ 下，与 JS 产物路径不一致。",
+  "extends": "@vane/tsconfig/lib",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["src", "src/**/*.json", "test", "demo/src"]
+}

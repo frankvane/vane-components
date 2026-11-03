@@ -1,0 +1,20 @@
+{
+  "name": "Score",
+  "description": "岗位匹配分徽章：候选人卡片右上角展示 0-100 匹配分胶囊，按阈值着色（优秀绿 / 待定橙 / 偏低红）。纯展示，不改数据。",
+  "since": "0.1.0",
+  "tags": ["score", "renderCardBadges"],
+  "events": [
+    {
+      "name": "renderCardBadges",
+      "when": "每次渲染，每张候选人卡片",
+      "description": "渲染匹配分徽章（阈值着色）"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 candidate.score，不调用上下文方法",
+  "config": [
+    { "name": "goodThreshold", "type": "number", "default": "80", "description": "≥该值显示绿色" },
+    { "name": "warnThreshold", "type": "number", "default": "60", "description": "≥该值显示橙色，否则红色" }
+  ],
+  "example": "withCandidatePlugins(CandidateCore, [createScorePlugin({ goodThreshold: 85 })])"
+}
