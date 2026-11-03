@@ -41,7 +41,7 @@ export const createAnnouncementPlugin: PluginCreator<AnnouncementPluginConfig> =
     priority: 8,
     config,
     hooks: {
-      renderHeader: (context: ActivityPluginContext<any>) => {
+      renderHeader: (context: ActivityPluginContext) => {
         const fromData = (context.data as ActivityData | undefined)?.announcements;
         const list = (fromData && fromData.length > 0 ? fromData : items).filter(
           (text) => !!text

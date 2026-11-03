@@ -39,20 +39,28 @@ function Countdown({
   label: string;
   urgentMs: number;
 }) {
-  const [left, setLeft] = useState(() => remainingMs(end));
+  // P2-16：初始不读 Date.now()，避免 SSR 与客户端首帧不一致；挂载后再计算。
+  const [left, setLeft] = useState<number | null>(null);
   useEffect(() => {
-    if (remainingMs(end) <= 0) return;
-    const timer = window.setInterval(() => setLeft(remainingMs(end)), 1000);
+    const remain = remainingMs(end);
+    setLeft(remain);
+    if (remain <= 0) return;
+    const timer = window.setInterval(() => {
+      const next = remainingMs(end);
+      setLeft(next);
+      // P2-6：归零即停表，不再每秒 setLeft(0)
+      if (next <= 0) window.clearInterval(timer);
+    }, 1000);
     return () => window.clearInterval(timer);
   }, [end]);
 
-  const urgent = left > 0 && left <= urgentMs;
+  const urgent = left !== null && left > 0 && left <= urgentMs;
   return (
     <div style={{ display: "flex", alignItems: "baseline", gap: 8, fontSize: 12 }}>
       <span style={{ color: "#5d636a" }}>{label}</span>
       <span
         role="timer"
-        aria-label={`剩余 ${format(left)}`}
+        aria-label={left === null ? "剩余时间加载中" : `剩余 ${format(left)}`}
         style={{
           fontFamily: "var(--ff-mono, ui-monospace, monospace)",
           fontSize: 14,
@@ -61,7 +69,7 @@ function Countdown({
           fontVariantNumeric: "tabular-nums",
         }}
       >
-        {left === 0 ? "已结束" : format(left)}
+        {left === null ? "--:--:--" : left === 0 ? "已结束" : format(left)}
       </span>
     </div>
   );
@@ -84,7 +92,7 @@ export const createCountdownTimerPlugin: PluginCreator<CountdownTimerPluginConfi
     priority: 12,
     config,
     hooks: {
-      renderProgress: (context: ActivityPluginContext<any>) => {
+      renderProgress: (context: ActivityPluginContext) => {
         const raw = endTime ?? (context.data as ActivityData | undefined)?.endTime;
         if (raw === undefined) return null;
         const end = typeof raw === "number" ? raw : new Date(raw).getTime();

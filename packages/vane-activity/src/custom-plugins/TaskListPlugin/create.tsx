@@ -50,14 +50,16 @@ export const createTaskListPlugin: PluginCreator<TaskListPluginConfig> = (
     // 避免两份任务列表叠在一起（装配期去重并 console.warn）。
     exclusiveSlots: ["renderTasks"],
     hooks: {
-      renderTasks: (context: ActivityPluginContext<any>) => {
+      renderTasks: (context: ActivityPluginContext) => {
         const tasks = (context.tasks ?? []) as ActivityTask[];
         if (tasks.length === 0) return null;
         return (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {tasks.map((task) => {
               const color = STATUS_COLOR[task.status];
-              const pct = Math.round((task.progress ?? 0) * 100);
+              const pct = Math.round(
+                Math.max(0, Math.min(1, task.progress ?? 0)) * 100
+              );
               return (
                 <div
                   key={task.id}

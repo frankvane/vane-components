@@ -27,8 +27,10 @@ export const createProgressFxPlugin: PluginCreator<ProgressFxPluginConfig> = (
     priority: 10,
     config,
     hooks: {
-      renderProgress: (context: ActivityPluginContext<any>) => {
-        const pct = Math.round((context.progress ?? 0) * 100);
+      renderProgress: (context: ActivityPluginContext) => {
+        const pct = Math.round(
+          Math.max(0, Math.min(1, context.progress ?? 0)) * 100
+        );
         return (
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div
@@ -64,7 +66,7 @@ export const createProgressFxPlugin: PluginCreator<ProgressFxPluginConfig> = (
           </div>
         );
       },
-      renderOverlay: (context: ActivityPluginContext<any>) => {
+      renderOverlay: (context: ActivityPluginContext) => {
         const reached = (context.progress ?? 0) >= 1;
         if (!reached) return null;
         return (

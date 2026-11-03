@@ -23,6 +23,12 @@ export interface CheckinCalendarPluginConfig extends ActivityPluginConfigBase {
   showButton?: boolean;
 }
 
+/** P2-5：把接口传入的 days / done / todayIndex 夹到合法范围，避免超大渲染或越界。 */
+function clampInt(value: number, min: number, max: number, fallback: number): number {
+  const n = Number.isFinite(value) ? value : fallback;
+  return Math.max(min, Math.min(max, Math.floor(n)));
+}
+
 function CheckinCalendar({
   ctx,
   title,
@@ -32,7 +38,7 @@ function CheckinCalendar({
   onCheckin,
   showButton,
 }: {
-  ctx: ActivityPluginContext<any>;
+  ctx: ActivityPluginContext;
   title: string;
   days: number;
   done: number;
@@ -43,9 +49,14 @@ function CheckinCalendar({
   const state = (ctx.data as ActivityData | undefined)?.checkin as
     | ActivityCheckinState
     | undefined;
-  const days = state?.days ?? daysProp;
-  const baseDone = state?.done ?? doneProp;
-  const todayIndex = state?.todayIndex ?? todayProp ?? baseDone;
+  const days = clampInt(state?.days ?? daysProp, 1, 31, 7);
+  const baseDone = clampInt(state?.done ?? doneProp, 0, days, 0);
+  const todayIndex = clampInt(
+    state?.todayIndex ?? todayProp ?? baseDone,
+    0,
+    Math.max(0, days - 1),
+    0
+  );
 
   const [done, setDone] = useState(baseDone);
   // 业务侧回写 data.checkin.done 后同步本地乐观态
@@ -185,7 +196,7 @@ export const createCheckinCalendarPlugin: PluginCreator<
     priority: 10,
     config,
     hooks: {
-      renderProgress: (context: ActivityPluginContext<any>) => (
+      renderProgress: (context: ActivityPluginContext) => (
         <CheckinCalendar
           ctx={context}
           title={title}

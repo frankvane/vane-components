@@ -30,8 +30,8 @@ export const createMilestoneBarPlugin: PluginCreator<MilestoneBarPluginConfig> =
     priority: 13,
     config,
     hooks: {
-      renderProgress: (context: ActivityPluginContext<any>) => {
-        const progress = context.progress ?? 0;
+      renderProgress: (context: ActivityPluginContext) => {
+        const progress = Math.max(0, Math.min(1, context.progress ?? 0));
         const rewards = context.rewards ?? [];
         if (rewards.length === 0) return null;
         const pct = Math.round(progress * 100);
@@ -65,17 +65,21 @@ export const createMilestoneBarPlugin: PluginCreator<MilestoneBarPluginConfig> =
             />
             {/* 里程碑节点 */}
             {rewards.map((r) => {
-              const reached = progress >= r.threshold;
+              // P2-1：阈值夹到 [0,1]，非有限值按 1，避免节点跑出轨道
+              const threshold = Number.isFinite(r.threshold)
+                ? Math.max(0, Math.min(1, r.threshold))
+                : 1;
+              const reached = progress >= threshold;
               const claimed = r.status === "claimed";
               const color = claimed ? "#15803d" : reached ? "#cf4407" : "#c9cdd2";
               return (
                 <div
                   key={r.id}
-                  title={`${r.title}（阈值 ${Math.round(r.threshold * 100)}%）`}
+                  title={`${r.title}（阈值 ${Math.round(threshold * 100)}%）`}
                   style={{
                     position: "absolute",
                     top: 2,
-                    left: `${Math.round(r.threshold * 100)}%`,
+                    left: `${Math.round(threshold * 100)}%`,
                     transform: "translateX(-50%)",
                     width: dotSize,
                     height: dotSize,

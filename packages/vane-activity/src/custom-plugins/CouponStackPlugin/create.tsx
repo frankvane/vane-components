@@ -37,7 +37,7 @@ export const createCouponStackPlugin: PluginCreator<CouponStackPluginConfig> = (
     exclusiveSlots: ["renderRewards"],
     config,
     hooks: {
-      renderRewards: (context: ActivityPluginContext<any>) => {
+      renderRewards: (context: ActivityPluginContext) => {
         const rewards = context.rewards ?? [];
         if (rewards.length === 0) return null;
 
@@ -46,7 +46,12 @@ export const createCouponStackPlugin: PluginCreator<CouponStackPluginConfig> = (
             {rewards.map((r, i) => {
               // 堆叠错位：越靠后的卡越往右下偏，营造一摞券的手感
               const offset = (i % 2 === 0 ? -1 : 1) * stackOffset * ((i + 1) / 2);
-              const reachPct = Math.round(r.threshold * 100);
+              const reachPct = Math.round(
+                Math.max(
+                  0,
+                  Math.min(1, Number.isFinite(r.threshold) ? r.threshold : 1)
+                ) * 100
+              );
 
               let btn: React.ReactNode;
               if (r.status === "claimable") {

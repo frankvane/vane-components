@@ -10,7 +10,7 @@
  * 内核运行时——它的所有钩子（含 transformData 等副作用链）一并失效。
  */
 
-import type { ActivityPlugin, ActivitySlotName } from "./plugins/types";
+import type { ActivityData, ActivityPlugin, ActivitySlotName } from "./plugins/types";
 
 export interface ExclusiveDrop {
   /** 被丢弃的插件名 */
@@ -21,14 +21,14 @@ export interface ExclusiveDrop {
   winner: string;
 }
 
-export interface ExclusiveResolution<T = any> {
+export interface ExclusiveResolution<T = ActivityData> {
   /** 留下的插件（保持调用方传入的相对顺序） */
   kept: ActivityPlugin<T>[];
   /** 被丢弃记录（供装配期 console.warn） */
   dropped: ExclusiveDrop[];
 }
 
-export function resolveExclusivePlugins<T = any>(
+export function resolveExclusivePlugins<T = ActivityData>(
   plugins: ActivityPlugin<T>[]
 ): ExclusiveResolution<T> {
   // 内核执行序：priority 降序（ADR-10「priority 大者先行」）。稳定排序保证同分时先声明者优先。

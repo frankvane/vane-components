@@ -29,7 +29,7 @@
 
 > 结论：**「核心渲染」没有问题，问题集中在「核心装配契约 + 业务权威性」**。若面向生产，建议至少修完 P1-1 ~ P1-5 再上线。
 
-> **修复进展（2026-11-03）**：P1-1 ~ P1-5 已按 [spec.md](spec.md) / [tasks.md](tasks.md) 落地，并补 7 条回归测试。修复后门禁：typecheck 通过、lint 0 error / 87 warning、test **21/21**、build 成功、`node scripts/check-packages.mjs` 全绿。本报告其余章节保留审计时的原始结论；P1-6、P1-7 与 P2 仍未处理。
+> **修复进展（2026-11-03）**：P1-1 ~ P1-7 与 P2-1 ~ P2-17 已按 [spec.md](spec.md) / [tasks.md](tasks.md) 全部落地，并补 13 条 P1-6/P2 回归测试。修复后门禁：typecheck 通过、lint 0 error / 0 warning、test **34/34**（5 个文件，`act(...)` 告警 0）、build 成功、`node scripts/check-packages.mjs` 全绿（预算按实测合法增量微调，见 tasks.md T12）。本报告其余章节保留审计时的原始结论与证据。
 
 ## 二、架构与数据流
 
@@ -193,7 +193,7 @@ withPlugins(HOC)
 
 ### P1-6 `RuleModal` 缺少模态框键盘语义
 
-**状态：待修复**
+**状态：已修复**（Esc 关闭、初始焦点、Tab 焦点环、滚动锁、焦点还原；回归见 `test/audit-p2.dom.test.tsx`）
 
 **证据**
 
@@ -211,7 +211,7 @@ withPlugins(HOC)
 
 ### P1-7 `extendContext` 依赖 `[props]`，context 每渲染必重建
 
-**状态：待修复**
+**状态：已修复**（propsRef + 依赖收敛 + 派生 useMemo + claim useCallback）
 
 **证据**
 
@@ -249,6 +249,8 @@ withPlugins(HOC)
 | P2-15 | 文档/实现互相矛盾（抽奖次数） | [Jackpot:223](file:///E:/react-plugin-component/packages/vane-activity/src/custom-plugins/JackpotPlugin/create.tsx#L223)、[plugins.md:199](file:///E:/react-plugin-component/docs/components/vane-activity/plugins.md#L199) | 工厂注释说「业务侧扣次数」，组件实现与文档说「插件扣次数」；统一措辞，避免接入方重复扣减 |
 | P2-16 | SSR/水合首屏时间不一致 | [Countdown:42](file:///E:/react-plugin-component/packages/vane-activity/src/custom-plugins/CountdownTimerPlugin/create.tsx#L42) | `useState(() => remainingMs(end))` 依赖 `Date.now()`，服务端与客户端渲染文本可能不同；如需 SSR，建议客户端挂载后再显示秒级倒计时 |
 | P2-17 | 质量门 warning 偏多 | lint 实跑 | 0 error / 87 warning（`no-explicit-any`、`react-refresh/only-export-components`）；测试有 `act(...)` 警告，建议后续收敛 |
+
+> **P2 修复状态（2026-11-03）**：P2-1 ~ P2-17 已全部修复（P2-7 / P2-15 在 P1 阶段一并处理）。其中 P2-1/2/5/10 补数据 clamp 与脏条目归一化，P2-6/8 收敛定时器与减动效，P2-3/4/9/11/12/13/14/16 修渲染与 ARIA 细节，P2-17 将 lint warning 清零并消除测试 `act(...)` 告警。新增回归位于 `test/audit-p2.dom.test.tsx`（13 条）。
 
 ## 六、安全审查清单
 

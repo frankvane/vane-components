@@ -1,7 +1,7 @@
 # vane-activity 审计整改任务清单
 
 > 来源：[report.md](file:///E:/react-plugin-component/tasks/63-vane-activity-audit/report.md) · 规格：[spec.md](file:///E:/react-plugin-component/tasks/63-vane-activity-audit/spec.md)
-> 状态：**P1-1 ~ P1-5 已完成**（T1~T5 已落地并补齐回归测试）；P1-6 / P1-7 / P2 未开始
+> 状态：**P1 与 P2 全部完成**（P1-1 ~ P1-7、P2-1 ~ P2-17 已落地；新增 13 条回归用例，5 个测试文件 / 34 条用例全绿；lint 0 warning、act 告警 0）
 
 ## P1
 
@@ -30,34 +30,41 @@
   - 实现：可选 `drawResult`（同步/异步）与受控 `remainingTimes`；失败文案并恢复按钮；`onDraw` 仅通知；静态样式提模块级以压回体积预算。
   - 验收：受控结果与停格一致；未传时行为不变。
 
-- [ ] **T6 `RuleModal` 键盘语义（P1-6）**
-  - 文件：`src/custom-plugins/RuleModalPlugin/create.tsx`
-  - 内容：Esc 关闭、初始焦点、焦点还原、背景滚动锁。
-  - 验收：键盘可开、可关、关闭后焦点回到触发按钮。
+- [x] **T6 `RuleModal` 键盘语义（P1-6）** ✅
+  - 文件：`src/custom-plugins/RuleModalPlugin/create.tsx`、`test/audit-p2.dom.test.tsx`
+  - 内容：Esc 关闭、初始焦点落在关闭按钮、Tab 焦点环、背景滚动锁、关闭后焦点还原（触发按钮已卸载则退回先前焦点）。
+  - 验收：Esc 关闭后弹窗消失、`body.overflow` 复原、焦点回到触发按钮。
 
-- [ ] **T7 稳定 context（P1-7）**
+- [x] **T7 稳定 context（P1-7）** ✅
   - 文件：`src/components/ActivityPlugin/withPlugins.tsx`
   - 内容：`propsRef` + 依赖收敛 + 派生 `useMemo` + `claim` `useCallback`。
   - 验收：无关 prop 变化不增加插件 render 次数。
 
 ## P2
 
-- [ ] **T8 数据边界与数量上限（P2-1/2/5/10）**
-  - 文件：`domain.ts`、`CheckinCalendarPlugin`、`ShareBoostPlugin`、`ConfettiPlugin`、`TaskListPlugin`、`TaskTabsPlugin`、`MilestoneBarPlugin`、`CouponStackPlugin`、`LeaderboardPlugin`
-  - 内容：权重有限性校验、阈值/进度 clamp、数量上限、文本兜底。
+- [x] **T8 数据边界与数量上限（P2-1/2/5/10）** ✅
+  - 文件：`domain.ts`、`CheckinCalendarPlugin`、`ShareBoostPlugin`、`ConfettiPlugin`、`TaskListPlugin`、`TaskTabsPlugin`、`MilestoneBarPlugin`、`CouponStackPlugin`、`LeaderboardPlugin`、`JackpotPlugin`
+  - 内容：权重有限性校验、阈值/进度 clamp、数量上限、文本兜底；`Leaderboard` 脏条目归一化。
+  - 验收：`test/audit-p2.dom.test.tsx` 覆盖 NaN 权重、越界阈值、脏榜单与非数组榜单。
 
-- [ ] **T9 定时器与动画收尾（P2-6/7/8）**
+- [x] **T9 定时器与动画收尾（P2-6/7/8）** ✅
   - 文件：`CountdownTimerPlugin`、`JackpotPlugin`、`ConfettiPlugin`
-  - 内容：倒计时到 0 停表；抽奖每轮清 timers；彩纸单轮/减动效。
+  - 内容：倒计时到 0 停表；抽奖每轮清 timers；彩纸单轮 + `prefers-reduced-motion` 关闭。
+  - 验收：过期倒计时显示「已结束」；减动效下不渲染彩纸。
 
-- [ ] **T10 渲染与无障碍细节（P2-3/4/9/11/12/13/14/16）**
+- [x] **T10 渲染与无障碍细节（P2-3/4/9/11/12/13/14/16）** ✅
   - 文件：`ActivityCore.tsx`、`LeaderboardPlugin`、`ActivityHeaderPlugin`、`TaskTabsPlugin`、`RedeemCodePlugin`、`CountdownTimerPlugin`
-  - 内容：规则槽独立于 `hasTasks`；浮层交互注释；榜单 memo；key 去重；tab 语义；兑换码异步支持；ref/回调收敛；SSR 首屏。
+  - 内容：规则槽独立于 `hasTasks`；浮层交互注释；榜单 memo；key 去重；tab 语义 + 方向键；兑换码异步支持与 pending；ref/回调收敛；SSR 首屏。
+  - 验收：空任务活动仍渲染规则；tabs 方向键/End 选中并聚焦；兑换码等待期禁用、resolve/抛错文案正确。
 
-- [ ] **T11 测试与文档**
-  - 文件：`test/*.test.tsx`、`README.md`、`docs/components/vane-activity/*`
-  - 内容：为 T1~T10 补回归；清理 `act(...)` 警告；统一抽奖次数文案。
-  - 验收：新增用例覆盖每个 P1；现有 14 条保持通过。
+- [x] **T11 测试与文档** ✅
+  - 文件：`test/audit-p2.dom.test.tsx`、`test/core-fixes.dom.test.tsx`、`test/plugins.dom.test.tsx`、`test/selftest.dom.test.tsx`、`demo/src/lib/selftest.tsx`、`README.md`、`docs/components/vane-activity/*`
+  - 内容：为 P1-6 与 P2 补 13 条回归；测试与 demo 自测统一走 `act`，`act(...)` 告警清零；Redeem/Jackpot 文档同步。
+  - 验收：5 个测试文件 / 34 条用例全绿；lint 0 warning。
+
+- [x] **T12 体积预算** ✅
+  - 文件：`package.json`
+  - 内容：审计修复带来的合法增量使 ShareBoost/Leaderboard/TaskTabs/Jackpot 与全量并集贴近原预算，按实测 +0.2~0.3KB / 38→40KB 调整并写明原因；其余 15 个插件基线不变。
 
 ## 门禁
 

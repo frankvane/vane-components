@@ -1,6 +1,5 @@
-import React from "react";
+import React, { act } from "react";
 import { createRoot } from "react-dom/client";
-import { flushSync } from "react-dom";
 import { afterAll, describe, expect, it, vi } from "vitest";
 import { ActivityCore, withPlugins } from "../src";
 import type { ActivityData, ActivityPlugin } from "../src";
@@ -14,14 +13,23 @@ import { createJackpotPlugin } from "../src/custom-plugins/JackpotPlugin";
  * transformData 接线 / claim 守卫 / 抽奖服务端结果 / toast 独立计时 / 畸形数据不崩溃。
  */
 
-const tick = () => new Promise<void>((r) => setTimeout(r, 0));
-const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+(globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean })
+  .IS_REACT_ACT_ENVIRONMENT = true;
+
+const tick = () =>
+  act(async () => {
+    await new Promise<void>((r) => setTimeout(r, 0));
+  });
+const wait = (ms: number) =>
+  act(async () => {
+    await new Promise<void>((r) => setTimeout(r, ms));
+  });
 
 async function mount(ui: React.ReactElement) {
   const host = document.createElement("div");
   document.body.appendChild(host);
   const root = createRoot(host);
-  flushSync(() => root.render(ui));
+  act(() => root.render(ui));
   await tick();
   return {
     host,
@@ -30,11 +38,15 @@ async function mount(ui: React.ReactElement) {
     q: (sel: string) => host.querySelector<HTMLElement>(sel),
     click: async (el: HTMLElement | null) => {
       if (!el) throw new Error("目标元素不存在");
-      flushSync(() => el.click());
+      await act(async () => {
+        el.click();
+        // 让 async 处理函数里的 await 继续执行完，再统一 flush
+        await new Promise<void>((r) => setTimeout(r, 0));
+      });
       await tick();
     },
     unmount: () => {
-      flushSync(() => root.unmount());
+      act(() => root.unmount());
       host.remove();
     },
   };
@@ -166,7 +178,7 @@ describe("P1-4 ClaimToast 独立计时", () => {
   it("连续两批领取时，第一批按时消失且不影响第二批", async () => {
     const Activity = withPlugins(ActivityCore, [
       createRewardClaimPlugin(),
-      createClaimToastPlugin({ durationMs: 60 }),
+      createClaimToastPlugin({ durationMs: 120 }),
     ]);
     const data = baseData({
       rewards: [
@@ -179,17 +191,22 @@ describe("P1-4 ClaimToast 独立计时", () => {
     const buttons = () =>
       m.qa("button").filter((b) => b.textContent === "领取");
     await m.click(buttons()[0]);
-    await wait(15);
-    await m.click(buttons()[0]); // 第一批仍在展示中，领取第二个奖励
+    await wait(50); // 第一批仍在展示中，领取第二个奖励
+    await m.click(buttons()[0]);
 
     expect(m.text()).toContain("已领取：五元券");
     expect(m.text()).toContain("已领取：十元券");
 
-    await wait(55); // 距第一批 ~70ms，距第二批 ~55ms
+    // 轮询等待第一批（早 50ms 创建）先消失，避免固定 sleep 受 act 开销影响
+    for (let i = 0; i < 15 && m.text().includes("已领取：五元券"); i++) {
+      await wait(10);
+    }
     expect(m.text()).not.toContain("已领取：五元券");
     expect(m.text()).toContain("已领取：十元券");
 
-    await wait(30);
+    for (let i = 0; i < 15 && m.text().includes("已领取：十元券"); i++) {
+      await wait(10);
+    }
     expect(m.text()).not.toContain("已领取：十元券");
     m.unmount();
   });

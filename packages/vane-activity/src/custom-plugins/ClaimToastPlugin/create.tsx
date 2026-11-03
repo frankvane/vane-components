@@ -81,7 +81,7 @@ function ClaimToastLayer({
   position,
   message,
 }: {
-  ctx: ActivityPluginContext<any>;
+  ctx: ActivityPluginContext;
   durationMs: number;
   max: number;
   position: "bottom-right" | "top-center";
@@ -190,7 +190,7 @@ export const createClaimToastPlugin: PluginCreator<ClaimToastPluginConfig> = (
     priority: 55,
     config,
     hooks: {
-      renderOverlay: (context: ActivityPluginContext<any>) => (
+      renderOverlay: (context: ActivityPluginContext) => (
         <ClaimToastLayer
           ctx={context}
           durationMs={durationMs}

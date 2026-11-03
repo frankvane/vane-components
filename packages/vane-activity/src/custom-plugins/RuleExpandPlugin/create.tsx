@@ -28,7 +28,7 @@ function RulePanel({
   context,
   collapsedLines,
 }: {
-  context: ActivityPluginContext<any>;
+  context: ActivityPluginContext;
   collapsedLines: number;
 }) {
   const [open, setOpen] = useState(false);
@@ -112,7 +112,7 @@ export const createRuleExpandPlugin: PluginCreator<RuleExpandPluginConfig> = (
     exclusiveSlots: ["renderRules"],
     config,
     hooks: {
-      renderRules: (context: ActivityPluginContext<any>) => (
+      renderRules: (context: ActivityPluginContext) => (
         <RulePanel context={context} collapsedLines={collapsedLines} />
       ),
     },

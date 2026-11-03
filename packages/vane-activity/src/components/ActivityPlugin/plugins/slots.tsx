@@ -14,15 +14,18 @@
 
 import React, { createContext, useContext, useMemo } from "react";
 import { PluginErrorBoundary } from "vane-plugin-core";
+import type { Plugin } from "vane-plugin-core";
 import type {
+  ActivityCoreProps,
+  ActivityData,
   ActivityPlugin,
   ActivityPluginContext,
   ActivitySlotName,
 } from "./types";
 
 interface SlotContextValue {
-  orderedPlugins: ActivityPlugin<any>[];
-  context: ActivityPluginContext<any>;
+  orderedPlugins: ActivityPlugin<ActivityData>[];
+  context: ActivityPluginContext<ActivityData>;
 }
 
 const SlotContext = createContext<SlotContextValue | null>(null);
@@ -30,17 +33,21 @@ const SlotContext = createContext<SlotContextValue | null>(null);
 /**
  * 由 withPlugins 包在 WrappedComponent 外层，下发 orderedPlugins 与领域上下文。
  */
-export function ActivitySlotProvider({
+export function ActivitySlotProvider<T = ActivityData>({
   orderedPlugins,
   context,
   children,
 }: {
-  orderedPlugins: ActivityPlugin<any>[];
-  context: ActivityPluginContext<any>;
+  orderedPlugins: Plugin<ActivityCoreProps<T>, T>[];
+  context: ActivityPluginContext<T>;
   children: React.ReactNode;
 }) {
   const value = useMemo<SlotContextValue>(
-    () => ({ orderedPlugins, context }),
+    () => ({
+      // 泛型插件集合在槽位层统一按默认领域数据渲染；渲染只读 hooks + 排序字段。
+      orderedPlugins: orderedPlugins as unknown as ActivityPlugin<ActivityData>[],
+      context: context as unknown as ActivityPluginContext<ActivityData>,
+    }),
     [orderedPlugins, context]
   );
   return <SlotContext.Provider value={value}>{children}</SlotContext.Provider>;
@@ -51,14 +58,14 @@ export function ActivitySlotProvider({
  * orderedPlugins 数组引用由内核 useMemo 固定，故以它作 WeakMap key 不会泄漏。
  */
 const slotCache = new WeakMap<
-  ActivityPlugin<any>[],
-  Map<ActivitySlotName, ActivityPlugin<any>[]>
+  ActivityPlugin<ActivityData>[],
+  Map<ActivitySlotName, ActivityPlugin<ActivityData>[]>
 >();
 
 function resolveSlotPlugins(
-  plugins: ActivityPlugin<any>[],
+  plugins: ActivityPlugin<ActivityData>[],
   slot: ActivitySlotName
-): ActivityPlugin<any>[] {
+): ActivityPlugin<ActivityData>[] {
   let perHook = slotCache.get(plugins);
   if (!perHook) {
     perHook = new Map();
@@ -85,17 +92,20 @@ function resolveSlotPlugins(
  * 排序：config.order 升序（越小越靠前）→ priority 降序（越大越靠后）。
  */
 export function renderActivitySlot(
-  plugins: ActivityPlugin<any>[],
-  context: ActivityPluginContext<any>,
+  plugins: ActivityPlugin<ActivityData>[],
+  context: ActivityPluginContext<ActivityData>,
   slot: ActivitySlotName
 ): React.ReactNode[] {
   return resolveSlotPlugins(plugins, slot)
     .map((plugin, index) => {
       if (plugin.enabled === false) return null;
       try {
-        const fn = (plugin.hooks as Record<string, (ctx: any) => React.ReactNode>)[
-          slot
-        ];
+        const fn = (
+          plugin.hooks as Record<
+            string,
+            (ctx: ActivityPluginContext<ActivityData>) => React.ReactNode
+          >
+        )[slot];
         const node = fn(context);
         if (node === null || node === undefined) return null;
         return (
@@ -127,7 +137,7 @@ export function useActivitySlot(slot: ActivitySlotName): React.ReactNode[] {
  * 读取活动领域上下文（含 tasks / rewards / progress / claimedIds / claim 等）。
  * 插件组件通过它订阅派生数据，以实现领取后奖励状态重渲染。
  */
-export function useActivityContext<T = any>(): ActivityPluginContext<T> | null {
+export function useActivityContext<T = ActivityData>(): ActivityPluginContext<T> | null {
   const ctx = useContext(SlotContext);
   return (ctx?.context as ActivityPluginContext<T>) ?? null;
 }

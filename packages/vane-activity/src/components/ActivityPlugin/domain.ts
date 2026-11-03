@@ -19,22 +19,31 @@ export function computeProgress(tasks: ActivityTask[]): number {
   let total = 0;
   let done = 0;
   for (const t of tasks) {
-    const w = t.weight ?? 1;
+    // P2-1：接口可能给 NaN / Infinity / 负数权重，非法值回退为 1，避免进度变 NaN。
+    const rawWeight = t.weight ?? 1;
+    const w = Number.isFinite(rawWeight) && rawWeight > 0 ? rawWeight : 1;
     total += w;
     const p = Math.max(0, Math.min(1, Number.isFinite(t.progress) ? t.progress : 0));
     done += p * w;
   }
-  return total === 0 ? 0 : done / total;
+  const progress = total === 0 ? 0 : done / total;
+  return Number.isFinite(progress) ? Math.max(0, Math.min(1, progress)) : 0;
 }
 
-/** 单个奖励状态：已领取 > 进度达标可领 > 锁定 */
+/**
+ * 单个奖励状态：已领取 > 进度达标可领 > 锁定。
+ * P2-1：阈值夹取到 [0,1]；非有限值按 1 处理（宁可锁定，也不误放行）。
+ */
 export function deriveRewardStatus(
   reward: ActivityReward,
   progress: number,
   claimed: boolean
 ): ActivityRewardStatus {
   if (claimed) return "claimed";
-  return progress >= reward.threshold ? "claimable" : "locked";
+  const threshold = Number.isFinite(reward.threshold)
+    ? Math.max(0, Math.min(1, reward.threshold))
+    : 1;
+  return progress >= threshold ? "claimable" : "locked";
 }
 
 /** 批量派生奖励状态 */

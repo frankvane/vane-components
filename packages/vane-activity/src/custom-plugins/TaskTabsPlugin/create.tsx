@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import type { PluginCreator, PluginDoc } from "vane-plugin-core";
 import type {
   ActivityData,
@@ -46,7 +46,7 @@ function TaskTabs({
   doneLabel,
   emptyText,
 }: {
-  ctx: ActivityPluginContext<any>;
+  ctx: ActivityPluginContext;
   tabs: ActivityTaskGroup[];
   defaultTab?: string;
   showProgress: boolean;
@@ -59,9 +59,32 @@ function TaskTabs({
     dataTabs && dataTabs.length > 0 ? dataTabs : tabsProp.length > 0 ? tabsProp : [ALL_TAB];
   const tasks = (ctx.tasks ?? []) as ActivityTask[];
 
+  const baseId = React.useId();
   const [active, setActive] = useState(defaultTab ?? tabs[0].key);
   // 页签被外部换掉时回到第一个，避免停在已不存在的分组上
   const current = tabs.some((t) => t.key === active) ? active : tabs[0].key;
+
+  // P2-11：WAI-ARIA tabs 模式——方向键在页签间移动焦点并选中，Home/End 到两端。
+  const tabRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
+
+  const focusTab = (key: string) => {
+    tabRefs.current.get(key)?.focus();
+    setActive(key);
+  };
+  const onTabKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>, key: string) => {
+    const keys = tabs.map((t) => t.key);
+    const index = keys.indexOf(key);
+    if (index < 0) return;
+    let next: string | null = null;
+    if (event.key === "ArrowRight") next = keys[(index + 1) % keys.length];
+    else if (event.key === "ArrowLeft") next = keys[(index - 1 + keys.length) % keys.length];
+    else if (event.key === "Home") next = keys[0];
+    else if (event.key === "End") next = keys[keys.length - 1];
+    if (next !== null) {
+      event.preventDefault();
+      focusTab(next);
+    }
+  };
 
   const shown = current === "all" ? tasks : tasks.filter((t) => t.group === current);
 
@@ -80,11 +103,19 @@ function TaskTabs({
           return (
             <button
               key={tab.key}
+              ref={(el) => {
+                if (el) tabRefs.current.set(tab.key, el);
+                else tabRefs.current.delete(tab.key);
+              }}
               type="button"
               role="tab"
+              id={`${baseId}-tab-${tab.key}`}
               aria-selected={selected}
+              aria-controls={`${baseId}-panel`}
+              tabIndex={selected ? 0 : -1}
               data-testid="task-tab"
               onClick={() => setActive(tab.key)}
+              onKeyDown={(event) => onTabKeyDown(event, tab.key)}
               style={{
                 flex: "none",
                 display: "inline-flex",
@@ -112,7 +143,12 @@ function TaskTabs({
         })}
       </div>
 
-      <div style={{ marginTop: 10 }}>
+      <div
+        id={`${baseId}-panel`}
+        role="tabpanel"
+        aria-labelledby={`${baseId}-tab-${current}`}
+        style={{ marginTop: 10 }}
+      >
         {shown.length === 0 ? (
           <div
             style={{
@@ -128,7 +164,9 @@ function TaskTabs({
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {shown.map((task) => {
               const color = STATUS_COLOR[task.status];
-              const pct = Math.round((task.progress ?? 0) * 100);
+              const pct = Math.round(
+                Math.max(0, Math.min(1, task.progress ?? 0)) * 100
+              );
               return (
                 <div
                   key={task.id}
@@ -235,7 +273,7 @@ export const createTaskTabsPlugin: PluginCreator<TaskTabsPluginConfig> = (
     config,
     exclusiveSlots: ["renderTasks"],
     hooks: {
-      renderTasks: (context: ActivityPluginContext<any>) => {
+      renderTasks: (context: ActivityPluginContext) => {
         const tasks = (context.tasks ?? []) as ActivityTask[];
         if (tasks.length === 0) return null;
         return (

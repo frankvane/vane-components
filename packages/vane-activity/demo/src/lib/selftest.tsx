@@ -1,4 +1,4 @@
-import React from "react";
+import React, { act } from "react";
 import { createRoot } from "react-dom/client";
 import { flushSync } from "react-dom";
 import { ActivityCore, withPlugins } from "../../../src";
@@ -57,6 +57,33 @@ function ToastHarness({ data, onClaim }: { data: ActivityData; onClaim?: (id: st
 
 const tick = () => new Promise<void>((r) => setTimeout(r, 0));
 
+/**
+ * 浏览器里用 flushSync 保证同步渲染；测试环境（happy-dom）必须走 act，
+ * 否则 React 18 会对每次 setState 打 "An update ... was not wrapped in act(...)" 告警。
+ */
+const isActEnv = () =>
+  Boolean(
+    (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean })
+      .IS_REACT_ACT_ENVIRONMENT
+  );
+
+const flush = (fn: () => void) => {
+  if (isActEnv()) act(fn);
+  else flushSync(fn);
+};
+
+/** 点击/输入可能触发 async 更新，act 内要让微任务与下一拍计时器跑完再收尾 */
+const flushAsync = async (fn: () => void) => {
+  if (isActEnv()) {
+    await act(async () => {
+      fn();
+      await new Promise<void>((r) => setTimeout(r, 0));
+    });
+  } else {
+    flushSync(fn);
+  }
+};
+
 type Mounted = {
   host: HTMLDivElement;
   root: ReturnType<typeof createRoot>;
@@ -72,7 +99,7 @@ async function mount(ui: React.ReactElement): Promise<Mounted> {
   host.style.cssText = "position:fixed;left:0;top:0;width:420px;background:#fff";
   document.body.appendChild(host);
   const root = createRoot(host);
-  flushSync(() => root.render(ui));
+  flush(() => root.render(ui));
   await tick();
   return {
     host,
@@ -81,7 +108,7 @@ async function mount(ui: React.ReactElement): Promise<Mounted> {
     qa: (sel) => Array.from(host.querySelectorAll<HTMLElement>(sel)),
     text: () => host.textContent ?? "",
     clickEl: async (el) => {
-      flushSync(() => el.click());
+      await flushAsync(() => el.click());
       await tick();
     },
   };
@@ -160,7 +187,7 @@ export async function runSelfTest(): Promise<SelfTestResult> {
     if (ruleBtn) await t.clickEl(ruleBtn);
     ok("规则：点击后 aria-expanded=true", ruleBtn?.getAttribute("aria-expanded") === "true");
 
-    flushSync(() => t.root.unmount());
+    flush(() => t.root.unmount());
     t.host.remove();
   }
 
@@ -173,7 +200,7 @@ export async function runSelfTest(): Promise<SelfTestResult> {
       "全完成：触发「进度达成 100%」庆祝浮层",
       (froot?.textContent ?? "").includes("进度达成 100%")
     );
-    flushSync(() => f.root.unmount());
+    flush(() => f.root.unmount());
     f.host.remove();
   }
 
@@ -194,7 +221,7 @@ export async function runSelfTest(): Promise<SelfTestResult> {
       (root?.textContent ?? "").includes("已领取：5 元无门槛券")
     );
     ok("toast：role=status 可被读屏播报", t.qa('[role="status"]').length > 0);
-    flushSync(() => t.root.unmount());
+    flush(() => t.root.unmount());
     t.host.remove();
   }
 
@@ -213,7 +240,7 @@ export async function runSelfTest(): Promise<SelfTestResult> {
       "tabs：切到「成长」后显示浏览任务",
       (t.qa('[data-testid="activity-task"]')[0]?.textContent ?? "").includes("浏览会场")
     );
-    flushSync(() => t.root.unmount());
+    flush(() => t.root.unmount());
     t.host.remove();
 
     // 7b. CheckinCalendar：连续天数 + 乐观签到
@@ -226,7 +253,7 @@ export async function runSelfTest(): Promise<SelfTestResult> {
     ok("checkin：渲染可点的「今日签到」按钮", !!checkinBtn && !checkinBtn.disabled);
     if (checkinBtn) await c.clickEl(checkinBtn);
     ok("checkin：签到后推进到 4/7 天", (c.text() ?? "").includes("4/7 天"));
-    flushSync(() => c.root.unmount());
+    flush(() => c.root.unmount());
     c.host.remove();
 
     // 7c. Jackpot：点一次扣次数，抽完禁用
@@ -238,7 +265,7 @@ export async function runSelfTest(): Promise<SelfTestResult> {
     if (drawBtn) await j.clickEl(drawBtn);
     ok("jackpot：抽一次后剩余 0 次", (j.text() ?? "").includes("剩余 0 次"));
     ok("jackpot：按钮进入「抽取中」态", j.qa("button").some((b) => b.textContent === "抽取中"));
-    flushSync(() => j.root.unmount()); // 卸载即清理动画定时器
+    flush(() => j.root.unmount()); // 卸载即清理动画定时器
     j.host.remove();
 
     // 7d. RedeemCode：三层校验 + 失败回执
@@ -257,7 +284,7 @@ export async function runSelfTest(): Promise<SelfTestResult> {
 
     const setNativeValue = (el: HTMLInputElement, value: string) => {
       const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
-      flushSync(() => {
+      flush(() => {
         setter?.call(el, value);
         el.dispatchEvent(new Event("input", { bubbles: true }));
       });
@@ -269,7 +296,7 @@ export async function runSelfTest(): Promise<SelfTestResult> {
     setNativeValue(input, "vane-8888");
     await r.clickEl(r.qa("button").find((b) => b.textContent === "兑换")!);
     ok("redeem：正确码（小写自动归一）提示兑换成功", (r.text() ?? "").includes("兑换成功"));
-    flushSync(() => r.root.unmount());
+    flush(() => r.root.unmount());
     r.host.remove();
   }
 

@@ -58,14 +58,18 @@ const ActivityCore = forwardRef<ActivityCoreRef, ActivityCoreProps>(
             : { width: 0, height: 0 };
         },
       }),
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      [forceUpdate]
+      // P2-14：containerRef 切换后 ref 必须读到新容器，不能只依赖 forceUpdate。
+      [forceUpdate, containerRef]
     );
 
+    // P2-14：用 ref 保存最新回调，effect 保持单次挂载/卸载，但不再使用首次闭包。
+    const onMountRef = useRef(onMount);
+    const onUnmountRef = useRef(onUnmount);
+    onMountRef.current = onMount;
+    onUnmountRef.current = onUnmount;
     useEffect(() => {
-      onMount?.();
-      return () => onUnmount?.();
-      // eslint-disable-next-line react-hooks/exhaustive-deps
+      onMountRef.current?.();
+      return () => onUnmountRef.current?.();
     }, []);
 
     const activity = data as ActivityData | undefined;
@@ -133,10 +137,12 @@ const ActivityCore = forwardRef<ActivityCoreRef, ActivityCoreProps>(
                 {rewardsSlot}
               </div>
             )}
-            {rulesSlot.length > 0 && (
-              <div className="va-rules">{rulesSlot}</div>
-            )}
           </>
+        )}
+
+        {/* P2-3：规则槽不依赖任务，空任务活动也要能展示规则 */}
+        {!loading && rulesSlot.length > 0 && (
+          <div className="va-rules">{rulesSlot}</div>
         )}
 
         {footerSlot.length > 0 && (
@@ -146,6 +152,10 @@ const ActivityCore = forwardRef<ActivityCoreRef, ActivityCoreProps>(
         )}
 
         {overlaySlot.length > 0 && (
+          /*
+           * P2-4：浮层默认 pointer-events:none，保证不挡下层交互。
+           * 需要可点击/可输入的浮层插件必须在自身根节点显式覆盖 pointerEvents。
+           */
           <div
             className="va-overlay"
             style={{ position: "absolute", inset: 0, pointerEvents: "none" }}

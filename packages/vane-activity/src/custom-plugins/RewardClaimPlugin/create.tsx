@@ -43,7 +43,7 @@ export const createRewardClaimPlugin: PluginCreator<RewardClaimPluginConfig> = (
     exclusiveSlots: ["renderRewards"],
     config,
     hooks: {
-      renderRewards: (context: ActivityPluginContext<any>) => {
+      renderRewards: (context: ActivityPluginContext) => {
         const rewards = (context.rewards ?? []) as ActivityRewardWithStatus[];
         if (rewards.length === 0) return null;
         return (

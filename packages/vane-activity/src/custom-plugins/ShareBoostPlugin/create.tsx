@@ -21,6 +21,12 @@ export interface ShareBoostPluginConfig extends ActivityPluginConfigBase {
   maxAvatars?: number;
 }
 
+/** P2-5：总量/已用/头像数量都做上限夹取，避免接口脏数据渲染上百段。 */
+function clampInt(value: number, min: number, max: number, fallback: number): number {
+  const n = Number.isFinite(value) ? value : fallback;
+  return Math.max(min, Math.min(max, Math.floor(n)));
+}
+
 function ShareBoostBar({
   ctx,
   title,
@@ -29,7 +35,7 @@ function ShareBoostBar({
   onInvite,
   maxAvatars,
 }: {
-  ctx: ActivityPluginContext<any>;
+  ctx: ActivityPluginContext;
   title: string;
   total: number;
   used: number;
@@ -37,18 +43,22 @@ function ShareBoostBar({
   maxAvatars: number;
 }) {
   const share = (ctx.data as ActivityData | undefined)?.share as ActivityShareState | undefined;
-  const total = share?.total ?? totalProp;
-  const baseUsed = share?.used ?? usedProp;
+  const total = clampInt(share?.total ?? totalProp, 0, 20, 3);
+  const baseUsed = clampInt(share?.used ?? usedProp, 0, total, 0);
   const [used, setUsed] = useState(baseUsed);
 
   // 业务侧回写 data.share.used 后同步本地乐观态
   useEffect(() => setUsed(baseUsed), [baseUsed]);
 
-  const helpers = share?.helpers ?? [];
+  const rawHelpers = share?.helpers;
+  const helpers = Array.isArray(rawHelpers)
+    ? rawHelpers.filter((h) => h && typeof h === "object")
+    : [];
   const capped = Math.min(used, total);
   const full = capped >= total;
-  const shown = helpers.slice(0, maxAvatars);
-  const overflow = helpers.length - shown.length;
+  const avatarLimit = clampInt(maxAvatars, 0, 10, 5);
+  const shown = helpers.slice(0, avatarLimit);
+  const overflow = Math.max(0, helpers.length - shown.length);
 
   const handleInvite = () => {
     if (full) return;
@@ -102,8 +112,8 @@ function ShareBoostBar({
         <div style={{ display: "flex", flex: 1, alignItems: "center", minWidth: 0 }}>
           {shown.map((h, i) => (
             <span
-              key={h.id}
-              title={h.name}
+              key={h.id ?? `helper-${i}`}
+              title={h.name ?? ""}
               style={{
                 width: 26,
                 height: 26,
@@ -119,7 +129,7 @@ function ShareBoostBar({
                 whiteSpace: "nowrap",
               }}
             >
-              {h.avatar ?? h.name.slice(0, 1)}
+              {h.avatar ?? (h.name ? String(h.name).slice(0, 1) : "?")}
             </span>
           ))}
           {overflow > 0 && (
@@ -188,7 +198,7 @@ export const createShareBoostPlugin: PluginCreator<ShareBoostPluginConfig> = (
     priority: 20,
     config,
     hooks: {
-      renderFooter: (context: ActivityPluginContext<any>) => (
+      renderFooter: (context: ActivityPluginContext) => (
         <ShareBoostBar
           ctx={context}
           title={title}

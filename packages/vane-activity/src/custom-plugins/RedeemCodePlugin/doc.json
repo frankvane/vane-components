@@ -36,9 +36,9 @@
     },
     {
       "name": "onRedeem",
-      "type": "(code: string) => boolean | void",
+      "type": "(code: string) => boolean | void | Promise<boolean | void>",
       "default": "undefined",
-      "description": "兑换回调，入参是 trim + 转大写后的码；返回 false 表示无效码，组件展示失败文案"
+      "description": "兑换回调，入参是 trim + 转大写后的码；返回 false 表示无效码；支持异步，等待期按钮禁用"
     },
     {
       "name": "order",
@@ -51,7 +51,7 @@
     {
       "name": "onRedeem",
       "when": "表单提交（点「兑换」或回车）且本地校验全部通过后",
-      "description": "把规范化后的兑换码交给业务侧核销；返回 false 则视为无效，界面转失败态"
+      "description": "把规范化后的兑换码交给业务侧核销；返回 false 视为无效，异常转失败文案"
     },
     {
       "name": "renderRewards",
@@ -63,7 +63,7 @@
     {
       "name": "内部 handleSubmit(event)",
       "signature": "(event: React.FormEvent) => void",
-      "description": "阻止表单默认提交 → trim/大写 → 空值 / 长度 / 前缀三重校验 → 调 onRedeem"
+      "description": "阻止默认提交 → trim/大写 → 三重校验 → await onRedeem，期间 pending 禁点"
     }
   ],
   "methodsNote": "无对外命令式方法。输入变化即清除上一条回执，避免旧错误提示压在新输入上。",
@@ -71,6 +71,7 @@
     "回车可直接提交（form onSubmit，不绑 keydown）",
     "三层本地校验：非空 → 最短长度 → 前缀，错误文案各自独立",
     "onRedeem 返回 false 时展示「兑换码无效或已被使用」，成功则清空输入",
+    "支持 Promise 回调：请求中按钮禁用并显示「兑换中」，卸载后丢弃回包",
     "错误边框 #b42318 + aria-invalid + aria-live 文案，不靠颜色单独传达错误"
   ],
   "useCases": ["线下物料码核销", "客服补发兑换码", "渠道专属码"],

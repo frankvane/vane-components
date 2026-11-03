@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import type { PluginCreator, PluginDoc } from "vane-plugin-core";
 import type {
   ActivityPluginConfigBase,
@@ -17,8 +17,8 @@ export interface RedeemCodePluginConfig extends ActivityPluginConfigBase {
   placeholder?: string;
   /** 兑换成功文案（默认「兑换成功，奖励已入账」） */
   successText?: string;
-  /** 兑换回调；返回 false 视为无效码，组件展示失败文案 */
-  onRedeem?: (code: string) => boolean | void;
+  /** 兑换回调；返回 false（或 Promise<false>）视为无效码；抛错展示失败文案 */
+  onRedeem?: (code: string) => boolean | void | Promise<boolean | void>;
 }
 
 function RedeemForm({
@@ -34,13 +34,22 @@ function RedeemForm({
   minLength: number;
   placeholder: string;
   successText: string;
-  onRedeem?: (code: string) => boolean | void;
+  onRedeem?: (code: string) => boolean | void | Promise<boolean | void>;
 }) {
   const [code, setCode] = useState("");
   const [msg, setMsg] = useState<{ type: "ok" | "error"; text: string } | null>(null);
+  const [pending, setPending] = useState(false);
+  const alive = useRef(true);
+  useEffect(() => {
+    alive.current = true;
+    return () => {
+      alive.current = false;
+    };
+  }, []);
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (pending) return;
     const value = code.trim().toUpperCase();
 
     if (!value) {
@@ -56,13 +65,24 @@ function RedeemForm({
       return;
     }
 
-    const ok = onRedeem?.(value);
-    if (ok === false) {
-      setMsg({ type: "error", text: "兑换码无效或已被使用" });
-      return;
+    // P2-13：支持 Promise；等待期间禁用提交，卸载后丢弃回包。
+    setPending(true);
+    try {
+      const ok = await onRedeem?.(value);
+      if (!alive.current) return;
+      if (ok === false) {
+        setMsg({ type: "error", text: "兑换码无效或已被使用" });
+        return;
+      }
+      setMsg({ type: "ok", text: successText });
+      setCode("");
+    } catch {
+      if (alive.current) {
+        setMsg({ type: "error", text: "兑换失败，请稍后重试" });
+      }
+    } finally {
+      if (alive.current) setPending(false);
     }
-    setMsg({ type: "ok", text: successText });
-    setCode("");
   };
 
   const invalid = msg?.type === "error";
@@ -119,6 +139,7 @@ function RedeemForm({
         />
         <button
           type="submit"
+          disabled={pending}
           style={{
             flex: "none",
             border: "none",
@@ -127,12 +148,12 @@ function RedeemForm({
             height: 34,
             fontSize: 13,
             fontWeight: 600,
-            background: "#cf4407",
+            background: pending ? "#a33a06" : "#cf4407",
             color: "#fff",
-            cursor: "pointer",
+            cursor: pending ? "default" : "pointer",
           }}
         >
-          兑换
+          {pending ? "兑换中" : "兑换"}
         </button>
       </form>
 
@@ -179,7 +200,7 @@ export const createRedeemCodePlugin: PluginCreator<RedeemCodePluginConfig> = (
     priority: 26,
     config,
     hooks: {
-      renderRewards: (_context: ActivityPluginContext<any>) => (
+      renderRewards: (_context: ActivityPluginContext) => (
         <RedeemForm
           title={title}
           prefix={prefix}

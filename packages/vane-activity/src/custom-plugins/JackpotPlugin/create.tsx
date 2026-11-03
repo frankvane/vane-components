@@ -132,7 +132,11 @@ function JackpotCard({
   const [drawing, setDrawing] = useState(false);
   const [result, setResult] = useState<string | null>(null);
   // 受控优先：remainingTimes 传入时以宿主/服务端为准，组件不自行递减。
-  const remaining = remainingTimes ?? localRemaining;
+  // P2-5：次数夹到 0..999，脏数据（NaN / 负数 / 超大值）不参与按钮状态判断。
+  const rawRemaining = remainingTimes ?? localRemaining;
+  const remaining = Number.isFinite(rawRemaining)
+    ? Math.max(0, Math.min(999, Math.floor(rawRemaining)))
+    : 0;
 
   // 抽奖过程是一串 setTimeout；卸载必须清干净，否则会对着已卸载组件 setState
   const timers = useRef<number[]>([]);
@@ -310,7 +314,7 @@ export const createJackpotPlugin: PluginCreator<JackpotPluginConfig> = (
     priority: 24,
     config,
     hooks: {
-      renderFooter: (_context: ActivityPluginContext<any>) => (
+      renderFooter: (_context: ActivityPluginContext) => (
         <JackpotCard
           title={title}
           prizes={prizes}

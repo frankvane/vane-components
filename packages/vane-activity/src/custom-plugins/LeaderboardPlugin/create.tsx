@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import type { PluginCreator, PluginDoc } from "vane-plugin-core";
 import type {
   ActivityData,
@@ -126,6 +126,127 @@ function LeaderRow({
   );
 }
 
+/** P2-10：脏数据兜底：非数组返回 []，缺 id / name / score 的条目补默认值。 */
+function normalizeEntries(raw: unknown): ActivityLeaderboardEntry[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .filter((entry): entry is Record<string, unknown> => !!entry && typeof entry === "object")
+    .map((entry, i) => {
+      const score = Number(entry.score);
+      return {
+        id: String(entry.id ?? `entry-${i}`),
+        name: String(entry.name ?? "?"),
+        score: Number.isFinite(score) ? score : 0,
+        avatar: typeof entry.avatar === "string" ? entry.avatar : undefined,
+        isMe: !!entry.isMe,
+      };
+    });
+}
+
+function LeaderboardPanel({
+  ctx,
+  title,
+  topN,
+  unit,
+  highlightMe,
+  emptyText,
+}: {
+  ctx: ActivityPluginContext;
+  title: string;
+  topN: number;
+  unit: string;
+  highlightMe: boolean;
+  emptyText: string;
+}) {
+  const raw = (ctx.data as ActivityData | undefined)?.leaderboard;
+  // P2-9：排序与截取放进 useMemo，避免每次渲染全量 sort；slice 不改原数组。
+  const all = useMemo(
+    () => normalizeEntries(raw).sort((a, b) => b.score - a.score),
+    [raw]
+  );
+  // P2-5：topN 夹到 1..50，避免脏配置切出空榜或渲染过长。
+  const limit = Math.max(1, Math.min(50, Math.floor(Number.isFinite(topN) ? topN : 3)));
+
+  if (all.length === 0) {
+    return (
+      <section
+        aria-label={title}
+        style={{
+          padding: "12px 14px",
+          borderRadius: 12,
+          border: "1px solid rgba(128,128,128,0.18)",
+          fontSize: 13,
+          color: "#5d636a",
+        }}
+      >
+        {emptyText}
+      </section>
+    );
+  }
+
+  const top = all.slice(0, limit);
+  const myIndex = all.findIndex((e) => e.isMe);
+  const meOutside = highlightMe && myIndex >= limit;
+
+  return (
+    <section
+      aria-label={title}
+      style={{
+        padding: "12px 14px",
+        borderRadius: 12,
+        border: "1px solid rgba(128,128,128,0.18)",
+        background: "#fff",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "baseline",
+          gap: 8,
+          marginBottom: 6,
+        }}
+      >
+        <span style={{ fontSize: 14, fontWeight: 600, color: "#1f2328" }}>{title}</span>
+        <span style={{ fontSize: 12, color: "#5d636a" }}>
+          共 {all.length} 人参与
+        </span>
+      </div>
+
+      <ol style={{ margin: 0, padding: 0, listStyle: "none" }}>
+        {top.map((entry, i) => (
+          <LeaderRow
+            key={`${entry.id}-${i}`}
+            entry={entry}
+            rank={i + 1}
+            unit={unit}
+            highlightMe={highlightMe}
+          />
+        ))}
+      </ol>
+
+      {meOutside && (
+        <>
+          <div
+            aria-hidden="true"
+            style={{
+              margin: "6px 0",
+              borderTop: "1px dashed rgba(128,128,128,0.3)",
+            }}
+          />
+          <ol style={{ margin: 0, padding: 0, listStyle: "none" }}>
+            <LeaderRow
+              entry={all[myIndex]}
+              rank={myIndex + 1}
+              unit={unit}
+              highlightMe={highlightMe}
+            />
+          </ol>
+        </>
+      )}
+    </section>
+  );
+}
+
 /**
  * LeaderboardPlugin - 好友榜：按 score 降序取前 topN，第一名强调橙名次牌，
  * isMe 行浅橙底高亮并带「我」标签；自己不在前 topN 时在底部单独补一行真实名次。
@@ -143,88 +264,16 @@ export const createLeaderboardPlugin: PluginCreator<LeaderboardPluginConfig> = (
     priority: 25,
     config,
     hooks: {
-      renderFooter: (context: ActivityPluginContext<any>) => {
-        const all = [...(((context.data as ActivityData | undefined)?.leaderboard ?? []) as
-          ActivityLeaderboardEntry[])].sort((a, b) => b.score - a.score);
-        if (all.length === 0) {
-          return (
-            <section
-              aria-label={title}
-              style={{
-                padding: "12px 14px",
-                borderRadius: 12,
-                border: "1px solid rgba(128,128,128,0.18)",
-                fontSize: 13,
-                color: "#5d636a",
-              }}
-            >
-              {emptyText}
-            </section>
-          );
-        }
-
-        const top = all.slice(0, topN);
-        const myIndex = all.findIndex((e) => e.isMe);
-        const meOutside = highlightMe && myIndex >= topN;
-
-        return (
-          <section
-            aria-label={title}
-            style={{
-              padding: "12px 14px",
-              borderRadius: 12,
-              border: "1px solid rgba(128,128,128,0.18)",
-              background: "#fff",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "baseline",
-                gap: 8,
-                marginBottom: 6,
-              }}
-            >
-              <span style={{ fontSize: 14, fontWeight: 600, color: "#1f2328" }}>{title}</span>
-              <span style={{ fontSize: 12, color: "#5d636a" }}>
-                共 {all.length} 人参与
-              </span>
-            </div>
-
-            <ol style={{ margin: 0, padding: 0, listStyle: "none" }}>
-              {top.map((entry, i) => (
-                <LeaderRow
-                  key={entry.id}
-                  entry={entry}
-                  rank={i + 1}
-                  unit={unit}
-                  highlightMe={highlightMe}
-                />
-              ))}
-            </ol>
-
-            {meOutside && (
-              <>
-                <div
-                  aria-hidden="true"
-                  style={{
-                    margin: "6px 0",
-                    borderTop: "1px dashed rgba(128,128,128,0.3)",
-                  }}
-                />
-                <ol style={{ margin: 0, padding: 0, listStyle: "none" }}>
-                  <LeaderRow
-                    entry={all[myIndex]}
-                    rank={myIndex + 1}
-                    unit={unit}
-                    highlightMe={highlightMe}
-                  />
-                </ol>
-              </>
-            )}
-          </section>
-        );
-      },
+      renderFooter: (context: ActivityPluginContext) => (
+        <LeaderboardPanel
+          ctx={context}
+          title={title}
+          topN={topN}
+          unit={unit}
+          highlightMe={highlightMe}
+          emptyText={emptyText}
+        />
+      ),
     },
   };
 };

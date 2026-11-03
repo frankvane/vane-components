@@ -17,7 +17,7 @@
 
 import React, { forwardRef, useCallback, useEffect, useMemo, useRef } from "react";
 import { usePluginRuntime } from "vane-plugin-core";
-import type { WithPluginsConfig } from "vane-plugin-core";
+import type { PluginContext, PluginHooks, WithPluginsConfig } from "vane-plugin-core";
 import type {
   ActivityCoreProps,
   ActivityCoreRef,
@@ -50,7 +50,7 @@ function normalizeActivityData(
   };
 }
 
-export function withPlugins<T = any>(
+export function withPlugins<T = ActivityData>(
   WrappedComponent: React.ForwardRefExoticComponent<
     React.PropsWithoutRef<ActivityCoreProps<T>> & React.RefAttributes<ActivityCoreRef>
   >,
@@ -76,9 +76,14 @@ export function withPlugins<T = any>(
   const WithPluginsComponent = forwardRef<ActivityCoreRef, ActivityCoreProps<T>>(
     (props, ref) => {
       const containerRef = useRef<HTMLDivElement | null>(null);
+      const onClaim = props.onClaim;
 
+      type RuntimeContext = PluginContext<ActivityCoreProps<T>, T>;
       // 内核要求稳定引用，否则每次渲染都会重建 context。
-      const extendContext = useCallback((base: any): any => base, []);
+      const extendContext = useCallback(
+        (base: RuntimeContext): RuntimeContext => base,
+        []
+      );
 
       const runtime = usePluginRuntime<ActivityCoreProps<T>, T>({
         plugins,
@@ -161,9 +166,9 @@ export function withPlugins<T = any>(
           if (!controlled) {
             runtime.setState({ claimedIds: next });
           }
-          props.onClaim?.(rewardId);
+          onClaim?.(rewardId);
         },
-        [controlled, props.onClaim, rewardMap, runtime]
+        [controlled, onClaim, rewardMap, runtime]
       );
 
       // 宿主回写（或非受控 setState）后解除 in-flight；受控但未回写时保持锁定，
@@ -174,8 +179,10 @@ export function withPlugins<T = any>(
       }, [claimedIds.join("|")]);
 
       const execute = useCallback(
-        (hookName: string, ...args: unknown[]) =>
-          runtime.execute(hookName as any, ...args),
+        (
+          hookName: keyof PluginHooks<ActivityCoreProps<T>, T>,
+          ...args: unknown[]
+        ) => runtime.execute(hookName, ...args),
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [runtime.manager]
       );
@@ -217,7 +224,7 @@ export function withPlugins<T = any>(
 
       return (
         <ActivitySlotProvider
-          orderedPlugins={runtime.orderedPlugins as unknown as ActivityPlugin<any>[]}
+          orderedPlugins={runtime.orderedPlugins}
           context={domainContext}
         >
           <WrappedComponent

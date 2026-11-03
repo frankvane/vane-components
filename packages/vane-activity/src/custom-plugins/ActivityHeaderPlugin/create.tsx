@@ -50,7 +50,7 @@ export const createActivityHeaderPlugin: PluginCreator<ActivityHeaderPluginConfi
     priority: 5,
     config,
     hooks: {
-      renderHeader: (context: ActivityPluginContext<any>) => {
+      renderHeader: (context: ActivityPluginContext) => {
         const dataTitle = (context.data as { title?: string } | undefined)?.title;
         const heading = title ?? dataTitle;
         if (!heading && !subtitle) return null;
@@ -143,9 +143,9 @@ export const createActivityHeaderPlugin: PluginCreator<ActivityHeaderPluginConfi
                     justifyContent: align === "center" ? "center" : "flex-start",
                   }}
                 >
-                  {tags.map((tag) => (
+                  {tags.map((tag, i) => (
                     <li
-                      key={tag}
+                      key={`${tag}-${i}`}
                       style={{
                         padding: "2px 8px",
                         borderRadius: 6,

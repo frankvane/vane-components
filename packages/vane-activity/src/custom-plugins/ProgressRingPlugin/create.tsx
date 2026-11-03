@@ -43,7 +43,7 @@ export const createProgressRingPlugin: PluginCreator<ProgressRingPluginConfig> =
     priority: 15,
     config,
     hooks: {
-      renderProgress: (context: ActivityPluginContext<any>) => {
+      renderProgress: (context: ActivityPluginContext) => {
         const progress = Math.min(1, Math.max(0, context.progress ?? 0));
         const tasks = context.tasks ?? [];
         const rewards = context.rewards ?? [];

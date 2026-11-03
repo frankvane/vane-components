@@ -1,6 +1,5 @@
-import React from "react";
+import React, { act } from "react";
 import { createRoot } from "react-dom/client";
-import { flushSync } from "react-dom";
 import { afterAll, describe, expect, it } from "vitest";
 import { ActivityCore, withPlugins } from "../src";
 import type { ActivityData } from "../src";
@@ -17,7 +16,14 @@ import { createRedeemCodePlugin } from "../src/custom-plugins/RedeemCodePlugin";
  * 不 mock 组件内部状态，也不读实现细节。
  */
 
-const tick = () => new Promise<void>((r) => setTimeout(r, 0));
+(globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean })
+  .IS_REACT_ACT_ENVIRONMENT = true;
+
+/** 等待一轮宏任务；用 act 包住异步更新，避免测试输出 act 告警噪声 */
+const tick = () =>
+  act(async () => {
+    await new Promise<void>((r) => setTimeout(r, 0));
+  });
 
 type Mounted = {
   host: HTMLDivElement;
@@ -34,7 +40,7 @@ async function mount(ui: React.ReactElement): Promise<Mounted> {
   const host = document.createElement("div");
   document.body.appendChild(host);
   const root = createRoot(host);
-  flushSync(() => root.render(ui));
+  act(() => root.render(ui));
   await tick();
   return {
     host,
@@ -44,7 +50,11 @@ async function mount(ui: React.ReactElement): Promise<Mounted> {
     q: (sel) => host.querySelector<HTMLElement>(sel),
     click: async (el) => {
       if (!el) throw new Error("目标元素不存在");
-      flushSync(() => el.click());
+      await act(async () => {
+        el.click();
+        // 让 async 处理函数里的 await 继续执行完，再统一 flush
+        await new Promise<void>((r) => setTimeout(r, 0));
+      });
       await tick();
     },
     type: async (el, value) => {
@@ -53,14 +63,14 @@ async function mount(ui: React.ReactElement): Promise<Mounted> {
         HTMLInputElement.prototype,
         "value"
       )?.set;
-      flushSync(() => {
+      await act(async () => {
         setter?.call(el, value);
         el.dispatchEvent(new Event("input", { bubbles: true }));
       });
       await tick();
     },
     unmount: () => {
-      flushSync(() => root.unmount());
+      act(() => root.unmount());
       host.remove();
     },
   };

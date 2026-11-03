@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import type { PluginCreator, PluginDoc } from "vane-plugin-core";
 import type {
   ActivityPluginContext,
@@ -25,13 +25,58 @@ function normalizeRules(
 
 /** 模块级组件：身份稳定，开合状态自持（creator 调用时闭包传入文案配置） */
 function RuleModalTrigger(props: {
-  context: ActivityPluginContext<any>;
+  context: ActivityPluginContext;
   triggerLabel: string;
   title: string;
   maxWidth: number;
 }) {
   const { context, triggerLabel, title, maxWidth } = props;
   const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+
+  // P1-6：Esc 关闭、初始焦点、Tab 焦点环、滚动锁、关闭后焦点还原。
+  useEffect(() => {
+    if (!open) return;
+    const prevOverflow = document.body.style.overflow;
+    const prevFocus = document.activeElement as HTMLElement | null;
+    const trigger = triggerRef.current;
+    document.body.style.overflow = "hidden";
+    closeRef.current?.focus();
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setOpen(false);
+        return;
+      }
+      if (event.key !== "Tab" || !dialogRef.current) return;
+      const focusables = dialogRef.current.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusables.length === 0) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = prevOverflow;
+      // 关闭后回到触发按钮；若触发按钮已卸载则退回先前焦点元素
+      if (trigger?.isConnected) trigger.focus();
+      else prevFocus?.focus?.();
+    };
+  }, [open]);
+
   const rules = normalizeRules(
     (context.data as { rules?: string | ActivityRule[] } | undefined)?.rules
   );
@@ -40,6 +85,7 @@ function RuleModalTrigger(props: {
   return (
     <>
       <button
+        ref={triggerRef}
         type="button"
         aria-haspopup="dialog"
         aria-expanded={open}
@@ -59,6 +105,7 @@ function RuleModalTrigger(props: {
 
       {open && (
         <div
+          ref={dialogRef}
           role="dialog"
           aria-modal="true"
           aria-label={title}
@@ -97,6 +144,7 @@ function RuleModalTrigger(props: {
             >
               <strong style={{ fontSize: 15, color: "#1f2328" }}>{title}</strong>
               <button
+                ref={closeRef}
                 type="button"
                 aria-label="关闭"
                 onClick={() => setOpen(false)}
@@ -150,7 +198,7 @@ export const createRuleModalPlugin: PluginCreator<RuleModalPluginConfig> = (
     exclusiveSlots: ["renderRules"],
     config,
     hooks: {
-      renderRules: (context: ActivityPluginContext<any>) => (
+      renderRules: (context: ActivityPluginContext) => (
         <RuleModalTrigger
           context={context}
           triggerLabel={triggerLabel}

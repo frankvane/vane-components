@@ -157,16 +157,16 @@
       "./custom-plugins/ConfettiPlugin": 3,
       "./custom-plugins/ActivityHeaderPlugin": 3,
       "./custom-plugins/ClaimToastPlugin": 3,
-      "./custom-plugins/ShareBoostPlugin": 3,
-      "./custom-plugins/LeaderboardPlugin": 3,
+      "./custom-plugins/ShareBoostPlugin": 3.2,
+      "./custom-plugins/LeaderboardPlugin": 3.2,
       "./custom-plugins/AnnouncementPlugin": 3,
       "./custom-plugins/CheckinCalendarPlugin": 3.5,
-      "./custom-plugins/TaskTabsPlugin": 3.5,
-      "./custom-plugins/JackpotPlugin": 4,
+      "./custom-plugins/TaskTabsPlugin": 3.8,
+      "./custom-plugins/JackpotPlugin": 4.2,
       "./custom-plugins/RedeemCodePlugin": 3.5
     },
-    "fullSizeBudgetKb": 38,
-    "sizeBudgetNote": "Announcement/Checkin/TaskTabs/Jackpot/RedeemCode 五个交互型插件高于 3KB 基线：内联样式密集（九宫格 / 表单 / 页签）+ 抽奖动画状态机。基线仍是 3KB，其余 15 个插件均未放宽。"
+    "fullSizeBudgetKb": 40,
+    "sizeBudgetNote": "Announcement/Checkin/TaskTabs/Jackpot/RedeemCode 五个交互型插件高于 3KB 基线：内联样式密集（九宫格 / 表单 / 页签）+ 抽奖动画状态机。基线仍是 3KB，其余 15 个插件均未放宽。ShareBoost/Leaderboard/TaskTabs/Jackpot 各 +0.2~0.3KB：审计修复新增脏数据归一化、键盘导航与配置夹取逻辑；全量并集 38→40KB 同理。"
   },
   "peerDependencies": {
     "react": ">=16.8.0",

@@ -206,6 +206,7 @@ export interface ActivityPluginContext<T = ActivityData>
  *   renderRules（规则折叠面板）
  *   renderFooter （活动底部：助力/榜单等社交区）
  * renderOverlay 复用内核钩子（浮层特效：达成庆祝 / 领取 toast）。
+ * 注意：浮层容器默认 `pointer-events: none`；可交互浮层需在自身根节点显式覆盖。
  */
 export interface ActivityPluginHooks<T = ActivityData>
   extends PluginHooks<ActivityCoreProps<T>, T> {
@@ -250,7 +251,7 @@ export interface ActivityPlugin<T = ActivityData>
 }
 
 /** 插件工厂：可调用 + 挂载 meta，供文档生成与 demo 导航使用 */
-export type ActivityPluginCreator<Config = any, T = ActivityData> = PluginCreator<
+export type ActivityPluginCreator<Config = unknown, T = ActivityData> = PluginCreator<
   Config,
   ActivityCoreProps<T>,
   T
