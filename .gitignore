@@ -28,3 +28,6 @@ archive-plugins/
 
 # Lighthouse 工具工作目录（含 .lhignore/.npmrc.json，非源码资产）
 .lh/
+
+# 验收截图（临时取证，非源码资产）
+demo-shots/
