@@ -75,17 +75,9 @@ export const createBatchOpPlugin: CandidatePluginCreator<BatchOpConfig> = (
                   onChange={(e) => {
                     const target = e.target.value;
                     if (!target) return;
-                    for (const id of selected) {
-                      const c = candidates.find((x) => x.id === id);
-                      if (!c) continue;
-                      const from = stages.findIndex((s) => s.key === c.stage);
-                      const to = stages.findIndex((s) => s.key === target);
-                      if (from >= 0 && to >= 0) {
-                        ctx.moveCandidate(id, to - from);
-                      } else {
-                        ctx.updateCandidate(id, { stage: target });
-                      }
-                    }
+                    // 目标阶段直给 + 单次聚合落态（不走 delta 换算，杜绝阶段表错位；
+                    // 只广播一次 candidate:change / 触发一次 onDataChange）
+                    ctx.moveCandidatesTo(selected, target);
                     ctx.setState({ batchSelected: [] });
                   }}
                   style={{
@@ -107,9 +99,10 @@ export const createBatchOpPlugin: CandidatePluginCreator<BatchOpConfig> = (
                   disabled={selected.length === 0}
                   aria-label={`归档已选 ${selected.length} 位候选人`}
                   onClick={() => {
-                    for (const id of selected) {
-                      ctx.updateCandidate(id, { archived: true });
-                    }
+                    // 批量聚合更新：单次落态 + 单次回调，避免逐条 emit
+                    ctx.updateCandidates(
+                      selected.map((id) => ({ id, patch: { archived: true } }))
+                    );
                     ctx.setState({ batchSelected: [] });
                   }}
                   style={{

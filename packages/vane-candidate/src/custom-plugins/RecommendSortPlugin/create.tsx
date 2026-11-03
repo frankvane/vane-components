@@ -44,7 +44,8 @@ export const createRecommendSortPlugin: CandidatePluginCreator<RecommendSortConf
             const sa = a.score ?? -1;
             const sb = b.score ?? -1;
             if (sa !== sb) return (sa - sb) * dir;
-            return (parseTime(a.appliedAt) - parseTime(b.appliedAt)) * -dir;
+            // 分数并列：与主排序同向（desc 时新投递在前）
+            return (parseTime(a.appliedAt) - parseTime(b.appliedAt)) * dir;
           }
           return (parseTime(a.appliedAt) - parseTime(b.appliedAt)) * dir;
         });

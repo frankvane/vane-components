@@ -48,23 +48,41 @@ export function patchMeaningful(patch: Partial<Candidate>): boolean {
   return Object.keys(patch).length > 0;
 }
 
-/** CSV 单元格转义（引号包裹 + 内部引号翻倍），防注入公式前缀 ' */
+/**
+ * CSV 单元格转义（引号包裹 + 内部引号翻倍），防公式注入前缀 '。
+ * 数值类型不当前缀处理（避免破坏负数）；`\t`/`\r` 同属 Excel 可执行前缀一并防护。
+ */
 export function csvCell(value: unknown): string {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return `"${value}"`;
+  }
   const text = value === null || value === undefined ? "" : String(value);
-  const safe = /^[=+\-@]/.test(text) ? `'${text}` : text;
+  const safe = /^[=+\-@\t\r]/.test(text) ? `'${text}` : text;
   return `"${safe.replace(/"/g, '""')}"`;
 }
 
-/** 手机号脱敏：保留前 3 后 4 */
+/**
+ * 手机号脱敏：保留前 3 后 4。
+ * 兼容 +86 / 横线 / 空格等格式（先提取数字）；无法提取足够数字时按星号比例
+ * 掩码兜底——绝不原样透出（静默脱敏失效即 PII 泄露）。
+ */
 export function maskPhone(phone?: string): string | undefined {
   if (!phone) return phone;
-  return phone.replace(/^(\d{3})\d*(\d{4})$/, "$1****$2");
+  const digits = phone.replace(/\D/g, "");
+  if (digits.length < 7) return "*".repeat(Math.max(digits.length, 4));
+  return `${digits.slice(0, 3)}****${digits.slice(-4)}`;
 }
 
-/** 邮箱脱敏：用户名保留首尾各 1 字符 */
+/**
+ * 邮箱脱敏：用户名保留首尾各 1 字符。
+ * 域名取最后一个 @ 之后（兼容含 @ 的非法输入），无 @ 或用户名为空时不脱敏原样返回。
+ */
 export function maskEmail(email?: string): string | undefined {
   if (!email || !email.includes("@")) return email;
-  const [name, domain] = email.split("@");
-  if (name.length <= 2) return `${name[0] ?? "*"}***@${domain}`;
+  const at = email.lastIndexOf("@");
+  const name = email.slice(0, at);
+  const domain = email.slice(at + 1);
+  if (!name) return email;
+  if (name.length <= 2) return `${name[0]}***@${domain}`;
   return `${name[0]}***${name[name.length - 1]}@${domain}`;
 }

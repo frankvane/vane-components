@@ -227,7 +227,8 @@ export async function runSelfTest(): Promise<SelfTestResult> {
     await t.click('[aria-label="归档 赵启明 到人才库"]');
     ok("归档池：归档后看板少一人（9）", t.qa(".vcd-card").length === 9);
     await t.clickText(".vcd-toolbar button", "人才库");
-    ok("归档池：人才库浮层出现", !!t.q('[role="dialog"][aria-label="人才库（1）"]'));
+    // H1 修复后：人才库读全量内部数据，新归档的赵启明 + 初始归档的何静姝共 2 人
+    ok("归档池：人才库浮层出现（含新归档者）", !!t.q('[role="dialog"][aria-label="人才库（2）"]'));
     await t.click('[aria-label="恢复 何静姝 到看板"]');
     ok("归档池：恢复后看板回来一人（10）", t.qa(".vcd-card").length === 10);
     flushSync(() => t.root.unmount());

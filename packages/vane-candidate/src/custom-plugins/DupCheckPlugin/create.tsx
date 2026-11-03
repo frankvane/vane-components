@@ -10,7 +10,7 @@ export interface DupCheckConfig {
   fields?: Array<"name" | "email" | "phone">;
 }
 
-/** 计算候选人 key：按所选字段拼接（缺失字段跳过；全空返回 null 不判重） */
+/** 计算候选人 key：按所选字段拼接（缺失字段跳过；全空返回 [] 不判重） */
 function dupKeys(c: Candidate, fields: Array<"name" | "email" | "phone">): string[] {
   const keys: string[] = [];
   for (const f of fields) {
@@ -18,6 +18,27 @@ function dupKeys(c: Candidate, fields: Array<"name" | "email" | "phone">): strin
     if (v) keys.push(`${f}:${v}`);
   }
   return keys;
+}
+
+/**
+ * key → 命中候选人 id 列表的倒排索引（按列表引用 WeakMap 缓存）。
+ * 一次 O(N) 构建，逐卡 O(1) 查询，替代每卡全表扫描的 O(N²)。
+ */
+const dupIndexCache = new WeakMap<Candidate[], Map<string, string[]>>();
+
+function getDupIndex(list: Candidate[], fields: Array<"name" | "email" | "phone">) {
+  const cached = dupIndexCache.get(list);
+  if (cached) return cached;
+  const index = new Map<string, string[]>();
+  for (const c of list) {
+    for (const k of dupKeys(c, fields)) {
+      const ids = index.get(k);
+      if (ids) ids.push(c.id);
+      else index.set(k, [c.id]);
+    }
+  }
+  dupIndexCache.set(list, index);
+  return index;
 }
 
 /**
@@ -37,14 +58,18 @@ export const createDupCheckPlugin: CandidatePluginCreator<DupCheckConfig> = (
     config: { order: 20 },
     hooks: {
       renderCardBadges: (ctx, candidate) => {
-        const list = (ctx.data as Candidate[]) ?? [];
+        // 判重必须用管道前的原始数据 ctx.rawData：ctx.data 是 ContactMask 等
+        // transform 之后的结果，不同号码掩码碰撞（138****5678）会误报重复。
+        const list = ((ctx.rawData as Candidate[] | undefined) ??
+          (ctx.data as Candidate[]) ??
+          []);
         const myKeys = dupKeys(candidate, fields);
         if (myKeys.length === 0) return null;
+        const index = getDupIndex(list, fields);
         const dupIds = new Set<string>();
-        for (const other of list) {
-          if (other.id === candidate.id) continue;
-          if (dupKeys(other, fields).some((k) => myKeys.includes(k))) {
-            dupIds.add(other.id);
+        for (const k of myKeys) {
+          for (const otherId of index.get(k) ?? []) {
+            if (otherId !== candidate.id) dupIds.add(otherId);
           }
         }
         if (dupIds.size === 0) return null;

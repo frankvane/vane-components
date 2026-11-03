@@ -52,7 +52,7 @@ const CandidateCore = forwardRef<CandidateCoreRef, CandidateCoreProps>(
 
     const stages = (props.stages ?? (DEFAULT_STAGES as StageConfig[])) as StageConfig[];
     const data = (ctx?.data ?? props.data) as Candidate[] | undefined;
-    const candidates = data ?? [];
+    const candidates = data ?? EMPTY;
 
     useImperativeHandle(
       ref,
@@ -148,16 +148,34 @@ CandidateCore.displayName = "CandidateCore";
 
 // ============ 核心默认渲染（renderCards / renderCardBody 的 fallback） ============
 
+/** 模块级空数组：避免 `data ?? []` 每渲染新建引用使下游 memo 失效 */
+const EMPTY: Candidate[] = [];
+
+/** avatar 仅接受 http(s) / 站内相对路径 / data:image（REACT-URL-001：阻断 javascript: 等协议） */
+function isSafeAvatarUrl(url: string): boolean {
+  return /^(https?:\/\/|\/|data:image\/)/i.test(url);
+}
+
 function renderKanbanDefault(stages: StageConfig[], candidates: Candidate[]) {
+  // 单次遍历按阶段分组（O(N)），替代逐列 filter 的 O(阶段数 × N)
+  const byStage = new Map<string, Candidate[]>();
+  for (const c of candidates) {
+    const arr = byStage.get(c.stage);
+    if (arr) arr.push(c);
+    else byStage.set(c.stage, [c]);
+  }
   return (
     <div
       className="vcd-kanban"
       style={{ display: "flex", gap: 12, alignItems: "flex-start", overflowX: "auto", paddingBottom: 8 }}
     >
-      {stages.map((stage) => {
-        const list = candidates.filter((c) => c.stage === stage.key);
-        return <StageColumn key={stage.key} stage={stage} list={list} />;
-      })}
+      {stages.map((stage) => (
+        <StageColumn
+          key={stage.key}
+          stage={stage}
+          list={byStage.get(stage.key) ?? EMPTY}
+        />
+      ))}
       {candidates.length === 0 && (
         <div style={{ color: tokens.muted, fontSize: 13, padding: "8px 2px" }}>
           暂无候选人
@@ -167,7 +185,13 @@ function renderKanbanDefault(stages: StageConfig[], candidates: Candidate[]) {
   );
 }
 
-function StageColumn({ stage, list }: { stage: StageConfig; list: Candidate[] }) {
+const StageColumn = React.memo(function StageColumn({
+  stage,
+  list,
+}: {
+  stage: StageConfig;
+  list: Candidate[];
+}) {
   const columnExtras = useCandidateColumnSlot("renderColumnHeader", stage, list.length);
   const tone = TONE_COLOR[stage.tone ?? "neutral"] ?? TONE_COLOR.neutral;
   return (
@@ -205,9 +229,13 @@ function StageColumn({ stage, list }: { stage: StageConfig; list: Candidate[] })
       </div>
     </section>
   );
-}
+});
 
-function CandidateCard({ candidate }: { candidate: Candidate }) {
+const CandidateCard = React.memo(function CandidateCard({
+  candidate,
+}: {
+  candidate: Candidate;
+}) {
   return (
     <article
       data-candidate-id={candidate.id}
@@ -224,7 +252,7 @@ function CandidateCard({ candidate }: { candidate: Candidate }) {
       <CandidateCardBody candidate={candidate} />
     </article>
   );
-}
+});
 
 function CandidateCardBody({ candidate }: { candidate: Candidate }) {
   const badges = useCandidateCardSlot("renderCardBadges", candidate);
@@ -237,7 +265,7 @@ function CandidateCardBody({ candidate }: { candidate: Candidate }) {
   return (
     <>
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        {candidate.avatar ? (
+        {candidate.avatar && isSafeAvatarUrl(candidate.avatar) ? (
           <img
             src={candidate.avatar}
             alt=""

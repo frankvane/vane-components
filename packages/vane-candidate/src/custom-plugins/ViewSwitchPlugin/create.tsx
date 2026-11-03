@@ -82,10 +82,10 @@ export const createViewSwitchPlugin: CandidatePluginCreator<ViewSwitchConfig> = 
                 gap: 8,
               }}
             >
-              <span>候选人</span>
-              <span>阶段</span>
-              <span>来源</span>
-              <span>投递时间</span>
+              <span role="columnheader">候选人</span>
+              <span role="columnheader">阶段</span>
+              <span role="columnheader">来源</span>
+              <span role="columnheader">投递时间</span>
             </div>
             {candidates.map((c, i) => {
               const tone = TONE_COLOR[
@@ -106,11 +106,11 @@ export const createViewSwitchPlugin: CandidatePluginCreator<ViewSwitchConfig> = 
                     alignItems: "center",
                   }}
                 >
-                  <span style={{ color: tokens.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  <span role="cell" style={{ color: tokens.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     <strong>{c.name}</strong>
                     <span style={{ color: tokens.muted }}> · {c.role}</span>
                   </span>
-                  <span>
+                  <span role="cell">
                     <span
                       style={{
                         fontSize: 11,
@@ -125,8 +125,8 @@ export const createViewSwitchPlugin: CandidatePluginCreator<ViewSwitchConfig> = 
                       {stageLabel(c.stage)}
                     </span>
                   </span>
-                  <span style={{ color: tokens.muted, fontSize: 12 }}>{c.source ?? "—"}</span>
-                  <span style={{ color: tokens.muted, fontSize: 12 }}>{c.appliedAt ?? "—"}</span>
+                  <span role="cell" style={{ color: tokens.muted, fontSize: 12 }}>{c.source ?? "—"}</span>
+                  <span role="cell" style={{ color: tokens.muted, fontSize: 12 }}>{c.appliedAt ?? "—"}</span>
                 </div>
               );
             })}

@@ -25,13 +25,19 @@ function matchText(c: Candidate, kw: string, fields: Array<"name" | "role" | "su
 
 /**
  * Search —— 关键词搜索。
- * renderToolbar：搜索输入框（写 ctx.state.searchKeyword）；transformData 按
- * 姓名/岗位/摘要/标签/来源匹配过滤。空关键词不过滤。
+ * renderToolbar：搜索输入框（受控，写 ctx.state.searchKeyword，输入即时响应）；
+ * transformData 按 姓名/岗位/摘要/标签/来源 匹配过滤，关键词经 debounceMs 防抖
+ * 后才生效（输入频繁时用上一次已生效关键词过滤，避免每 keystroke 全量重跑管线）。
+ * 空关键词不过滤。
  */
 export const createSearchPlugin: CandidatePluginCreator<SearchConfig> = (
   config = {}
 ) => {
   const fields = config.fields ?? ["name", "role", "summary", "tags", "source"];
+  const debounceMs = config.debounceMs ?? 0;
+  // 防抖状态：appliedKw = 当前已生效关键词（闭包内，每插件实例一份）
+  let appliedKw: string | undefined;
+  let timer: ReturnType<typeof setTimeout> | undefined;
   return {
     name: "search",
     version: "0.1.0",
@@ -41,8 +47,29 @@ export const createSearchPlugin: CandidatePluginCreator<SearchConfig> = (
     hooks: {
       transformData: (ctx, data) => {
         const kw = (ctx.state.searchKeyword as string | undefined)?.trim();
-        if (!kw) return data;
-        return (((data as Candidate[]) ?? []).filter((c) => matchText(c, kw, fields))) as typeof data;
+        if (!debounceMs || kw === appliedKw) {
+          appliedKw = kw;
+          if (timer) {
+            clearTimeout(timer);
+            timer = undefined;
+          }
+          if (!kw) return data;
+          return (((data as Candidate[]) ?? []).filter((c) =>
+            matchText(c, kw, fields)
+          )) as typeof data;
+        }
+        // 关键词变化中：重置防抖计时，本帧继续用上一次已生效的关键词
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(() => {
+          timer = undefined;
+          appliedKw = kw;
+          ctx.forceUpdate();
+        }, debounceMs);
+        const active = appliedKw;
+        if (!active) return data;
+        return (((data as Candidate[]) ?? []).filter((c) =>
+          matchText(c, active, fields)
+        )) as typeof data;
       },
       renderToolbar: (ctx) => {
         const kw = (ctx.state.searchKeyword as string | undefined) ?? "";
@@ -52,8 +79,11 @@ export const createSearchPlugin: CandidatePluginCreator<SearchConfig> = (
               type="search"
               aria-label="搜索候选人"
               placeholder="搜索姓名 / 岗位 / 标签…"
-              defaultValue={kw}
-              onChange={(e) => ctx.setState({ searchKeyword: e.target.value || undefined })}
+              // 受控：外部重置 searchKeyword（如批量操作联动清空）时输入框 UI 同步
+              value={kw}
+              onChange={(e) =>
+                ctx.setState({ searchKeyword: e.target.value || undefined })
+              }
               style={{
                 border: `1px solid ${tokens.lineStrong}`,
                 borderRadius: 6,

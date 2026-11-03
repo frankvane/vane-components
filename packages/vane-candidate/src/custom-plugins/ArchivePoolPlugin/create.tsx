@@ -33,10 +33,11 @@ export const createArchivePoolPlugin: CandidatePluginCreator<ArchivePoolConfig> 
         return (((data as Candidate[]) ?? []).filter((c) => !c.archived)) as typeof data;
       },
       renderToolbar: (ctx) => {
-        // 注意：ctx.data 已是 transformData 之后的主看板数据，统计全量需从
-        // state 缓存的原始列表取；这里用 props.data（宿主原始列表）兜底，
-        // 归档人数 = 原始 - 看板。
-        const raw = (ctx.props?.data as Candidate[] | undefined) ?? [];
+        // 人才库统计必须用全量内部数据 ctx.rawData（transformData 管道之前、
+        // 含 archived），不能用 ctx.data（管道后、archived 已滤除），也不能用
+        // ctx.props.data（非受控模式下是宿主初始引用，归档后不更新）。
+        const raw = ((ctx.rawData as Candidate[] | undefined) ??
+          (ctx.props?.data as Candidate[] | undefined)) ?? [];
         const archivedCount = raw.filter((c) => c.archived).length;
         const open = !!ctx.state.archivePoolOpen;
         return (
@@ -54,7 +55,8 @@ export const createArchivePoolPlugin: CandidatePluginCreator<ArchivePoolConfig> 
       },
       renderOverlay: (ctx) => {
         if (!ctx.state.archivePoolOpen) return null;
-        const raw = (ctx.props?.data as Candidate[] | undefined) ?? [];
+        const raw = ((ctx.rawData as Candidate[] | undefined) ??
+          (ctx.props?.data as Candidate[] | undefined)) ?? [];
         const archived = raw.filter((c) => c.archived);
         const list = poolPageSize > 0 ? archived.slice(0, poolPageSize) : archived;
         const close = () => ctx.setState({ archivePoolOpen: false });

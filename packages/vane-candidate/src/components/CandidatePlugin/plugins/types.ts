@@ -111,22 +111,36 @@ export interface CandidateCoreRef {
 // ============ 领域上下文扩展 ============
 
 /**
- * 领域动作：插件经 withCandidatePlugins 注入的两个便捷方法改数据，
- * 内部走 bus 事件（candidate:update / candidate:move），由装配层统一落内部态
- * 并广播 candidate:change 通知宿主。
+ * 领域动作：插件经 withCandidatePlugins 注入的数据操作方法，
+ * 内部走 bus 事件（candidate:update / candidate:batch-update / candidate:move /
+ * candidate:batch-move），由装配层统一落内部态并广播 candidate:change 通知宿主。
  */
-export interface CandidateDomainContext {
-  /** 局部更新某个候选人（浅合并 patch） */
+export interface CandidateDomainContext<T = Candidate> {
+  /** 全量内部数据（transformData 管道之前、未过滤未脱敏）；人才库 / 判重等需要原始数据的场景用这个，而非 ctx.data */
+  rawData?: T[];
+  /** 局部更新某个候选人（浅合并 patch）；id 不存在时不触发任何回调 */
   updateCandidate: (id: string, patch: Partial<Candidate>) => void;
+  /**
+   * 批量局部更新：单次聚合落态，只广播一次 candidate:change / 触发一次 onDataChange。
+   * 批量归档 / 批量打标等场景用这个，避免逐条 emit 造成宿主持久化风暴。
+   */
+  updateCandidates: (updates: Array<{ id: string; patch: Partial<Candidate> }>) => void;
   /** 阶段流转：delta=+1 推进 / -1 退回，越界即停在首/末阶段；自动追加 history */
   moveCandidate: (id: string, delta: number) => void;
+  /**
+   * 流转到指定阶段（自动追加 history）。与 moveCandidate(delta) 的差异：目标以
+   * stage key 直接给定，避免「调用方与执行侧阶段表不一致时 delta 错位」。
+   */
+  moveCandidateTo: (id: string, targetStage: string) => void;
+  /** 批量流转到指定阶段：单次聚合落态、只广播一次；自动逐条追加 history */
+  moveCandidatesTo: (ids: string[], targetStage: string) => void;
 }
 
 export type CandidatePluginContext<T = Candidate> = PluginContext<
   CandidateCoreProps<T>,
   T[]
 > &
-  CandidateDomainContext;
+  CandidateDomainContext<T>;
 
 // ============ 插件钩子 ============
 
@@ -138,6 +152,13 @@ export type CandidatePluginContext<T = Candidate> = PluginContext<
  *  - renderCards：整体内容覆盖槽（单值，最高 priority 且返回非 null 者胜出；
  *    返回 null 回落核心默认看板）
  *  - renderCardBody：per-card 内容覆盖槽（单值；默认=核心卡片正文）
+ *
+ * ⚠️ order 与 priority 的分工（容易混淆）：
+ *  - config.order 只影响【渲染槽】内的插件排序（order 升序 → priority 降序）；
+ *  - transformData 数据管线的执行顺序由【顶层 priority】决定（越大越先执行，
+ *    内核 DependencyResolver：依赖约束 > priority 降序 > 注册顺序）。
+ *  官方插件两者数值刻意保持一致；第三方插件若只想调整渲染位置请改 order，
+ *  若要调整数据管线先后（如脱敏必须最后执行）必须同时调整 priority。
  */
 export interface CandidatePluginHooks<T = Candidate>
   extends PluginHooks<CandidateCoreProps<T>, T[]> {

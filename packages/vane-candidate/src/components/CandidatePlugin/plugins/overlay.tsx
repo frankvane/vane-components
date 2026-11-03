@@ -28,6 +28,13 @@ export interface OverlayProps {
 const FOCUSABLE =
   'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
 
+/**
+ * 已打开弹层栈（模块级）：多弹层并存时 Escape / Tab 拦截只作用于最上层，
+ * 避免按一次 Escape 所有弹层同时关闭。
+ */
+const overlayStack: number[] = [];
+let overlaySeq = 0;
+
 export function Overlay({
   title,
   onClose,
@@ -46,6 +53,10 @@ export function Overlay({
     const dialog = dialogRef.current;
     if (!dialog || typeof document === "undefined") return;
 
+    const stackId = ++overlaySeq;
+    overlayStack.push(stackId);
+    const isTopmost = () => overlayStack[overlayStack.length - 1] === stackId;
+
     const previouslyFocused = document.activeElement as HTMLElement | null;
     const focusables = () =>
       Array.from(dialog.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(
@@ -55,6 +66,8 @@ export function Overlay({
     (first ?? dialog).focus();
 
     const onKeyDown = (event: KeyboardEvent) => {
+      // 非顶层弹层不响应（下层弹层保持打开）
+      if (!isTopmost()) return;
       if (event.key === "Escape") {
         event.stopPropagation();
         onCloseRef.current();
@@ -80,6 +93,8 @@ export function Overlay({
     document.addEventListener("keydown", onKeyDown);
     return () => {
       document.removeEventListener("keydown", onKeyDown);
+      const idx = overlayStack.indexOf(stackId);
+      if (idx >= 0) overlayStack.splice(idx, 1);
       try {
         previouslyFocused?.focus();
       } catch {

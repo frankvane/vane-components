@@ -43,11 +43,15 @@ export const createFilterPlugin: CandidatePluginCreator<FilterConfig> = (
           (DEFAULT_STAGES as StageConfig[])) as StageConfig[];
         const stage = (ctx.state.filterStage as string | undefined) ?? "";
         const tag = (ctx.state.filterTag as string | undefined) ?? "";
-        // 标签选项：优先配置；否则从当前数据收集
+        // 标签选项：优先配置；否则从全量原始数据收集（ctx.data 会随筛选收窄选项）
         const tagOptions =
           config.tagOptions ??
           Array.from(
-            new Set(((ctx.data as Candidate[]) ?? []).flatMap((c) => c.tags ?? []))
+            new Set(
+              (((ctx.rawData as Candidate[] | undefined) ??
+                (ctx.data as Candidate[] | undefined)) ?? []
+              ).flatMap((c) => c.tags ?? [])
+            )
           );
         const hasFilter = !!(stage || tag);
         return (

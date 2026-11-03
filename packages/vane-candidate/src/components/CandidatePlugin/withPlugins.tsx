@@ -2,8 +2,9 @@
  * withCandidatePlugins - HOC 组合器（接 vane-plugin-core）。
  *
  * 领域适配：
- *  1. 内部数据态：监听 bus 事件 `candidate:update` / `candidate:move`，对内部候选人
- *     列表做不可变更新并广播 `candidate:change`；宿主回写 props.data 后受控同步。
+ *  1. 内部数据态：监听 bus 事件 `candidate:update` / `candidate:batch-update` /
+ *     `candidate:move` / `candidate:batch-move`，对内部候选人列表做不可变更新并
+ *     广播 `candidate:change`；宿主回写 props.data 后受控同步。
  *     插件经 ctx.updateCandidate / ctx.moveCandidate（extendContext 注入）改数据，
  *     自身无需感知数据源。
  *  2. Core 回调 → 钩子链：onMount / onPropsChange（onUnmount 由内核统一执行）；
@@ -33,7 +34,7 @@ import type {
   StageConfig,
 } from "./plugins/types";
 import { DEFAULT_STAGES } from "./plugins/types";
-import { applyCandidatePatch, moveStage, withHistory } from "./domain";
+import { applyCandidatePatch, moveStage, patchMeaningful, withHistory } from "./domain";
 import { CandidateSlotProvider } from "./plugins/slots";
 
 /** onPropsChange 浅比较时忽略的字段：children / ref 容器每次渲染都可能新建 */
@@ -68,23 +69,45 @@ export function withCandidatePlugins<T extends Candidate = Candidate>(
     (props, ref) => {
       const containerRef = useRef<HTMLDivElement | null>(null);
 
-      // ---- 内部数据态：candidate:update / candidate:move → 内部列表 + candidate:change
+      // ---- 内部数据态：bus 数据事件 → 内部列表 + candidate:change
+      // dataRef 镜像当前内部数据：bus 处理器在事件回调里计算 next（副作用全部
+      // 位于 setState updater 之外，避免 StrictMode 双调用 / 并发渲染下重复广播）。
       const [internalData, setInternalData] = useState<T[] | undefined>(props.data);
-      const hostControlledRef = useRef(false);
+      const dataRef = useRef<T[]>(props.data ?? []);
 
-      // 领域上下文扩展：插件用 updateCandidate / moveCandidate 改数据（走 bus，稳定引用）
+      // 落态 + 广播的唯一出口（变更确实发生时才调用）
+      const commitDataRef = useRef<(next: T[]) => void>(() => {});
+      commitDataRef.current = (next: T[]) => {
+        dataRef.current = next;
+        setInternalData(next);
+        runtime.bus.emit("candidate:change", { data: next });
+        props.onDataChange?.(next);
+      };
+
+      // 领域上下文扩展：插件经这些方法改数据（走 bus，稳定引用）
       const extendContext = useCallback(
         (base: PluginContext<CandidateCoreProps<T>, T[]>): CandidatePluginContext<T> => {
+          const stages =
+            (base.props?.stages as StageConfig[] | undefined) ??
+            (DEFAULT_STAGES as StageConfig[]);
           return {
             ...base,
             updateCandidate: (id: string, patch: Partial<Candidate>) => {
               base.bus.emit("candidate:update", { id, patch });
             },
+            updateCandidates: (
+              updates: Array<{ id: string; patch: Partial<Candidate> }>
+            ) => {
+              base.bus.emit("candidate:batch-update", { updates });
+            },
             moveCandidate: (id: string, delta: number) => {
-              const stages =
-                (base.props?.stages as StageConfig[] | undefined) ??
-                (DEFAULT_STAGES as StageConfig[]);
               base.bus.emit("candidate:move", { id, delta, stages });
+            },
+            moveCandidateTo: (id: string, targetStage: string) => {
+              base.bus.emit("candidate:move", { id, targetStage, stages });
+            },
+            moveCandidatesTo: (ids: string[], targetStage: string) => {
+              base.bus.emit("candidate:batch-move", { ids, targetStage, stages });
             },
           };
         },
@@ -100,18 +123,14 @@ export function withCandidatePlugins<T extends Candidate = Candidate>(
         enableDebug,
       });
 
+      // 宿主受控回写：props.data 变化 → 同步内部态与 dataRef。
+      // 注意：data 一旦受控就不回落为非受控（undefined 只表示「本次未传」）。
       useEffect(() => {
         if (props.data !== undefined) {
-          hostControlledRef.current = true;
+          dataRef.current = props.data;
           setInternalData(props.data);
         }
       }, [props.data]);
-
-      const emitChangeRef = useRef<(list: T[]) => void>(() => {});
-      emitChangeRef.current = (list: T[]) => {
-        runtime.bus.emit("candidate:change", { data: list });
-        props.onDataChange?.(list);
-      };
 
       useEffect(
         () =>
@@ -120,45 +139,96 @@ export function withCandidatePlugins<T extends Candidate = Candidate>(
               id?: string;
               patch?: Partial<T>;
             };
-            if (!id || !patch) return;
-            setInternalData((prev) => {
-              const base = prev ?? [];
-              const next = applyCandidatePatch(base, id, patch as Partial<Candidate>);
-              emitChangeRef.current(next as T[]);
-              return next as T[];
-            });
+            if (!id || !patch || !patchMeaningful(patch as Partial<Candidate>)) return;
+            const base = dataRef.current;
+            // id 不存在 / 无有效变更时不落态、不广播（避免多余的 onDataChange）
+            if (!base.some((c) => c.id === id)) return;
+            const next = applyCandidatePatch(base, id, patch as Partial<Candidate>);
+            commitDataRef.current(next as T[]);
           }),
-        // runtime.bus 在插件集合变化时重建，需重新订阅
+        // bus 每实例仅创建一次，订阅一次即可；deps 保留 bus 以防未来内核改动
+        [runtime.bus]
+      );
+
+      useEffect(
+        () =>
+          runtime.bus.on("candidate:batch-update", (payload: unknown) => {
+            const { updates } = (payload ?? {}) as {
+              updates?: Array<{ id?: string; patch?: Partial<T> }>;
+            };
+            if (!Array.isArray(updates) || updates.length === 0) return;
+            let next = dataRef.current;
+            let changed = false;
+            for (const { id, patch } of updates) {
+              if (!id || !patch || !patchMeaningful(patch as Partial<Candidate>)) continue;
+              if (!next.some((c) => c.id === id)) continue;
+              next = applyCandidatePatch(next, id, patch as Partial<Candidate>) as T[];
+              changed = true;
+            }
+            // 单次聚合落态 + 单次广播（避免逐条 emit 的持久化风暴）
+            if (changed) commitDataRef.current(next as T[]);
+          }),
         [runtime.bus]
       );
 
       useEffect(
         () =>
           runtime.bus.on("candidate:move", (payload: unknown) => {
-            const { id, delta, stages } = (payload ?? {}) as {
+            const { id, delta, targetStage, stages } = (payload ?? {}) as {
               id?: string;
               delta?: number;
+              targetStage?: string;
               stages?: StageConfig[];
             };
-            if (!id || !delta) return;
-            setInternalData((prev) => {
-              const base = prev ?? [];
-              const target = base.find((c) => c.id === id);
-              if (!target) return base as T[];
-              const nextStage = moveStage(
-                stages ?? (DEFAULT_STAGES as StageConfig[]),
-                target.stage,
-                delta
-              );
-              if (nextStage === target.stage) return base as T[];
-              const next = applyCandidatePatch(
-                base,
+            if (!id) return;
+            const stageList = stages ?? (DEFAULT_STAGES as StageConfig[]);
+            const base = dataRef.current;
+            const target = base.find((c) => c.id === id);
+            if (!target) return;
+            let nextStage: string;
+            if (targetStage !== undefined) {
+              // 目标阶段直给：调用方与执行侧不再各自换算 delta，杜绝阶段表错位
+              if (!stageList.some((s) => s.key === targetStage)) return;
+              nextStage = targetStage;
+            } else {
+              if (!delta) return;
+              nextStage = moveStage(stageList, target.stage, delta);
+            }
+            if (nextStage === target.stage) return;
+            const next = applyCandidatePatch(
+              base,
+              id,
+              withHistory({ ...target, stage: nextStage }, "阶段流转", nextStage) as T
+            );
+            commitDataRef.current(next as T[]);
+          }),
+        [runtime.bus]
+      );
+
+      useEffect(
+        () =>
+          runtime.bus.on("candidate:batch-move", (payload: unknown) => {
+            const { ids, targetStage, stages } = (payload ?? {}) as {
+              ids?: string[];
+              targetStage?: string;
+              stages?: StageConfig[];
+            };
+            if (!Array.isArray(ids) || ids.length === 0 || !targetStage) return;
+            const stageList = stages ?? (DEFAULT_STAGES as StageConfig[]);
+            if (!stageList.some((s) => s.key === targetStage)) return;
+            let next = dataRef.current;
+            let changed = false;
+            for (const id of ids) {
+              const target = next.find((c) => c.id === id);
+              if (!target || target.stage === targetStage) continue;
+              next = applyCandidatePatch(
+                next,
                 id,
-                withHistory({ ...target, stage: nextStage }, "阶段流转", nextStage) as T
-              );
-              emitChangeRef.current(next as T[]);
-              return next as T[];
-            });
+                withHistory({ ...target, stage: targetStage }, "阶段流转", targetStage) as T
+              ) as T[];
+              changed = true;
+            }
+            if (changed) commitDataRef.current(next as T[]);
           }),
         [runtime.bus]
       );
@@ -178,8 +248,13 @@ export function withCandidatePlugins<T extends Candidate = Candidate>(
       );
 
       const domainContext = useMemo<CandidatePluginContext<T>>(
-        () => ({ ...runtimeContext, data: transformedData as T[] }),
-        [runtimeContext, transformedData]
+        () => ({
+          ...runtimeContext,
+          data: transformedData as T[],
+          // 全量内部数据（管道前）：人才库 / 判重 / 标签收集等需要原始数据的场景用
+          rawData: internalData as T[] | undefined,
+        }),
+        [runtimeContext, transformedData, internalData]
       );
 
       const execute = useCallback(

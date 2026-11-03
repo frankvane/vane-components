@@ -44,9 +44,3 @@ export function toolbarBtn(on: boolean): CSSProperties {
     cursor: "pointer",
   };
 }
-
-/** 将候选人列表深拷贝（避免插件改写污染原始数据） */
-export function cloneData<T>(data: T): T {
-  if (typeof structuredClone === "function") return structuredClone(data);
-  return JSON.parse(JSON.stringify(data)) as T;
-}

@@ -72,9 +72,9 @@ export const createExportPlugin: CandidatePluginCreator<ExportConfig> = (
                 ...candidates.map((c) =>
                   columns
                     .map((col) =>
-                      csvCell(
-                        col === BUILTIN_COLUMNS[2] ? stageLabel(c.stage) : col.get(c)
-                      )
+                      // 阶段列以 header 识别（身份比较对 BUILTIN_COLUMNS 的引用
+                      // 顺序脆弱），导出人类可读的阶段标签而非原始 key
+                      csvCell(col.header === "阶段" ? stageLabel(c.stage) : col.get(c))
                     )
                     .join(",")
                 ),
