@@ -1,0 +1,38 @@
+{
+  "name": "MilestoneBarPlugin",
+  "description": "里程碑进度：把奖励阈值映射为轨道节点（已领取实心绿 / 可领警示橙 / 未达标灰），展示离下一档的空间距离。",
+  "since": "0.1.0",
+  "tags": ["ui", "里程碑", "进度区"],
+  "props": [
+    {
+      "name": "height",
+      "type": "number",
+      "default": "6",
+      "description": "轨道高度（px）"
+    },
+    {
+      "name": "dotSize",
+      "type": "number",
+      "default": "18",
+      "description": "里程碑圆点直径（px）"
+    },
+    {
+      "name": "order",
+      "type": "number",
+      "default": "0",
+      "description": "同槽位排序键（升序靠前）：与 ProgressFx / ProgressRing 共存时决定上下位置"
+    }
+  ],
+  "events": [
+    {
+      "name": "renderProgress",
+      "when": "每次渲染；ctx.rewards 非空时",
+      "description": "在进度槽位渲染带节点的轨道；无奖励时返回 null 让出槽位"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 ctx.progress 与 ctx.rewards（含派生状态），不调用任何上下文方法。",
+  "features": ["节点状态完全由数据派生（claimed/claimable/locked）", "节点 hover 显示奖励名与阈值（title）", "纯形状表达，无文字，天然无对比度负担"],
+  "useCases": ["阶梯奖励进度", "会员成长值", "众筹进度里程碑"],
+  "notes": ["奖励阈值建议避免扎堆（如 0.5/0.52/0.9），节点会视觉重叠"]
+}

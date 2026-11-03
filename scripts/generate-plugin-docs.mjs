@@ -18,11 +18,72 @@ const packagesDir = path.join(root, "packages");
 const BEGIN = "<!-- AUTO-GENERATED:BEGIN";
 const END = "<!-- AUTO-GENERATED:END -->";
 
-function configCell(config) {
-  if (!config || config.length === 0) return "-";
-  return config
+/** props 是新名字，config 是历史名字：两者都认，避免为改文档结构去动 294 份 doc.json */
+function propsOf(doc) {
+  return doc.props ?? doc.config ?? [];
+}
+
+function configCell(doc) {
+  const props = propsOf(doc);
+  if (props.length === 0) return "-";
+  return props
     .map((c) => `\`${c.name}\`${c.default ? ` = ${c.default}` : ""}`)
     .join("<br/>");
+}
+
+/**
+ * 插件能力三件套：属性(props) / 事件(events) / 方法(methods)。
+ *
+ * 只有 doc.json 显式声明了这三类内容的插件才输出明细段 —— 其余 290 个插件保持
+ * 原表格输出不变，这样跑生成器不会给别的包制造无意义 diff。
+ * 声明了明细的插件，目录表里的链接改成页内锚点（`### Name` → `#name`），
+ * 因为本仓库并没有为每个插件单独建 md 文件，`./Name` 是死链。
+ */
+function hasDetail(doc) {
+  return Boolean(
+    doc.props?.length || doc.events?.length || doc.methods?.length || doc.methodsNote
+  );
+}
+
+function detailSection(doc) {
+  if (!hasDetail(doc)) return "";
+  const lines = [`### ${doc.name}`, ""];
+
+  const props = propsOf(doc);
+  if (props.length) {
+    lines.push(
+      "**属性 Props**",
+      "",
+      "| 属性 | 类型 | 默认值 | 说明 |",
+      "| --- | --- | --- | --- |"
+    );
+    for (const p of props) {
+      const def = p.default ? `\`${String(p.default).replace(/^"|"$/g, "")}\`` : "-";
+      lines.push(`| \`${p.name}\` | \`${p.type}\` | ${def} | ${escapeHtml(p.description)} |`);
+    }
+    lines.push("");
+  }
+
+  if (doc.events?.length) {
+    lines.push("**事件 Events**", "", "| 事件 | 触发时机 | 说明 |", "| --- | --- | --- |");
+    for (const e of doc.events) {
+      lines.push(`| \`${e.name}\` | ${escapeHtml(e.when)} | ${escapeHtml(e.description)} |`);
+    }
+    lines.push("");
+  }
+
+  lines.push("**方法 Methods**", "");
+  if (doc.methods?.length) {
+    lines.push("| 方法 | 签名 | 说明 |", "| --- | --- | --- |");
+    for (const m of doc.methods) {
+      lines.push(`| \`${m.name}\` | \`${m.signature}\` | ${escapeHtml(m.description)} |`);
+    }
+  } else {
+    lines.push(doc.methodsNote ? escapeHtml(doc.methodsNote) : "—（本插件不调用上下文方法）");
+  }
+  lines.push("");
+
+  return lines.join("\n");
 }
 
 /**
@@ -105,10 +166,13 @@ for (const dir of dirs) {
     if (!doc) continue;
     const priority = await readPriority(pluginDir);
     rows.push({
+      detail: detailSection(doc),
       cells: [
-        `[${doc.name}](./${pd.name})`,
+        hasDetail(doc)
+          ? `[${doc.name}](#${doc.name.toLowerCase()})`
+          : `[${doc.name}](./${pd.name})`,
         escapeHtml(doc.description),
-        configCell(doc.config),
+        configCell(doc),
         doc.since ?? "-",
         (doc.tags ?? []).join(", "),
       ],
@@ -151,7 +215,9 @@ for (const dir of dirs) {
         : `| ${r.cells.join(" | ")} |`
     ),
   ].join("\n");
-  const next = `${content.slice(0, start)}${markerLine}\n${table}\n${END}${content.slice(end + END.length)}`;
+  const details = rows.map((r) => r.detail).filter(Boolean).join("\n");
+  const body = details ? `${table}\n\n## 插件能力明细\n\n${details}` : table;
+  const next = `${content.slice(0, start)}${markerLine}\n${body}\n${END}${content.slice(end + END.length)}`;
   await writeFile(docFile, next, "utf-8");
   console.log(`${pkg.name}: ${rows.length} 个插件已写入 plugins.md`);
 }

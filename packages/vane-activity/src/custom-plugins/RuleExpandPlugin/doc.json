@@ -1,0 +1,44 @@
+{
+  "name": "RuleExpandPlugin",
+  "description": "规则折叠：渲染「活动规则」可折叠面板，折叠态按行数截断，同步 aria-expanded。",
+  "since": "0.1.0",
+  "tags": ["ui", "规则", "折叠"],
+  "props": [
+    {
+      "name": "collapsedLines",
+      "type": "number",
+      "default": "3",
+      "description": "折叠态最大展示行数（-webkit-line-clamp）"
+    }
+  ],
+  "events": [
+    {
+      "name": "renderRules",
+      "when": "每次渲染；规则槽位无更高 order 的插件接管时",
+      "description": "输出「活动规则」折叠面板；data.rules 为空时返回 null"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "展开/收起用组件本地 useState，不写回 ctx，也不调用任何上下文方法。",
+  "features": ["长文 line-clamp 折叠", "aria-expanded 无障碍状态同步"],
+  "useCases": ["活动规则说明", "条款/免责声明", "秒杀细则"],
+  "notes": [
+    "rules 支持字符串或 { title, content } 数组两种形态",
+    "折叠状态是组件内部 state，重新挂载会回到折叠态"
+  ],
+  "example": "const Activity = withPlugins(ActivityCore, [createRuleExpandPlugin()]);",
+  "examples": [
+    {
+      "name": "默认折叠",
+      "description": "折叠 3 行，点击展开全文",
+      "src": "createRuleExpandPlugin()",
+      "config": {}
+    },
+    {
+      "name": "折叠 6 行",
+      "description": "首屏多露两行规则摘要",
+      "src": "createRuleExpandPlugin({ collapsedLines: 6 })",
+      "config": { "collapsedLines": 6 }
+    }
+  ]
+}

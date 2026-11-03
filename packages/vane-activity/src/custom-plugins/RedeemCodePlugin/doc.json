@@ -1,0 +1,81 @@
+{
+  "name": "RedeemCodePlugin",
+  "description": "兑换码：输入框 + 本地校验（非空 / 长度 / 前缀）+ 成功或失败回执，回车即可提交，结果区 aria-live 播报。",
+  "since": "0.1.0",
+  "tags": ["ui", "奖励", "兑换码", "表单"],
+  "props": [
+    {
+      "name": "title",
+      "type": "string",
+      "default": "\"兑换码\"",
+      "description": "卡片标题"
+    },
+    {
+      "name": "prefix",
+      "type": "string",
+      "default": "undefined",
+      "description": "必填前缀（转大写比较，如 \"VANE\"）；不传则不校验前缀"
+    },
+    {
+      "name": "minLength",
+      "type": "number",
+      "default": "8",
+      "description": "兑换码最短长度"
+    },
+    {
+      "name": "placeholder",
+      "type": "string",
+      "default": "\"如 VANE-8888\"",
+      "description": "输入框占位文案"
+    },
+    {
+      "name": "successText",
+      "type": "string",
+      "default": "\"兑换成功，奖励已入账\"",
+      "description": "校验通过后的成功文案"
+    },
+    {
+      "name": "onRedeem",
+      "type": "(code: string) => boolean | void",
+      "default": "undefined",
+      "description": "兑换回调，入参是 trim + 转大写后的码；返回 false 表示无效码，组件展示失败文案"
+    },
+    {
+      "name": "order",
+      "type": "number",
+      "default": "0",
+      "description": "同槽位排序键：与 RewardClaimPlugin 同在 renderRewards 时定上下"
+    }
+  ],
+  "events": [
+    {
+      "name": "onRedeem",
+      "when": "表单提交（点「兑换」或回车）且本地校验全部通过后",
+      "description": "把规范化后的兑换码交给业务侧核销；返回 false 则视为无效，界面转失败态"
+    },
+    {
+      "name": "renderRewards",
+      "when": "每次渲染",
+      "description": "在奖励槽渲染兑换卡"
+    }
+  ],
+  "methods": [
+    {
+      "name": "内部 handleSubmit(event)",
+      "signature": "(event: React.FormEvent) => void",
+      "description": "阻止表单默认提交 → trim/大写 → 空值 / 长度 / 前缀三重校验 → 调 onRedeem"
+    }
+  ],
+  "methodsNote": "无对外命令式方法。输入变化即清除上一条回执，避免旧错误提示压在新输入上。",
+  "features": [
+    "回车可直接提交（form onSubmit，不绑 keydown）",
+    "三层本地校验：非空 → 最短长度 → 前缀，错误文案各自独立",
+    "onRedeem 返回 false 时展示「兑换码无效或已被使用」，成功则清空输入",
+    "错误边框 #b42318 + aria-invalid + aria-live 文案，不靠颜色单独传达错误"
+  ],
+  "useCases": ["线下物料码核销", "客服补发兑换码", "渠道专属码"],
+  "notes": [
+    "兑换码统一转大写后比对，业务侧无需再做大小写归一",
+    "不声明独占 renderRewards：可与 RewardClaimPlugin / CouponStackPlugin 的奖励列表上下叠放共存（独占去重只在「声明了独占的插件之间」发生，非独占插件永不被丢）"
+  ]
+}

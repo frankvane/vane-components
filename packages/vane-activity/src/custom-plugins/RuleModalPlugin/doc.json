@@ -1,0 +1,58 @@
+{
+  "name": "RuleModalPlugin",
+  "description": "弹窗版规则：规则区只放触发按钮，点击弹出模态窗展示完整规则（RuleExpand 的变体渲染），同槽位独占。",
+  "since": "0.1.0",
+  "tags": ["ui", "规则", "弹窗", "独占"],
+  "props": [
+    {
+      "name": "triggerLabel",
+      "type": "string",
+      "default": "活动规则",
+      "description": "触发按钮文案"
+    },
+    {
+      "name": "title",
+      "type": "string",
+      "default": "活动规则",
+      "description": "弹窗标题"
+    },
+    {
+      "name": "maxWidth",
+      "type": "number",
+      "default": "420",
+      "description": "弹窗最大宽度（px）"
+    }
+  ],
+  "events": [
+    {
+      "name": "renderRules",
+      "when": "每次渲染；data.rules 非空时",
+      "description": "渲染触发按钮；无规则时返回 null"
+    },
+    {
+      "name": "open/close",
+      "when": "点击按钮 / 点击遮罩或 ✕",
+      "description": "弹窗开合为插件内部 useState，aria-haspopup / aria-expanded 同步"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "开合状态在插件内部自持，不调用任何上下文方法。",
+  "features": ["规则区零占位（只留一个按钮），主视觉更干净", "与 RuleExpand 声明互斥，装配期自动去重", "支持 string 与 {title, content}[] 两种 rules 形态"],
+  "useCases": ["规则长且多的复杂活动", "需要保持活动页沉浸感的场景", "移动端全屏规则查看"],
+  "notes": ["弹窗用 position:fixed，祖先有 transform/filter 时 fixed 会降级为相对定位——套在带变换的容器里时注意"],
+  "example": "const Activity = withPlugins(ActivityCore, [createRuleModalPlugin()]);",
+  "examples": [
+    {
+      "name": "默认弹窗规则",
+      "description": "替换 RuleExpand 的弹窗风格渲染",
+      "src": "createRuleModalPlugin()",
+      "config": {}
+    },
+    {
+      "name": "自定义入口文案",
+      "description": "按钮改成「玩法说明」",
+      "src": "createRuleModalPlugin({ triggerLabel: \"玩法说明\", title: \"玩法说明\" })",
+      "config": { "triggerLabel": "玩法说明", "title": "玩法说明" }
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "name": "CouponStackPlugin",
+  "description": "券堆叠：把奖励渲染成一摞错位的票券卡（RewardClaim 的变体渲染），同槽位独占。",
+  "since": "0.1.0",
+  "tags": ["ui", "奖励", "变体", "独占"],
+  "props": [
+    {
+      "name": "stackOffset",
+      "type": "number",
+      "default": "6",
+      "description": "相邻券卡的横向错位偏移（px）"
+    },
+    {
+      "name": "claimLabel",
+      "type": "string",
+      "default": "领取",
+      "description": "可领态按钮文案"
+    },
+    {
+      "name": "claimedLabel",
+      "type": "string",
+      "default": "已领取",
+      "description": "已领取态文案"
+    },
+    {
+      "name": "lockedLabel",
+      "type": "string",
+      "default": "未解锁",
+      "description": "锁定态文案"
+    }
+  ],
+  "events": [
+    {
+      "name": "renderRewards",
+      "when": "每次渲染；ctx.rewards 非空时",
+      "description": "渲染票券卡列表；无奖励时返回 null"
+    },
+    {
+      "name": "ctx.claim",
+      "when": "点击「领取」按钮",
+      "description": "领取对应奖励（内部态更新 + onClaim 回调），卡片随即变「已领取」"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "领取走 ctx.claim(rewardId)（内核统一入口），自身不持有领取状态。",
+  "features": ["票券式卡面（虚线边 + 堆叠错位）", "与 RewardClaim 声明互斥，装配期自动去重", "三态配色守 ADR-13（白字按钮 #cf4407）"],
+  "useCases": ["券包领取页", "礼包兑换", "需要弱化按钮、强化券面设计的场景"],
+  "notes": ["同时挂载 RewardClaim 时本插件被去重（priority 29 < 30）；想用堆叠风格就别挂 RewardClaim"],
+  "example": "const Activity = withPlugins(ActivityCore, [createCouponStackPlugin()]);",
+  "examples": [
+    {
+      "name": "默认堆叠",
+      "description": "替换 RewardClaim 的票券风格渲染",
+      "src": "createCouponStackPlugin()",
+      "config": {}
+    },
+    {
+      "name": "加大错位",
+      "description": "堆叠手感更明显",
+      "src": "createCouponStackPlugin({ stackOffset: 12 })",
+      "config": { "stackOffset": 12 }
+    }
+  ]
+}

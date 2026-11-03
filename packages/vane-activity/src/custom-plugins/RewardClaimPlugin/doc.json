@@ -1,0 +1,60 @@
+{
+  "name": "RewardClaimPlugin",
+  "description": "奖励领取：渲染奖励行，按派生状态展示按钮（可领/已领/锁定），点击调 claim。",
+  "since": "0.1.0",
+  "tags": ["ui", "奖励", "领取"],
+  "props": [
+    {
+      "name": "claimedLabel",
+      "type": "string",
+      "default": "已领取",
+      "description": "已领取态按钮文案"
+    },
+    {
+      "name": "order",
+      "type": "number",
+      "default": "0",
+      "description": "同槽位排序键：与 RedeemCodePlugin 同在 renderRewards 时定上下"
+    }
+  ],
+  "events": [
+    {
+      "name": "renderRewards",
+      "when": "每次渲染；奖励槽位无更高 order 的插件接管时",
+      "description": "输出奖励行：可领（实心橙按钮）/ 已领（绿字禁用）/ 未解锁（灰字禁用）"
+    },
+    {
+      "name": "onClaim",
+      "when": "点击「领取」按钮（仅 claimable 态可点）",
+      "description": "先走 ctx.claim(rewardId) 更新内部态，再由内核透传 ActivityCore 的 onClaim(rewardId)"
+    }
+  ],
+  "methods": [
+    {
+      "name": "claim",
+      "signature": "ctx.claim(rewardId: string): void",
+      "description": "领取指定奖励：非受控时写入内核 claimedIds 并触发重渲染；受控（传了 claimedRewardIds）时只回调 onClaim"
+    }
+  ],
+  "features": ["奖励三态派生（locked / claimable / claimed）", "受控 / 非受控两种领取模式"],
+  "useCases": ["阶梯奖励领取", "达标发券", "任务奖励发放"],
+  "notes": [
+    "阈值来自 reward.threshold，比较对象是总体加权进度 ctx.progress",
+    "按钮配色已过 ADR-13：可领 #cf4407（白底 4.69:1），不用 #ff7a29（白字仅 2.6:1）"
+  ],
+  "example": "const Activity = withPlugins(ActivityCore, [createRewardClaimPlugin()]);",
+  "examples": [
+    {
+      "name": "默认领取区",
+      "description": "阈值解锁后高亮「领取」",
+      "src": "createRewardClaimPlugin()",
+      "config": {}
+    },
+    {
+      "name": "自定义已领文案",
+      "description": "把「已领取」换成「已到账」",
+      "src": "createRewardClaimPlugin({ claimedLabel: \"已到账\" })",
+      "config": { "claimedLabel": "已到账" }
+    }
+  ]
+}

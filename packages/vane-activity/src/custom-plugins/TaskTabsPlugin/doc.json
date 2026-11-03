@@ -1,0 +1,76 @@
+{
+  "name": "TaskTabsPlugin",
+  "description": "分组任务清单：页签切换（每日 / 成长 / 邀请…），每个页签带完成度计数，组内沿用任务行样式与「去完成」动作。",
+  "since": "0.1.0",
+  "tags": ["ui", "任务", "分组", "页签", "独占槽位"],
+  "props": [
+    {
+      "name": "tabs",
+      "type": "ActivityTaskGroup[]",
+      "default": "[]",
+      "description": "页签定义（key / label / icon?）；data.taskGroups 非空时以数据为准"
+    },
+    {
+      "name": "defaultTab",
+      "type": "string",
+      "default": "第一个页签",
+      "description": "默认选中的页签 key"
+    },
+    {
+      "name": "showProgress",
+      "type": "boolean",
+      "default": "true",
+      "description": "是否展示未完成任务的进度条"
+    },
+    {
+      "name": "doneLabel",
+      "type": "string",
+      "default": "\"已完成\"",
+      "description": "完成态文案"
+    },
+    {
+      "name": "emptyText",
+      "type": "string",
+      "default": "\"该分组暂无任务\"",
+      "description": "页签下无任务时的占位文案（不返回 null，避免页签跳动）"
+    },
+    {
+      "name": "order",
+      "type": "number",
+      "default": "0",
+      "description": "同槽位排序键（本插件独占 renderTasks，一般用不到）"
+    }
+  ],
+  "events": [
+    {
+      "name": "onTaskAction",
+      "when": "点击任务行的动作按钮（task.actionLabel 存在且未完成）",
+      "description": "透传 ctx.props.onTaskAction(taskId)，由业务侧跳转或标记完成"
+    },
+    {
+      "name": "renderTasks",
+      "when": "每次渲染；任务为空时返回 null",
+      "description": "在任务槽渲染页签 + 当前分组任务行"
+    }
+  ],
+  "methods": [
+    {
+      "name": "ctx.tasks",
+      "signature": "ActivityTask[]",
+      "description": "读取全量任务（含 group / status / progress），按当前页签过滤后渲染"
+    }
+  ],
+  "methodsNote": "页签切换是组件内部 useState，不写回 ctx；需要外部控制选中页签请用 defaultTab 配合重挂载。",
+  "features": [
+    "页签带完成度计数（2/3），未选中为白底灰字、选中为橙底白字",
+    "没有分组数据时（data.taskGroups 与 config.tabs 都为空）自动给一个「全部」页签，聚合所有任务",
+    "独占 renderTasks：与 TaskListPlugin 同时装配时本插件 priority 更高（22 > 20）自动胜出",
+    "页签横向可滚，移动端窄屏不换行挤压"
+  ],
+  "useCases": ["每日任务 / 成长任务 / 邀请任务分栏", "多玩法活动的任务中心", "任务量大于 8 条时的分类收纳"],
+  "notes": [
+    "任务未标 group 时只会出现在『全部』页签下",
+    "taskGroups 被外部替换导致当前页签消失时，自动回落到第一个页签",
+    "与 TaskListPlugin 二选一：同时装会在装配期打印去重警告并丢弃 TaskListPlugin"
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "name": "LeaderboardPlugin",
+  "description": "好友榜：按 score 降序取前 N 名，第一名强调橙名次牌，isMe 行浅橙底高亮；自己不在前 N 时底部补真实名次。",
+  "since": "0.1.0",
+  "tags": ["ui", "底部", "社交", "榜单"],
+  "props": [
+    {
+      "name": "title",
+      "type": "string",
+      "default": "\"好友榜\"",
+      "description": "榜单标题"
+    },
+    {
+      "name": "topN",
+      "type": "number",
+      "default": "3",
+      "description": "展示前几名"
+    },
+    {
+      "name": "unit",
+      "type": "string",
+      "default": "\"分\"",
+      "description": "分数单位后缀"
+    },
+    {
+      "name": "highlightMe",
+      "type": "boolean",
+      "default": "true",
+      "description": "是否高亮 isMe 行并在名字后加「我」标签"
+    },
+    {
+      "name": "emptyText",
+      "type": "string",
+      "default": "\"暂无排行数据\"",
+      "description": "data.leaderboard 为空时的占位文案"
+    },
+    {
+      "name": "order",
+      "type": "number",
+      "default": "0",
+      "description": "同槽位排序键：与 ShareBoostPlugin 同在 renderFooter 时决定上下顺序"
+    }
+  ],
+  "events": [
+    {
+      "name": "renderFooter",
+      "when": "每次渲染；data.leaderboard 为空时渲染占位卡片而非返回 null",
+      "description": "在底部社交槽渲染榜单（前 N 名 + 可选「我的名次」分隔行）"
+    }
+  ],
+  "methods": [
+    {
+      "name": "ctx.data.leaderboard",
+      "signature": "ActivityLeaderboardEntry[]",
+      "description": "读取榜单原始数据（id / name / score / avatar? / isMe?），插件内排序后切片"
+    }
+  ],
+  "methodsNote": "只读数据并做不可变排序（[...list] 复制后 sort），不修改 ctx.data 原数组，也不调用 claim / setState。",
+  "features": [
+    "排序在插件内完成，业务侧无需预排序",
+    "自己不在前 N 时用虚线上分隔并补真实名次，避免「我消失了」",
+    "名次牌 1 名 #cf4407 / 2-3 名 #5d636a，白字均 ≥5:1"
+  ],
+  "useCases": ["好友步数榜", "邀请人数排行", "积分 PK 榜"],
+  "notes": [
+    "score 相同按原始数组顺序稳定排列（Array.prototype.sort 在 ES2019+ 稳定）",
+    "topN 大于实际人数时按实际人数渲染"
+  ]
+}

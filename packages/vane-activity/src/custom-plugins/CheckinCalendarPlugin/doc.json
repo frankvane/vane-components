@@ -1,0 +1,81 @@
+{
+  "name": "CheckinCalendarPlugin",
+  "description": "签到日历：N 个格子展示已签 / 今日待签 / 未开始三态，附连续天数与签到按钮，点按钮走 onCheckin 或本地乐观 +1。",
+  "since": "0.1.0",
+  "tags": ["ui", "进度", "签到", "日历"],
+  "props": [
+    {
+      "name": "title",
+      "type": "string",
+      "default": "\"连续签到\"",
+      "description": "卡片标题"
+    },
+    {
+      "name": "days",
+      "type": "number",
+      "default": "7",
+      "description": "共几天；data.checkin.days 存在时以数据为准"
+    },
+    {
+      "name": "done",
+      "type": "number",
+      "default": "0",
+      "description": "已完成天数；data.checkin.done 存在时以数据为准"
+    },
+    {
+      "name": "todayIndex",
+      "type": "number",
+      "default": "done",
+      "description": "今天对应的格子下标（0-based），默认等于 done 即「今天还没签」"
+    },
+    {
+      "name": "onCheckin",
+      "type": "() => void",
+      "default": "undefined",
+      "description": "点「今日签到」的回调；不传则组件内乐观 +1，传了由业务侧回写 data.checkin.done"
+    },
+    {
+      "name": "showButton",
+      "type": "boolean",
+      "default": "true",
+      "description": "是否显示签到按钮（纯展示场景可关掉）"
+    },
+    {
+      "name": "order",
+      "type": "number",
+      "default": "0",
+      "description": "同槽位排序键：与 ProgressFx / ProgressRing / MilestoneBar 同在 renderProgress 时定上下"
+    }
+  ],
+  "events": [
+    {
+      "name": "onCheckin",
+      "when": "点击「今日签到」且今天尚未签到、本轮未签满时",
+      "description": "通知业务侧落库；插件在收到回调前不改本地态，业务侧需回写 data.checkin.done 才会推进格子"
+    },
+    {
+      "name": "renderProgress",
+      "when": "每次渲染",
+      "description": "在顶部进度槽渲染签到日历；showButton 为 false 时只渲染格子"
+    }
+  ],
+  "methods": [
+    {
+      "name": "ctx.data.checkin",
+      "signature": "{ days?: number; done: number; todayIndex?: number }",
+      "description": "读取签到态；缺省时逐字段回退到 config"
+    }
+  ],
+  "methodsNote": "无对外命令式方法。未传 onCheckin 时内部用 useState 做乐观 +1（上限 days），传了则以 data 为准。",
+  "features": [
+    "三态格子：已签实心橙 + 白勾、今日虚线橙框「今」、未开始灰框",
+    "签满后按钮变「已完成」并禁用，提示语同步切换",
+    "格子宽度 flex:1 自适应，N=7 / 14 都不会溢出",
+    "全部色值满足 ADR-13：#fff 白字压 #cf4407 4.69:1、压 #5d636a 6.0:1"
+  ],
+  "useCases": ["7 日签到", "连续打卡领积分", "任务型活动每日激励"],
+  "notes": [
+    "todayIndex 大于 done 时（跳签场景）今天格子显示为「待签到」，中间断签格保持未开始",
+    "本插件不计算「连续」的业务语义，连续天数由业务侧在 done 里表达"
+  ]
+}

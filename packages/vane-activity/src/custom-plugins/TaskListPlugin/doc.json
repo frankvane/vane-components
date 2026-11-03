@@ -1,0 +1,61 @@
+{
+  "name": "TaskListPlugin",
+  "description": "任务清单：渲染活动任务列表，展示标题/描述/进度与状态，含「去完成」动作按钮。",
+  "since": "0.1.0",
+  "tags": ["ui", "任务", "列表"],
+  "props": [
+    {
+      "name": "showProgress",
+      "type": "boolean",
+      "default": "true",
+      "description": "是否展示每个未完成任务的进度条"
+    },
+    {
+      "name": "doneLabel",
+      "type": "string",
+      "default": "已完成",
+      "description": "完成态文案（替代默认的「已完成」）"
+    },
+    {
+      "name": "order",
+      "type": "number",
+      "default": "0",
+      "description": "同槽位排序键（本插件独占 renderTasks，一般用不到）"
+    }
+  ],
+  "events": [
+    {
+      "name": "renderTasks",
+      "when": "每次渲染；任务槽位无更高 order 的插件接管时",
+      "description": "输出任务清单；ctx.tasks 为空时返回 null，槽位留空"
+    },
+    {
+      "name": "onTaskAction",
+      "when": "点击任务动作按钮（status !== completed 且配了 actionLabel）",
+      "description": "透传 ActivityCore 的 onTaskAction(taskId)，由消费方决定跳转/埋点"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 ctx.tasks 与 ctx.props.onTaskAction，不调用任何上下文方法。",
+  "features": ["任务三态（locked / available / completed）配色", "按任务 progress 渲染单项进度条"],
+  "useCases": ["签到任务清单", "拉新任务列表", "积分任务中心"],
+  "notes": [
+    "进度条默认不显示在已完成任务上（改 doneLabel 可换文案）",
+    "声明 exclusiveSlots: [\"renderTasks\"]：与 TaskTabsPlugin（priority 22）同时装配时本插件让位并被丢弃，避免两份任务列表叠影"
+  ],
+  "example": "const Activity = withPlugins(ActivityCore, [createTaskListPlugin()]);",
+  "examples": [
+    {
+      "name": "基础任务列表",
+      "description": "展示任务清单与每项进度",
+      "src": "createTaskListPlugin()",
+      "config": {}
+    },
+    {
+      "name": "隐藏单项进度条",
+      "description": "只列任务与状态，进度交给顶部 ProgressFx",
+      "src": "createTaskListPlugin({ showProgress: false })",
+      "config": { "showProgress": false }
+    }
+  ]
+}

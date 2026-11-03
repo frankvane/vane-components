@@ -1,0 +1,195 @@
+{
+  "name": "vane-activity",
+  "version": "0.1.0",
+  "description": "插件式 React 营销活动容器：任务 / 进度 / 奖励 / 规则按需装配",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./entries/core": {
+      "types": "./dist/entries/core.d.ts",
+      "import": "./dist/entries/core.js"
+    },
+    "./entries/plugins": {
+      "types": "./dist/entries/plugins.d.ts",
+      "import": "./dist/entries/plugins.js"
+    },
+    "./custom-plugins/ActivityHeaderPlugin": {
+      "types": "./dist/custom-plugins/ActivityHeaderPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ActivityHeaderPlugin/index.js"
+    },
+    "./custom-plugins/AnnouncementPlugin": {
+      "types": "./dist/custom-plugins/AnnouncementPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/AnnouncementPlugin/index.js"
+    },
+    "./custom-plugins/CheckinCalendarPlugin": {
+      "types": "./dist/custom-plugins/CheckinCalendarPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/CheckinCalendarPlugin/index.js"
+    },
+    "./custom-plugins/ClaimToastPlugin": {
+      "types": "./dist/custom-plugins/ClaimToastPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ClaimToastPlugin/index.js"
+    },
+    "./custom-plugins/ConfettiPlugin": {
+      "types": "./dist/custom-plugins/ConfettiPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ConfettiPlugin/index.js"
+    },
+    "./custom-plugins/CountdownTimerPlugin": {
+      "types": "./dist/custom-plugins/CountdownTimerPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/CountdownTimerPlugin/index.js"
+    },
+    "./custom-plugins/CouponStackPlugin": {
+      "types": "./dist/custom-plugins/CouponStackPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/CouponStackPlugin/index.js"
+    },
+    "./custom-plugins/JackpotPlugin": {
+      "types": "./dist/custom-plugins/JackpotPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/JackpotPlugin/index.js"
+    },
+    "./custom-plugins/LeaderboardPlugin": {
+      "types": "./dist/custom-plugins/LeaderboardPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/LeaderboardPlugin/index.js"
+    },
+    "./custom-plugins/MilestoneBarPlugin": {
+      "types": "./dist/custom-plugins/MilestoneBarPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/MilestoneBarPlugin/index.js"
+    },
+    "./custom-plugins/ProgressFxPlugin": {
+      "types": "./dist/custom-plugins/ProgressFxPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ProgressFxPlugin/index.js"
+    },
+    "./custom-plugins/ProgressRingPlugin": {
+      "types": "./dist/custom-plugins/ProgressRingPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ProgressRingPlugin/index.js"
+    },
+    "./custom-plugins/RedeemCodePlugin": {
+      "types": "./dist/custom-plugins/RedeemCodePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/RedeemCodePlugin/index.js"
+    },
+    "./custom-plugins/RewardClaimPlugin": {
+      "types": "./dist/custom-plugins/RewardClaimPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/RewardClaimPlugin/index.js"
+    },
+    "./custom-plugins/RuleExpandPlugin": {
+      "types": "./dist/custom-plugins/RuleExpandPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/RuleExpandPlugin/index.js"
+    },
+    "./custom-plugins/RuleModalPlugin": {
+      "types": "./dist/custom-plugins/RuleModalPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/RuleModalPlugin/index.js"
+    },
+    "./custom-plugins/ShareBoostPlugin": {
+      "types": "./dist/custom-plugins/ShareBoostPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ShareBoostPlugin/index.js"
+    },
+    "./custom-plugins/TaskListPlugin": {
+      "types": "./dist/custom-plugins/TaskListPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/TaskListPlugin/index.js"
+    },
+    "./custom-plugins/TaskTabsPlugin": {
+      "types": "./dist/custom-plugins/TaskTabsPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/TaskTabsPlugin/index.js"
+    },
+    "./custom-plugins": {
+      "types": "./dist/custom-plugins/index.d.ts",
+      "import": "./dist/custom-plugins/index.js"
+    },
+    "./custom-plugins/*": {
+      "types": "./dist/custom-plugins/*/index.d.ts",
+      "import": "./dist/custom-plugins/*/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "react",
+    "plugin",
+    "activity",
+    "typescript"
+  ],
+  "author": "Frank Vane",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/frankvane/vane-components.git",
+    "directory": "packages/vane-activity"
+  },
+  "scripts": {
+    "dev": "vite --config demo/vite.config.ts",
+    "build": "vite build --mode lib",
+    "build:demo": "vite build --config demo/vite.config.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "lint": "eslint .",
+    "sync:exports": "node ../../scripts/sync-exports.mjs",
+    "prepublishOnly": "npm run build"
+  },
+  "vane": {
+    "demo": {
+      "brand": "A",
+      "subtitle": "营销活动 / plugin index",
+      "title": "营销活动 演示台",
+      "accent": "#ff7a29",
+      "bg": "#0b0a09"
+    },
+    "sizeBudgetKb": 8,
+    "coreSizeBudgetKb": 6,
+    "subpathBudgets": {
+      "./custom-plugins/TaskListPlugin": 3,
+      "./custom-plugins/ProgressFxPlugin": 3,
+      "./custom-plugins/ProgressRingPlugin": 3,
+      "./custom-plugins/RewardClaimPlugin": 3,
+      "./custom-plugins/RuleExpandPlugin": 3,
+      "./custom-plugins/CountdownTimerPlugin": 3,
+      "./custom-plugins/MilestoneBarPlugin": 3,
+      "./custom-plugins/CouponStackPlugin": 3,
+      "./custom-plugins/RuleModalPlugin": 3,
+      "./custom-plugins/ConfettiPlugin": 3,
+      "./custom-plugins/ActivityHeaderPlugin": 3,
+      "./custom-plugins/ClaimToastPlugin": 3,
+      "./custom-plugins/ShareBoostPlugin": 3,
+      "./custom-plugins/LeaderboardPlugin": 3,
+      "./custom-plugins/AnnouncementPlugin": 3,
+      "./custom-plugins/CheckinCalendarPlugin": 3.5,
+      "./custom-plugins/TaskTabsPlugin": 3.5,
+      "./custom-plugins/JackpotPlugin": 4,
+      "./custom-plugins/RedeemCodePlugin": 3.5
+    },
+    "fullSizeBudgetKb": 38,
+    "sizeBudgetNote": "Announcement/Checkin/TaskTabs/Jackpot/RedeemCode 五个交互型插件高于 3KB 基线：内联样式密集（九宫格 / 表单 / 页签）+ 抽奖动画状态机。基线仍是 3KB，其余 15 个插件均未放宽。"
+  },
+  "peerDependencies": {
+    "react": ">=16.8.0",
+    "react-dom": ">=16.8.0",
+    "vane-plugin-core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vane/build-config": "workspace:*",
+    "vane-plugin-core": "workspace:*",
+    "@vane/tsconfig": "workspace:*",
+    "@vitejs/plugin-react": "^4.3.1",
+    "happy-dom": "^15.11.7",
+    "react": "^18.3.1",
+    "react-router-dom": "^6.26.2",
+    "react-dom": "^18.3.1",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.1",
+    "vite-plugin-dts": "^4.5.4",
+    "vitest": "^2.1.8",
+    "@vane/vitest-config": "workspace:*",
+    "@vane/eslint-config": "workspace:*"
+  }
+}

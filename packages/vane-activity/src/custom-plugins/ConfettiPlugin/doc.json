@@ -1,0 +1,53 @@
+{
+  "name": "ConfettiPlugin",
+  "description": "庆祝彩纸：进度达成阈值（默认 100%）时容器内下落彩纸动画；与 ProgressFx 文字浮层同槽共存。",
+  "since": "0.1.0",
+  "tags": ["ui", "庆祝", "浮层", "动画"],
+  "props": [
+    {
+      "name": "count",
+      "type": "number",
+      "default": "28",
+      "description": "彩纸数量"
+    },
+    {
+      "name": "durationSec",
+      "type": "number",
+      "default": "2.6",
+      "description": "单轮下落基准时长（秒，每片带随机扰动）"
+    },
+    {
+      "name": "threshold",
+      "type": "number",
+      "default": "1",
+      "description": "触发阈值（ctx.progress ≥ threshold 时庆祝）"
+    }
+  ],
+  "events": [
+    {
+      "name": "renderOverlay",
+      "when": "每次渲染；progress 达阈值时",
+      "description": "渲染彩纸层（absolute + pointerEvents:none，不挡交互）；未达阈值返回 null"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "只读取 ctx.progress，不调用任何上下文方法；动画用 CSS keyframes（渲染时注入一次 <style>）。",
+  "features": ["overlay 槽位天然可叠加，与 ProgressFx 的「🎉 进度达成」横幅同屏", "确定性伪随机：重渲染不跳变", "纯形状无文字，零对比度负担"],
+  "useCases": ["进度达成庆祝", "大奖开出氛围", "活动结束撒花"],
+  "notes": ["彩纸循环下落；想要一轮即止可外层按需卸载插件。low-end 设备上 count 建议 ≤ 40"],
+  "example": "const Activity = withPlugins(ActivityCore, [createConfettiPlugin()]);",
+  "examples": [
+    {
+      "name": "默认彩纸",
+      "description": "100% 时与文字横幅同屏庆祝",
+      "src": "createConfettiPlugin()",
+      "config": {}
+    },
+    {
+      "name": "提前庆祝",
+      "description": "90% 就开始撒花",
+      "src": "createConfettiPlugin({ threshold: 0.9, count: 40 })",
+      "config": { "threshold": 0.9, "count": 40 }
+    }
+  ]
+}

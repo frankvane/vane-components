@@ -1,0 +1,82 @@
+{
+  "name": "JackpotPlugin",
+  "description": "九宫格抽奖：8 格环绕中心按钮，逐格高亮减速后停在中奖格；次数用完自动禁用。",
+  "since": "0.1.0",
+  "tags": ["ui", "玩法", "抽奖", "九宫格", "底部"],
+  "props": [
+    {
+      "name": "title",
+      "type": "string",
+      "default": "\"幸运抽奖\"",
+      "description": "卡片标题"
+    },
+    {
+      "name": "prizes",
+      "type": "JackpotPrize[]",
+      "default": "8 个内置奖励",
+      "description": "奖池 { id, label, icon? }；固定 8 格，不足补「谢谢参与」"
+    },
+    {
+      "name": "times",
+      "type": "number",
+      "default": "3",
+      "description": "未传 remainingTimes 时的初值；每抽按服务端返回或本地 -1，归零禁用"
+    },
+    {
+      "name": "remainingTimes",
+      "type": "number",
+      "default": "undefined",
+      "description": "受控次数；传入后组件不递减，由业务侧回写"
+    },
+    {
+      "name": "drawResult",
+      "type": "() => JackpotDrawResult | Promise<JackpotDrawResult>",
+      "default": "undefined",
+      "description": "服务端抽奖返回 { index, remaining? }；传入后不用本地随机"
+    },
+    {
+      "name": "onDraw",
+      "type": "(prize: JackpotPrize, index: number) => void",
+      "default": "undefined",
+      "description": "中奖通知（动画结束后）；仅通知不扣次数"
+    },
+    {
+      "name": "order",
+      "type": "number",
+      "default": "0",
+      "description": "同槽位排序键：与助力条 / 榜单同在 renderFooter 时定上下"
+    }
+  ],
+  "events": [
+    {
+      "name": "onDraw",
+      "when": "抽奖动画跑完并确定中奖格后",
+      "description": "回传中奖奖励与下标，供发奖 / 埋点"
+    },
+    {
+      "name": "renderFooter",
+      "when": "每次渲染",
+      "description": "底部槽渲染九宫格卡片（含按钮与结果文案）"
+    }
+  ],
+  "methods": [
+    {
+      "name": "内部 draw()",
+      "signature": "() => Promise<void>",
+      "description": "开始抽取；drawing 或次数为 0 时忽略；失败展示错误并恢复按钮"
+    }
+  ],
+  "methodsNote": "内部状态机（remaining / active / drawing / result），不暴露 ref 方法；外部触发请走自定义按钮 + 事件。",
+  "features": [
+    "步数 = 8×2 + winner + 1，停格必为中奖格且至少转两圈",
+    "帧间隔 60 + step×5 ms 递增，尾部有减速手感",
+    "结果区 aria-live=polite，中奖色 #a33a06 对白底 6.6:1",
+    "卸载统一 clearTimeout，避免对已卸载组件 setState"
+  ],
+  "useCases": ["抽奖活动主玩法", "任务完成后的奖励抽取", "积分兑换转盘"],
+  "notes": [
+    "生产请传 drawResult 由服务端决定中奖格与次数；本地随机仅演示，不能作为发奖依据",
+    "中心按钮随状态切换：抽一次 / 抽取中 / 已抽完",
+    "九宫格固定 3×3，格子 minHeight 56，移动端一屏可容纳"
+  ]
+}

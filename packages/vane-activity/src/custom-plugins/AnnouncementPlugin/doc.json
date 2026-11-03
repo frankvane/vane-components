@@ -1,0 +1,64 @@
+{
+  "name": "AnnouncementPlugin",
+  "description": "活动公告条：横向滚动播报多条公告，纯 CSS 跑马灯（无定时器），悬停暂停、减动效偏好下静止。",
+  "since": "0.1.0",
+  "tags": ["ui", "头部", "公告", "跑马灯"],
+  "props": [
+    {
+      "name": "items",
+      "type": "string[]",
+      "default": "[]",
+      "description": "公告条目；data.announcements 非空时以数据为准，config 只在无数据时兜底"
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "\"公告\"",
+      "description": "左侧标签文案"
+    },
+    {
+      "name": "icon",
+      "type": "string",
+      "default": "\"📢\"",
+      "description": "标签前的图标（emoji 或字符）"
+    },
+    {
+      "name": "speedSec",
+      "type": "number",
+      "default": "16",
+      "description": "滚动一轮的秒数，越大越慢"
+    },
+    {
+      "name": "order",
+      "type": "number",
+      "default": "0",
+      "description": "同槽位排序键：与 ActivityHeaderPlugin 同在 renderHeader 时调上下顺序"
+    }
+  ],
+  "events": [
+    {
+      "name": "renderHeader",
+      "when": "每次渲染；公告条目为空时返回 null（该区块不进产物）",
+      "description": "在头部槽渲染公告条；CSS 动画循环，不注册任何定时器，因此无事件回调"
+    }
+  ],
+  "methods": [
+    {
+      "name": "ctx.data.announcements",
+      "signature": "string[] | undefined",
+      "description": "读取公告数据源；非空时优先于 config.items"
+    }
+  ],
+  "methodsNote": "无内部状态、无状态写操作：纯函数式渲染，公告内容变化走父级 data 更新即可（插件自动跟随重渲染）。",
+  "features": [
+    "纯 CSS 跑马灯，不持有 setInterval，后台标签页不会积压回调",
+    "条目复制一份首尾相接，-50% 位移即无缝循环",
+    "悬停暂停（.va-announce-track:hover）、prefers-reduced-motion 下自动静止",
+    "标签用 #cf4407 底 + 白字，正文 #1f2328 压浅橙底，均满足 ADR-13"
+  ],
+  "useCases": ["活动开场公告", "中奖名单播报", "规则变更提醒"],
+  "notes": [
+    "priority 8 高于 ActivityHeaderPlugin 的 5，同装时公告条显示在横幅上方；需要反过来就传 order 调整",
+    "公告文字建议单条不超过 30 字，过长会拖慢一轮的阅读节奏（可调大 speedSec）"
+  ]
+}

@@ -1,0 +1,1034 @@
+/* ============================================================
+   __PKG_NAME__ · __TITLE__ / 页面级样式
+   ------------------------------------------------------------
+   外壳（骨架 / 顶栏 / 侧栏 / 逐项示例导航 / 兜底）由
+   scripts/sync-demo-shell.mjs 从 packages/templates/demo-shell 生成到
+   demo/src/shell.css，**这里不要写外壳规则**。
+
+   本文件只放两块，也是各包 demo 之间唯一允许的差异：
+     1. 视觉令牌（--accent 等）—— 换成本包识别色，其它留默认
+     2. 页面级样式 —— 总览 / 工坊 / 场景板 / 示例页特有版式
+
+   下面的字体、令牌、基础排版是标准取值，来自 vane-sku 演示台，
+   新包直接沿用即可；只改 --accent* 三行与品牌文案。
+   ============================================================ */
+
+/* ---------------- 0. 自托管字体（不依赖外网 CDN） ---------------- */
+@font-face {
+  font-family: "Chakra Petch";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("./assets/fonts/chakra-petch-latin-500-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Chakra Petch";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("./assets/fonts/chakra-petch-latin-600-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Chakra Petch";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("./assets/fonts/chakra-petch-latin-700-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("./assets/fonts/jetbrains-mono-latin-400-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("./assets/fonts/jetbrains-mono-latin-700-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* ---------------- 1. 令牌 ---------------- */
+
+:root {
+  color-scheme: dark;
+
+  /* 表面：暖墨黑，绝不用纯黑或纯灰 */
+  --ink-0: #0b0a09;
+  --ink-1: #121110;
+  --ink-2: #171513;
+  --ink-3: #1f1c18;
+  --paper: #f2ede4;
+
+  --text: #f2ede4;
+  --dim: #bdb4a8;
+  --faint: #90887d;
+
+  /* 发丝线：只有一个族，靠 alpha 分强弱 */
+  --rule: rgba(242, 237, 228, 0.14);
+  --rule-2: rgba(242, 237, 228, 0.24);
+  --rule-soft: rgba(242, 237, 228, 0.07);
+
+  /* 唯一强调色：琥珀橙 */
+  --accent: #ff7a29;
+  --accent-ink: #0b0a09;
+  --accent-wash: rgba(255, 122, 41, 0.12);
+  --accent-line: rgba(255, 122, 41, 0.4);
+
+  --ok: #7fd08c;
+  --warn: #f5c24b;
+  --danger: #f2685e;
+
+  /* 展示字：拉丁/数字走 Chakra Petch，中文自动落到系统中文字体 */
+  --ff-display: "Chakra Petch", "PingFang SC", "Microsoft YaHei", "Noto Sans SC",
+    "Source Han Sans SC", sans-serif;
+  --ff-sans: "Chakra Petch", "PingFang SC", "Microsoft YaHei", "Noto Sans SC",
+    "Source Han Sans SC", sans-serif;
+  --ff-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas,
+    monospace;
+
+  /* 字阶：1.25 近似，展示级单独给 clamp */
+  --fs-micro: 10.5px;
+  --fs-xs: 12px;
+  --fs-sm: 13px;
+  --fs-base: 15px;
+  --fs-md: 17px;
+  --fs-lg: 21px;
+  --fs-xl: 28px;
+  --fs-hero: clamp(34px, 4.3vw, 58px);
+
+  /* 间距梯度 */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 24px;
+  --s6: 32px;
+  --s7: 48px;
+  --s8: 72px;
+
+  /* 设备面板风：2px 微圆角（vane-sku 识别，profile 是全套直角） */
+  --r: 2px;
+
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur: 320ms;
+  --dur-fast: 160ms;
+
+  --side-w: 238px;
+  --top-h: 54px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--ff-sans);
+  font-size: var(--fs-base);
+  line-height: 1.68;
+  color: var(--text);
+  background: var(--ink-0);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* 氛围：左上荧光雾 + 全站颗粒。纯色平铺是失败模式，这里给两层 */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(52rem 34rem at 6% -12%, rgba(255, 122, 41, 0.16), transparent 62%),
+    radial-gradient(44rem 30rem at 96% 4%, rgba(95, 211, 200, 0.08), transparent 60%);
+}
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+code,
+pre,
+kbd,
+time {
+  font-family: var(--ff-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* 统一的等宽小标签语气 */
+.eyebrow,
+.masthead,
+.plate-cap,
+.nav-section-head,
+.ws-group h4,
+.doc-cols h5 {
+  font-family: var(--ff-mono);
+  font-size: var(--fs-micro);
+  font-weight: 500;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.skip-link {
+  position: fixed;
+  left: 12px;
+  top: -60px;
+  z-index: 90;
+  padding: 10px 16px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-family: var(--ff-mono);
+  font-size: 12px;
+  transition: top var(--dur-fast) ease;
+}
+.skip-link:focus {
+  top: 12px;
+}
+
+
+/* ---------------- 2. 页面级：舞台与源码 ---------------- */
+
+/* 舞台：真实运行的组件装在这里。外壳只提供 .page-head / .card，舞台版式归页面自己 */
+.demo-stage {
+  margin: var(--s5) 0;
+  padding: var(--s5);
+  background: var(--ink-1);
+  border: 1px solid var(--rule);
+  border-radius: var(--r);
+}
+
+.demo-src-wrap {
+  margin-top: var(--s6);
+}
+
+.demo-src-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s3);
+  padding-bottom: var(--s2);
+  border-bottom: 1px solid var(--rule);
+}
+
+.demo-src-title {
+  font-family: var(--ff-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.demo-src-hint {
+  font-size: var(--fs-xs);
+  color: var(--faint);
+}
+
+.demo-src {
+  margin: 0;
+  padding: var(--s4) var(--s4) var(--s5);
+  background: var(--ink-1);
+  border: 1px solid var(--rule);
+  border-top: 0;
+  overflow: auto;
+  max-height: 460px;
+  font-family: var(--ff-mono);
+  font-size: 11.5px;
+  line-height: 1.75;
+  color: var(--dim);
+  white-space: pre;
+  tab-size: 2;
+}
+
+/* ---------------- 3. 页面级：插件工坊 ---------------- */
+
+.ws {
+  display: grid;
+  grid-template-columns: 296px minmax(0, 1fr);
+  gap: var(--s5);
+  align-items: start;
+}
+
+.ws-panel {
+  position: sticky;
+  top: calc(var(--top-h) + 16px);
+  max-height: calc(100vh - var(--top-h) - 32px);
+  overflow-y: auto;
+  padding: var(--s3) var(--s3) var(--s4);
+  background: var(--ink-1);
+  border: 1px solid var(--rule);
+  scrollbar-width: thin;
+}
+
+.ws-group {
+  margin-bottom: var(--s4);
+}
+
+.ws-panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 4px 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--rule);
+  font-family: var(--ff-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.ws-panel-head code {
+  letter-spacing: 0.05em;
+  color: var(--accent);
+}
+
+.ws-group h4 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 6px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--rule-soft);
+}
+
+.ws-group h4::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--rule-soft);
+}
+
+.ws-check {
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr);
+  gap: 9px;
+  padding: 6px var(--s2);
+  border-left: 2px solid transparent;
+  cursor: pointer;
+  color: var(--dim);
+  transition: background var(--dur-fast) ease, color var(--dur-fast) ease;
+}
+
+.ws-check:hover {
+  background: rgba(242, 237, 228, 0.035);
+  color: var(--text);
+}
+
+.ws-check.is-focus {
+  border-left-color: var(--accent);
+  background: linear-gradient(90deg, var(--accent-wash), transparent 80%);
+  color: var(--text);
+}
+
+.ws-check input {
+  appearance: none;
+  width: 13px;
+  height: 13px;
+  margin: 3px 0 0;
+  border: 1px solid var(--rule-2);
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+  flex: none;
+}
+
+.ws-check input:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.ws-check input:checked::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  background: var(--accent-ink);
+  clip-path: polygon(14% 52%, 38% 76%, 84% 22%, 96% 34%, 38% 94%, 4% 62%);
+}
+
+.ws-check .name {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-family: var(--ff-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.01em;
+}
+
+.ws-check .desc {
+  display: block;
+  margin-top: 1px;
+  font-family: var(--ff-sans);
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--faint);
+}
+
+.ws-check .prio {
+  font-style: normal;
+  font-size: 9.5px;
+  color: var(--accent);
+  opacity: 0.75;
+}
+
+.ws-stage {
+  border: 1px solid var(--rule);
+  background: var(--ink-1);
+}
+
+.ws-stage-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--rule);
+  font-family: var(--ff-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  color: var(--faint);
+}
+
+.ws-stage-head b {
+  color: var(--accent);
+}
+
+.ws-scroll {
+  background: var(--ink-0);
+  padding: var(--s3);
+}
+
+/* 文档卡（聚焦插件时展示） */
+.doc-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--rule-soft);
+}
+
+.doc-head code {
+  font-size: 13px;
+  color: var(--accent);
+}
+
+.doc-desc {
+  margin: 0 0 var(--s4);
+  font-size: 13px;
+  line-height: 1.75;
+  color: var(--dim);
+  max-width: 76ch;
+}
+
+/* 属性 / 事件 / 方法 三段 */
+.doc-sec {
+  margin-bottom: var(--s4);
+}
+
+.doc-sec h5 {
+  margin: 0 0 8px;
+  font-family: var(--ff-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text); /* 注意：本包是暗色主题，--ink-1 是表面色（近黑），文字一律用 --text */
+}
+
+.doc-sec h5::before {
+  content: "";
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  margin-right: 7px;
+  vertical-align: middle;
+  background: var(--accent);
+}
+
+.doc-note {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--dim);
+}
+
+.doc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  margin-bottom: var(--s4);
+}
+
+.doc-table th,
+.doc-table td {
+  text-align: left;
+  padding: 7px 10px 7px 0;
+  border-bottom: 1px solid var(--rule-soft);
+  vertical-align: top;
+}
+
+.doc-table th {
+  font-family: var(--ff-mono);
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--faint);
+  border-bottom-color: var(--rule);
+}
+
+.doc-table td:first-child code {
+  color: var(--text);
+}
+
+.doc-table code.dim {
+  color: var(--faint);
+}
+
+.doc-cols {
+  display: grid;
+  gap: var(--s5);
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+
+.doc-cols h5 {
+  margin: 0 0 6px;
+}
+
+.doc-cols ul {
+  margin: 0;
+  padding-left: 15px;
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--dim);
+}
+
+.doc-cols li::marker {
+  color: var(--accent);
+}
+
+/* ---------------- 4. 页面级：场景示例 ---------------- */
+
+.scn-tabs {
+  position: sticky;
+  top: var(--top-h);
+  z-index: 20;
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  overflow-x: auto;
+  padding: 0;
+  margin-bottom: var(--s5);
+  background: rgba(11, 10, 9, 0.94);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--rule);
+  scrollbar-width: none;
+}
+
+.scn-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.scn-tab {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 42px;
+  padding: 0 14px;
+  border-bottom: 2px solid transparent;
+  font-size: 12.5px;
+  color: var(--dim);
+  white-space: nowrap;
+  transition: color var(--dur-fast) ease, border-color var(--dur-fast) ease;
+}
+
+.scn-tab .n {
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  color: var(--faint);
+}
+
+.scn-tab:hover {
+  color: var(--text);
+}
+
+.scn-tab.is-active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.scn-tab.is-active .n {
+  color: var(--accent);
+}
+
+.scn-tab:disabled {
+  opacity: 0.55;
+  cursor: progress;
+}
+
+.scn-card {
+  position: relative;
+  margin: 0 0 var(--s6);
+  border: 1px solid var(--rule);
+  scroll-margin-top: calc(var(--top-h) + 12px);
+  background: var(--ink-1);
+}
+
+.scn-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 6px 14px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.scn-title {
+  margin: 0;
+  font-family: var(--ff-display);
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.scn-pain {
+  grid-column: 1 / -1;
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  line-height: 1.65;
+  color: var(--dim);
+  max-width: 80ch;
+}
+
+.scn-pain::before {
+  content: "痛 点 / ";
+  font-family: var(--ff-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.16em;
+  color: var(--accent);
+  margin-right: 6px;
+}
+
+.scn-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.22fr) minmax(0, 1fr);
+  align-items: stretch;
+}
+
+.scn-stage {
+  min-width: 0;
+  padding: var(--s4);
+  background: var(--ink-0);
+  min-height: 160px;
+}
+
+.scn-side {
+  min-width: 0;
+  padding: var(--s4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+  border-left: 1px solid var(--rule);
+}
+
+.scn-plugs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.scn-side-head {
+  font-family: var(--ff-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.scn-meta {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 1px solid var(--rule-soft);
+  padding-top: var(--s3);
+}
+
+.scn-meta > div {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 8px;
+  align-items: baseline;
+}
+
+.scn-meta dt {
+  font-family: var(--ff-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.scn-meta dd {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text);
+}
+
+.scn-meta code {
+  font-size: 11px;
+  color: var(--dim);
+}
+
+.scn-tip {
+  margin: auto 0 0;
+  padding-top: var(--s3);
+  border-top: 1px solid var(--rule-soft);
+  font-size: 11.5px;
+  line-height: 1.7;
+  color: var(--dim);
+}
+
+.scn-tip code {
+  font-size: 11px;
+  color: var(--text);
+}
+
+.scn-plug {
+  padding: 2px 7px;
+  border: 1px solid var(--rule);
+  font-family: var(--ff-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--dim);
+  background: var(--ink-2);
+}
+
+.scn-empty {
+  padding: 48px 0;
+  text-align: center;
+  font-family: var(--ff-mono);
+  font-size: var(--fs-xs);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+/* 场景卡内的完整源码 + 插件 API（卡内整宽，跟上半部分的两栏分隔开） */
+.scn-source {
+  padding: var(--s4);
+  border-top: 1px solid var(--rule);
+}
+
+.scn-api {
+  padding: var(--s4);
+  border-top: 1px solid var(--rule);
+  background: var(--ink-0);
+}
+
+.scn-api-title {
+  margin: 0 0 var(--s4);
+  font-family: var(--ff-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+/* ---------------- 5. 插件 API 三件表（示例页 / 场景卡 / 工坊共用） ---------------- */
+
+.api-sec {
+  margin-top: var(--s6);
+  padding-top: var(--s5);
+  border-top: 1px solid var(--rule);
+}
+
+.api-sec-head {
+  margin-bottom: var(--s4);
+}
+
+.api-sec-title {
+  margin: 0 0 6px;
+  font-family: var(--ff-display);
+  font-size: var(--fs-md);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.api-sec-sub {
+  margin: 0;
+  max-width: 78ch;
+  font-size: 12.5px;
+  line-height: 1.75;
+  color: var(--dim);
+}
+
+.api-sec-sub code {
+  color: var(--text);
+}
+
+/* 折叠卡：summary 一行说清工厂 / priority / 几项 API，展开是属性·事件·方法 */
+.api-plug {
+  margin-bottom: 10px;
+  border: 1px solid var(--rule);
+  background: var(--ink-1);
+}
+
+.api-plug > summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  list-style: none;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.api-plug > summary::-webkit-details-marker {
+  display: none;
+}
+
+.api-plug > summary::before {
+  content: "▸";
+  font-size: 11px;
+  color: var(--accent);
+  transition: transform var(--dur-fast) ease;
+}
+
+.api-plug[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+.api-plug > summary:hover {
+  background: var(--ink-2);
+}
+
+.api-plug > summary code {
+  font-size: 12px;
+  color: var(--accent);
+}
+
+.api-plug-desc {
+  flex: 1 1 260px;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--dim);
+}
+
+.api-plug-n {
+  font-family: var(--ff-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--faint);
+}
+
+.api-plug-body {
+  padding: 12px 12px 4px;
+  border-top: 1px solid var(--rule-soft);
+}
+
+/* 工坊：舞台下方的生成源码 */
+.ws-source {
+  margin-top: 14px;
+}
+
+@media (max-width: 860px) {
+  .ws {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .scn-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .scn-side {
+    border-left: 0;
+    border-top: 1px solid var(--rule);
+  }
+}
+
+/* ---------------- 代码块 + 语法高亮（复用 vane-waterfall 家族）----------------
+ * 变量全部复用本包 :root（--accent 等），只把代码区底色与 token 色写成字面量，
+ * 不参与主题切换，保证深色代码区在任何主题下都可读（ADR-13）。
+ */
+.code {
+  position: relative;
+  border: 1px solid var(--rule);
+  background: #070908;
+  overflow: hidden;
+}
+
+.code-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--rule);
+  font-family: var(--ff-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  color: var(--faint);
+}
+
+.code-head > span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.code-copy {
+  flex: none;
+  min-height: 24px;
+  padding: 2px 9px;
+  border: 1px solid var(--rule);
+  font-family: var(--ff-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--dim);
+  transition: color var(--dur-fast) ease, border-color var(--dur-fast) ease,
+    background var(--dur-fast) ease;
+}
+
+.code-copy:hover {
+  color: var(--accent-ink);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.code-copy.is-ok {
+  color: var(--accent);
+  border-color: var(--accent-line);
+}
+
+.code-copy.is-ok:hover {
+  color: var(--accent-ink);
+}
+
+.code-copy.is-fail {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+.code pre {
+  margin: 0;
+  padding: 12px 14px;
+  overflow: auto;
+  max-height: 460px;
+  font-size: 11.5px;
+  line-height: 1.72;
+  color: #c9cec0;
+  tab-size: 2;
+  scrollbar-width: thin;
+}
+
+.code-more {
+  display: block;
+  width: 100%;
+  padding: 7px;
+  border-top: 1px solid var(--rule);
+  background: var(--ink-1);
+  font-family: var(--ff-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--faint);
+  transition: color var(--dur-fast) ease, background var(--dur-fast) ease;
+}
+
+.code-more:hover {
+  color: var(--accent);
+  background: var(--ink-2);
+}
+
+/* 语法色：跟站点同一套墨 + 荧光标记，不引入第二套调色板 */
+.tok-comment {
+  color: #7f8778;
+  font-style: italic;
+}
+.tok-string {
+  color: #a9d98a;
+}
+.tok-kw {
+  color: var(--accent);
+}
+.tok-lit {
+  color: #e9b64b;
+}
+.tok-type {
+  color: #8fc9bd;
+}
+.tok-tag {
+  color: #e9a08a;
+}
+.tok-num {
+  color: #d8c98a;
+}

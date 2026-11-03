@@ -1,0 +1,55 @@
+{
+  "name": "ProgressFxPlugin",
+  "description": "进度特效：顶部进度条 fill + 百分比数字；进度达成 100% 时浮层庆祝条。",
+  "since": "0.1.0",
+  "tags": ["ui", "进度", "特效"],
+  "props": [
+    {
+      "name": "height",
+      "type": "number",
+      "default": "8",
+      "description": "进度条高度（px），圆角随高度自动取 height / 2"
+    },
+    {
+      "name": "order",
+      "type": "number",
+      "default": "0",
+      "description": "同槽位排序键（升序靠前）：与 ProgressRing / MilestoneBar / CountdownTimer 共存时调整上下顺序"
+    }
+  ],
+  "events": [
+    {
+      "name": "renderProgress",
+      "when": "每次渲染；进度槽位无更高 order 的插件接管时",
+      "description": "输出「进度条 + 百分比数字」，百分比 = round(ctx.progress × 100)"
+    },
+    {
+      "name": "renderOverlay",
+      "when": "ctx.progress >= 1（全部任务完成）",
+      "description": "在浮层渲染「🎉 进度达成 100%」庆祝条（absolute + pointerEvents:none，不挡交互）；未达成返回 null"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "纯展示：只读取 ctx.progress（0..1），不调用任何上下文方法，也不触发回调。",
+  "features": ["进度条宽度随 progress 过渡（.4s ease）", "100% 达成庆祝浮层"],
+  "useCases": ["活动页顶部进度", "任务完成度可视化", "秒杀达标提示"],
+  "notes": [
+    "height 只影响条高，颜色固定为强调橙 #ff7a29（填充不是文字，不受 ADR-13 约束）",
+    "庆祝浮层只在 progress 恰好达到 1 时出现，进度停在 0.99 不会触发"
+  ],
+  "example": "const Activity = withPlugins(ActivityCore, [createProgressFxPlugin()]);",
+  "examples": [
+    {
+      "name": "默认进度条",
+      "description": "8px 条 + 百分比 + 达成庆祝",
+      "src": "createProgressFxPlugin()",
+      "config": {}
+    },
+    {
+      "name": "加粗进度条",
+      "description": "高度调到 14px，适合首屏大进度",
+      "src": "createProgressFxPlugin({ height: 14 })",
+      "config": { "height": 14 }
+    }
+  ]
+}

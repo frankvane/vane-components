@@ -1,0 +1,59 @@
+{
+  "name": "CountdownTimerPlugin",
+  "description": "活动倒计时：在进度区下方渲染「距活动结束 x天HH:MM:SS」，每秒自走；与 ProgressFx 同槽共存。",
+  "since": "0.1.0",
+  "tags": ["ui", "倒计时", "进度区"],
+  "props": [
+    {
+      "name": "endTime",
+      "type": "string | number",
+      "default": "-",
+      "description": "截止时间（ISO 或时间戳）；不传则回退读 data.endTime，两者皆无则不渲染"
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "距活动结束",
+      "description": "倒计时前缀文案"
+    },
+    {
+      "name": "urgentMs",
+      "type": "number",
+      "default": "3600000",
+      "description": "剩余不足该毫秒数时进入紧急态（文字变警示色 #cf4407）"
+    },
+    {
+      "name": "order",
+      "type": "number",
+      "default": "0",
+      "description": "同槽位排序键（升序靠前）：默认排在 ProgressFx 之后（priority 更低）"
+    }
+  ],
+  "events": [
+    {
+      "name": "renderProgress",
+      "when": "每次渲染；截止时间可解析时",
+      "description": "在进度槽位追加倒计时行；时间为空或非法时返回 null 让出槽位"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "计时状态在组件内部自持（setInterval），不调用任何上下文方法，也不写内核 state。",
+  "features": ["每秒自走，天/时/分/秒自适应格式", "紧急态（默认最后 1 小时）文字变警示色", "结束后显示「已结束」并停止计时器"],
+  "useCases": ["限时秒杀活动", "大促倒计时", "签到活动周期截止提示"],
+  "notes": ["倒计时精度为秒，依赖客户端时钟；服务端下发 endTime 时注意时区（推荐 ISO 带时区或时间戳）"],
+  "example": "const Activity = withPlugins(ActivityCore, [createCountdownTimerPlugin({ endTime: \"2026-12-31T23:59:59+08:00\" })]);",
+  "examples": [
+    {
+      "name": "从 data.endTime 读取",
+      "description": "不传配置，回退读活动数据的 endTime 字段",
+      "src": "createCountdownTimerPlugin()",
+      "config": {}
+    },
+    {
+      "name": "自定义文案与紧急阈值",
+      "description": "最后 30 分钟进入紧急态",
+      "src": "createCountdownTimerPlugin({ label: \"距开抢\", urgentMs: 1800000 })",
+      "config": { "label": "距开抢", "urgentMs": 1800000 }
+    }
+  ]
+}

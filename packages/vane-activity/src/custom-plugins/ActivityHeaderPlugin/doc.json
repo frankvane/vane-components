@@ -1,0 +1,63 @@
+{
+  "name": "ActivityHeaderPlugin",
+  "description": "活动头部横幅：标题 + 副标题 + 标签 + 状态徽章（按 data.endTime 派生「剩 N 天 / 今日截止 / 已结束」）。",
+  "since": "0.1.0",
+  "tags": ["ui", "头部", "横幅"],
+  "props": [
+    {
+      "name": "title",
+      "type": "string",
+      "default": "data.title",
+      "description": "主标题；不传则读 data.title，两者都没有时不渲染"
+    },
+    {
+      "name": "subtitle",
+      "type": "string",
+      "default": "—",
+      "description": "副标题，一句话说明活动卖点（13px / #5d636a）"
+    },
+    {
+      "name": "tags",
+      "type": "string[]",
+      "default": "[]",
+      "description": "标签行（如「限时」「新人专享」），浅橙 chip 逐个渲染"
+    },
+    {
+      "name": "badge",
+      "type": "string",
+      "default": "按 endTime 派生",
+      "description": "状态徽章文案；显式传入时优先，传空串则不显示徽章"
+    },
+    {
+      "name": "icon",
+      "type": "string",
+      "default": "—",
+      "description": "标题前图标（emoji 或单字符），已标 aria-hidden 不干扰读屏"
+    },
+    {
+      "name": "align",
+      "type": "\"left\" | \"center\"",
+      "default": "left",
+      "description": "内容对齐方式，center 适合抽奖 / 节日大促类页头"
+    }
+  ],
+  "events": [
+    {
+      "name": "renderHeader",
+      "when": "每次渲染；title 与 subtitle 同时为空时返回 null 让出槽位",
+      "description": "在 Core 最顶部渲染 <header> 横幅，读取 ctx.data.title 与 ctx.data.endTime"
+    }
+  ],
+  "methods": [],
+  "methodsNote": "纯展示，不调用任何上下文方法；徽章按 Date.now() 与 data.endTime 的差值现算，不持有计时器（秒级倒计时请叠加 CountdownTimerPlugin）。",
+  "features": [
+    "徽章三态由数据派生，业务侧只需给 endTime",
+    "标签行可空，不占位",
+    "浅橙底 + 深字，正文对比度约 15:1"
+  ],
+  "useCases": ["大促会场页头", "签到活动标题卡", "抽奖活动 Banner 文案区"],
+  "notes": [
+    "徽章文案随父组件渲染刷新，不是每秒跳动的倒计时",
+    "title 与 subtitle 都为空时整块让出槽位，不会留空白"
+  ]
+}

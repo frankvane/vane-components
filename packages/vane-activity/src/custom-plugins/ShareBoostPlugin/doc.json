@@ -1,0 +1,74 @@
+{
+  "name": "ShareBoostPlugin",
+  "description": "好友助力：分段名额进度 + 助力头像堆（超出折叠 +N）+「还差 N 人」+ 邀请按钮，落在活动底部。",
+  "since": "0.1.0",
+  "tags": ["ui", "底部", "社交"],
+  "props": [
+    {
+      "name": "title",
+      "type": "string",
+      "default": "\"邀请好友助力\"",
+      "description": "区块标题"
+    },
+    {
+      "name": "total",
+      "type": "number",
+      "default": "3",
+      "description": "未传 data.share 时的默认可助力总次数（优先级低于 data.share.total）"
+    },
+    {
+      "name": "used",
+      "type": "number",
+      "default": "0",
+      "description": "未传 data.share 时的默认已用次数（优先级低于 data.share.used）"
+    },
+    {
+      "name": "onInvite",
+      "type": "() => void",
+      "default": "—",
+      "description": "点「邀请助力」回调；传入时组件不自增，由业务侧回写 data.share.used 驱动"
+    },
+    {
+      "name": "maxAvatars",
+      "type": "number",
+      "default": "5",
+      "description": "头像最多显示几个，超出折叠为 +N"
+    },
+    {
+      "name": "order",
+      "type": "number",
+      "default": "0",
+      "description": "同槽位排序键：与 LeaderboardPlugin 同在 renderFooter 时用它决定上下顺序"
+    }
+  ],
+  "events": [
+    {
+      "name": "renderFooter",
+      "when": "每次渲染；恒定渲染（无数据时用 config 兜底）",
+      "description": "在底部社交槽渲染助力条"
+    },
+    {
+      "name": "onInvite",
+      "when": "点击「邀请助力」且未满额时",
+      "description": "冒泡给消费方；未传则组件内乐观自增 used"
+    }
+  ],
+  "methods": [
+    {
+      "name": "ctx.data.share",
+      "signature": "{ total: number; used: number; helpers?: { id, name, avatar? }[] }",
+      "description": "读取助力真值：total 决定分段数、used 决定点亮段、helpers 渲染头像堆"
+    }
+  ],
+  "methodsNote": "内部 useState 保存乐观 used，并在 data.share.used 变化时同步；不调用 ctx.setState 污染活动状态。",
+  "features": [
+    "分段进度把「还差几次」做成可数的格子，比百分比更好理解",
+    "头像堆 -8px 叠压，超出折叠 +N",
+    "满额按钮切 #5d636a 深灰 + 白字（5.4:1），不用 opacity 压字"
+  ],
+  "useCases": ["砍价 / 助力解锁", "邀请注册奖励", "拼团人数进度"],
+  "notes": [
+    "传 onInvite 时务必回写 data.share.used，否则按钮点了没有视觉变化",
+    "helpers 少于 used 时不补假头像，只按真实列表渲染"
+  ]
+}

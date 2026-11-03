@@ -1,0 +1,67 @@
+{
+  "name": "ClaimToastPlugin",
+  "description": "领取成功轻提示：监听 claimedIds 新增项，在浮层右下角（或顶部居中）淡入「已领取：xx」，到时自动消失。",
+  "since": "0.1.0",
+  "tags": ["ui", "反馈", "浮层"],
+  "props": [
+    {
+      "name": "durationMs",
+      "type": "number",
+      "default": "2400",
+      "description": "单条 toast 停留时长（毫秒）"
+    },
+    {
+      "name": "max",
+      "type": "number",
+      "default": "3",
+      "description": "同屏最多条数，超出丢弃最早的"
+    },
+    {
+      "name": "position",
+      "type": "\"bottom-right\" | \"top-center\"",
+      "default": "\"bottom-right\"",
+      "description": "出现位置；bottom-right 适合移动端底部拇指区，top-center 适合桌面端"
+    },
+    {
+      "name": "message",
+      "type": "(title: string) => string",
+      "default": "(t) => `已领取：${t}`",
+      "description": "自定义文案函数，入参是奖励标题"
+    }
+  ],
+  "events": [
+    {
+      "name": "renderOverlay",
+      "when": "每次渲染；队列为空时返回 null（不占位）",
+      "description": "在浮层槽挂载 ClaimToastLayer，内部只渲染当前待显示的 toast 队列"
+    },
+    {
+      "name": "claimedIds 变化",
+      "when": "context.claimedIds 内容指纹（join(\"|\")）发生变化时",
+      "description": "用 diff 找出新增的奖励 id，逐条生成 toast；首屏已有的领取记录不补弹"
+    }
+  ],
+  "methods": [
+    {
+      "name": "ctx.claimedIds",
+      "signature": "string[]",
+      "description": "读取已领取奖励 id；作为 change source 触发 toast"
+    },
+    {
+      "name": "ctx.rewards",
+      "signature": "ActivityRewardWithStatus[]",
+      "description": "按 id 查奖励标题，用于拼文案"
+    }
+  ],
+  "methodsNote": "内部用 useState 持有 toast 队列、useRef 记录已处理的 claimedIds；不改写上下文状态，也不调用 claim。",
+  "features": [
+    "首屏不补弹（挂载时的 claimedIds 视为已读）",
+    "多批连续领取各自计时，不会互相吞掉",
+    "深底白字，对比度约 14.6:1；role=status + aria-live=polite 播报"
+  ],
+  "useCases": ["领取优惠券成功提示", "任务奖励到账确认", "积分兑换结果反馈"],
+  "notes": [
+    "与 ConfettiPlugin 可共存：confetti 负责全屏庆祝，toast 负责逐条确认",
+    "overlay 容器本身 pointer-events:none，toast 不拦截点击，不会挡住下方按钮"
+  ]
+}

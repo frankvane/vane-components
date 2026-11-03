@@ -1,0 +1,74 @@
+{
+  "name": "ProgressRingPlugin",
+  "description": "环形进度：SVG 双环 + 中心百分比 + 右侧「已完成 x/y 项 / 距下一档还差 N%」文案。",
+  "since": "0.1.0",
+  "tags": ["ui", "进度区", "环形"],
+  "props": [
+    {
+      "name": "size",
+      "type": "number",
+      "default": "104",
+      "description": "圆环直径（px），同时决定 svg 的 viewBox 边长"
+    },
+    {
+      "name": "strokeWidth",
+      "type": "number",
+      "default": "10",
+      "description": "环宽（px），半径 = (size - strokeWidth) / 2"
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "\"总进度\"",
+      "description": "环右侧标题文案"
+    },
+    {
+      "name": "showCaption",
+      "type": "boolean",
+      "default": "true",
+      "description": "是否显示「已完成 x/y 项」与「距下一档还差 N%」两行明细"
+    },
+    {
+      "name": "color",
+      "type": "string",
+      "default": "\"#cf4407\"",
+      "description": "进度环颜色（轨道固定 rgba(128,128,128,0.18)）"
+    },
+    {
+      "name": "order",
+      "type": "number",
+      "default": "0",
+      "description": "同槽位排序键（由内核 config.order 消费）：升序靠前，用于把环放在进度条上/下方"
+    }
+  ],
+  "events": [
+    {
+      "name": "renderProgress",
+      "when": "每次渲染（进度、任务、奖励任一变化）",
+      "description": "在进度槽渲染环形进度 + 文案；不返回 null，永远是常驻区块"
+    }
+  ],
+  "methods": [
+    {
+      "name": "ctx.progress",
+      "signature": "number // 0..1",
+      "description": "读取总体加权进度（由 computeProgress 派生），插件内再 clamp 到 0..1 防越界"
+    },
+    {
+      "name": "ctx.tasks / ctx.rewards",
+      "signature": "ActivityTask[] / ActivityRewardWithStatus[]",
+      "description": "只读派生数据：tasks 用于统计完成项数，rewards 用于计算距下一档的百分比"
+    }
+  ],
+  "methodsNote": "不调用 ctx.claim / ctx.setState，纯读取派生数据；进度变化靠父级重渲染传播。",
+  "features": [
+    "SVG 绘制，无 canvas / 无第三方图表库",
+    "中心数字 aria-hidden，读屏只读 role=img 的 aria-label",
+    "环形与文案同排，窄屏下文案自动换行不撑破"
+  ],
+  "useCases": ["签到进度概览", "成长值 / 等级进度", "众筹目标完成度"],
+  "notes": [
+    "距下一档取「阈值 > 当前进度且未领取」中最小的一档，全部解锁时显示「全部奖励已解锁」",
+    "与 ProgressFx / MilestoneBar 同槽共存时按 order 升序、priority 降序纵向堆叠"
+  ]
+}
