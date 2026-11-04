@@ -94,7 +94,18 @@ const MAIN_PLUGINS: ToggleDef[] = [
     optional: true,
   },
   { key: "hoverzoom", label: "悬停放大", create: createHoverZoomPlugin, optional: true },
-  { key: "video", label: "视频位", create: createVideoPosterPlugin, optional: true },
+  // 视频位必须传 videoUrl：插件 renderOverlay 直接解构 config，缺参会在渲染期抛错
+  // （plugin-core 会隔离该插件，但控制台会留下一条 error）。
+  // 地址复用本 demo 已在用的示例视频（scenarios/specs/c1-bili-cover-grid.tsx 的 SAMPLE_VIDEO，
+  // 组件预设 presets/ecommerce 亦使用同一地址），不引入新的外链。
+  {
+    key: "video",
+    label: "视频位",
+    create: () =>
+      createVideoPosterPlugin({ videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4" }),
+    meta: (createVideoPosterPlugin as any).meta,
+    optional: true,
+  },
   { key: "compare", label: "对比", create: createComparisonPlugin, optional: true },
   { key: "download", label: "下载按钮", create: createDownloadButtonPlugin, optional: true },
 ];
