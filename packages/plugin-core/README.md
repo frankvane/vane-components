@@ -46,6 +46,18 @@ const Enhanced = withPlugins(MyCore, [loggerPlugin]);
 - 返回 `false` → 中断后续插件；
 - 返回其他非 `undefined/true` 的值 → 短路并作为 `executeHook` 的返回值；
 - 抛错 → 沙箱捕获、记入 `manager.getErrors()`、继续执行下一个插件。
+- `enabled: false` → 插件完全停用：不参与钩子、transform 与插槽渲染；
+- 依赖的插件被停用时，依赖方一并跳过（记入错误账本）；**依赖完全未注册时仍照常执行并告警**。
+
+## 插件契约（必须遵守）
+
+1. **transform 必须返回新对象**：`transformProps` / `transformData` 不得原地修改入参，一律返回浅拷贝或新对象，否则上层浅比较会误判、订阅方也可能读到被改写的历史值。
+2. **`withPlugins` 不自动触发 `onPropsChange`**：HOC 只转发 `onMount` / `onUnmount` / `onError`；需要感知 props 变化时，由宿主 Core 自行调用 `runtime.execute("onPropsChange", prev, next)` 或改用 `usePluginRuntime` 接线。
+3. **HOC 接管的 props**：`containerRefExternal`、`children`、`debug` 由 `withPlugins` 写入。宿主显式传 `containerRefExternal` 会被覆盖并打印告警；需要容器时用 `ctx.refs.container`。
+4. **设备信息字段语义与稳定性**：`detectDevice()` 是模块级缓存（SSR 下返回中性值 `desktop / 1024×768 / dpr 1`）；需重新检测传 `detectDevice(true)` 或调用 `resetDeviceCache()`。`DeviceInfo.os` / `browser` **当前均为原始 UA 字符串**（不是短名），字段名与语义保持稳定；改成解析后的短名（如 `ios` / `chrome`）属于破坏性变更，**暂不提供**，下游埋点（如 vane-lazy-image）可继续按原始 UA 使用。
+5. **总线写入**：`setData` 只在值变化时通知订阅方；A→B→A 的联动写入超过 50 层会被中断并告警，避免栈溢出；`getAll()` 返回无原型对象，`__proto__` 等键不会被特殊处理。
+6. **`manager.clear()` 返回 `Promise<void>`**：先同步执行所有 cleanup，再等待异步 `destroy` 完成；`await manager.clear()` 用于卸载确认，忽略返回值仍与旧用法兼容。
+7. **错误边界复位**：`PluginErrorBoundary` 支持 `resetKeys` / `onReset`，`resetKeys` 浅比较变化且当前处于错误态时自动复位，不会无条件重挂载子树。
 
 ## 渲染插槽
 

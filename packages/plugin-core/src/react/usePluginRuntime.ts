@@ -110,6 +110,44 @@ export function usePluginRuntime<TProps = any, TData = any>(
 
   const deviceInfo = useMemo<DeviceInfo>(() => detectDevice(), []);
 
+  // props / data 只做浅比较：父组件每次渲染都新建同内容对象时，
+  // context 不应该跟着重建，否则所有插槽与 memo 子组件都会全量重渲染。
+  const stablePropsRef = useRef(props);
+  if (!shallowEqual(stablePropsRef.current, props)) stablePropsRef.current = props;
+  const stableProps = stablePropsRef.current;
+
+  const stableDataRef = useRef(data);
+  if (!shallowEqual(stableDataRef.current, data)) stableDataRef.current = data;
+  const stableData = stableDataRef.current;
+
+  const contextRef = useRef<PluginContext<TProps, TData> | null>(null);
+
+  const context = useMemo<PluginContext<TProps, TData>>(() => {
+    const ctx: PluginContext<TProps, TData> = {
+      props: stableProps,
+      data: stableData,
+      bus,
+      refs: { container: containerRef, getContainer: () => containerRef.current },
+      state,
+      setState: (patch) => setState((prev) => ({ ...prev, ...patch })),
+      shared: sharedRef.current,
+      deviceInfo,
+      forceUpdate,
+      getSize: () => {
+        const el = containerRef.current;
+        return el ? { width: el.offsetWidth, height: el.offsetHeight } : { width: 0, height: 0 };
+      },
+      logger: console,
+    };
+    return extendContext ? extendContext(ctx) : ctx;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stableProps, stableData, state, deviceInfo, bus, extendContext]);
+
+  // 上下文快照只在提交阶段更新：渲染期（含被丢弃的并发渲染）不会污染已提交快照
+  useLayoutEffect(() => {
+    contextRef.current = context;
+  }, [context]);
+
   // 插件集合变化时重新装配。以插件对象引用为身份：元素引用不变就复用上次快照，
   // 同名新配置（FilterToggle 传 enabled:false、敏感词换词库…）仍能生效。
   const pluginsSnapshotRef = useRef(plugins);
@@ -164,51 +202,19 @@ export function usePluginRuntime<TProps = any, TData = any>(
         plugin.enabled !== false &&
         manager.getPlugin(plugin.name)?.enabled !== false
     );
+    // 按名字映射回宿主传入的原对象，保证插件身份与 props 一致
     if (cachedOrder.length === current.length) {
       return cachedOrder.map((plugin) => byName.get(plugin.name) ?? plugin);
     }
     return resolveDependencyOrderSafe(current);
   }, [stablePlugins, manager, cachedOrder]);
 
-  const contextRef = useRef<PluginContext<TProps, TData> | null>(null);
-
-  // props / data 只做浅比较：父组件每次渲染都新建同内容对象时，
-  // context 不应该跟着重建，否则所有插槽与 memo 子组件都会全量重渲染。
-  const stablePropsRef = useRef(props);
-  if (!shallowEqual(stablePropsRef.current, props)) stablePropsRef.current = props;
-  const stableProps = stablePropsRef.current;
-
-  const stableDataRef = useRef(data);
-  if (!shallowEqual(stableDataRef.current, data)) stableDataRef.current = data;
-  const stableData = stableDataRef.current;
-
-  const context = useMemo<PluginContext<TProps, TData>>(() => {
-    const ctx: PluginContext<TProps, TData> = {
-      props: stableProps,
-      data: stableData,
-      bus,
-      refs: { container: containerRef, getContainer: () => containerRef.current },
-      state,
-      setState: (patch) => setState((prev) => ({ ...prev, ...patch })),
-      shared: sharedRef.current,
-      deviceInfo,
-      forceUpdate,
-      getSize: () => {
-        const el = containerRef.current;
-        return el ? { width: el.offsetWidth, height: el.offsetHeight } : { width: 0, height: 0 };
-      },
-      logger: console,
-    };
-    return extendContext ? extendContext(ctx) : ctx;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stableProps, stableData, state, deviceInfo, bus, extendContext]);
-
-  contextRef.current = context;
-
   // transformProps / transformData 共用一条链：两者语义相同，只差是否传 context。
   // orderedPlugins 已排除 enabled:false 的插件，disabled 插件因此真正停用。
   const applyTransform = useCallback(
     (hook: "transformProps" | "transformData", input: unknown): unknown => {
+      // transform 在渲染期执行，必须读本次渲染的 context（如 Filter/Search 依赖 ctx.state）
+      const ctx = context;
       let next = input;
       for (const plugin of orderedPlugins) {
         const fn = plugin.hooks?.[hook] as unknown as
@@ -217,9 +223,9 @@ export function usePluginRuntime<TProps = any, TData = any>(
         if (typeof fn !== "function") continue;
         // 单个插件抛错不能连带整棵渲染树：跳过该插件并告警，其余插件继续生效
         try {
-          next = hook === "transformData" ? fn(contextRef.current!, next) : fn(next);
+          next = hook === "transformData" ? fn(ctx, next) : fn(next);
         } catch (err) {
-          (contextRef.current?.logger ?? console).warn(
+          (ctx.logger ?? console).warn(
             `[plugin-core] ${plugin.name}.${hook} 执行失败，已跳过`,
             err
           );
@@ -227,7 +233,7 @@ export function usePluginRuntime<TProps = any, TData = any>(
       }
       return next;
     },
-    [orderedPlugins]
+    [orderedPlugins, context]
   );
 
   const transformProps = useCallback(

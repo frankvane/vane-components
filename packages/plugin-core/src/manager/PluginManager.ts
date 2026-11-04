@@ -66,12 +66,30 @@ export function createPluginManager<TProps = any, TData = any>(
     orderCache = null;
   };
 
+  // 依赖「在册但被停用」时依赖方一并跳过；缺失依赖仍照跑 + 告警（P1-4 红线）
+  const runs = (plugin: Plugin<TProps, TData>, seen = new Set<string>()): boolean => {
+    if (plugin.enabled === false) return false;
+    // 环交给 resolveDependencyOrderSafe 记录，这里按可运行处理
+    if (seen.has(plugin.name)) return true;
+    seen.add(plugin.name);
+    return (plugin.dependencies ?? []).every((name) => {
+      const dep = plugins.get(name);
+      return !dep || runs(dep, seen);
+    });
+  };
+
   // 单一顺序缓存：只在注册表/启停变化时重排，executeHook 与渲染共用
-  const getOrder = (): Plugin<TProps, TData>[] =>
-    (orderCache ??= resolveDependencyOrderSafe(
-      [...plugins.values()].filter((plugin) => plugin.enabled !== false),
-      (error) => record("[order]", "resolveDependencyOrder", error)
+  const getOrder = (): Plugin<TProps, TData>[] => {
+    if (orderCache) return orderCache;
+    const enabled = [...plugins.values()].filter((plugin) => {
+      if (runs(plugin)) return true;
+      record(plugin.name, "dependencies", new Error("依赖已停用"));
+      return false;
+    });
+    return (orderCache = resolveDependencyOrderSafe(enabled, (error) =>
+      record("[order]", "resolveDependencyOrder", error)
     ));
+  };
 
   const runCleanups = (name?: string) => {
     const pending = cleanups.filter(([owner]) => !name || owner === name).reverse();
@@ -85,12 +103,11 @@ export function createPluginManager<TProps = any, TData = any>(
     }
   };
 
-  const destroyPlugin = (plugin: Plugin<TProps, TData>) => {
-    if (plugin.destroy)
-      Promise.resolve(plugin.destroy()).catch((error) => {
-        logger.warn(`[vane] destroy failed: ${plugin.name}`, error);
-      });
-  };
+  const destroyPlugin = (plugin: Plugin<TProps, TData>): Promise<void> =>
+    // await 后 await：异步 destroy 既满足可等待，也保证旧资源先于新资源释放
+    Promise.resolve(plugin.destroy?.()).catch((error) =>
+      logger.warn(`[vane] destroy failed: ${plugin.name}`, error)
+    );
 
   // 生命周期账本在进入钩子前更新，异步并发下 onMount/onUnmount 也各只跑一次
   const invoke = async (
@@ -164,6 +181,12 @@ export function createPluginManager<TProps = any, TData = any>(
   ): Promise<any> => runChain(hookName, context, args);
 
   const register = (plugin: Plugin<TProps, TData>) => {
+    const previous = plugins.get(plugin.name);
+    // 同名新实例：先回收旧实例的订阅并销毁，避免两份资源同时存活
+    if (previous && originals.get(plugin.name) !== plugin) {
+      logger.warn(`[vane] duplicate plugin, destroy old: ${plugin.name}`);
+      unregister(plugin.name);
+    }
     plugins.set(plugin.name, { ...plugin, enabled: plugin.enabled ?? true });
     originals.set(plugin.name, plugin);
     mounted.delete(plugin.name);
@@ -188,7 +211,7 @@ export function createPluginManager<TProps = any, TData = any>(
     if (!plugin) return;
     bump();
     runCleanups(name);
-    destroyPlugin(plugin);
+    void destroyPlugin(plugin);
     forget(name);
   };
 
@@ -206,7 +229,7 @@ export function createPluginManager<TProps = any, TData = any>(
       bump();
       await invoke(plugin, "onUnmount", context, [], generation);
       runCleanups(name);
-      destroyPlugin(plugin);
+      await destroyPlugin(plugin);
       forget(name);
     }
     for (const plugin of next) {
@@ -215,14 +238,16 @@ export function createPluginManager<TProps = any, TData = any>(
     }
   };
 
-  const clear = () => {
+  const clear = (): Promise<void> => {
     bump();
     alignToken += 1;
     runCleanups();
-    for (const plugin of plugins.values()) destroyPlugin(plugin);
+    const pending = [...plugins.values()].map(destroyPlugin);
     plugins.clear();
     originals.clear();
     mounted.clear();
+    // 返回 Promise：调用方可 await，等异步 destroy 全部完成
+    return Promise.all(pending).then(() => undefined);
   };
 
   return {

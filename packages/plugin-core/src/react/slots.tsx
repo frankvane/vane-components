@@ -43,7 +43,11 @@ function renderNodes<TProps, TData>(
   context: PluginContext<TProps, TData>,
   hook: SlotHookName
 ): React.ReactNode[] {
+  const seen = new Set<string>();
   return plugins.map((plugin) => {
+    // 同名插件只渲染一次：既避免重复 React key 警告，也避免同一逻辑输出两份
+    if (seen.has(plugin.name)) return null;
+    seen.add(plugin.name);
     try {
       const fn = plugin.hooks?.[hook] as
         | ((context: PluginContext<TProps, TData>) => React.ReactNode)

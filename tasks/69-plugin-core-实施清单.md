@@ -1,7 +1,7 @@
 # 69 · vane-plugin-core 实施清单
 
 > 对应分析：`tasks/68-plugin-core-分析.md`；面向人报告：`tasks/70-plugin-core-组件分析报告.md`
-> 修复范围：`packages/plugin-core`（必要时同步各领域包的补偿代码，但不得改版本号与体积预算）
+> 修复范围：`packages/plugin-core`（必要时同步各领域包的补偿代码；版本号不动，体积预算仅经用户拍板后两次上调：5→5.5→6KB，见 5.6 / 6.6）
 > 原则：先修 P1 的语义缺陷，再处理 P2 的可观测性/健壮性；每项必须带回归用例，门禁只跑一轮最终验证。
 > 验收命令：`pnpm --filter vane-plugin-core typecheck` → `pnpm --filter vane-plugin-core lint` → `pnpm --filter vane-plugin-core test` → `pnpm --filter vane-plugin-core build`；最后根 `pnpm verify` 一轮。
 
@@ -87,7 +87,7 @@
 
 ## 二、P2（按收益排序，15 项）
 
-### [ ] P2-1 `once` 异常也注销 【兼容性：A】
+### [x] P2-1 `once` 异常也注销 【兼容性：A】
 - 改动：`src/bus/PluginBus.ts:36-42`，`try/finally`。
 - 验收：handler 抛错后再次 emit，handler 调用次数仍为 1。
 - 测试：`PluginBus.test.ts` +1 例。
@@ -97,38 +97,38 @@
 - 验收：`getErrors()` 上限（如 100）；transform/render 错误同样入账；`clear()` 可选重置。
 - 测试：`test/error-ledger.test.tsx` +2 例。
 
-### [ ] P2-3 错误边界可复位 【兼容性：B】
+### [x] P2-3 错误边界可复位 【兼容性：B】
 - 改动：`src/sandbox/PluginErrorBoundary.tsx:17-35`，新增 `resetKeys`/`onReset`。
 - 验收：恢复数据后插件槽位重新出现；不引入额外重挂载。
 - 测试：`slots.test.tsx` +1 例（先抛错、换 key 后恢复）。
 
-### [ ] P2-4 `getAll()` 防原型键 【兼容性：A】
+### [x] P2-4 `getAll()` 防原型键 【兼容性：A】
 - 改动：`PluginBus.ts:75-81`，`Object.create(null)` + 危险键跳过。
 - 验收：`setData("__proto__", {...})` 后 `getAll()` 原型未被改写，键不被吞。
 - 测试：`PluginBus.test.ts` +1 例。
 
-### [ ] P2-5 设备信息契约修正 【兼容性：B】
-- 改动：`src/utils/detectDevice.ts:9-34`。
-- 验收：`os`/`browser` 返回解析后的短名（如 `iOS` / `Chrome`）；提供 `resetDeviceCache` 之外的刷新入口或文档说明缓存语义；SSR 首屏使用中性值（文档 + 单测）。
-- 测试：新增 `test/detectDevice.test.ts` 3 例（UA 解析、SSR 降级、缓存行为）。
-- 兼容性提示：`vane-lazy-image` 的 ErrorTracking / PerformanceMonitor 会把整个 `deviceInfo` 透传给上报，`os/browser` 从 UA 变为短名后埋点字段内容会变，需与埋点方确认。
+### [x] P2-5 设备信息契约修正 【兼容性：B】→ 本轮取方案 A（仅文档）
+- 改动：`src/utils/detectDevice.ts:9-34`、`README.md`。
+- 实际落地（方案 A）：**`os` / `browser` 保持原始 UA 字符串不变**，只在 README「插件契约」第 4 条明确字段语义与稳定性预期：两字段当前为 `navigator.userAgent` 原值，缓存为模块级（同一进程内只检测一次），SSR/无 `window` 环境降级为 1024×768、dpr 1；**改短名（如 `iOS` / `Chrome`）属破坏性变更，暂不提供**。
+- 不做的部分：不改 `detectDevice` 实现、不动 `vane-lazy-image` 的 ErrorTracking / PerformanceMonitor 埋点字段。原因：埋点会把整个 `deviceInfo` 透传上报，改短名会改变既有上报口径，且无下游需求方确认。
+- 测试：未新增 `detectDevice` 单测（实现未变，缓存行为已由既有路径覆盖）。
 
-### [ ] P2-6 不可变契约与开发态校验 【兼容性：A】
+### [x] P2-6 不可变契约与开发态校验 【兼容性：A】
 - 改动：`usePluginRuntime.ts:206-226`；文档 `README.md`。
 - 验收：文档明确“transform 必须返回新对象”；开发态可选冻结/快照比较，发现原地写回时 warn。
 - 测试：`usePluginRuntime.test.tsx` +1 例（原地修改触发告警，不破坏主流程）。
 
-### [ ] P2-7 总线写入重入保护 【兼容性：B】
+### [x] P2-7 总线写入重入保护 【兼容性：B】
 - 改动：`PluginBus.ts:11-22,62-66`。
 - 验收：A→B→A 联动写入在超过深度阈值时中断并 warn，不栈溢出。
 - 测试：`PluginBus.test.ts` +1 例。
 
-### [ ] P2-8 禁用依赖策略 【兼容性：B（需单独评审）】
+### [x] P2-8 禁用依赖策略 【兼容性：B（需单独评审）】
 - 改动：`PluginManager.ts:40-41`；`DependencyResolver.ts`。
 - 验收：依赖被 disable 时依赖方不执行（记录原因），且启用后恢复。
 - 测试：`PluginManager.test.ts` +1 例。
 
-### [ ] P2-9 通用 HOC 生命周期补齐或文档对齐 【兼容性：A（仅文档）/ C（若补行为）】
+### [x] P2-9 通用 HOC 生命周期补齐或文档对齐 【兼容性：A（仅文档）/ C（若补行为）】
 - 改动：`src/react/withPlugins.tsx:24-54`；`README.md`、模板 `docs/api.md`。
 - 验收：二选一并保持一致——(a) HOC 内自动触发 onPropsChange 浅比较；(b) 文档明确“需自行接线”。
 - 测试：若实现 (a)，+1 例断言同内容新对象不触发。
@@ -144,22 +144,22 @@
 - 测试：`PluginManager.test.ts` +2 例。
 - 兼容性提示：`vane-lazy-image/demo/src/advanced/PluginHotReloadDemo.tsx` 直接调用 `manager.unregister`，依赖“unregister 只影响 manager、不跑生命周期”的旧语义，必须同批复核。
 
-### [ ] P2-12 同名插件去重与旧实例销毁 【兼容性：B】
+### [x] P2-12 同名插件去重与旧实例销毁 【兼容性：B】
 - 改动：`PluginManager.ts:43-45`；`slots.tsx:28-47`。
 - 验收：重复注册时旧实例 destroy 被调用并告警；槽位仅渲染一次，无重复 key 警告。
 - 测试：`PluginManager.test.ts` +1 例、`slots.test.tsx` +1 例。
 
-### [ ] P2-13 上下文快照只读化 【兼容性：A（正常路径）/ B（StrictMode 双渲染下）】
+### [x] P2-13 上下文快照只读化 【兼容性：A（正常路径）/ B（StrictMode 双渲染下）】
 - 改动：`usePluginRuntime.ts:150-183,228-232`。
 - 验收：并发/卸载后调用 execute 不再读到已废弃的 render 上下文；用提交阶段赋值。
 - 测试：`test/context-snapshot.test.tsx` +1 例（模拟 StrictMode 双渲染）。
 
-### [ ] P2-14 异步 init/destroy 生命周期可等待 【兼容性：A】
+### [x] P2-14 异步 init/destroy 生命周期可等待 【兼容性：A】
 - 改动：`PluginManager.ts:43-50,56-65,111-129`。
 - 验收：`clear()` 返回 Promise；await 后 destroy 全部完成；重装配不会并发启动新旧资源。
 - 测试：`PluginManager.test.ts` +1 例（异步 destroy 顺序）。
 
-### [ ] P2-15 HOC 注入字段契约文档化 【兼容性：A（仅文档）/ C（若报错阻断）】
+### [x] P2-15 HOC 注入字段契约文档化 【兼容性：A（仅文档）/ C（若报错阻断）】
 - 改动：`src/react/withPlugins.tsx:35-54`、`README.md`。
 - 验收：文档列出 HOC 接管的 props；宿主显式传 `containerRefExternal` 时 warn。
 - 测试：`usePluginRuntime.test.tsx` / `withPlugins` 新增 1 例（告警断言）。
@@ -178,7 +178,8 @@
 
 ## 四、明确不做
 
-- 不修改 `package.json` 版本号、`vane.sizeBudgetKb`、子路径导出结构。
+- 不修改 `package.json` 版本号、子路径导出结构。
+- 体积预算：第一轮 5 → 5.5KB（5.6），第二轮 5.5 → 6KB（6.6），均经用户拍板，理由记录在 `vane.sizeBudgetNote`。
 - 不改动 14 个组件的插件业务逻辑（仅在 P1-2 / P1-3 落地后复核它们的 workaround）。
 - 不提交、不推送（本次为只读审计 + 文档产出）。
 
@@ -229,3 +230,53 @@ P2-1、P2-3、P2-4、P2-5、P2-6、P2-7、P2-8、P2-9、P2-12、P2-13、P2-14、
 - 原因（同写在 `vane.sizeBudgetNote` 字段，紧邻配置）：第一轮七项修复带来合法增量 —— 卸载时序串行化、重装配差集账本、enabled 真停用、循环依赖降级、generation token、dev-only 错误账本、执行顺序/槽位缓存。实测 5.2803KB，5.5KB 留约 0.22KB 余量。
 - 校验脚本 `scripts/check-packages.mjs` 未改（仍读 `vane.sizeBudgetKb`），全域预算口径不变。
 - 明确不做：为凑 5KB 删公共导出、删账本或引入非必要的压缩技巧。
+- 第二轮续调：5.5 → **6KB**（见 6.6）。
+
+## 六、第二轮 P2 实施记录（2026-11-04）
+
+### 6.1 分组与落地
+- **纯内部/文档**：P2-1、P2-4、P2-6（仅文档）、P2-9（仅文档，取方案 b）、P2-15（文档 + 告警）。
+- **行为修正、契约不变**：P2-3、P2-7、P2-8、P2-12、P2-13、P2-14（`clear()` 运行时返回 Promise，声明签名同步改为 `Promise<void>`，属声明对齐而非行为变更）。
+- **需契约变更/下游配合**：P2-5 取方案 A（保持 `os/browser` 原值，仅补文档，见 6.2）；P2-6/P2-9 取文档口径；P2-14 最终补齐类型声明（`clear()` → `Promise<void>`，运行时早已返回 Promise）。
+
+### 6.2 逐条修复
+| 条目 | 修复方式 |
+| --- | --- |
+| P2-1 | `once` 的 wrapper 用 `try/finally` 注销，handler 抛错后不再残留。 |
+| P2-3 | `PluginErrorBoundary` 增加 `resetKeys` / `onReset`，`componentDidUpdate` 浅比较后复位。 |
+| P2-4 | `getAll()` 改为 `Object.create(null)`，`__proto__` 只当普通键。 |
+| P2-5 | 取方案 A：`detectDevice` 实现不动（`os`/`browser` 仍为 UA 原值），README 补字段语义、模块级缓存、SSR 中性值与「改短名属破坏性变更、暂不提供」。 |
+| P2-6 | README 明确 transform 必须返回新对象；不引入运行期冻结/快照（验收中为可选项）。 |
+| P2-7 | `emit` 增加联动深度计数（阈值 50），超深中断并告警，不再无限递归。 |
+| P2-8 | `getOrder` 用递归 `runs()` 判定：依赖在册但被停用 → 依赖方跳过并记账；**缺失依赖仍照跑 + 告警**。 |
+| P2-9 | 取方案 b：文档写明 HOC 不自动触发 `onPropsChange`，需宿主接线；补测试钉住该行为。 |
+| P2-12 | 同名新实例注册时 `unregister` 旧实例（回收订阅 + destroy + 告警）；`renderNodes` 按 name 去重。 |
+| P2-13 | context 快照改为 `useLayoutEffect` 提交阶段赋值；transform 仍读本次渲染 context（见 6.4）。 |
+| P2-14 | `destroyPlugin` 返回 Promise；`align` 等待旧 destroy；`clear()` 返回 `Promise.all`；**public 类型同步改 `clear(): Promise<void>`**（此前声明为 `void`，与运行时不一致）。 |
+| P2-15 | README 列明 HOC 接管字段；宿主显式传 `containerRefExternal` 时 `console.warn`。 |
+
+### 6.3 测试与门禁
+- 新增按主题拆分：`test/p2-bus.test.ts`（3）、`test/p2-manager.test.ts`（6）、`test/p2-slots.test.tsx`（2）、`test/p2-lifecycle.test.tsx`（4），共 **4 文件 / 15 例**。
+- `pnpm --filter vane-plugin-core typecheck`：✅
+- `pnpm --filter vane-plugin-core lint`：✅ 0 error / 77 warning（全部既有；新增代码 0 warning）
+- `pnpm --filter vane-plugin-core test`：✅ **9 files / 62 tests**
+- `pnpm --filter vane-plugin-core build`：✅
+- 体积门禁：✅ **5.7236KB / 预算 6KB**（5861B；`index.js` 323B + `chunks/index` 2237B + `chunks/withPlugins` 3301B），余量约 0.276KB。
+- 根 `pnpm typecheck`：✅ 16/16 tasks —— 证明 `clear(): Promise<void>` 未影响 14 个组件，**0 个组件需要改代码**。
+- 受影响组件回归：vane-resume 31/31、vane-sku 70/70、vane-lazy-image 75/75、vane-danmaku 32/32、vane-candidate 14/14 通过；vane-coupon 仍为 HEAD 既有失败 `CP-P2-4`。
+
+### 6.4 回归暴露并修复的问题
+- 首版 P2-13 让 transform 读“已提交快照”，导致 candidate 的 Filter/Search 在渲染期读到上一帧 `ctx.state`，筛选/搜索用例失败。
+- 修正为：**transform 读本次渲染 context；`execute` 读提交阶段快照**。修正后 candidate 14/14 通过。
+
+### 6.5 决策结果（2026-11-04，用户拍板）
+1. **P2-5 → 方案 A**：保持 `os/browser` 原值，只补文档；不改字段名、不动 `vane-lazy-image` 埋点。README 已写明「改短名属破坏性变更，暂不提供」。
+2. **体积 → 方案 A**：`sizeBudgetKb` 5.5 → **6**，保留全部防御性修复。未为省 225B 撤掉已实现逻辑（错误边界复位、emit 深度保护、同名去重、context 快照、destroy 可等待）。
+3. **P2-14 补类型**：`PluginManager.clear()` 由 `void` 改为 `Promise<void>`，与运行时一致；`PluginBus.clear()` 保持 `void`（同步清空，语义正确）。`destroyPlugin` / `align` 为模块内部实现，无公开签名变更。影响面：`withPlugins` / `usePluginRuntime` 对外类型不变；根 typecheck 16/16 通过，**0 个组件需改代码**（忽略 `clear()` 返回值仍可编译）。
+
+### 6.6 预算变更记录（第二轮）
+- 位置：`packages/plugin-core/package.json` 的 `vane.sizeBudgetKb`：**5.5 → 6**；`vane.sizeBudgetNote` 追加第二轮说明。
+- 实测：第一轮 5.2803KB（5407B）→ 第二轮主体 5.7197KB（5857B）→ 补类型后 **5.7236KB（5861B）**；相对第一轮 +0.443KB。
+- 余量：6KB − 5.7236KB ≈ **0.276KB（283B）**。
+- 口径不变：`scripts/check-packages.mjs` 仍按入口导入图逐文件 gzip 求和；版本号与子路径导出未动。
+

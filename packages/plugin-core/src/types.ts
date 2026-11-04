@@ -192,7 +192,8 @@ export interface PluginManager<TProps = any, TData = any> {
     context: PluginContext<TProps, TData>,
     ...args: unknown[]
   ): Promise<any>;
-  clear(): void;
+  /** 清空全部插件；返回 Promise，await 后异步 destroy 全部完成 */
+  clear(): Promise<void>;
   /** 沙箱累计错误（可上报） */
   getErrors(): Array<{ plugin: string; hook: string; error: unknown }>;
 }

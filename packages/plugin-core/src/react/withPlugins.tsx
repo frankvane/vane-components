@@ -32,6 +32,13 @@ export function withPlugins<P extends AnyProps, R = any>(
     const innerProps = props as P;
     const runtime = usePluginRuntime<P>({ plugins, props: innerProps, enableDebug });
 
+    // containerRefExternal 由 HOC 接管；宿主显式传入会被覆盖，明确提示而不是静默吞掉
+    if (innerProps.containerRefExternal !== undefined) {
+      console.warn(
+        "[vane] withPlugins owns containerRefExternal; host value ignored, use ctx.refs.container"
+      );
+    }
+
     const enhancedProps: AnyProps = {
       ...runtime.transformProps(innerProps),
       containerRefExternal: runtime.context.refs.container,

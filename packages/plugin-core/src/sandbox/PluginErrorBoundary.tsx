@@ -4,6 +4,9 @@ interface Props {
   fallback?: (error: Error) => React.ReactNode;
   children: React.ReactNode;
   onError?: (error: Error, info: React.ErrorInfo) => void;
+  /** 这些值任一变化且当前处于错误态时，自动复位边界 */
+  resetKeys?: unknown[];
+  onReset?: () => void;
 }
 
 interface State {
@@ -19,6 +22,18 @@ export class PluginErrorBoundary extends React.Component<Props, State> {
 
   static getDerivedStateFromError(error: Error): State {
     return { error };
+  }
+
+  componentDidUpdate(prevProps: Props) {
+    const a = prevProps.resetKeys ?? [];
+    const b = this.props.resetKeys ?? [];
+    if (
+      this.state.error &&
+      (a.length !== b.length || a.some((value, index) => !Object.is(value, b[index])))
+    ) {
+      this.props.onReset?.();
+      this.setState({ error: null });
+    }
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {

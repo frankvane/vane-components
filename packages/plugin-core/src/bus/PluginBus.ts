@@ -7,10 +7,17 @@ import type { PluginBus } from "../types";
 export function createPluginBus(): PluginBus {
   const handlers = new Map<string, Set<(data: any) => void>>();
   const store = new Map<string, any>();
+  /** 联动写入深度：A→B→A 这类互相触发的事件不能无限递归 */
+  let depth = 0;
 
   const emit = (event: string, data?: any) => {
     const set = handlers.get(event);
     if (!set) return;
+    if (depth >= 50) {
+      console.warn(`[PluginBus] emit depth exceeded: "${event}"`);
+      return;
+    }
+    depth += 1;
     // 拷贝一份，避免回调中增删 handler 影响本次派发
     for (const h of [...set]) {
       try {
@@ -19,6 +26,7 @@ export function createPluginBus(): PluginBus {
         console.warn(`[PluginBus] handler error for event "${event}"`, error);
       }
     }
+    depth -= 1;
   };
 
   const on = (event: string, handler: (data: any) => void) => {
@@ -35,8 +43,12 @@ export function createPluginBus(): PluginBus {
 
   const once = (event: string, handler: (data: any) => void) => {
     const wrapper = (data: any) => {
-      handler(data);
-      off(event, wrapper);
+      // handler 抛错也要注销，否则下一次 emit 还会再调一次
+      try {
+        handler(data);
+      } finally {
+        off(event, wrapper);
+      }
     };
     return on(event, wrapper);
   };
@@ -73,7 +85,8 @@ export function createPluginBus(): PluginBus {
   };
   const hasData = (key: string) => store.has(key);
   const getAll = () => {
-    const result: Record<string, any> = {};
+    // 无原型对象：即使键名是 __proto__ / constructor，也只当普通数据，不污染原型
+    const result: Record<string, any> = Object.create(null);
     store.forEach((value, key) => {
       result[key] = value;
     });
