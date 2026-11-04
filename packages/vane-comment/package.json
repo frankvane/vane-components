@@ -1,6 +1,6 @@
 {
   "name": "vane-comment",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "插件式通用评论区引擎：点赞 / 排序 / 楼中楼 / 富编辑，视频·社交·电商评论区同一内核按需装配",
   "type": "module",
   "main": "./dist/index.js",
@@ -175,7 +175,7 @@
   "peerDependencies": {
     "react": ">=16.8.0",
     "react-dom": ">=16.8.0",
-    "vane-plugin-core": "workspace:*"
+    "vane-plugin-core": "^0.1.2"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

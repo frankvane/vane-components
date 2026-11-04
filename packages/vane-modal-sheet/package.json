@@ -1,6 +1,6 @@
 {
   "name": "vane-modal-sheet",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "插件式 React 多向抽屉弹层（上下左右抽伸 + snap 吸附 + 原生拖拽 + 零第三方依赖）",
   "type": "module",
   "main": "./dist/index.js",
@@ -155,7 +155,7 @@
   "peerDependencies": {
     "react": ">=16.8.0",
     "react-dom": ">=16.8.0",
-    "vane-plugin-core": "workspace:*"
+    "vane-plugin-core": "^0.1.2"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

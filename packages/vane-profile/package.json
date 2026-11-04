@@ -1,6 +1,6 @@
 {
   "name": "vane-profile",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "插件式个人主页引擎：头图 Banner + 数据行 StatRow + 内容页签 Tab 联动",
   "type": "module",
   "main": "./dist/index.js",
@@ -137,7 +137,7 @@
   "peerDependencies": {
     "react": ">=16.8.0",
     "react-dom": ">=16.8.0",
-    "vane-plugin-core": "workspace:*"
+    "vane-plugin-core": "^0.1.2"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

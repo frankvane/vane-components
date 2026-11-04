@@ -1,6 +1,6 @@
 {
   "name": "vane-candidate",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "插件式 React 候选人流水线（ATS）组件",
   "type": "module",
   "main": "./dist/index.js",
@@ -147,7 +147,7 @@
   "peerDependencies": {
     "react": ">=16.8.0",
     "react-dom": ">=16.8.0",
-    "vane-plugin-core": "workspace:*"
+    "vane-plugin-core": "^0.1.2"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

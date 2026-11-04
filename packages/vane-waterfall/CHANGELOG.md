@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0.3
+
+### Patch Changes
+
+- 重建 dist 以内联 `vane-plugin-core@0.1.2` 的内核稳定性修复；体积预算按实测增量重新校准（详见 tasks/74-体积预算调整记录.md）。组件业务逻辑未变更。
+
 ## 2.0.2
 
 ### Patch Changes

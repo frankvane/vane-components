@@ -1,6 +1,6 @@
 {
   "name": "vane-coupon",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "券展示与领取：领取态 / 有效期 / 规则展开 / 叠加态",
   "type": "module",
   "main": "./dist/index.js",
@@ -133,7 +133,7 @@
   "peerDependencies": {
     "react": ">=16.8.0",
     "react-dom": ">=16.8.0",
-    "vane-plugin-core": "workspace:*"
+    "vane-plugin-core": "^0.1.2"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
