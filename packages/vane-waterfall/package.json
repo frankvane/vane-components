@@ -217,9 +217,9 @@
       "accent": "#ccf24b",
       "bg": "#080a09"
     },
-    "sizeBudgetKb": 14.9,
+    "sizeBudgetKb": 14.5,
     "coreSizeBudgetKb": 12,
-    "sizeBudgetNote": "【2026-11-04 内核修复批次：14→14.9KB】入口实测 14.46KB＝内核 withPlugins 共享块 8.24KB（devDep 内联）+ 瀑布流核心/领域槽；内核自 0.1.1 累计 gzip +1.33KB（本轮 +117B）。是否可裁：否——67 个 js 全部可达、0 重复内容。按实测 +3.0% 余量（上限），后续新增功能需先压回或走预算评审。"
+    "sizeBudgetNote": "【2026-11-04 瘦身批次：14.9→14.5KB】全量重建后入口实测 14.33KB＝内核 withPlugins 共享块 8.12KB（devDep 内联，不可裁）+ 瀑布流核心/领域槽 6.38KB。本轮共省 130B：① withPlugins 上下文移除 11 个被 defineProperties getter 整体覆盖的初值（同时少 4 次冗余 live* 调用与一次重复可见区间扫描）；② 可见集合与可见区间合并为单遍 scanVisible；③ 布局钩子三条几乎相同的 try/catch 循环合并为 runHooks（告警文案只保留一份）；④ normalizeVirtualize 的 true 分支与默认值合并。68 个单测全过，行为与导出未变。余量 1.1%：低于历史 3% 口径，因内核内联占入口 57%，可安全裁剪面已耗尽；后续新增功能需先压回或走预算评审。"
   },
   "engines": {
     "node": ">=18"

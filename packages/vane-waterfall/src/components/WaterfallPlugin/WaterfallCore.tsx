@@ -197,21 +197,13 @@ function normalizeVirtualize(
   value: boolean | VirtualizeOptions | undefined
 ): VirtualizeOptions | null {
   if (!value) return null;
-  if (value === true) {
-    return {
-      overscan: 1,
-      estimateHeight: 240,
-      dynamicHeights: true,
-      adaptiveEstimate: true,
-      estimateQuantile: 0.5,
-    };
-  }
+  const options = value === true ? {} : value;
   return {
-    overscan: value.overscan ?? 1,
-    estimateHeight: value.estimateHeight ?? 240,
-    dynamicHeights: value.dynamicHeights ?? true,
-    adaptiveEstimate: value.adaptiveEstimate ?? true,
-    estimateQuantile: value.estimateQuantile ?? 0.5,
+    overscan: options.overscan ?? 1,
+    estimateHeight: options.estimateHeight ?? 240,
+    dynamicHeights: options.dynamicHeights ?? true,
+    adaptiveEstimate: options.adaptiveEstimate ?? true,
+    estimateQuantile: options.estimateQuantile ?? 0.5,
   };
 }
 

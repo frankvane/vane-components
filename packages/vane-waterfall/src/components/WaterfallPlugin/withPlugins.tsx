@@ -114,27 +114,25 @@ function detectNetwork(): NetworkInfo | undefined {
   };
 }
 
-/** 可见索引区间（闭区间）：虚拟化关闭时也按真实重叠算，供 StickyHeader 等插件用 */
-function computeVisibleIndexRange(
+/** 可见集合与闭区间一次算出：虚拟化关闭时也按真实重叠算，供 StickyHeader 等插件用 */
+function scanVisible(
   positions: Map<number, ItemPosition>,
   scrollTop: number,
   clientHeight: number
-): { start: number; end: number } {
+): { set: Set<number>; range: { start: number; end: number } } {
   let start = Number.POSITIVE_INFINITY;
   let end = -1;
+  const set = new Set<number>();
   positions.forEach((position, index) => {
-    const overlap = Math.max(
-      0,
-      Math.min(scrollTop + clientHeight, position.y + position.height) -
-        Math.max(scrollTop, position.y)
-    );
+    const overlap = Math.min(scrollTop + clientHeight, position.y + position.height) -
+      Math.max(scrollTop, position.y);
     if (overlap > 0) {
+      set.add(index);
       if (index < start) start = index;
       if (index > end) end = index;
     }
   });
-  if (end < 0) return { start: 0, end: 0 };
-  return { start, end };
+  return { set, range: end < 0 ? { start: 0, end: 0 } : { start, end } };
 }
 
 export function withPlugins<T = any>(
@@ -205,41 +203,19 @@ export function withPlugins<T = any>(
             if (fromCore && fromCore.size > 0) return fromCore;
             // 首帧 Core 还没滚动过：按位置与视口的重叠兜底算一次
             const vp = liveViewport();
-            const result = new Set<number>();
-            livePositions().forEach((position, index) => {
-              const overlap = Math.max(
-                0,
-                Math.min(vp.scrollTop + vp.clientHeight, position.y + position.height) -
-                  Math.max(vp.scrollTop, position.y)
-              );
-              if (overlap > 0) result.add(index);
-            });
-            return result;
+            return scanVisible(livePositions(), vp.scrollTop, vp.clientHeight).set;
           };
 
-          const ctx: WaterfallPluginContext<T> = {
+          // 布局类字段先不写值：下面统一用 defineProperties 装 getter
+          const ctx = {
             ...base,
-            items: liveItems(),
-            itemCount: liveItems().length,
-            rawItems: liveRawItems(),
             containerRef,
             itemRefs: itemRefsMap.current,
             getItemRef: (index: number) => itemRefsMap.current.get(index) ?? null,
-            layout: liveLayout(),
-            itemPositions: livePositions(),
             getItemPosition: (index: number) => livePositions().get(index) ?? null,
-            viewport: liveViewport(),
-            visibleItems: liveVisibleItems(),
-            visibleRange: computeVisibleIndexRange(
-              livePositions(),
-              liveViewport().scrollTop,
-              liveViewport().clientHeight
-            ),
             isLayouting,
             isScrolling: viewport.isScrolling,
             isDragging: Boolean((base.state as any)?.dragInfo?.isDragging),
-            isLoading: Boolean((base.state as any)?.isLoading ?? false),
-            hasMore: Boolean((base.state as any)?.hasMore ?? true),
             error: ((base.state as any)?.error as Error) ?? null,
             sharedData: base.shared as Map<string, any>,
             networkInfo,
@@ -250,7 +226,7 @@ export function withPlugins<T = any>(
             scrollToBottom: (options) => coreRef.current?.scrollToBottom(options),
             measureItem: (index) =>
               coreRef.current?.measureItem(index) ?? Promise.resolve({ width: 0, height: 0 }),
-          };
+          } as WaterfallPluginContext<T>;
 
           // 把三个布局字段改成 getter：插件无论在哪个钩子里读，拿到的都是此刻的布局
           // props 同理走 getter（见 transformedPropsRef 的说明）
@@ -292,7 +268,7 @@ export function withPlugins<T = any>(
             visibleRange: {
               get: () => {
                 const vp = liveViewport();
-                return computeVisibleIndexRange(livePositions(), vp.scrollTop, vp.clientHeight);
+                return scanVisible(livePositions(), vp.scrollTop, vp.clientHeight).range;
               },
               enumerable: true,
               configurable: true,
@@ -354,58 +330,59 @@ export function withPlugins<T = any>(
           return undefined;
         }
 
-        const warn = (plugin: string, hook: string, error: unknown) =>
-          console.warn(`[vane-waterfall] ${plugin} 的 ${hook} 执行失败`, error);
+        const runHooks = <R,>(
+          hook: "calculateColumns" | "calculateColumnWidth" | "calculateItemPosition",
+          list: WaterfallPlugin<T>[],
+          call: (plugin: WaterfallPlugin<T>) => R,
+          accept: (value: R | undefined) => boolean
+        ): R | undefined => {
+          for (const plugin of list) {
+            try {
+              const next = call(plugin);
+              if (accept(next)) return next;
+            } catch (error) {
+              console.warn(`[vane-waterfall] ${plugin.name} 的 ${hook} 执行失败`, error);
+            }
+          }
+          return undefined;
+        };
 
         return {
           calculateColumns: colsPlugins.length
-            ? (base) => {
+            ? () => {
                 const width = ctxRef.current?.containerRef?.current?.clientWidth ?? 0;
-                for (const plugin of colsPlugins) {
-                  try {
-                    const next = plugin.hooks.calculateColumns!(ctxRef.current, width);
-                    if (typeof next === "number" && Number.isFinite(next)) return next;
-                  } catch (error) {
-                    warn(plugin.name, "calculateColumns", error);
-                  }
-                }
-                return undefined;
+                return runHooks(
+                  "calculateColumns",
+                  colsPlugins,
+                  (plugin) => plugin.hooks.calculateColumns!(ctxRef.current, width),
+                  (next) => typeof next === "number" && Number.isFinite(next)
+                );
               }
             : undefined,
           calculateColumnWidth: widthPlugins.length
-            ? (base, columns, containerWidth) => {
-                for (const plugin of widthPlugins) {
-                  try {
-                    const next = plugin.hooks.calculateColumnWidth!(
-                      ctxRef.current,
-                      containerWidth,
-                      columns
-                    );
-                    if (typeof next === "number" && Number.isFinite(next)) return next;
-                  } catch (error) {
-                    warn(plugin.name, "calculateColumnWidth", error);
-                  }
-                }
-                return undefined;
-              }
+            ? (_base, columns, containerWidth) =>
+                runHooks(
+                  "calculateColumnWidth",
+                  widthPlugins,
+                  (plugin) =>
+                    plugin.hooks.calculateColumnWidth!(ctxRef.current, containerWidth, columns),
+                  (next) => typeof next === "number" && Number.isFinite(next)
+                )
             : undefined,
           calculateItemPosition: posPlugins.length
-            ? (index, itemHeight, basePosition) => {
-                for (const plugin of posPlugins) {
-                  try {
-                    const next = plugin.hooks.calculateItemPosition!(
+            ? (index, itemHeight, basePosition) =>
+                runHooks(
+                  "calculateItemPosition",
+                  posPlugins,
+                  (plugin) =>
+                    plugin.hooks.calculateItemPosition!(
                       ctxRef.current,
                       index,
                       itemHeight,
                       basePosition
-                    );
-                    if (next) return next;
-                  } catch (error) {
-                    warn(plugin.name, "calculateItemPosition", error);
-                  }
-                }
-                return undefined;
-              }
+                    ),
+                  (next) => Boolean(next)
+                )
             : undefined,
         };
         // 按插件对象身份重建：只依赖 namesKey 时，「同名换配置」的插件仍会沿用旧闭包（P2-10）
