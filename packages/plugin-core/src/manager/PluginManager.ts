@@ -1,4 +1,4 @@
-import { resolveDependencyOrder } from "../dependency/DependencyResolver";
+import { resolveDependencyOrderSafe } from "../dependency/DependencyResolver";
 import { runHookInSandbox } from "../sandbox/PluginSandbox";
 import type {
   Plugin,
@@ -16,14 +16,26 @@ export interface PluginManagerOptions {
   logger?: Pick<Console, "warn" | "error">;
 }
 
+/** 仅装配层使用：差集对齐 + 顺序缓存只读访问，不进入根导出 */
+export interface PluginManagerInternal<TProps = any, TData = any>
+  extends PluginManager<TProps, TData> {
+  align(
+    plugins: Plugin<TProps, TData>[],
+    context: PluginContext<TProps, TData>
+  ): Promise<void>;
+  /** 当前排序缓存（只读，调用方不要修改） */
+  peekOrder(): readonly Plugin<TProps, TData>[];
+}
+
+declare const process: { env: { NODE_ENV?: string } };
+const LIFECYCLE_HOOKS = new Set(["onMount", "onUnmount", "onPropsChange", "onError"]);
+type HookOutcome = { value?: unknown; stop?: boolean };
+
 /**
  * 插件管理器：注册/注销/启停/钩子执行。
- * 执行顺序 = 依赖拓扑序（稳定）→ 优先级降序，由 resolveDependencyOrder 统一决定。
- * 钩子语义（生命周期钩子）：返回函数 → 注册为清理（clear 时逆序执行）；
- * 返回 false → 中断链；返回其他值 → 短路返回。详见 types.ts PluginHooks 注释。
+ * 执行顺序 = 依赖拓扑序 → 优先级降序，由 resolveDependencyOrder 统一决定。
+ * 生命周期钩子返回函数 = 清理（clear 时逆序执行），false 中断链，其他非 true 值短路。
  */
-const LIFECYCLE_HOOKS = new Set(["onMount", "onUnmount", "onPropsChange", "onError"]);
-
 export function createPluginManager<TProps = any, TData = any>(
   options: PluginManagerOptions = {}
 ): PluginManager<TProps, TData> {
@@ -31,101 +43,186 @@ export function createPluginManager<TProps = any, TData = any>(
   const defaultSandbox = options.sandbox ?? true;
   const defaultTimeout = options.timeout ?? 3000;
   const errors: Array<{ plugin: string; hook: string; error: unknown }> = [];
-  const cleanups: Array<() => void> = [];
-
+  let cleanups: Array<[string, () => void]> = [];
   const plugins = new Map<string, Plugin<TProps, TData>>();
+  const originals = new Map<string, Plugin<TProps, TData>>();
+  /** 生命周期账本：已挂载插件名集合（未变更插件因此不会重复 onMount） */
+  const mounted = new Set<string>();
+  let generation = 0;
+  let orderCache: Plugin<TProps, TData>[] | null = null;
+  let alignToken = 0;
 
-  // 执行顺序完全由 resolveDependencyOrder 决定：依赖约束绝对优先，
-  // 优先级只在依赖已满足的候选之间起作用，平级保持注册顺序。
-  const ordered = (): Plugin<TProps, TData>[] =>
-    resolveDependencyOrder([...plugins.values()].filter((p) => p.enabled !== false));
-
-  const register = (plugin: Plugin<TProps, TData>) => {
-    plugins.set(plugin.name, { ...plugin, enabled: plugin.enabled ?? true });
-    if (plugin.init) {
-      Promise.resolve(plugin.init()).catch((error) => {
-        logger.warn(`[PluginManager] init failed for ${plugin.name}`, error);
-      });
+  const record = (plugin: string, hook: string, error: unknown) => {
+    errors.push({ plugin, hook, error });
+    // 错误账本封顶只在开发态生效，生产构建由 NODE_ENV 常量折叠整段裁掉
+    if (process.env.NODE_ENV !== "production" && errors.length > 100) {
+      errors.splice(0, errors.length - 100);
     }
   };
 
-  const registerAll = (list: Plugin<TProps, TData>[]) => {
-    for (const plugin of list) register(plugin);
+  /** 注册表变更推进代次：迟到结果与 cleanup 不得再登记 */
+  const bump = () => {
+    generation += 1;
+    orderCache = null;
+  };
+
+  // 单一顺序缓存：只在注册表/启停变化时重排，executeHook 与渲染共用
+  const getOrder = (): Plugin<TProps, TData>[] =>
+    (orderCache ??= resolveDependencyOrderSafe(
+      [...plugins.values()].filter((plugin) => plugin.enabled !== false),
+      (error) => record("[order]", "resolveDependencyOrder", error)
+    ));
+
+  const runCleanups = (name?: string) => {
+    const pending = cleanups.filter(([owner]) => !name || owner === name).reverse();
+    cleanups = name ? cleanups.filter(([owner]) => owner !== name) : [];
+    for (const [, fn] of pending) {
+      try {
+        fn();
+      } catch (error) {
+        logger.warn("[vane] cleanup failed", error);
+      }
+    }
+  };
+
+  const destroyPlugin = (plugin: Plugin<TProps, TData>) => {
+    if (plugin.destroy)
+      Promise.resolve(plugin.destroy()).catch((error) => {
+        logger.warn(`[vane] destroy failed: ${plugin.name}`, error);
+      });
+  };
+
+  // 生命周期账本在进入钩子前更新，异步并发下 onMount/onUnmount 也各只跑一次
+  const invoke = async (
+    plugin: Plugin<TProps, TData>,
+    hookName: string,
+    context: PluginContext<TProps, TData>,
+    args: unknown[],
+    atGeneration: number
+  ): Promise<HookOutcome> => {
+    const isUnmount = hookName === "onUnmount";
+    if (hookName === "onMount" || isUnmount) {
+      if (mounted.has(plugin.name) !== isUnmount) return {};
+      if (isUnmount) mounted.delete(plugin.name);
+      else mounted.add(plugin.name);
+    }
+    const hook = plugin.hooks?.[
+      hookName as keyof PluginHooks<TProps, TData>
+    ] as ((context: PluginContext<TProps, TData>, ...args: unknown[]) => unknown) | undefined;
+    if (typeof hook !== "function") return {};
+
+    let result: unknown;
+    try {
+      const run = () => hook(context, ...args);
+      result = (plugin.sandbox ?? defaultSandbox)
+        ? await runHookInSandbox(run, {
+            timeout: plugin.timeout ?? defaultTimeout,
+            name: plugin.name,
+            hook: hookName,
+          })
+        : await run();
+    } catch (error) {
+      if (atGeneration !== generation) return {};
+      record(plugin.name, hookName, error);
+      logger.warn(`[vane] ${hookName} failed: ${plugin.name}`, error);
+      options.onError?.(plugin.name, hookName, error);
+      // onError 自己失败时不再传播，避免递归
+      return { stop: hookName === "onError" };
+    }
+
+    // 代次已变化（clear / 注销 / 重装配）：迟到结果与 cleanup 一律丢弃
+    if (atGeneration !== generation) return {};
+    // 生命周期钩子返回函数 = 注册清理，不参与短路语义
+    if (LIFECYCLE_HOOKS.has(hookName) && typeof result === "function") {
+      cleanups.push([plugin.name, result as () => void]);
+      return {};
+    }
+    return { value: result };
+  };
+
+  const runChain = async (
+    hookName: keyof PluginHooks<TProps, TData>,
+    context: PluginContext<TProps, TData>,
+    args: unknown[]
+  ): Promise<unknown> => {
+    const atGeneration = generation;
+    for (const plugin of getOrder()) {
+      if (atGeneration !== generation) return undefined;
+      const outcome = await invoke(plugin, hookName as string, context, args, atGeneration);
+      if (outcome.stop) return undefined;
+      if (outcome.value === false) return false;
+      if (outcome.value !== undefined && outcome.value !== true) return outcome.value;
+    }
+    return undefined;
+  };
+
+  // onUnmount 与其他钩子同链执行；重复调用的幂等由生命周期账本保证
+  const executeHook = <K extends keyof PluginHooks<TProps, TData>>(
+    hookName: K,
+    context: PluginContext<TProps, TData>,
+    ...args: unknown[]
+  ): Promise<any> => runChain(hookName, context, args);
+
+  const register = (plugin: Plugin<TProps, TData>) => {
+    plugins.set(plugin.name, { ...plugin, enabled: plugin.enabled ?? true });
+    originals.set(plugin.name, plugin);
+    mounted.delete(plugin.name);
+    bump();
+    if (plugin.init)
+      Promise.resolve(plugin.init()).catch((error) => {
+        logger.warn(`[vane] init failed: ${plugin.name}`, error);
+      });
+  };
+
+  const registerAll = (list: Plugin<TProps, TData>[]) => list.forEach(register);
+
+  const forget = (name: string) => {
+    plugins.delete(name);
+    originals.delete(name);
+    mounted.delete(name);
+    orderCache = null;
   };
 
   const unregister = (name: string) => {
     const plugin = plugins.get(name);
     if (!plugin) return;
-    if (plugin.destroy) {
-      Promise.resolve(plugin.destroy()).catch((error) => {
-        logger.warn(`[PluginManager] destroy failed for ${plugin.name}`, error);
-      });
-    }
-    plugins.delete(name);
+    bump();
+    runCleanups(name);
+    destroyPlugin(plugin);
+    forget(name);
   };
 
-  const executeHook = async <K extends keyof PluginHooks<TProps, TData>>(
-    hookName: K,
-    context: PluginContext<TProps, TData>,
-    ...args: unknown[]
-  ): Promise<any> => {
-    for (const plugin of ordered()) {
-      const hook = plugin.hooks?.[hookName];
-      if (typeof hook !== "function") continue;
-
-      const useSandbox = plugin.sandbox ?? defaultSandbox;
-      const timeout = plugin.timeout ?? defaultTimeout;
-
-      let result: any;
-      try {
-        result = useSandbox
-          ? await runHookInSandbox(
-              () => (hook as any)(context, ...args),
-              { timeout, name: plugin.name, hook: String(hookName) }
-            )
-          : await (hook as any)(context, ...args);
-      } catch (error) {
-        errors.push({ plugin: plugin.name, hook: String(hookName), error });
-        logger.warn(
-          `[PluginManager] hook ${String(hookName)} failed in ${plugin.name}`,
-          error
-        );
-        options.onError?.(plugin.name, String(hookName), error);
-        // onError 自己失败时不再传播，避免递归
-        if (hookName === "onError") break;
-        continue;
-      }
-
-      // 生命周期钩子返回函数 = 注册清理，不参与短路语义
-      if (LIFECYCLE_HOOKS.has(String(hookName)) && typeof result === "function") {
-        cleanups.push(result as () => void);
-        continue;
-      }
-
-      if (result === false) return false;
-      if (result !== undefined && result !== true) return result;
+  // 差集对齐：按 name + 插件对象引用判断增/删/换，未变更插件零重跑（不自动 onMount）
+  const align = async (
+    next: Plugin<TProps, TData>[],
+    context: PluginContext<TProps, TData>
+  ): Promise<void> => {
+    const token = ++alignToken;
+    const nextByName = new Map(next.map((plugin) => [plugin.name, plugin]));
+    for (const name of [...plugins.keys()]) {
+      if (token !== alignToken) return;
+      if (originals.get(name) === nextByName.get(name)) continue;
+      const plugin = plugins.get(name)!;
+      bump();
+      await invoke(plugin, "onUnmount", context, [], generation);
+      runCleanups(name);
+      destroyPlugin(plugin);
+      forget(name);
     }
-    return undefined;
+    for (const plugin of next) {
+      if (token !== alignToken) return;
+      if (originals.get(plugin.name) !== plugin) register(plugin);
+    }
   };
 
   const clear = () => {
-    // 先快照再清空：清理函数自身可能触发新的注册/执行
-    const pending = cleanups.splice(0);
-    for (const fn of pending.reverse()) {
-      try {
-        fn();
-      } catch (error) {
-        logger.warn("[PluginManager] cleanup failed", error);
-      }
-    }
-    for (const plugin of plugins.values()) {
-      if (plugin.destroy) {
-        Promise.resolve(plugin.destroy()).catch((error) => {
-          logger.warn(`[PluginManager] destroy failed for ${plugin.name}`, error);
-        });
-      }
-    }
+    bump();
+    alignToken += 1;
+    runCleanups();
+    for (const plugin of plugins.values()) destroyPlugin(plugin);
     plugins.clear();
+    originals.clear();
+    mounted.clear();
   };
 
   return {
@@ -135,18 +232,26 @@ export function createPluginManager<TProps = any, TData = any>(
     getPlugin: (name) => plugins.get(name),
     getAllPlugins: () => [...plugins.values()],
     getEnabledPlugins: () => [...plugins.values()].filter((p) => p.enabled !== false),
-    getExecutionOrder: ordered,
+    getExecutionOrder: () => [...getOrder()],
     enable: (name) => {
-      const p = plugins.get(name);
-      if (p) p.enabled = true;
+      const plugin = plugins.get(name);
+      if (plugin) {
+        plugin.enabled = true;
+        orderCache = null;
+      }
     },
     disable: (name) => {
-      const p = plugins.get(name);
-      if (p) p.enabled = false;
+      const plugin = plugins.get(name);
+      if (plugin) {
+        plugin.enabled = false;
+        orderCache = null;
+      }
     },
     has: (name) => plugins.has(name),
     executeHook,
     clear,
     getErrors: () => [...errors],
-  };
+    align,
+    peekOrder: getOrder,
+  } as PluginManagerInternal<TProps, TData>;
 }

@@ -33,7 +33,8 @@
   ],
   "sideEffects": false,
   "vane": {
-    "sizeBudgetKb": 5
+    "sizeBudgetKb": 5.5,
+    "sizeBudgetNote": "2026-11-04 由 5KB 调整为 5.5KB：第一轮七项修复带来合法增量 —— 卸载时序串行化、重装配差集账本、enabled 真停用、循环依赖降级、generation token、dev-only 错误账本、执行顺序/槽位缓存。实测入口导入图 gzip 5.28KB；未做无意义压缩凑预算。"
   },
   "publishConfig": {
     "access": "public"

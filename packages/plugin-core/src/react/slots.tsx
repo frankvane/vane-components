@@ -13,10 +13,60 @@ export interface SlotOptions {
   position?: "before" | "after" | "footer";
 }
 
+type Position = NonNullable<SlotOptions["position"]>;
+type SlotKey = "headerBefore" | "overlay" | "headerAfter" | "footer";
+
+function matches<TProps, TData>(
+  plugin: Plugin<TProps, TData>,
+  hook: SlotHookName,
+  position: Position
+) {
+  if (plugin.enabled === false) return false;
+  if (typeof plugin.hooks?.[hook] !== "function") return false;
+  const declared = plugin.config?.slotPosition;
+  if (position === "before") return declared === "before";
+  if (position === "footer") {
+    return declared === undefined || declared === "after" || declared === "footer";
+  }
+  return declared === undefined || declared === "after";
+}
+
+function compare<TProps, TData>(a: Plugin<TProps, TData>, b: Plugin<TProps, TData>) {
+  return (
+    (a.config?.order ?? 0) - (b.config?.order ?? 0) ||
+    (b.priority ?? 0) - (a.priority ?? 0)
+  );
+}
+
+function renderNodes<TProps, TData>(
+  plugins: Plugin<TProps, TData>[],
+  context: PluginContext<TProps, TData>,
+  hook: SlotHookName
+): React.ReactNode[] {
+  return plugins.map((plugin) => {
+    try {
+      const fn = plugin.hooks?.[hook] as
+        | ((context: PluginContext<TProps, TData>) => React.ReactNode)
+        | undefined;
+      const node = fn?.(context);
+      if (node === null || node === undefined) return null;
+      // key 只用插件名：插件名在管理器内唯一，带上数组下标会让「调整插件顺序」
+      // 变成整段重挂载，插件的内部态（展开 / 乐观态）会被无谓清空。
+      return (
+        <PluginErrorBoundary key={`vane-slot-${plugin.name}`}>
+          {node}
+        </PluginErrorBoundary>
+      );
+    } catch (error) {
+      console.warn(`[vane/plugin-core] 插件 ${plugin.name} 的 ${hook} 渲染失败`, error);
+      return null;
+    }
+  });
+}
+
 /**
  * 渲染某个插槽的所有插件输出。
  * 排序规则：config.order 升序（越小越靠前）→ priority 降序。
- * 渲染钩子是同步调用，单个插件抛错只丢它自己那一段，不影响其他插件。
  */
 export function renderPluginSlot<TProps = any, TData = any>(
   plugins: Plugin<TProps, TData>[],
@@ -24,45 +74,10 @@ export function renderPluginSlot<TProps = any, TData = any>(
   options: SlotOptions
 ): React.ReactNode[] {
   const { hook, position = "after" } = options;
-
-  return plugins
-    .filter((p) => p.enabled !== false)
-    .filter((p) => typeof p.hooks?.[hook] === "function")
-    // 未声明 slotPosition 的插件落 after 段（header 的 after / overlay / footer 都算 after 段）。
-    // 这里曾经写成 `p.config?.slotPosition ?? position`，等价于「缺省时匹配任意 position」，
-    // 于是同一个 header 插件会在 before 段和 after 段各渲染一次（图片/视频会重影）。
-    // footer 槽同时接受显式 "footer" 与历史写法 "after" / 缺省，避免存量插件被滤掉。
-    .filter((p) => {
-      const declared = p.config?.slotPosition;
-      if (position === "before") return declared === "before";
-      if (position === "footer") {
-        return declared === undefined || declared === "after" || declared === "footer";
-      }
-      return declared === undefined || declared === "after";
-    })
-    .sort(
-      (a, b) =>
-        (a.config?.order ?? 0) - (b.config?.order ?? 0) ||
-        (b.priority ?? 0) - (a.priority ?? 0)
-    )
-    .map((plugin) => {
-      try {
-        const node = (plugin.hooks as any)[hook](context);
-        if (node === null || node === undefined) return null;
-        // 每个插件单独一层错误边界：某个插件渲染期抛错只丢它自己，
-        // 不会连带清空整条插槽（否则一个坏配置会让所有叠加层一起消失）。
-        // key 只用插件名：插件名在管理器内唯一，带上数组下标会让「调整插件顺序」
-        // 变成整段重挂载，插件的内部态（展开 / 乐观态）会被无谓清空。
-        return (
-          <PluginErrorBoundary key={`vane-slot-${plugin.name}`}>
-            {node}
-          </PluginErrorBoundary>
-        );
-      } catch (error) {
-        console.warn(`[vane/plugin-core] 插件 ${plugin.name} 的 ${hook} 渲染失败`, error);
-        return null;
-      }
-    });
+  const selected = plugins
+    .filter((plugin) => matches(plugin, hook, position))
+    .sort(compare);
+  return renderNodes(selected, context, hook);
 }
 
 /**
@@ -74,13 +89,28 @@ export function composeSlots<TProps = any, TData = any>(
   context: PluginContext<TProps, TData>,
   children: React.ReactNode
 ): React.ReactNode {
+  // 一次遍历分到 4 个槽，避免每个槽各自做 3 次 filter + sort
+  const groups: Record<SlotKey, Plugin<TProps, TData>[]> = {
+    headerBefore: [],
+    overlay: [],
+    headerAfter: [],
+    footer: [],
+  };
+  for (const plugin of plugins) {
+    if (matches(plugin, "renderHeader", "before")) groups.headerBefore.push(plugin);
+    else if (matches(plugin, "renderHeader", "after")) groups.headerAfter.push(plugin);
+    if (matches(plugin, "renderOverlay", "after")) groups.overlay.push(plugin);
+    if (matches(plugin, "renderFooter", "footer")) groups.footer.push(plugin);
+  }
+  for (const key of Object.keys(groups) as SlotKey[]) groups[key].sort(compare);
+
   return (
     <>
-      {renderPluginSlot(plugins, context, { hook: "renderHeader", position: "before" })}
+      {renderNodes(groups.headerBefore, context, "renderHeader")}
       {children}
-      {renderPluginSlot(plugins, context, { hook: "renderOverlay" })}
-      {renderPluginSlot(plugins, context, { hook: "renderHeader", position: "after" })}
-      {renderPluginSlot(plugins, context, { hook: "renderFooter", position: "footer" })}
+      {renderNodes(groups.overlay, context, "renderOverlay")}
+      {renderNodes(groups.headerAfter, context, "renderHeader")}
+      {renderNodes(groups.footer, context, "renderFooter")}
     </>
   );
 }

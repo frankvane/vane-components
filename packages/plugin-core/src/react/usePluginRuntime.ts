@@ -8,9 +8,10 @@ import React, {
 import { createPluginBus } from "../bus/PluginBus";
 import {
   createPluginManager,
+  type PluginManagerInternal,
   type PluginManagerOptions,
 } from "../manager/PluginManager";
-import { resolveDependencyOrder } from "../dependency/DependencyResolver";
+import { resolveDependencyOrderSafe } from "../dependency/DependencyResolver";
 import { detectDevice } from "../utils/detectDevice";
 import type {
   DeviceInfo,
@@ -89,9 +90,11 @@ export function usePluginRuntime<TProps = any, TData = any>(
   const localRef = useRef<HTMLElement | null>(null);
   const containerRef = externalRef ?? localRef;
 
-  const managerRef = useRef<ReturnType<typeof createPluginManager<TProps, TData>> | null>(null);
+  const managerRef = useRef<PluginManagerInternal<TProps, TData> | null>(null);
   if (!managerRef.current) {
-    managerRef.current = createPluginManager<TProps, TData>(managerOptions);
+    managerRef.current = createPluginManager<TProps, TData>(
+      managerOptions
+    ) as PluginManagerInternal<TProps, TData>;
   }
   const manager = managerRef.current;
 
@@ -107,45 +110,65 @@ export function usePluginRuntime<TProps = any, TData = any>(
 
   const deviceInfo = useMemo<DeviceInfo>(() => detectDevice(), []);
 
-  // 插件集合变化时重新装配。
-  // 只按 name 比对会漏掉「同名但配置变了」的重建（FilterToggle 传 enabled:false、敏感词换词库…），
-  // 导致注册与数据链一直持有旧闭包。因此以插件对象引用为身份：元素引用不变就复用上次快照，
-  // 既能让同名新配置生效，也避免内联数组每次渲染都触发重注册。
+  // 插件集合变化时重新装配。以插件对象引用为身份：元素引用不变就复用上次快照，
+  // 同名新配置（FilterToggle 传 enabled:false、敏感词换词库…）仍能生效。
   const pluginsSnapshotRef = useRef(plugins);
   const prevPlugins = pluginsSnapshotRef.current;
   if (
-    prevPlugins.length !== plugins.length ||
-    plugins.some((p, i) => p !== prevPlugins[i])
+    prevPlugins !== plugins &&
+    (prevPlugins.length !== plugins.length ||
+      plugins.some((p, i) => p !== prevPlugins[i]))
   ) {
     pluginsSnapshotRef.current = plugins;
   }
   const stablePlugins = pluginsSnapshotRef.current;
-  const namesKey = stablePlugins.map((p) => p.name).join("|");
-  useLayoutEffect(() => {
-    manager.clear();
-    manager.registerAll(stablePlugins);
-    if (enableDebug) {
-      console.debug("[vane/plugin-core] plugins registered:", namesKey);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stablePlugins]);
+  const alignTokenRef = useRef(0);
 
-  // 卸载：先执行 onUnmount 钩子链，再清理管理器。
-  // 说明：hook 链在 executeHook 循环内已捕获插件引用，随后的 clear 不会
-  // 中断已启动的链；反过来（先 clear 再 onUnmount）会让插件列表已空、
-  // 钩子丢失。领域包因此不需要自己桥接 onUnmount。
+  // P1-2：差集对齐。register 阶段不自动 onMount；装配完成后对「未挂载」插件
+  // 显式执行一次 onMount（管理器按插件对象幂等，未变更插件零重跑）。
+  useLayoutEffect(() => {
+    const token = ++alignTokenRef.current;
+    const context = contextRef.current!;
+    void manager.align(stablePlugins, context).then(() => {
+      if (alignTokenRef.current !== token) return;
+      if (enableDebug) {
+        console.debug(
+          "[vane/plugin-core] plugins registered:",
+          stablePlugins.map((p) => p.name).join("|")
+        );
+      }
+      void manager.executeHook("onMount", context);
+    });
+    return () => {
+      alignTokenRef.current += 1;
+    };
+  }, [stablePlugins, manager, enableDebug]);
+
+  // 卸载：先执行 onUnmount 钩子链，链完成后再 clear，避免清理函数先于 onUnmount。
+  // 管理器对 onUnmount 做并发合并：宿主重复调用也返回同一条链。
   useLayoutEffect(
     () => () => {
-      void manager.executeHook("onUnmount", contextRef.current!);
-      manager.clear();
+      const task = manager.executeHook("onUnmount", contextRef.current!);
+      void task.finally(() => manager.clear());
     },
     [manager]
   );
 
-  const orderedPlugins = useMemo(
-    () => resolveDependencyOrder(stablePlugins),
-    [stablePlugins]
-  );
+  // 执行顺序来自 manager 的单一缓存；渲染前若缓存尚未覆盖当前插件集合
+  // （首次渲染/增删插件尚未对齐），退回本地安全排序，避免插槽少渲染。
+  const cachedOrder = manager.peekOrder();
+  const orderedPlugins = useMemo(() => {
+    const byName = new Map(stablePlugins.map((plugin) => [plugin.name, plugin]));
+    const current = stablePlugins.filter(
+      (plugin) =>
+        plugin.enabled !== false &&
+        manager.getPlugin(plugin.name)?.enabled !== false
+    );
+    if (cachedOrder.length === current.length) {
+      return cachedOrder.map((plugin) => byName.get(plugin.name) ?? plugin);
+    }
+    return resolveDependencyOrderSafe(current);
+  }, [stablePlugins, manager, cachedOrder]);
 
   const contextRef = useRef<PluginContext<TProps, TData> | null>(null);
 
@@ -182,18 +205,22 @@ export function usePluginRuntime<TProps = any, TData = any>(
 
   contextRef.current = context;
 
-  const transformProps = useCallback(
-    (input: TProps): TProps => {
+  // transformProps / transformData 共用一条链：两者语义相同，只差是否传 context。
+  // orderedPlugins 已排除 enabled:false 的插件，disabled 插件因此真正停用。
+  const applyTransform = useCallback(
+    (hook: "transformProps" | "transformData", input: unknown): unknown => {
       let next = input;
       for (const plugin of orderedPlugins) {
-        const fn = plugin.hooks?.transformProps;
+        const fn = plugin.hooks?.[hook] as unknown as
+          | ((ctx: unknown, data?: unknown) => unknown)
+          | undefined;
         if (typeof fn !== "function") continue;
         // 单个插件抛错不能连带整棵渲染树：跳过该插件并告警，其余插件继续生效
         try {
-          next = fn(next);
+          next = hook === "transformData" ? fn(contextRef.current!, next) : fn(next);
         } catch (err) {
           (contextRef.current?.logger ?? console).warn(
-            `[plugin-core] ${plugin.name}.transformProps 执行失败，已跳过`,
+            `[plugin-core] ${plugin.name}.${hook} 执行失败，已跳过`,
             err
           );
         }
@@ -203,26 +230,14 @@ export function usePluginRuntime<TProps = any, TData = any>(
     [orderedPlugins]
   );
 
+  const transformProps = useCallback(
+    (input: TProps): TProps => applyTransform("transformProps", input) as TProps,
+    [applyTransform]
+  );
+
   const transformData = useCallback(
-    (input: TData): TData => {
-      let next = input;
-      for (const plugin of orderedPlugins) {
-        const fn = plugin.hooks?.transformData as
-          | ((ctx: PluginContext<TProps, TData>, d: TData) => TData)
-          | undefined;
-        if (typeof fn !== "function") continue;
-        try {
-          next = fn(contextRef.current!, next);
-        } catch (err) {
-          (contextRef.current?.logger ?? console).warn(
-            `[plugin-core] ${plugin.name}.transformData 执行失败，已跳过`,
-            err
-          );
-        }
-      }
-      return next;
-    },
-    [orderedPlugins]
+    (input: TData): TData => applyTransform("transformData", input) as TData,
+    [applyTransform]
   );
 
   const execute = useCallback(

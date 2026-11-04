@@ -59,3 +59,19 @@ export function resolveDependencyOrder<T extends DepNode>(items: T[]): T[] {
 
   return result;
 }
+
+/**
+ * 循环依赖时降级为注册顺序（仍保留缺失依赖告警），
+ * 避免单个坏配置让整棵渲染树白屏。
+ */
+export function resolveDependencyOrderSafe<T extends DepNode>(
+  items: T[],
+  onError?: (error: unknown) => void
+): T[] {
+  try {
+    return resolveDependencyOrder(items);
+  } catch (error) {
+    onError?.(error);
+    return items;
+  }
+}
