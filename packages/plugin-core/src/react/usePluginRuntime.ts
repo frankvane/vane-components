@@ -182,11 +182,21 @@ export function usePluginRuntime<TProps = any, TData = any>(
     };
   }, [stablePlugins, manager, enableDebug]);
 
-  // 卸载：先执行 onUnmount 钩子链，链完成后再 clear，避免清理函数先于 onUnmount。
+  // 卸载：有 onUnmount 钩子时先执行钩子链，链完成后再 clear（P1-1）。
+  // 一个 onUnmount 都没有时直接同步 clear：否则清理会被推迟到微任务，
+  // 宿主在同步卸载后立即断言会看不到清理执行（回归：基线是同步清理）。
   // 管理器对 onUnmount 做并发合并：宿主重复调用也返回同一条链。
   useLayoutEffect(
     () => () => {
-      const task = manager.executeHook("onUnmount", contextRef.current!);
+      const context = contextRef.current!;
+      const hasUnmountHook = manager
+        .getExecutionOrder()
+        .some((plugin) => typeof plugin.hooks?.onUnmount === "function");
+      if (!hasUnmountHook) {
+        void manager.clear();
+        return;
+      }
+      const task = manager.executeHook("onUnmount", context);
       void task.finally(() => manager.clear());
     },
     [manager]
@@ -194,7 +204,11 @@ export function usePluginRuntime<TProps = any, TData = any>(
 
   // 执行顺序来自 manager 的单一缓存；渲染前若缓存尚未覆盖当前插件集合
   // （首次渲染/增删插件尚未对齐），退回本地安全排序，避免插槽少渲染。
+  // 稳定化：装配完成后缓存从「空」变为「有序列表」，即使插件对象与顺序完全相同，
+  // cachedOrder.map 仍会返回新数组。若直接换身份，下游 useMemo（插槽 / transformData）
+  // 会把「无关重渲染」误判成「插件集合变化」而多跑一次钩子。元素逐个相同就复用旧数组。
   const cachedOrder = manager.peekOrder();
+  const orderedRef = useRef<Plugin<TProps, TData>[]>([]);
   const orderedPlugins = useMemo(() => {
     const byName = new Map(stablePlugins.map((plugin) => [plugin.name, plugin]));
     const current = stablePlugins.filter(
@@ -203,18 +217,30 @@ export function usePluginRuntime<TProps = any, TData = any>(
         manager.getPlugin(plugin.name)?.enabled !== false
     );
     // 按名字映射回宿主传入的原对象，保证插件身份与 props 一致
-    if (cachedOrder.length === current.length) {
-      return cachedOrder.map((plugin) => byName.get(plugin.name) ?? plugin);
+    const next =
+      cachedOrder.length === current.length
+        ? cachedOrder.map((plugin) => byName.get(plugin.name) ?? plugin)
+        : resolveDependencyOrderSafe(current);
+    const prev = orderedRef.current;
+    if (prev.length === next.length && next.every((p, i) => p === prev[i])) {
+      return prev;
     }
-    return resolveDependencyOrderSafe(current);
+    orderedRef.current = next;
+    return next;
   }, [stablePlugins, manager, cachedOrder]);
 
   // transformProps / transformData 共用一条链：两者语义相同，只差是否传 context。
   // orderedPlugins 已排除 enabled:false 的插件，disabled 插件因此真正停用。
+  // 渲染期上下文用 ref 读取，而不是放进 useCallback 依赖：领域包的 extendContext
+  // 可能随 props 每次渲染换身份，若进依赖会让 transform 回调在无关重渲染时换身份，
+  // 下游 useMemo（如 comment 的 transformData 缓存）就会多跑一次。
+  const renderContextRef = useRef(context);
+  renderContextRef.current = context;
+
   const applyTransform = useCallback(
     (hook: "transformProps" | "transformData", input: unknown): unknown => {
       // transform 在渲染期执行，必须读本次渲染的 context（如 Filter/Search 依赖 ctx.state）
-      const ctx = context;
+      const ctx = renderContextRef.current;
       let next = input;
       for (const plugin of orderedPlugins) {
         const fn = plugin.hooks?.[hook] as unknown as
@@ -233,7 +259,7 @@ export function usePluginRuntime<TProps = any, TData = any>(
       }
       return next;
     },
-    [orderedPlugins, context]
+    [orderedPlugins]
   );
 
   const transformProps = useCallback(

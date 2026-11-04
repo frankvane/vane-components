@@ -217,8 +217,9 @@
       "accent": "#ccf24b",
       "bg": "#080a09"
     },
-    "sizeBudgetKb": 14,
-    "coreSizeBudgetKb": 12
+    "sizeBudgetKb": 14.9,
+    "coreSizeBudgetKb": 12,
+    "sizeBudgetNote": "【2026-11-04 内核修复批次：14→14.9KB】入口实测 14.46KB＝内核 withPlugins 共享块 8.24KB（devDep 内联）+ 瀑布流核心/领域槽；内核自 0.1.1 累计 gzip +1.33KB（本轮 +117B）。是否可裁：否——67 个 js 全部可达、0 重复内容。按实测 +3.0% 余量（上限），后续新增功能需先压回或走预算评审。"
   },
   "engines": {
     "node": ">=18"

@@ -219,8 +219,8 @@
     },
     "sizeBudgetKb": 12,
     "coreSizeBudgetKb": 5,
-    "fullSizeBudgetKb": 52,
-    "sizeBudgetNote": "三个口径分别守三件事：根入口 ≤12KB（只含 Core + 装配 + 类型，实测 6.3KB）；core 子路径 ≤5KB（只要内核，实测 1.6KB）；全量并集 ≤52KB（dist 下所有 .js 一起去重压缩，即 22 插件 + 38 复合组件 + 3 配方全用上的最坏情况）。口径上调说明：P2 结构标准化给 22 个插件挂了 meta（doc.json）以对齐 vane-waterfall/lazy-image/profile 的工厂契约（测试断言 .meta、profile 运行期渲染 w.meta），全量并集因此从 31.3KB 涨到 47.9KB——属标准化元数据并入，非运行期逻辑膨胀；给定 52KB 留 ~4KB 余量。"
+    "fullSizeBudgetKb": 55.8,
+    "sizeBudgetNote": "【2026-11-04 内核修复批次：全量并集 52→55.8KB】实测 54.21KB（22 插件 + 复合组件的全量并集）；增量来自内核随 devDep 内联（自 0.1.1 累计 gzip +1.33KB，本轮 +117B）＋已声明的 meta 元数据。是否可裁：否——67 个 js 全部可达、0 重复内容。按实测 +2.9% 余量。】三个口径分别守三件事：根入口 ≤12KB（只含 Core + 装配 + 类型，实测 6.3KB）；core 子路径 ≤5KB（只要内核，实测 1.6KB）；全量并集 ≤52KB（dist 下所有 .js 一起去重压缩，即 22 插件 + 38 复合组件 + 3 配方全用上的最坏情况）。口径上调说明：P2 结构标准化给 22 个插件挂了 meta（doc.json）以对齐 vane-waterfall/lazy-image/profile 的工厂契约（测试断言 .meta、profile 运行期渲染 w.meta），全量并集因此从 31.3KB 涨到 47.9KB——属标准化元数据并入，非运行期逻辑膨胀；给定 52KB 留 ~4KB 余量。"
   },
   "engines": {
     "node": ">=18"

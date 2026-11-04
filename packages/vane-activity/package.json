@@ -142,7 +142,7 @@
       "accent": "#ff7a29",
       "bg": "#0b0a09"
     },
-    "sizeBudgetKb": 8,
+    "sizeBudgetKb": 9,
     "coreSizeBudgetKb": 6,
     "subpathBudgets": {
       "./custom-plugins/TaskListPlugin": 3,
@@ -165,8 +165,8 @@
       "./custom-plugins/JackpotPlugin": 4.2,
       "./custom-plugins/RedeemCodePlugin": 3.5
     },
-    "fullSizeBudgetKb": 40,
-    "sizeBudgetNote": "Announcement/Checkin/TaskTabs/Jackpot/RedeemCode 五个交互型插件高于 3KB 基线：内联样式密集（九宫格 / 表单 / 页签）+ 抽奖动画状态机。基线仍是 3KB，其余 15 个插件均未放宽。ShareBoost/Leaderboard/TaskTabs/Jackpot 各 +0.2~0.3KB：审计修复新增脏数据归一化、键盘导航与配置夹取逻辑；全量并集 38→40KB 同理。"
+    "fullSizeBudgetKb": 41.9,
+    "sizeBudgetNote": "【2026-11-04 内核修复批次：入口 8→9KB、全量并集 40→41.9KB】入口实测 8.78KB＝活动自身槽组件 5.10KB + 内核 withPlugins 共享块 2.12KB；全量并集实测 40.72KB。增量来源：内核自 npm 0.1.1 起 gzip +1.33KB（第一/二轮总线与生命周期防御修复，本轮稳定化仅 +117B）＋既有插件与复合组件。是否可裁：否——dist 审计 0 个不可达 chunk、0 组同内容文件；插件 meta(doc.json) 是家族公开契约。按实测 +2.5%~2.9% 余量收敛。】Announcement/Checkin/TaskTabs/Jackpot/RedeemCode 五个交互型插件高于 3KB 基线：内联样式密集（九宫格 / 表单 / 页签）+ 抽奖动画状态机。基线仍是 3KB，其余 15 个插件均未放宽。ShareBoost/Leaderboard/TaskTabs/Jackpot 各 +0.2~0.3KB：审计修复新增脏数据归一化、键盘导航与配置夹取逻辑；全量并集 38→40KB 同理。"
   },
   "peerDependencies": {
     "react": ">=16.8.0",

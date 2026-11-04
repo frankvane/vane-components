@@ -144,10 +144,10 @@
       "accent": "#ff7a29",
       "bg": "#0b0a09"
     },
-    "sizeBudgetKb": 10,
+    "sizeBudgetKb": 11.28,
     "subpathBudgets": {
       "./custom-plugins/PriceLinkPlugin": 2,
-      "./custom-plugins/QuotaPlugin": 2,
+      "./custom-plugins/QuotaPlugin": 2.19,
       "./custom-plugins/ImageLinkPlugin": 2,
       "./custom-plugins/PriceRangePlugin": 3,
       "./custom-plugins/StockStatusPlugin": 2,
@@ -159,7 +159,7 @@
       "./custom-plugins/StatePersistencePlugin": 2,
       "./custom-plugins/SkuCodePlugin": 2
     },
-    "sizeBudgetNote": "根入口 = SkuSelectorCore（规格按钮组含禁用态 + 选中摘要）+ withPlugins 装配器（extendContext 注入选择态/禁用集/变体）+ 组合矩阵与禁用推导纯函数 + 类型；gzip 实测 6.5KB（体积门口径已修正：入口对同源 chunk 的多条 import 按 chunk 文件去重，避免同 chunk 被重复计入；P4 多入口构建下 index.js 用两条 import 语句引用同一 withPlugins chunk，未去重会虚高到 11.2KB，运行时该 chunk 只加载一次）。规划里的 3.5KB 是「core 走 peer 外部化」前提下的估计（参照 vane-profile 3.09KB，其 peer 声明 core、构建期外部化）；而 vane-sku 按 B6 决策采用「core devDep 内联」策略（与 vane-card 6.77KB / vane-waterfall 11.06KB / vane-lazy-image 26.92KB 同一派），core 会被打进 dist，故隔离边界不同、实测值本就更高——6.5KB 与同策略的 vane-card（6.77KB）同量级。本预算据实上调到 7KB（留余量），非静默放大。三个插件（PriceLink/Quota/ImageLink）严格走子路径 vane-sku/custom-plugins/*（ADR-6），不进根入口。子路径预算 2KB（实测 1.0–1.5KB）：闭包含同目录 doc.json 元数据——meta 是家族约定（驱动 pnpm docs:plugins 与 demo 导航），必须与插件一同发布，故子路径天然比纯逻辑代码大。【2026-11-01 修复批次：根入口 7→10KB，PriceRange/Quantity 子路径 2→3KB】根入口新增公开导出 `normalizeSkuData` / `normalizeSelection` / `isSameSelection` / `remainingQuota` / `quantityUpper` / `formatPrice`（供宿主在加购前复用同一套数量与价格口径）以及 matrix 的 `isPurchasable` / `effectiveVariants`，实测 9.7KB；Quantity/PriceRange 子路径因补上库存写回、限购收敛与价格区间边界，闭包增至 2.3/2.6KB。三者均属核心正确性修复（原实现数量只在展示层 clamp、宿主加购可超库存），据实上调并留余量。",
+    "sizeBudgetNote": "【2026-11-04 内核修复批次：入口 10→11.28KB、QuotaPlugin 2→2.19KB】入口实测 10.96KB＝内核 withPlugins 7.81KB（B6 内联策略）+ core/组合矩阵；内核自 0.1.1 累计 gzip +1.33KB（本轮 +117B）。QuotaPlugin 实测 2.13KB 中 doc.json 元数据 1.75KB、逻辑仅 0.29KB。是否可裁：否——meta 为家族契约（驱动 docs/demo）。按实测 +2.9% 余量。】根入口 = SkuSelectorCore（规格按钮组含禁用态 + 选中摘要）+ withPlugins 装配器（extendContext 注入选择态/禁用集/变体）+ 组合矩阵与禁用推导纯函数 + 类型；gzip 实测 6.5KB（体积门口径已修正：入口对同源 chunk 的多条 import 按 chunk 文件去重，避免同 chunk 被重复计入；P4 多入口构建下 index.js 用两条 import 语句引用同一 withPlugins chunk，未去重会虚高到 11.2KB，运行时该 chunk 只加载一次）。规划里的 3.5KB 是「core 走 peer 外部化」前提下的估计（参照 vane-profile 3.09KB，其 peer 声明 core、构建期外部化）；而 vane-sku 按 B6 决策采用「core devDep 内联」策略（与 vane-card 6.77KB / vane-waterfall 11.06KB / vane-lazy-image 26.92KB 同一派），core 会被打进 dist，故隔离边界不同、实测值本就更高——6.5KB 与同策略的 vane-card（6.77KB）同量级。本预算据实上调到 7KB（留余量），非静默放大。三个插件（PriceLink/Quota/ImageLink）严格走子路径 vane-sku/custom-plugins/*（ADR-6），不进根入口。子路径预算 2KB（实测 1.0–1.5KB）：闭包含同目录 doc.json 元数据——meta 是家族约定（驱动 pnpm docs:plugins 与 demo 导航），必须与插件一同发布，故子路径天然比纯逻辑代码大。【2026-11-01 修复批次：根入口 7→10KB，PriceRange/Quantity 子路径 2→3KB】根入口新增公开导出 `normalizeSkuData` / `normalizeSelection` / `isSameSelection` / `remainingQuota` / `quantityUpper` / `formatPrice`（供宿主在加购前复用同一套数量与价格口径）以及 matrix 的 `isPurchasable` / `effectiveVariants`，实测 9.7KB；Quantity/PriceRange 子路径因补上库存写回、限购收敛与价格区间边界，闭包增至 2.3/2.6KB。三者均属核心正确性修复（原实现数量只在展示层 clamp、宿主加购可超库存），据实上调并留余量。",
     "sizeBudgetAlternatives": "若希望根入口回到 3KB 量级，可改走 vane-profile 的 peer 外部化策略（peerDependencies 加 vane-plugin-core 并在 vite external 中声明），代价是消费者需自行安装内核。"
   },
   "engines": {
