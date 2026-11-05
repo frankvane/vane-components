@@ -21,7 +21,7 @@ import type {
   PluginHooks,
 } from "../types";
 
-export interface PluginRuntime<TProps = any, TData = any> {
+export interface PluginRuntime<TProps = unknown, TData = unknown> {
   manager: ReturnType<typeof createPluginManager<TProps, TData>>;
   bus: PluginBus;
   context: PluginContext<TProps, TData>;
@@ -30,7 +30,7 @@ export interface PluginRuntime<TProps = any, TData = any> {
   execute: <K extends keyof PluginHooks<TProps, TData>>(
     hookName: K,
     ...args: unknown[]
-  ) => Promise<any>;
+  ) => Promise<unknown>;
   transformProps: (props: TProps) => TProps;
   transformData: (data: TData) => TData;
   /** 依赖解析 + 优先级排序后的插件列表（渲染插槽只读这个） */
@@ -51,7 +51,7 @@ function shallowEqual(a: unknown, b: unknown): boolean {
   );
 }
 
-export interface UsePluginRuntimeOptions<TProps = any, TData = any> {
+export interface UsePluginRuntimeOptions<TProps = unknown, TData = unknown> {
   plugins: Plugin<TProps, TData>[];
   props: TProps;
   data?: TData;
@@ -73,7 +73,7 @@ export interface UsePluginRuntimeOptions<TProps = any, TData = any> {
  * 插件运行时：一个宿主组件实例一套 runtime。
  * 组件包一般不直接用这个 hook，而是用 withPlugins；需要完全自定义装配时才用它。
  */
-export function usePluginRuntime<TProps = any, TData = any>(
+export function usePluginRuntime<TProps = unknown, TData = unknown>(
   options: UsePluginRuntimeOptions<TProps, TData>
 ): PluginRuntime<TProps, TData> {
   const {

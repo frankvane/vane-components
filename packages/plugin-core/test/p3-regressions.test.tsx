@@ -14,9 +14,11 @@ import { createRoot } from "react-dom/client";
 import { act } from "react-dom/test-utils";
 import { describe, expect, it } from "vitest";
 import { usePluginRuntime } from "../src/react/usePluginRuntime";
-import type { Plugin } from "../src/types";
+import type { Plugin, PluginContext } from "../src/types";
 
 type Options = Parameters<typeof usePluginRuntime>[0];
+/** extendContext 附加的领域字段（仅用于本回归用例） */
+type TaggedContext = PluginContext & { tag: string };
 
 let currentOptions: Options;
 let capturedRuntime: ReturnType<typeof usePluginRuntime> | null = null;
@@ -29,6 +31,9 @@ function Probe() {
   renderCalls += 1;
   // 模拟领域包：transformData 结果进 useMemo，依赖是内核回调的身份
   const data = currentOptions.data;
+  // 本用例断言的是「次数」：runtime 每次渲染都是新对象引用，把 runtime 放进依赖会让
+  // useMemo 每帧重跑，反而破坏被测语义；这里刻意只依赖 data 与内核回调的身份。
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useMemo(() => runtime.transformData(data), [data, runtime.transformData]);
   return null;
 }
@@ -64,18 +69,18 @@ describe("内核稳定性回归（次数断言）", () => {
     const dataPlugin: Plugin = {
       name: "counter",
       hooks: {
-        transformData: (_ctx: any, input: any) => {
+        transformData: (_ctx, input) => {
           transformCalls += 1;
           return input;
         },
       },
     };
-    const props = { tick: 0 } as any;
+    const props = { tick: 0 };
     const { root, getRuntime, rerender } = await mount({
       plugins: [dataPlugin],
       props,
       data: DATA,
-      extendContext: (base) => ({ ...base, tag: "v0" }) as any,
+      extendContext: (base): TaggedContext => ({ ...base, tag: "v0" }),
     });
 
     // 首帧 1 次；装配完成后缓存由空变满，内存身份必须保持不变
@@ -85,7 +90,7 @@ describe("内核稳定性回归（次数断言）", () => {
 
     // props 引用完全不变，只换 extendContext 身份（领域包的常见写法）
     await rerender({
-      extendContext: (base) => ({ ...base, tag: "v1" }) as any,
+      extendContext: (base): TaggedContext => ({ ...base, tag: "v1" }),
     });
     expect(renderCalls).toBe(2); // 确认确实发生了重渲染，断言非空转
     expect(getRuntime().context).not.toBe(firstContext);
@@ -94,7 +99,7 @@ describe("内核稳定性回归（次数断言）", () => {
 
     // 再来一次无关重渲染，仍不得多跑
     await rerender({
-      extendContext: (base) => ({ ...base, tag: "v2" }) as any,
+      extendContext: (base): TaggedContext => ({ ...base, tag: "v2" }),
     });
     expect(getRuntime().orderedPlugins).toBe(firstOrder);
     expect(transformCalls).toBe(1);

@@ -104,9 +104,11 @@ describe("P2-13 上下文快照", () => {
 describe("P2-9 HOC 不自动触发 onPropsChange", () => {
   it("props 变化不触发插件 onPropsChange（需宿主自行接线）", async () => {
     const onPropsChange = vi.fn();
-    const Enhanced = withPlugins(Core, [
-      makePlugin("p", { hooks: { onPropsChange } }),
-    ]);
+    const plugin: Plugin<Record<string, unknown>> = {
+      name: "p",
+      hooks: { onPropsChange },
+    };
+    const Enhanced = withPlugins(Core, [plugin]);
     await mountHoc(
       <Enhanced title="a" />,
       <Enhanced title="b" />

@@ -1,35 +1,18 @@
-import React, { createContext, useContext } from "react";
+import React from "react";
+import { RuntimeContext } from "./runtimeContext";
 import type { PluginRuntime } from "./usePluginRuntime";
 
-const RuntimeContext = createContext<PluginRuntime<any, any> | null>(null);
-
-export function PluginRuntimeProvider({
+/**
+ * 运行时 Provider：只负责把当前实例的 runtime 放进上下文。
+ * 读取侧的 hook（useRuntime / usePluginBus / usePluginContext）放在
+ * runtimeContext.ts，避免本文件同时导出组件与非组件触发 react-refresh 告警。
+ */
+export function PluginRuntimeProvider<TProps, TData>({
   runtime,
   children,
 }: {
-  runtime: PluginRuntime<any, any>;
+  runtime: PluginRuntime<TProps, TData>;
   children: React.ReactNode;
 }) {
   return <RuntimeContext.Provider value={runtime}>{children}</RuntimeContext.Provider>;
-}
-
-/** 取当前宿主组件的插件运行时（插件组件里最常用） */
-export function usePluginRuntime<TProps = any, TData = any>(): PluginRuntime<TProps, TData> {
-  const runtime = useContext(RuntimeContext);
-  if (!runtime) {
-    throw new Error(
-      "[vane/plugin-core] usePluginRuntime 必须在 withPlugins 包装的组件内部使用"
-    );
-  }
-  return runtime as PluginRuntime<TProps, TData>;
-}
-
-/** 取当前实例的事件总线 */
-export function usePluginBus() {
-  return usePluginRuntime().bus;
-}
-
-/** 取当前实例的插件上下文 */
-export function usePluginContext<TProps = any, TData = any>() {
-  return usePluginRuntime<TProps, TData>().context;
 }

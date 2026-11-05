@@ -17,7 +17,7 @@ export interface PluginManagerOptions {
 }
 
 /** 仅装配层使用：差集对齐 + 顺序缓存只读访问，不进入根导出 */
-export interface PluginManagerInternal<TProps = any, TData = any>
+export interface PluginManagerInternal<TProps = unknown, TData = unknown>
   extends PluginManager<TProps, TData> {
   align(
     plugins: Plugin<TProps, TData>[],
@@ -178,7 +178,7 @@ export function createPluginManager<TProps = any, TData = any>(
     hookName: K,
     context: PluginContext<TProps, TData>,
     ...args: unknown[]
-  ): Promise<any> => runChain(hookName, context, args);
+  ): Promise<unknown> => runChain(hookName, context, args);
 
   const register = (plugin: Plugin<TProps, TData>) => {
     const previous = plugins.get(plugin.name);

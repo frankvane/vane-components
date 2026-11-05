@@ -2,13 +2,14 @@ import React, { useState } from "react";
 import { createRoot } from "react-dom/client";
 import { act } from "react-dom/test-utils";
 import { describe, expect, it } from "vitest";
+import { createPluginBus } from "../src/bus/PluginBus";
 import { composeSlots, renderPluginSlot } from "../src/react/slots";
 import type { Plugin, PluginContext } from "../src/types";
 
 const ctx = {
   props: {},
   data: {},
-  bus: {} as any,
+  bus: createPluginBus(),
   refs: {},
   state: {},
   setState: () => {},

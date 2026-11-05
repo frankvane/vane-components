@@ -4,7 +4,17 @@ import { PluginRuntimeProvider } from "./PluginRuntimeProvider";
 import { composeSlots } from "./slots";
 import type { Plugin, WithPluginsConfig } from "../types";
 
-type AnyProps = Record<string, any>;
+type AnyProps = Record<string, unknown>;
+
+/** HOC 自身读写、与 Core 约定的宿主字段；业务 props 由泛型 P 决定 */
+interface HostProps {
+  containerRefExternal?: unknown;
+  debug?: boolean;
+  onMount?: () => void;
+  onUnmount?: () => void;
+  onError?: (error: Error, info?: React.ErrorInfo) => void;
+  children?: React.ReactNode;
+}
 
 /**
  * withPlugins：给核心组件装上插件系统。
@@ -15,10 +25,12 @@ type AnyProps = Record<string, any>;
  *  3. Core 在挂载/卸载时调用 props.onMount / props.onUnmount；
  *  4. Core 把 props.children 原样渲染出来（插槽由 HOC 组装）。
  */
-export function withPlugins<P extends AnyProps, R = any>(
-  Component: React.ForwardRefExoticComponent<
-    React.PropsWithoutRef<P> & React.RefAttributes<R>
-  >,
+export function withPlugins<P extends object = Record<string, unknown>, R = unknown>(
+  Component:
+    | React.ForwardRefExoticComponent<React.PropsWithoutRef<P> & React.RefAttributes<R>>
+    // 显式指定 Props 泛型时 R 会退回默认值，这里放宽一个「不约束 ref」的形态，
+    // 让任意 ref 类型的 Core 都能传入（仅参数位，不影响返回组件的 ref 类型）
+    | React.ForwardRefExoticComponent<React.PropsWithoutRef<P>>,
   config: WithPluginsConfig<P> | Plugin<P>[]
 ) {
   const options: WithPluginsConfig<P> = Array.isArray(config)
@@ -28,8 +40,8 @@ export function withPlugins<P extends AnyProps, R = any>(
 
   const WithPluginsComponent = forwardRef<R, P>((props, ref) => {
     // forwardRef 的渲染签名是 PropsWithoutRef<P>，与 P 仅差 ref 字段，运行时一致；
-    // 泛型 P 无法直接收敛，此处做边界断言，下游全部按 P 处理。
-    const innerProps = props as P;
+    // 泛型 P 无法直接收敛，此处做边界断言，下游全部按 P（外加 HOC 约定的宿主字段）处理。
+    const innerProps = props as P & HostProps;
     const runtime = usePluginRuntime<P>({ plugins, props: innerProps, enableDebug });
 
     // containerRefExternal 由 HOC 接管；宿主显式传入会被覆盖，明确提示而不是静默吞掉
@@ -42,22 +54,22 @@ export function withPlugins<P extends AnyProps, R = any>(
     const enhancedProps: AnyProps = {
       ...runtime.transformProps(innerProps),
       containerRefExternal: runtime.context.refs.container,
-      debug: props.debug ?? enableDebug,
+      debug: innerProps.debug ?? enableDebug,
 
       onMount: () => {
-        props.onMount?.();
+        innerProps.onMount?.();
         void runtime.execute("onMount", runtime.context);
       },
       onUnmount: () => {
-        props.onUnmount?.();
+        innerProps.onUnmount?.();
         void runtime.execute("onUnmount", runtime.context);
       },
       onError: (error: Error, info?: React.ErrorInfo) => {
-        props.onError?.(error, info);
+        innerProps.onError?.(error, info);
         void runtime.execute("onError", runtime.context, error, info);
       },
 
-      children: composeSlots(runtime.orderedPlugins, runtime.context, props.children),
+      children: composeSlots(runtime.orderedPlugins, runtime.context, innerProps.children),
     };
 
     return (

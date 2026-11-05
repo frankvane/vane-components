@@ -72,7 +72,7 @@ function renderNodes<TProps, TData>(
  * 渲染某个插槽的所有插件输出。
  * 排序规则：config.order 升序（越小越靠前）→ priority 降序。
  */
-export function renderPluginSlot<TProps = any, TData = any>(
+export function renderPluginSlot<TProps = unknown, TData = unknown>(
   plugins: Plugin<TProps, TData>[],
   context: PluginContext<TProps, TData>,
   options: SlotOptions
@@ -88,7 +88,7 @@ export function renderPluginSlot<TProps = any, TData = any>(
  * 组装宿主组件的 children：
  * before-header → children → overlay → after-header → footer
  */
-export function composeSlots<TProps = any, TData = any>(
+export function composeSlots<TProps = unknown, TData = unknown>(
   plugins: Plugin<TProps, TData>[],
   context: PluginContext<TProps, TData>,
   children: React.ReactNode

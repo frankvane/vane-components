@@ -5,12 +5,14 @@ import type { PluginBus } from "../types";
  * 单个宿主组件实例一个 bus，随组件卸载自动 clear。
  */
 export function createPluginBus(): PluginBus {
-  const handlers = new Map<string, Set<(data: any) => void>>();
-  const store = new Map<string, any>();
+  /** 存储侧事件载荷已擦除为 unknown；对外的泛型签名由 PluginBus 接口保证 */
+  type Handler = (data: unknown) => void;
+  const handlers = new Map<string, Set<Handler>>();
+  const store = new Map<string, unknown>();
   /** 联动写入深度：A→B→A 这类互相触发的事件不能无限递归 */
   let depth = 0;
 
-  const emit = (event: string, data?: any) => {
+  const emit = (event: string, data?: unknown) => {
     const set = handlers.get(event);
     if (!set) return;
     if (depth >= 50) {
@@ -29,23 +31,25 @@ export function createPluginBus(): PluginBus {
     depth -= 1;
   };
 
-  const on = (event: string, handler: (data: any) => void) => {
+  const on = <T = unknown>(event: string, handler: (data: T) => void) => {
     let set = handlers.get(event);
     if (!set) {
       set = new Set();
       handlers.set(event, set);
     }
-    set.add(handler);
+    // 载荷类型在存储侧擦除，只保留「可接收任意值」的调用形态
+    const entry = handler as Handler;
+    set.add(entry);
     return () => {
-      set?.delete(handler);
+      set?.delete(entry);
     };
   };
 
-  const once = (event: string, handler: (data: any) => void) => {
-    const wrapper = (data: any) => {
+  const once = <T = unknown>(event: string, handler: (data: T) => void) => {
+    const wrapper: Handler = (data) => {
       // handler 抛错也要注销，否则下一次 emit 还会再调一次
       try {
-        handler(data);
+        handler(data as T);
       } finally {
         off(event, wrapper);
       }
@@ -53,7 +57,7 @@ export function createPluginBus(): PluginBus {
     return on(event, wrapper);
   };
 
-  const off = (event: string, handler?: (data: any) => void) => {
+  const off = (event: string, handler?: Handler) => {
     if (!handler) {
       handlers.delete(event);
       return;
@@ -61,7 +65,8 @@ export function createPluginBus(): PluginBus {
     handlers.get(event)?.delete(handler);
   };
 
-  const getData = <T = any>(key: string): T | undefined => store.get(key);
+  const getData = <T = unknown>(key: string): T | undefined =>
+    store.get(key) as T | undefined;
 
   /**
    * 写入数据并**通知该键的订阅方**。
@@ -71,7 +76,7 @@ export function createPluginBus(): PluginBus {
    * 早期实现只 store.set 不 emit，导致「写进去了但订阅方永远收不到」——
    * 表现为选了规格主图不换、套了券合计不掉，而且不会有任何报错。
    */
-  const setData = (key: string, value: any) => {
+  const setData = <T = unknown>(key: string, value: T) => {
     const prev = store.get(key);
     store.set(key, value);
     if (prev !== value) emit(key, value);
@@ -86,7 +91,7 @@ export function createPluginBus(): PluginBus {
   const hasData = (key: string) => store.has(key);
   const getAll = () => {
     // 无原型对象：即使键名是 __proto__ / constructor，也只当普通数据，不污染原型
-    const result: Record<string, any> = Object.create(null);
+    const result: Record<string, unknown> = Object.create(null);
     store.forEach((value, key) => {
       result[key] = value;
     });

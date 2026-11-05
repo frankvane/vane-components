@@ -51,7 +51,15 @@ export interface PluginRefs {
   getContainer?: () => HTMLElement | null;
 }
 
-export interface PluginContext<TProps = any, TData = any> {
+/**
+ * 泛型默认值说明：Plugin / PluginHooks / PluginContext / PluginCreator / PluginManager
+ * 的 TProps / TData 默认值保持 any，而不是 unknown。原因已实测：领域包大量以
+ * `Plugin[]`、`PluginCreator<Config>` 这类「不写全泛型」的形式声明插件，改成
+ * unknown / never 会让 10 个领域包的 `tsc` 直接失败（类型不变性 + 属性逆变）。
+ * 这是「未指定」语义的占位默认值，不是实现内部偷懒；实现内部（bus/manager/slots
+ * 的存储与读取）已全部收敛为 unknown。
+ */
+export interface PluginContext<TProps = unknown, TData = unknown> {
   /** 组件当前 props */
   props: TProps;
   /** 组件当前数据 */
@@ -89,7 +97,7 @@ export interface PluginContext<TProps = any, TData = any> {
  * 是双变的，领域包可以把 context 收窄为领域上下文（如 LazyImageContext），
  * 否则 strictFunctionTypes 下参数逆变会直接拒绝领域钩子赋值。
  */
-export interface PluginHooks<TProps = any, TData = any> {
+export interface PluginHooks<TProps = unknown, TData = unknown> {
   /** 挂载；可返回清理函数（clear 时执行） */
   onMount?(context: PluginContext<TProps, TData>): unknown;
   /** 卸载 */
@@ -128,6 +136,13 @@ export interface Plugin<TProps = any, TData = any> {
   version?: string;
   description?: string;
   hooks: PluginHooks<TProps, TData>;
+  /**
+   * 插件配置（由插件工厂透传，形态由各领域自定义）。
+   * 说明：领域配置多为 interface，而 interface 没有隐式索引签名，写成
+   * `Record<string, unknown>` 会拒绝所有领域配置；写成 unknown 又会让下游
+   * `plugin.config?.order` 这类读取报错。此处 `Record<string, any>` 是唯一能
+   * 同时满足「接收任意领域配置」与「读取任意键」的等价类型，故保留。
+   */
   config?: Record<string, any>;
   /** 依赖的插件名（先注册依赖，再注册自己） */
   dependencies?: string[];
@@ -174,7 +189,7 @@ export interface PluginCreator<
 
 // ---------- 插件管理器 ----------
 
-export interface PluginManager<TProps = any, TData = any> {
+export interface PluginManager<TProps = unknown, TData = unknown> {
   register(plugin: Plugin<TProps, TData>): void;
   registerAll(plugins: Plugin<TProps, TData>[]): void;
   unregister(name: string): void;
@@ -191,7 +206,7 @@ export interface PluginManager<TProps = any, TData = any> {
     hookName: K,
     context: PluginContext<TProps, TData>,
     ...args: unknown[]
-  ): Promise<any>;
+  ): Promise<unknown>;
   /** 清空全部插件；返回 Promise，await 后异步 destroy 全部完成 */
   clear(): Promise<void>;
   /** 沙箱累计错误（可上报） */
@@ -200,7 +215,7 @@ export interface PluginManager<TProps = any, TData = any> {
 
 // ---------- withPlugins ----------
 
-export interface WithPluginsConfig<TProps = any> {
+export interface WithPluginsConfig<TProps = unknown> {
   plugins: Plugin<TProps>[];
   enableDebug?: boolean;
   displayName?: string;
