@@ -51,5 +51,14 @@ export default tseslint.config(
       eqeqeq: ["error", "smart"],
       "prefer-const": "error",
     },
+  },
+  // demo 统一采用「导出 meta + 匿名 export default createXxx()」的注册表写法，
+  // only-export-components 在该场景恒为误报；只对 demo 关闭这一条规则（test/src 不受影响）。
+  // templates/demo-shell 是各包 demo 外壳的唯一真源（由 scripts/sync-demo-shell.mjs 生成），同属 demo 场景。
+  {
+    files: ["**/demo/**/*.{ts,tsx}", "**/templates/demo-shell/**/*.{ts,tsx}"],
+    rules: {
+      "react-refresh/only-export-components": "off",
+    },
   }
 );

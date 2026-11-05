@@ -1,4 +1,3 @@
-/* eslint-disable react-refresh/only-export-components */
 /**
  * 标准 demo 外壳（唯一真源：packages/templates/demo-shell/DemoShell.tsx）
  *
