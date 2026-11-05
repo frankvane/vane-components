@@ -20,7 +20,7 @@ import {
   renderPluginSlot,
   usePluginRuntime,
 } from "vane-plugin-core";
-import type { WithPluginsConfig } from "vane-plugin-core";
+import type { PluginContext, PluginHooks, WithPluginsConfig } from "vane-plugin-core";
 import type {
   SignInCallbacks,
   SignInCoreProps,
@@ -28,8 +28,9 @@ import type {
   SignInData,
   SignInPlugin,
   SignInPluginContext,
+  SignInPluginHooks,
 } from "./plugins/types";
-import { SignInSlotProvider } from "./plugins/slots";
+import { SignInSlotProvider } from "./plugins/SignInSlotProvider";
 import { normalizeSignInData } from "../../utils/normalize";
 
 /** 空回调单例：避免 `?? {}` 每次渲染造新对象，把 context 身份打散 */
@@ -56,7 +57,9 @@ export function withPlugins(
       // 宿主任意一次 setState 都会换 props 身份，依赖 props 会让 context 每次都重建，
       // 进而让 Provider value 变化、五个领域槽全部重跑。
       const extendContext = useCallback(
-        (base: any): any => {
+        (
+          base: PluginContext<SignInCoreProps, SignInData>
+        ): SignInPluginContext => {
           const ctx: SignInPluginContext = {
             ...base,
             data: props.data,
@@ -77,8 +80,13 @@ export function withPlugins(
       });
 
       const execute = useCallback(
-        (hookName: string, ...args: unknown[]) =>
-          runtime.execute(hookName as any, ...args),
+        (hookName: keyof SignInPluginHooks, ...args: unknown[]) =>
+          // onPropsChange 等钩子键与内核 PluginHooks 的键集合一致即可直接分发；
+          // 这里收窄到内核键类型以满足 execute 的签名（实现分支未变）。
+          runtime.execute(
+            hookName as keyof PluginHooks<SignInCoreProps, SignInData>,
+            ...args
+          ),
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [runtime.manager]
       );
@@ -155,7 +163,7 @@ export function withPlugins(
 
       return (
         <SignInSlotProvider
-          orderedPlugins={runtime.orderedPlugins as unknown as SignInPlugin<any>[]}
+          orderedPlugins={runtime.orderedPlugins as unknown as SignInPlugin<unknown>[]}
           context={slotContext}
         >
           <WrappedComponent

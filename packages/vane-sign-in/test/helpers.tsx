@@ -6,7 +6,7 @@ import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import type { SignInCoreProps } from "../src";
 
-(globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
+(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 export interface MountedCard {
   container: HTMLDivElement;
@@ -27,7 +27,7 @@ export function mountCard(
 
   const render = (next: SignInCoreProps) =>
     root.render(
-      React.createElement(Wrapped as React.ComponentType<any>, next)
+      React.createElement(Wrapped as React.ComponentType<SignInCoreProps>, next)
     );
 
   act(() => {

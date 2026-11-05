@@ -1,5 +1,4 @@
 import type React from "react";
-import { useRef, useState } from "react";
 import type {
   SignInPlugin,
   SignInPluginContext,
@@ -7,8 +6,8 @@ import type {
 } from "../../components/SignInPlugin/plugins/types";
 import type { PluginDoc } from "vane-plugin-core";
 import doc from "./doc.json";
-import { ACCENT, TEXT_3 } from "../tokens";
-import { invokeCallback, resolveErrorMessage } from "../../utils/callback";
+import { TEXT_3 } from "../tokens";
+import { ClaimButton } from "./internal";
 
 export interface RewardClaimConfig {
   /** 请求在途时的按钮文案 */
@@ -17,90 +16,12 @@ export interface RewardClaimConfig {
   errorText?: string;
 }
 
-interface ClaimButtonProps {
-  ctx: SignInPluginContext<any>;
-  target: RewardInfo;
-  pendingText: string;
-  errorText: string;
-}
-
-/**
- * 领取按钮（有内部态，必须是独立组件）。
- * 与签到 CTA 同款在途锁：pending 期间禁用，失败回滚并展示错误，
- * 成功以消费方回写的 `reward.claimed` 为准（不做乐观已领）。
- */
-function ClaimButton({ ctx, target, pendingText, errorText }: ClaimButtonProps) {
-  const pendingRef = useRef(false);
-  const [pending, setPending] = useState(false);
-  const [localError, setLocalError] = useState<string | null>(null);
-
-  const handleClaim = async () => {
-    if (pendingRef.current) return;
-    pendingRef.current = true;
-    setPending(true);
-    setLocalError(null);
-    try {
-      await invokeCallback(ctx.callbacks.claim, target.day);
-    } catch (error) {
-      setLocalError(resolveErrorMessage(error, errorText));
-    } finally {
-      pendingRef.current = false;
-      setPending(false);
-    }
-  };
-
-  return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "flex-start",
-        gap: 4,
-      }}
-    >
-      <button
-        type="button"
-        data-testid="si-claim-btn"
-        data-day={String(target.day)}
-        data-pending={String(pending)}
-        aria-busy={pending || undefined}
-        disabled={pending}
-        onClick={() => {
-          void handleClaim();
-        }}
-        style={{
-          border: "none",
-          background: ACCENT,
-          color: "#ffffff",
-          borderRadius: 18,
-          padding: "6px 16px",
-          fontSize: 13,
-          fontWeight: 700,
-          cursor: pending ? "not-allowed" : "pointer",
-        }}
-      >
-        {pending
-          ? pendingText
-          : `领取第${target.day}天奖励 · ${target.label}`}
-      </button>
-      {localError && (
-        <div
-          role="alert"
-          data-testid="si-claim-error"
-          style={{ fontSize: 12, color: "#d4380d" }}
-        >
-          {localError}
-        </div>
-      )}
-    </div>
-  );
-}
-
 /**
  * RewardClaimPlugin - 当日奖励领取（奖励区）。
  * 找到「已达天数可领但尚未领取」的第一个奖励（data.rewards 中 day<=streak 且 !claimed），
  * 提供领取按钮；点按经 ctx.callbacks.claim(day) 下发。无待领时显示终态文案。
  */
+// 泛型默认值 any：公共契约位（同 types.ts 顶部约定），收紧为 unknown 会让不写 T 的调用方 tsc 失败。
 export function createRewardClaimPlugin<T = any>(
   config: RewardClaimConfig = {}
 ): SignInPlugin<T> {

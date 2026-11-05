@@ -18,6 +18,7 @@ export interface ShareConfig {
  * 触发 ctx.callbacks.share()，由消费方决定分享渠道（海报 / 链接 / 卡片）。
  * 纯无状态按钮，归属各平台运营位的社交扩散位。
  */
+// 泛型默认值 any：公共契约位（同 types.ts 顶部约定），收紧为 unknown 会让不写 T 的调用方 tsc 失败。
 export function createSharePlugin<T = any>(
   config: ShareConfig = {}
 ): SignInPlugin<T> {

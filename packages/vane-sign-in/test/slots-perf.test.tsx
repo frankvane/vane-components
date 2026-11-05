@@ -106,7 +106,7 @@ describe("P2-2 · context 身份稳定", () => {
     const h = mountCard(Parent as unknown as React.ElementType, {
       data,
       callbacks,
-    } as any);
+    });
 
     expect(renderHeader).toHaveBeenCalledTimes(1);
     expect(h.q('[data-testid="header-once"]')).toBeTruthy();

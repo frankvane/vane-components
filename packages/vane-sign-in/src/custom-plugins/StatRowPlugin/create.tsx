@@ -13,6 +13,7 @@ export type StatRowConfig = Record<string, never>;
  * StatRowPlugin - 数据行（头部区）。
  * 一行展示「累计天数 / 累计积分」两项汇总指标，作为头部资产概览的补充行。
  */
+// 泛型默认值 any：公共契约位（同 types.ts 顶部约定），收紧为 unknown 会让不写 T 的调用方 tsc 失败。
 export function createStatRowPlugin<T = any>(
   _config: StatRowConfig = {}
 ): SignInPlugin<T> {

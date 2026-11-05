@@ -12,6 +12,9 @@
  *    重跑插件钩子；
  *  - slot key 只用 plugin.name：调整 order / priority 或增删同槽插件时，
  *    带内部状态的插件（Remind / RuleExpand）不会因 index 位移被重挂载而丢状态。
+ *
+ * SignInSlotProvider 组件在 ./SignInSlotProvider.tsx：本文件只保留分组 / 渲染 /
+ * 读取钩子等纯运行时逻辑（不含组件导出），以满足 react-refresh 的 Fast Refresh 约束。
  */
 
 import React, { createContext, useContext, useMemo } from "react";
@@ -30,11 +33,24 @@ const SLOT_NAMES: SignInSlotName[] = [
   "renderFooter",
 ];
 
-type SlotGroups = Record<SignInSlotName, SignInPlugin<any>[]>;
+/**
+ * 槽位层不关心 data 的具体形态，统一以 `unknown` 存取。
+ * 此处 SignInPluginContext 的泛型 T 不参与 data 形态（data 恒为 SignInData），
+ * 因此 <T> → <unknown> 的赋值双向兼容。
+ */
+type StoredContext = SignInPluginContext<unknown>;
+type SlotGroups<T = unknown> = Record<SignInSlotName, SignInPlugin<T>[]>;
 
 const EMPTY_SLOT: React.ReactNode[] = [];
 
-function sortPlugins(a: SignInPlugin<any>, b: SignInPlugin<any>): number {
+export interface SlotContextValue {
+  groups: SlotGroups;
+  context: StoredContext;
+}
+
+export const SlotContext = createContext<SlotContextValue | null>(null);
+
+function sortPlugins<T>(a: SignInPlugin<T>, b: SignInPlugin<T>): number {
   return (
     (a.config?.order ?? 0) - (b.config?.order ?? 0) ||
     (b.priority ?? 0) - (a.priority ?? 0)
@@ -42,8 +58,10 @@ function sortPlugins(a: SignInPlugin<any>, b: SignInPlugin<any>): number {
 }
 
 /** 按槽分组 + 排序（每个插件只在 provider 挂载/插件集变化时做一次） */
-function groupPluginsBySlot(plugins: SignInPlugin<any>[]): SlotGroups {
-  const groups: SlotGroups = {
+export function groupPluginsBySlot<T>(
+  plugins: SignInPlugin<T>[]
+): SlotGroups<T> {
+  const groups: SlotGroups<T> = {
     renderHeader: [],
     renderCalendar: [],
     renderRewards: [],
@@ -65,36 +83,9 @@ function groupPluginsBySlot(plugins: SignInPlugin<any>[]): SlotGroups {
   return groups;
 }
 
-interface SlotContextValue {
-  groups: SlotGroups;
-  context: SignInPluginContext<any>;
-}
-
-const SlotContext = createContext<SlotContextValue | null>(null);
-
-export function SignInSlotProvider({
-  orderedPlugins,
-  context,
-  children,
-}: {
-  orderedPlugins: SignInPlugin<any>[];
-  context: SignInPluginContext<any>;
-  children: React.ReactNode;
-}) {
-  const groups = useMemo(
-    () => groupPluginsBySlot(orderedPlugins),
-    [orderedPlugins]
-  );
-  const value = useMemo<SlotContextValue>(
-    () => ({ groups, context }),
-    [groups, context]
-  );
-  return <SlotContext.Provider value={value}>{children}</SlotContext.Provider>;
-}
-
-function renderPluginGroup(
-  plugins: SignInPlugin<any>[],
-  context: SignInPluginContext<any>,
+function renderPluginGroup<T>(
+  plugins: SignInPlugin<T>[],
+  context: SignInPluginContext<T>,
   hookName: SignInSlotName
 ): React.ReactNode[] {
   return plugins.map((plugin) => {
@@ -102,7 +93,7 @@ function renderPluginGroup(
       const node = (
         plugin.hooks as Record<
           string,
-          (ctx: SignInPluginContext<any>) => React.ReactNode
+          (ctx: SignInPluginContext<T>) => React.ReactNode
         >
       )[hookName](context);
       if (node === null || node === undefined) return null;
@@ -122,9 +113,9 @@ function renderPluginGroup(
 }
 
 /** 兼容旧调用：给定插件集合，按槽分组/排序后渲染（未走 Provider 缓存） */
-export function renderSignInSlot(
-  plugins: SignInPlugin<any>[],
-  context: SignInPluginContext<any>,
+export function renderSignInSlot<T>(
+  plugins: SignInPlugin<T>[],
+  context: SignInPluginContext<T>,
   hookName: SignInSlotName
 ): React.ReactNode[] {
   const grouped = groupPluginsBySlot(plugins)[hookName];
@@ -143,8 +134,13 @@ export function useSignInSlot(slot: SignInSlotName): React.ReactNode[] {
   }, [group, context, slot]);
 }
 
-/** 子组件读取领域上下文（含 data / callbacks） */
+/**
+ * 子组件读取领域上下文（含 data / callbacks）。
+ *
+ * 泛型默认值保留 any（跨包契约位：与 SignInPluginContext 的泛型位一致，第三方
+ * 插件以自定义 T 调用时不做约束；收紧为 unknown 会让既有调用方的属性访问 tsc 失败）。
+ */
 export function useSignInContext<T = any>(): SignInPluginContext<T> | null {
   const ctx = useContext(SlotContext);
-  return (ctx?.context as SignInPluginContext<T>) ?? null;
+  return (ctx?.context as unknown as SignInPluginContext<T>) ?? null;
 }

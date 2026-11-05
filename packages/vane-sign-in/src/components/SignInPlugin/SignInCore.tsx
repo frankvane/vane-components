@@ -68,7 +68,7 @@ const SignInCore = forwardRef<SignInCoreRef, SignInCoreProps>(
             : { width: 0, height: 0 };
         },
       }),
-      [forceUpdate]
+      [containerRef, forceUpdate]
     );
 
     return (

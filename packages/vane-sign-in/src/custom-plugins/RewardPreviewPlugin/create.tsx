@@ -17,6 +17,7 @@ export interface RewardPreviewConfig {
  * 从当前连签天数起，逐日展示后续可领奖励（积分 / 券 / 礼包 / 徽章）。
  * 已领取的奖励标记「已领」终态，不覆盖未领取。
  */
+// 泛型默认值 any：公共契约位（同 types.ts 顶部约定），收紧为 unknown 会让不写 T 的调用方 tsc 失败。
 export function createRewardPreviewPlugin<T = any>(
   config: RewardPreviewConfig = {}
 ): SignInPlugin<T> {

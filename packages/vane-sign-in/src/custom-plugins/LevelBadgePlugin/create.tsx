@@ -14,6 +14,7 @@ export type LevelBadgeConfig = Record<string, never>;
  * 展示当前会员等级名 + 进度条 + 当前/下一阶阈值（data.level）。
  * 无等级数据时静默返回 null，不影响其它头部插件。
  */
+// 泛型默认值 any：公共契约位（同 types.ts 顶部约定），收紧为 unknown 会让不写 T 的调用方 tsc 失败。
 export function createLevelBadgePlugin<T = any>(
   _config: LevelBadgeConfig = {}
 ): SignInPlugin<T> {

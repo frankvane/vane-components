@@ -157,12 +157,22 @@ export interface SignInCoreRef {
 // ============ 插件上下文 ============
 
 /**
+ * 泛型默认值约定：本文件 SignInPluginContext / SignInPluginHooks / SignInPlugin /
+ * SignInPluginCreator 的 T（以及后者的 Config）默认值保持 any。
+ * 这些都是对外导出的公共契约位——消费方常以「不写全泛型」的形式使用（直接声明
+ * SignInPlugin 数组、调用 useSignInContext() 等）；收紧为 unknown 会让其 data /
+ * props 属性访问与赋值直接 tsc 失败。实现内部（slots.tsx / withPlugins.tsx）已收敛为
+ * unknown。SignInPluginContext 的 T 不参与 data 形态（data 恒为 SignInData），
+ * 以下划线前缀标注保留的泛型位，避免被 no-unused-vars 误判为死代码。
+ */
+
+/**
  * 签到插件上下文：内核 PluginContext 已携带 props / data / bus / refs / state /
  * setState / shared / forceUpdate / getSize / logger；这里把 data 收敛为领域视图
  * SignInData（基类 data 为可选泛型，领域覆盖为必填 SignInData），并补充 callbacks
  * （业务动作入口）。保持 data 必填，插件内 `ctx.data.streak` 等访问无需可空判断。
  */
-export interface SignInPluginContext<T = any>
+export interface SignInPluginContext<_T = any>
   extends PluginContext<SignInCoreProps, SignInData> {
   /** 签到数据（与 props.data 同源，必填） */
   data: SignInData;

@@ -14,6 +14,7 @@ export type MilestoneConfig = Record<string, never>;
  * 找到「下一未达奖励」（data.rewards 中 day>streak 的最小值），展示距其还差几天 +
  * 进度条；全部达成则显示庆祝终态。与 RewardPreview 互补：一个看未来清单，一个看里程碑。
  */
+// 泛型默认值 any：公共契约位（同 types.ts 顶部约定），收紧为 unknown 会让不写 T 的调用方 tsc 失败。
 export function createMilestonePlugin<T = any>(
   _config: MilestoneConfig = {}
 ): SignInPlugin<T> {

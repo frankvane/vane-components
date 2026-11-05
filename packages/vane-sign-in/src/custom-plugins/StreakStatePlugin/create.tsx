@@ -16,6 +16,7 @@ export interface StreakStateConfig {
  * StreakStatePlugin - 连签状态（头部区）。
  * 展示当前连签天数与历史最高连签；可关掉最高天数只留当前连签。
  */
+// 泛型默认值 any：公共契约位（同 types.ts 顶部约定），收紧为 unknown 会让不写 T 的调用方 tsc 失败。
 export function createStreakStatePlugin<T = any>(
   config: StreakStateConfig = {}
 ): SignInPlugin<T> {

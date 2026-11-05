@@ -17,6 +17,7 @@ export interface CalendarGridConfig {
  * 与 CalendarStrip 同一份 calendar 数据，但用 7 列网格形态呈现，
  * 更适合展示整月/整轮签到进度。状态配色复用家族 tokens。
  */
+// 泛型默认值 any：公共契约位（同 types.ts 顶部约定），收紧为 unknown 会让不写 T 的调用方 tsc 失败。
 export function createCalendarGridPlugin<T = any>(
   config: CalendarGridConfig = {}
 ): SignInPlugin<T> {

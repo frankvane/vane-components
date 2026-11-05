@@ -17,6 +17,7 @@ export interface RewardHistoryConfig {
  * RewardHistoryPlugin - 领取记录（底部区）。
  * 展示 data.history（领取记录），按时间倒序取前 limit 条；无记录显示终态文案。
  */
+// 泛型默认值 any：公共契约位（同 types.ts 顶部约定），收紧为 unknown 会让不写 T 的调用方 tsc 失败。
 export function createRewardHistoryPlugin<T = any>(
   config: RewardHistoryConfig = {}
 ): SignInPlugin<T> {

@@ -9,14 +9,8 @@
  * 再触发宿主的 `callbacks.refresh()`（拿到最新的 todaySigned / nextResetAt）。
  */
 
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
-
-const ClockContext = createContext<number | null>(null);
+import React, { useEffect, useState } from "react";
+import { ClockContext } from "./clockContext";
 
 export interface SignInClockProviderProps {
   children: React.ReactNode;
@@ -58,12 +52,4 @@ export function SignInClockProvider({
   return (
     <ClockContext.Provider value={now}>{children}</ClockContext.Provider>
   );
-}
-
-/**
- * 读取当前时刻。无 Provider（如 `renderToStaticMarkup` 或单独调用插件钩子）时
- * 退回 `Date.now()`，保证 SSR / 静态渲染不报错。
- */
-export function useSignInNow(): number {
-  return useContext(ClockContext) ?? Date.now();
 }

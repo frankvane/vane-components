@@ -17,6 +17,7 @@ export interface InviteConfig {
  * InvitePlugin - 邀请好友助力（操作区）。
  * 触发 ctx.callbacks.invite()，常用于游戏/拉新运营位，邀请好友助力解锁额外奖励。
  */
+// 泛型默认值 any：公共契约位（同 types.ts 顶部约定），收紧为 unknown 会让不写 T 的调用方 tsc 失败。
 export function createInvitePlugin<T = any>(
   config: InviteConfig = {}
 ): SignInPlugin<T> {

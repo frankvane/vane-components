@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { createStreakStatePlugin } from "../src/custom-plugins/StreakStatePlugin";
 import { createTodayCheckInPlugin } from "../src/custom-plugins/TodayCheckInPlugin";
-import type { SignInData } from "../src/components/SignInPlugin/plugins/types";
+import type {
+  SignInData,
+  SignInPluginContext,
+} from "../src/components/SignInPlugin/plugins/types";
 
 function baseData(over: Partial<SignInData> = {}): SignInData {
   return {
@@ -32,7 +35,7 @@ describe("createStreakStatePlugin", () => {
   it("renderHeader 渲染连签天数", () => {
     const node = createStreakStatePlugin().hooks.renderHeader!({
       data: baseData(),
-    } as any);
+    } as unknown as SignInPluginContext);
     expect(node).toBeTruthy();
   });
 });
@@ -43,7 +46,7 @@ describe("createTodayCheckInPlugin", () => {
     const node = p.hooks.renderActions!({
       data: baseData({ todaySigned: true }),
       callbacks: {},
-    } as any);
+    } as unknown as SignInPluginContext);
     expect(node).toBeTruthy();
   });
 });

@@ -23,6 +23,7 @@ export interface CalendarStripConfig {
  * 横向滚动的逐日格：已签 / 今日 / 漏签 / 未来 / 奖励五态，带奖励的格右上角金点。
  * 配色统一从 tokens 取（旧实现在本文件内自带一份色板，已与 CalendarGrid 漂移）。
  */
+// 泛型默认值 any：公共契约位（同 types.ts 顶部约定），收紧为 unknown 会让不写 T 的调用方 tsc 失败。
 export function createCalendarStripPlugin<T = any>(
   config: CalendarStripConfig = {}
 ): SignInPlugin<T> {

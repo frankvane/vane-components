@@ -1,64 +1,15 @@
 import type React from "react";
-import { useId, useState } from "react";
 import type {
   SignInPlugin,
   SignInPluginContext,
 } from "../../components/SignInPlugin/plugins/types";
 import type { PluginDoc } from "vane-plugin-core";
 import doc from "./doc.json";
-import { TEXT_2, TEXT_3 } from "../tokens";
+import { RuleBlock } from "./internal";
 
 export interface RuleExpandConfig {
   /** 初始是否展开 */
   defaultOpen?: boolean;
-}
-
-function RuleBlock({
-  rules,
-  initialOpen,
-}: {
-  rules?: string[];
-  initialOpen: boolean;
-}) {
-  const [open, setOpen] = useState(initialOpen);
-  const panelId = useId();
-  if (!rules || !rules.length) return null;
-  return (
-    <div>
-      <button
-        type="button"
-        data-testid="si-rule-toggle"
-        aria-expanded={open}
-        aria-controls={panelId}
-        onClick={() => setOpen((o) => !o)}
-        style={{
-          border: "none",
-          background: "transparent",
-          color: TEXT_2,
-          fontSize: 13,
-          cursor: "pointer",
-          padding: 0,
-        }}
-      >
-        {open ? "收起活动规则 ▲" : "活动规则 ▼"}
-      </button>
-      {open && (
-        <ul
-          id={panelId}
-          style={{
-            margin: "6px 0 0",
-            paddingLeft: 18,
-            fontSize: 12,
-            color: TEXT_3,
-          }}
-        >
-          {rules.map((r, i) => (
-            <li key={i}>{r}</li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
 }
 
 /**
@@ -66,6 +17,7 @@ function RuleBlock({
  * 将 data.rules 折叠为可展开列表，避免长规则文案常驻占用空间。
  * 无 rules 数据时静默返回 null。
  */
+// 泛型默认值 any：公共契约位（同 types.ts 顶部约定），收紧为 unknown 会让不写 T 的调用方 tsc 失败。
 export function createRuleExpandPlugin<T = any>(
   config: RuleExpandConfig = {}
 ): SignInPlugin<T> {
