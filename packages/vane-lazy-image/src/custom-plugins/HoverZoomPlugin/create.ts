@@ -1,5 +1,10 @@
 import type { LazyImagePlugin } from "../../components/LazyLoadImagePlugin/plugins/types";
 
+type HoverZoomImageElement = HTMLImageElement & {
+  __lliHoverEnter?: () => void;
+  __lliHoverLeave?: () => void;
+};
+
 export type HoverZoomPluginConfig = {
   scale?: number; // default 1.08
   durationMs?: number; // default 180ms
@@ -15,7 +20,7 @@ export const createHoverZoomPlugin = (
     name: "hover-zoom",
     hooks: {
       onLoadSuccess(context) {
-        const img = context.imageRef?.current as any;
+        const img = context.imageRef?.current as HoverZoomImageElement | null;
         if (!img) return;
         img.style.transition = `transform ${duration}ms ease`;
         const onEnter = () => {
@@ -30,7 +35,7 @@ export const createHoverZoomPlugin = (
         img.addEventListener("mouseleave", onLeave);
       },
       onUnmount(context) {
-        const img = context.imageRef?.current as any;
+        const img = context.imageRef?.current as HoverZoomImageElement | null;
         if (!img) return;
         const onEnter = img.__lliHoverEnter;
         const onLeave = img.__lliHoverLeave;

@@ -1,5 +1,6 @@
-import React, { useEffect } from "react";
 import type { LazyImagePlugin, LazyImageContext } from "../../components/LazyLoadImagePlugin/plugins/types";
+
+import { VisuallyHiddenStatus } from "./internal";
 
 export interface A11yPluginConfig {
   enabled?: boolean;
@@ -20,44 +21,6 @@ function getAriaLabel(config: A11yPluginConfig, ctx: LazyImageContext): string |
   if (!ariaLabel) return undefined;
   return typeof ariaLabel === "function" ? ariaLabel(ctx) : ariaLabel;
 }
-
-const VisuallyHiddenStatus: React.FC<{ ctx: LazyImageContext; config: A11yPluginConfig }> = ({ ctx, config }) => {
-  const { imageState } = ctx;
-  const text = imageState.isError
-    ? config.statusText?.error ?? "图片加载失败"
-    : imageState.isLoaded
-    ? config.statusText?.loaded ?? "图片加载完成"
-    : imageState.isLoading
-    ? config.statusText?.loading ?? "图片加载中"
-    : "图片未加载";
-
-  useEffect(() => {
-    const img = ctx.imageRef?.current;
-    if (!img || !config.enabled) return;
-    // 根据状态设置 aria-busy
-    try { img.setAttribute("aria-busy", imageState.isLoading ? "true" : "false"); } catch {}
-  }, [ctx.imageRef, config.enabled, imageState.isLoading]);
-
-  return (
-    <span
-      role="status"
-      aria-live="polite"
-      style={{
-        position: "absolute",
-        width: 1,
-        height: 1,
-        padding: 0,
-        margin: -1,
-        overflow: "hidden",
-        clip: "rect(0, 0, 0, 0)",
-        whiteSpace: "nowrap",
-        border: 0,
-      }}
-    >
-      {text}
-    </span>
-  );
-};
 
 export function createA11yPlugin(config: A11yPluginConfig = {}): LazyImagePlugin {
   const { enabled = true, decorative = false } = config;

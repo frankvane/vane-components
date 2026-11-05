@@ -27,7 +27,7 @@ export function createRedactionPlugin(
     version: "1.0.0",
     config,
     hooks: {
-      renderOverlay: (context) => {
+      renderOverlay: () => {
         if (!enabled || !boxes.length) return null;
         return (
           <div

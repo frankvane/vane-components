@@ -28,21 +28,23 @@ export interface SandboxConfig {
   debug?: boolean;
 }
 
-export function wrapPluginHook<H extends (...args: any[]) => any>(
+export function wrapPluginHook<H extends (...args: never[]) => unknown>(
   hook: H,
   config?: SandboxConfig
 ): H {
   const enabled = config?.enabled !== false;
   const timeout = config?.hookTimeout ?? 0;
-  return function sandboxedHook(this: any, ...args: any[]) {
-    if (!enabled) return hook.apply(this, args);
+  // 保留 this 绑定：以 unknown 形参的函数视为可调用签名，避免 any
+  const invoke = hook as unknown as (
+    this: unknown,
+    ...args: unknown[]
+  ) => unknown;
+  return function sandboxedHook(this: unknown, ...args: unknown[]) {
+    if (!enabled) return invoke.apply(this, args);
     if (timeout > 0) {
-      let timedOut = false;
-      const timer = setTimeout(() => {
-        timedOut = true;
-      }, timeout);
+      const timer = setTimeout(() => undefined, timeout);
       try {
-        const result = hook.apply(this, args);
+        const result = invoke.apply(this, args);
         clearTimeout(timer);
         return result;
       } catch (err) {
@@ -53,13 +55,13 @@ export function wrapPluginHook<H extends (...args: any[]) => any>(
       }
     }
     try {
-      return hook.apply(this, args);
+      return invoke.apply(this, args);
     } catch (err) {
       if (config?.debug)
         console.warn(`[sandbox:${config?.pluginName}] 钩子异常已被捕获`, err);
       return undefined;
     }
-  } as H;
+  } as unknown as H;
 }
 
 // ---------- 依赖解析器 ----------

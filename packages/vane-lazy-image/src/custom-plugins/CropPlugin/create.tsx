@@ -1,5 +1,5 @@
 import React from "react";
-import type { LazyImagePlugin, LazyImageContext } from "../../components/LazyLoadImagePlugin/plugins/types";
+import type { LazyImagePlugin } from "../../components/LazyLoadImagePlugin/plugins/types";
 
 export interface CropPluginConfig {
   enabled?: boolean;
@@ -28,7 +28,7 @@ export function createCropPlugin(config: CropPluginConfig = {}): LazyImagePlugin
         } as React.CSSProperties;
         return { ...props, imageStyle };
       },
-      renderOverlay: (context: LazyImageContext) => {
+      renderOverlay: () => {
         if (!enabled || !showLabel) return null;
         return (
           <div style={{ position: "absolute", top: 8, left: 8, background: "rgba(255,165,0,0.8)", color: "#000", padding: "4px 6px", borderRadius: 4, fontSize: 12 }}>

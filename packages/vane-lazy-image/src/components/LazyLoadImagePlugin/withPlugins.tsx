@@ -16,7 +16,6 @@ import React, {
   forwardRef,
   useCallback,
   useEffect,
-  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -26,10 +25,10 @@ import {
   PluginErrorBoundary,
   usePluginRuntime,
 } from "vane-plugin-core";
+import type { PluginContext } from "vane-plugin-core";
 import { toKernelPlugins } from "./plugins/priority";
 import {
   addGlobalContextListener,
-  getGlobalDeviceInfo,
   getGlobalNetworkInfo,
 } from "../../utils/GlobalContext";
 import type {
@@ -39,6 +38,7 @@ import type {
 import type {
   ImageState,
   LazyImageContext,
+  LazyImageData,
   LazyImagePlugin,
   NetworkInfo,
   ProgressInfo,
@@ -102,7 +102,7 @@ export function withPlugins(
     const coreRef = useRef<LazyLoadImageCoreRef | null>(null);
 
     const extendContext = useCallback(
-      (base: any): LazyImageContext => ({
+      (base: PluginContext<LazyLoadImageCoreProps, LazyImageData>): LazyImageContext => ({
         ...base,
         src: props.src,
         imageState,
@@ -110,8 +110,9 @@ export function withPlugins(
         imageRef,
         containerRef: base.refs.container as React.RefObject<HTMLElement | null>,
         networkInfo,
-        // 领域别名：内核 shared（Map）→ 领域 sharedData，旧版插件零改动
-        sharedData: base.shared as Map<string, any>,
+        // 领域别名：内核 shared（Map）→ 领域 sharedData，旧版插件零改动。
+        // 目标类型取自领域契约（Map<string, any>），避免在这里重复书写 any。
+        sharedData: base.shared as LazyImageContext["sharedData"],
         performanceData: performanceDataRef.current,
         // 暴露给插件的加载控制：reload 会中止在途请求并（若在视口）重新发起；
         // reset 仅回到 idle 不重新发起，用于「离开视口即中止」类场景。
@@ -121,7 +122,7 @@ export function withPlugins(
       [props.src, imageState, isIntersecting, networkInfo]
     );
 
-    const runtime = usePluginRuntime<LazyLoadImageCoreProps, any>({
+    const runtime = usePluginRuntime<LazyLoadImageCoreProps, LazyImageData>({
       plugins: kernelPlugins,
       props,
       enableDebug,
@@ -134,7 +135,7 @@ export function withPlugins(
     // （后者每次渲染新建），否则 onMount 会随重渲染重复触发。
     const execute = useCallback(
       (hookName: string, ...args: unknown[]) =>
-        runtime.execute(hookName as any, ...args),
+        runtime.execute(hookName as never, ...args),
       // eslint-disable-next-line react-hooks/exhaustive-deps
       [runtime.manager]
     );
@@ -213,7 +214,8 @@ export function withPlugins(
       performanceDataRef.current = {
         loadStartTime: performance.now(),
       };
-    }, [execute]);
+      // 不依赖 execute：本回调不再调用它，且 execute 生命周期内稳定，行为不变
+    }, []);
 
     const handleLoadSuccess = useCallback(
       (displaySrc?: string) => {

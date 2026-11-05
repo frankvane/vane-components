@@ -19,7 +19,7 @@ import React, {
   useState,
 } from "react";
 // 🚀 性能优化：使用 ObserverPool 共享 IntersectionObserver 实例
-import { observeElement, unobserveElement } from "./ObserverPool";
+import { observeElement } from "./ObserverPool";
 import { createPerformanceMonitor, type PerformanceMonitor, type PerformanceReport } from "../../utils/PerformanceMonitor";
 
 // Issue #1: 状态管理类型定义
@@ -445,14 +445,14 @@ export const LazyLoadImageCore = forwardRef<
 
       // Issue #1: 通过 dispatch 统一更新状态和 src
       dispatch({ type: "LOAD_START", payload: { src: finalSrc, requestId } });
-    } catch (error: any) {
+    } catch (error) {
       // Issue #2: 忽略因取消导致的错误
       if (currentController.signal.aborted || requestIdRef.current !== requestId) {
         return;
       }
       // 插件 onBeforeLoad 返回 false 触发的门控中止：不视为错误、不进入 error 态，
       // 也不进入 loading 态；P1-5 再安排一次延迟重试。
-      if (error?.message === "LLI_PLUGIN_GATE") {
+      if (error instanceof Error && error.message === "LLI_PLUGIN_GATE") {
         loadingRef.current = false;
         dispatch({ type: "RESET" });
         scheduleGateRetry();
@@ -606,7 +606,7 @@ export const LazyLoadImageCore = forwardRef<
       ref={(el) => {
         containerRef.current = el;
         if (props.containerRefExternal) {
-          (props.containerRefExternal as any).current = el;
+          (props.containerRefExternal as { current: HTMLDivElement | null }).current = el;
         }
       }}
       className={containerClassName}
@@ -644,7 +644,7 @@ export const LazyLoadImageCore = forwardRef<
           ref={(el) => {
             imgRef.current = el;
             if (props.imageRefExternal) {
-              (props.imageRefExternal as any).current = el;
+              (props.imageRefExternal as { current: HTMLImageElement | null }).current = el;
             }
           }}
           src={state.displaySrc}

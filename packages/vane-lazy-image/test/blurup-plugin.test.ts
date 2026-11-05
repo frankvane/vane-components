@@ -66,7 +66,7 @@ describe("BlurUpPlugin（样板插件三件套）", () => {
     const next = hooks.transformProps!({
       src: "/a.jpg",
       imageStyle: { opacity: 0 },
-    } as any);
+    });
     expect(next.imageStyle?.filter).toBe("blur(12px)");
     expect(next.imageStyle?.transition).toContain("filter 600ms ease");
     // 不破坏已有样式
@@ -76,8 +76,8 @@ describe("BlurUpPlugin（样板插件三件套）", () => {
   it("transformProps 不重复叠加 blur（可重入）", () => {
     const plugin = createBlurUpPlugin({ startBlur: 8 });
     const hooks = plugin.hooks as LazyImageHooks;
-    const first = hooks.transformProps!({ src: "/a.jpg" } as any);
-    const second = hooks.transformProps!(first as any);
+    const first = hooks.transformProps!({ src: "/a.jpg" });
+    const second = hooks.transformProps!(first);
     expect(second.imageStyle?.filter).toBe("blur(8px)");
   });
 

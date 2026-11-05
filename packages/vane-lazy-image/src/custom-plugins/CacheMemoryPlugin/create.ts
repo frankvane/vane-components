@@ -77,7 +77,11 @@ export function createMemoryCachePlugin(config: MemoryCacheConfig = {}): LazyIma
   const lastEmitTime = new Map<string, number>();
   const DEBOUNCE_TIME = 100; // 100ms
 
-  function safeEmit(bus: any, event: string, data: any) {
+  function safeEmit(
+    bus: LazyImageContext["bus"],
+    event: string,
+    data: { src: string } & Record<string, unknown>
+  ) {
     const key = `${event}:${data.src}`;
     const now = Date.now();
     const last = lastEmitTime.get(key) || 0;

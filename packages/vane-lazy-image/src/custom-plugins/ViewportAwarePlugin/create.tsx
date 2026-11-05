@@ -1,6 +1,6 @@
-import type { LazyImagePlugin, LazyImageContext } from "../../components/LazyLoadImagePlugin/plugins/types";
+import type { LazyImagePlugin } from "../../components/LazyLoadImagePlugin/plugins/types";
 
-import React from "react";
+import { Dot } from "./internal";
 
 export interface ViewportAwareConfig {
   /**
@@ -22,23 +22,6 @@ export interface ViewportAwareConfig {
   showDot?: boolean;
   dotPosition?: "top-left" | "top-right" | "bottom-left" | "bottom-right";
   hideWhenOut?: boolean;
-}
-
-function Dot({ context, cfg }: { context: LazyImageContext; cfg: ViewportAwareConfig }) {
-  if (!cfg.showDot) return null;
-  if (cfg.hideWhenOut && !context.isIntersecting) return null;
-  const pos = cfg.dotPosition ?? "bottom-right";
-  const style: React.CSSProperties = {
-    position: "absolute",
-    width: 10,
-    height: 10,
-    borderRadius: 999,
-    background: context.isIntersecting ? "#28a745" : "#6c757d",
-    zIndex: 10,
-  };
-  if (pos.includes("top")) style.top = 6; else style.bottom = 6;
-  if (pos.includes("left")) style.left = 6; else style.right = 6;
-  return <div style={style} title={context.isIntersecting ? "in-view" : "out-of-view"} />;
 }
 
 export function createViewportAwarePlugin(config: ViewportAwareConfig = {}): LazyImagePlugin {
@@ -64,10 +47,10 @@ export function createViewportAwarePlugin(config: ViewportAwareConfig = {}): Laz
         <Dot context={context} cfg={{ showDot, dotPosition, hideWhenOut }} />
       ),
       onEnterViewport: (context) => {
-        try { (context.imageRef?.current as any)?.setAttribute("data-in-view", "1"); } catch {}
+        try { context.imageRef?.current?.setAttribute("data-in-view", "1"); } catch {}
       },
       onLeaveViewport: (context) => {
-        try { (context.imageRef?.current as any)?.setAttribute("data-in-view", "0"); } catch {}
+        try { context.imageRef?.current?.setAttribute("data-in-view", "0"); } catch {}
       },
     },
   };

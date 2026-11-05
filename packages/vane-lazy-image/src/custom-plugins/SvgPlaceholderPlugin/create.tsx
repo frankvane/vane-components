@@ -1,5 +1,8 @@
-import React from "react";
+import type React from "react";
+
 import type { LazyImagePlugin, LazyImageContext } from "../../components/LazyLoadImagePlugin/plugins/types";
+
+import { SvgOverlay } from "./internal";
 
 export interface SvgPlaceholderConfig {
   /**
@@ -124,83 +127,6 @@ export function sanitizeSvg(content: string): string {
   }
 }
 
-function SvgOverlay({
-  context,
-  config,
-}: {
-  context: LazyImageContext;
-  config: SvgPlaceholderConfig;
-}) {
-  const { imageState } = context;
-  const {
-    background = "transparent",
-    opacity = 1,
-    zIndex = 3,
-    showWhen = "loading",
-    fadeOutOnLoaded = true,
-  } = config;
-
-  const shouldShow = (() => {
-    switch (showWhen) {
-      case "always":
-        return true;
-      case "idle":
-        return imageState.isIdle;
-      case "loading":
-        return imageState.isLoading;
-      case "loaded":
-        return imageState.isLoaded;
-      case "error":
-        return imageState.isError;
-      default:
-        return imageState.isLoading;
-    }
-  })();
-
-  if (!shouldShow) return null;
-
-  const rawContent = typeof config.svgContent === "function"
-    ? config.svgContent(context)
-    : config.svgContent;
-
-  // P0-4：字符串一律先清洗再转 data URL；ReactNode 按受信任节点渲染。
-  let content: React.ReactNode = null;
-  if (typeof rawContent === "string") {
-    const safe = sanitizeSvg(rawContent);
-    if (safe) {
-      content = (
-        <img
-          src={`data:image/svg+xml;charset=utf-8,${encodeURIComponent(safe)}`}
-          alt=""
-          style={{ width: "60%", height: "60%", objectFit: "contain" }}
-        />
-      );
-    }
-  } else if (rawContent !== undefined && rawContent !== null) {
-    content = rawContent as React.ReactNode;
-  }
-
-  const baseStyle: React.CSSProperties = {
-    position: "absolute",
-    inset: 0,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    background,
-    zIndex,
-    pointerEvents: "none",
-    opacity: fadeOutOnLoaded && imageState.isLoaded ? 0 : opacity,
-    transition: fadeOutOnLoaded ? "opacity 240ms ease" : undefined,
-    padding: "min(40px, 10%)",
-  };
-
-  return (
-    <div style={baseStyle} aria-hidden>
-      {content}
-    </div>
-  );
-}
-
 export function createSvgPlaceholderPlugin(
   config: SvgPlaceholderConfig = {}
 ): LazyImagePlugin {
@@ -210,7 +136,9 @@ export function createSvgPlaceholderPlugin(
     description: "SVG 占位覆盖层（字符串经白名单清洗后以 data URL 渲染，移除 HTML 注入点）",
     config,
     hooks: {
-      renderOverlay: (context) => <SvgOverlay context={context} config={config} />,
+      renderOverlay: (context) => (
+        <SvgOverlay context={context} config={config} sanitizeSvg={sanitizeSvg} />
+      ),
     },
   };
 }

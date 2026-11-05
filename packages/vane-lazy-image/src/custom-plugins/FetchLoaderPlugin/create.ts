@@ -101,7 +101,7 @@ const controllers = new LRUCache<string, AbortController>(
   (key, ctrl) => {
     try {
       ctrl.abort();
-    } catch (error) {
+    } catch {
       // 忽略已中止的错误
     }
   }
@@ -113,7 +113,7 @@ const objectUrls = new LRUCache<string, string>(
   (key, url) => {
     try {
       URL.revokeObjectURL(url);
-    } catch (error) {
+    } catch {
       // 忽略已 revoke 的错误
     }
   }
@@ -205,9 +205,10 @@ export function createFetchLoaderPlugin(
       }
 
       return response;
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as { name?: string; message?: string };
       // 请求被中止，直接抛出
-      if (signal.aborted || error.name === 'AbortError') {
+      if (signal.aborted || err.name === 'AbortError') {
         throw error;
       }
 
@@ -217,10 +218,10 @@ export function createFetchLoaderPlugin(
       }
 
       // 不可重试的错误（404, 403 等）
-      if (error.message && (
-        error.message.includes('404') ||
-        error.message.includes('403') ||
-        error.message.includes('401')
+      if (err.message && (
+        err.message.includes('404') ||
+        err.message.includes('403') ||
+        err.message.includes('401')
       )) {
         throw error;
       }
@@ -328,16 +329,17 @@ export function createFetchLoaderPlugin(
         } catch {}
 
         return objectURL;
-      } catch (err: any) {
+      } catch (err: unknown) {
         controllers.delete(key);
 
         // 如果是中止错误，静默处理
-        if (err.name === 'AbortError' || signal.aborted) {
+        const error = err as { name?: string; message?: string };
+        if (error.name === 'AbortError' || signal.aborted) {
           return undefined;
         }
 
         // P1-6：失败时返回 undefined（不再返回原始 URL），让后续插件继续执行。
-        console.warn(`[FetchLoader] Failed to load ${url}:`, err.message);
+        console.warn(`[FetchLoader] Failed to load ${url}:`, error.message);
         return undefined;
       } finally {
         inFlight.delete(key);

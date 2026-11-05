@@ -8,6 +8,7 @@ import { createBlurUpPlugin } from "../src/custom-plugins/BlurUpPlugin";
 import type {
   LazyImageContext,
   LazyImagePlugin,
+  LazyLoadImageCoreProps,
 } from "../src/components/LazyLoadImagePlugin/plugins/types";
 
 const Wrapped = withPlugins(LazyLoadImageCore, [createBlurUpPlugin()]);
@@ -26,7 +27,7 @@ afterEach(() => {
   container.remove();
 });
 
-async function render(props: Record<string, any> = {}) {
+async function render(props: Partial<LazyLoadImageCoreProps> = {}) {
   await act(async () => {
     root.render(<Wrapped src="/demo.jpg" {...props} />);
   });

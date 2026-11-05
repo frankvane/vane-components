@@ -2,18 +2,28 @@ import type { LazyImagePlugin, LazyImageContext } from "../../components/LazyLoa
 
 export interface ErrorTrackingConfig {
   reportEndpoint?: string;
-  report?: (payload: any) => void;
+  report?: (payload: ErrorTrackingPayload) => void;
   showBadge?: boolean;
   badgeText?: string;
   badgeColor?: string;
   badgeBg?: string;
 }
 
+interface ErrorTrackingPayload {
+  src: string;
+  message: string;
+  stack?: string;
+  time: number;
+  network: LazyImageContext["networkInfo"];
+  device: LazyImageContext["deviceInfo"];
+  count: number;
+}
+
 // ⭐ 添加报告防抖机制，避免高频错误导致大量请求
 const lastReportTime = new Map<string, number>();
 const DEBOUNCE_TIME = 1000; // 1秒防抖（错误报告可以稍长）
 
-function tryReport(cfg: ErrorTrackingConfig, payload: any) {
+function tryReport(cfg: ErrorTrackingConfig, payload: ErrorTrackingPayload) {
   // ⭐ 防抖：同一src的错误在1秒内只报告一次
   const key = payload.src || '';
   const now = Date.now();

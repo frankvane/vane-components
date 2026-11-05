@@ -2,7 +2,7 @@ import React from "react";
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { renderGallerySlot } from "../src/gallery/slots";
-import type { GalleryContext, GalleryPlugin } from "../src/gallery/types";
+import type { GalleryContext, GalleryHooks, GalleryPlugin } from "../src/gallery/types";
 
 const ctx = {} as GalleryContext;
 
@@ -12,7 +12,7 @@ function plugin(name: string, slot: string, priority?: number): GalleryPlugin {
     version: "1.0.0",
     config: {},
     priority,
-    hooks: { [slot]: () => <span data-name={name}>{name}</span> } as any,
+    hooks: { [slot]: () => <span data-name={name}>{name}</span> } as unknown as GalleryHooks,
   };
 }
 
@@ -42,7 +42,7 @@ describe("renderGallerySlot（图集领域槽分发）", () => {
       version: "1.0.0",
       config: {},
       enabled: false,
-      hooks: { galleryToolbarArea: () => <span data-name="off">off</span> } as any,
+      hooks: { galleryToolbarArea: () => <span data-name="off">off</span> } as unknown as GalleryHooks,
     };
     const node = renderGallerySlot([disabled], ctx, "galleryToolbarArea");
     expect(node).toBeNull();

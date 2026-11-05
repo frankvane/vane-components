@@ -1,7 +1,7 @@
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import type { GalleryContext } from "../src/gallery/types";
+import type { GalleryContext, GalleryHooks } from "../src/gallery/types";
 
 import { createThumbSyncPlugin } from "../src/custom-plugins/ThumbSyncPlugin";
 import { createCounterPlugin } from "../src/custom-plugins/CounterPlugin";
@@ -36,11 +36,11 @@ function baseCtx(over: Partial<GalleryContext> = {}): GalleryContext {
 }
 
 function renderHook(
-  plugin: any,
+  plugin: { hooks: unknown },
   slot: string,
   ctx: GalleryContext
 ): string {
-  const fn = plugin.hooks[slot];
+  const fn = (plugin.hooks as Record<string, ((ctx: GalleryContext) => React.ReactNode) | undefined>)[slot];
   if (!fn) return "";
   return renderToStaticMarkup(fn(ctx) as React.ReactElement);
 }
@@ -107,29 +107,29 @@ describe("gallery 域插件渲染（表驱动）", () => {
 });
 
 describe("ThumbPreloadPlugin.onActiveChange 预加载", () => {
-  let OriginalImage: any;
+  let OriginalImage: typeof Image;
   const created: string[] = [];
 
   beforeEach(() => {
-    OriginalImage = (globalThis as any).Image;
+    OriginalImage = (globalThis as unknown as { Image: typeof Image }).Image;
     created.length = 0;
-    (globalThis as any).Image = class {
+    (globalThis as unknown as { Image: typeof Image }).Image = class {
       set src(v: string) {
         created.push(v);
       }
-    };
+    } as unknown as typeof Image;
   });
   afterEach(() => {
-    (globalThis as any).Image = OriginalImage;
+    (globalThis as unknown as { Image: typeof Image }).Image = OriginalImage;
   });
 
   it("切换主图后预热后续张（去重、不预热当前张）", () => {
-    const p: any = createThumbPreloadPlugin({ lookahead: 2 });
-    p.hooks.onActiveChange!(baseCtx(), 0);
+    const hooks = createThumbPreloadPlugin({ lookahead: 2 }).hooks as unknown as GalleryHooks;
+    hooks.onActiveChange!(baseCtx(), 0);
     expect(created).toEqual(["b.jpg", "c.jpg"]);
     // 重复切换同一张不重复预热
     created.length = 0;
-    p.hooks.onActiveChange!(baseCtx(), 0);
+    hooks.onActiveChange!(baseCtx(), 0);
     expect(created).toEqual([]);
   });
 
@@ -137,8 +137,8 @@ describe("ThumbPreloadPlugin.onActiveChange 预加载", () => {
     created.length = 0;
     // 用独立图片集，避免模块级 preloaded Set 与上一用例（a/b/c.jpg）去重串扰
     const other = [{ src: "p1.jpg" }, { src: "p2.jpg" }, { src: "p3.jpg" }];
-    const p: any = createThumbPreloadPlugin({ lookahead: 1, alsoPrevious: true });
-    p.hooks.onActiveChange!(baseCtx({ images: other as any }), 1);
+    const hooks = createThumbPreloadPlugin({ lookahead: 1, alsoPrevious: true }).hooks as unknown as GalleryHooks;
+    hooks.onActiveChange!(baseCtx({ images: other }), 1);
     expect(created).toEqual(["p3.jpg", "p1.jpg"]);
   });
 });
@@ -158,7 +158,7 @@ describe("gallery 插件工厂基本契约", () => {
       createThumbPreloadPlugin,
     ];
     for (const c of creators) {
-      const p: any = c();
+      const p = c();
       expect(typeof p.name).toBe("string");
       expect(typeof p.version).toBe("string");
       expect(typeof p.hooks).toBe("object");

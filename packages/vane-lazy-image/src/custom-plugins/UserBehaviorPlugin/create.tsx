@@ -2,6 +2,15 @@ import type { LazyImagePlugin, LazyImageContext } from "../../components/LazyLoa
 
 import React from "react";
 
+type UserBehaviorImageElement = HTMLImageElement & {
+  __lliUBClicks?: number;
+  __lliUBEnterTs?: number;
+  __lliUBDwell?: number;
+  __lliUBEnters?: number;
+  __lliUBLeaves?: number;
+  __lliUBClickHandler?: EventListener;
+};
+
 export interface UserBehaviorConfig {
   enabled?: boolean;
   /** 是否在图片角落显示统计面板；接入真实版式时传 false */
@@ -37,7 +46,7 @@ export function createUserBehaviorPlugin(config: UserBehaviorConfig = {}): LazyI
       },
       onLoadSuccess: (context: LazyImageContext) => {
         if (!enabled) return;
-        const img = context.imageRef?.current as any;
+        const img = context.imageRef?.current as UserBehaviorImageElement | null;
         if (!img) return;
         // 在图片真实挂载后再绑定事件，确保 ref 可用
         img.__lliUBClicks = img.__lliUBClicks || 0;
@@ -46,7 +55,7 @@ export function createUserBehaviorPlugin(config: UserBehaviorConfig = {}): LazyI
         img.__lliUBEnters = img.__lliUBEnters || 0;
         img.__lliUBLeaves = img.__lliUBLeaves || 0;
         const onClick = () => {
-          img.__lliUBClicks += 1;
+          img.__lliUBClicks = (img.__lliUBClicks || 0) + 1;
           // 同步点击次数到 sharedData，避免卸载时 img 为 null 导致统计丢失
           try {
             const clicks = (context.sharedData?.get("ub:clicks") || 0) + 1;
@@ -58,7 +67,7 @@ export function createUserBehaviorPlugin(config: UserBehaviorConfig = {}): LazyI
       },
       onEnterViewport: (context: LazyImageContext) => {
         if (!enabled) return;
-        const img = context.imageRef?.current as any;
+        const img = context.imageRef?.current as UserBehaviorImageElement | null;
         if (img) {
           img.__lliUBEnterTs = Date.now();
           img.__lliUBEnters = (img.__lliUBEnters || 0) + 1;
@@ -71,7 +80,7 @@ export function createUserBehaviorPlugin(config: UserBehaviorConfig = {}): LazyI
       },
       onLeaveViewport: (context: LazyImageContext) => {
         if (!enabled) return;
-        const img = context.imageRef?.current as any;
+        const img = context.imageRef?.current as UserBehaviorImageElement | null;
         if (img) {
           const enterTs = img.__lliUBEnterTs || 0;
           if (enterTs) img.__lliUBDwell = (img.__lliUBDwell || 0) + (Date.now() - enterTs);
@@ -92,7 +101,7 @@ export function createUserBehaviorPlugin(config: UserBehaviorConfig = {}): LazyI
       onUnmount: (context: LazyImageContext) => {
         if (!enabled) return;
 
-        const img = context.imageRef?.current as any;
+        const img = context.imageRef?.current as UserBehaviorImageElement | null;
         // 尝试移除事件监听（若仍存在）
         if (img && img.__lliUBClickHandler) {
           try { img.removeEventListener("click", img.__lliUBClickHandler); } catch {}
@@ -151,10 +160,10 @@ export function createUserBehaviorPlugin(config: UserBehaviorConfig = {}): LazyI
           });
           React.useEffect(() => {
             let alive = true;
-            let raf = 0 as any;
+            let raf = 0;
             const tick = () => {
               if (!alive) return;
-              const img = context.imageRef?.current as any;
+              const img = context.imageRef?.current as UserBehaviorImageElement | null;
               const enterTs = img?.__lliUBEnterTs || 0;
               const dwellImg = (img?.__lliUBDwell || 0) + (enterTs ? Date.now() - enterTs : 0);
               const sdEnterTs = context.sharedData?.get("ub:enterTs") || 0;
@@ -174,7 +183,7 @@ export function createUserBehaviorPlugin(config: UserBehaviorConfig = {}): LazyI
               alive = false;
               try { cancelAnimationFrame(raf); } catch {}
             };
-          }, [context]);
+          }, []);
 
           const style: React.CSSProperties = {
             position: "absolute",

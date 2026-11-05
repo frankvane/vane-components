@@ -5,6 +5,8 @@ import React from "react";
 import { IDBCache } from "../CacheIDBPlugin/create";
 import { MemoryCache } from "../CacheMemoryPlugin/create";
 
+import { CacheBadge } from "./internal";
+
 export interface CachePrewarmConfig {
   enabled?: boolean;
   trigger?: "enter" | "mount"; // 触发时机：进入视口或挂载
@@ -12,15 +14,6 @@ export interface CachePrewarmConfig {
   /** 是否在卡片上显示预热状态徽标（便于观察） */
   showBadge?: boolean;
   debug?: boolean;
-}
-
-async function blobToDataURL(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
 }
 
 // ⭐ 添加预热状态追踪，防止重复预热和并发控制
@@ -64,9 +57,14 @@ async function prewarm(src: string, preferMemory: boolean, debug: boolean) {
     if (debug) {
       try { console.debug("[CachePrewarm] prewarmed", { src, size: blob.size }); } catch {}
     }
-  } catch (e: any) {
+  } catch (e) {
     // ⭐ 只在非超时错误时警告
-    if (debug && e?.name !== 'AbortError') {
+    const isAbortError =
+      typeof e === "object" &&
+      e !== null &&
+      "name" in e &&
+      (e as { name?: unknown }).name === "AbortError";
+    if (debug && !isAbortError) {
       try { console.warn("[CachePrewarm] failed", e); } catch {}
     }
   } finally {
@@ -74,34 +72,6 @@ async function prewarm(src: string, preferMemory: boolean, debug: boolean) {
     prewarmingKeys.delete(src);
   }
 }
-
-const CacheBadge: React.FC<{ src: string }> = ({ src }) => {
-  const [done, setDone] = React.useState(false);
-  React.useEffect(() => {
-    const tick = () => setDone(prewarmedKeys.has(src));
-    tick();
-    const t = setInterval(tick, 400);
-    return () => clearInterval(t);
-  }, [src]);
-  return (
-    <div
-      style={{
-        position: "absolute",
-        top: 8,
-        left: 8,
-        background: done ? "#2e7d32" : "#b35c00",
-        color: "#fff",
-        fontSize: 12,
-        padding: "4px 8px",
-        borderRadius: 6,
-        zIndex: 6,
-        pointerEvents: "none",
-      }}
-    >
-      {done ? "已预热 ✓" : "预热中…"}
-    </div>
-  );
-};
 
 export function createCachePrewarmPlugin(config: CachePrewarmConfig = {}): LazyImagePlugin {
   const { enabled = true, trigger = "enter", preferMemory = true, showBadge = false, debug = false } = config;
@@ -122,7 +92,10 @@ export function createCachePrewarmPlugin(config: CachePrewarmConfig = {}): LazyI
         const hit = MemoryCache.get(context.src) || undefined;
         if (!hit) prewarm(context.src, preferMemory, debug);
       },
-      renderOverlay: (context) => (showBadge ? React.createElement(CacheBadge, { src: context.src }) : null),
+      renderOverlay: (context) =>
+        showBadge
+          ? React.createElement(CacheBadge, { src: context.src, prewarmed: prewarmedKeys })
+          : null,
     },
   };
 }

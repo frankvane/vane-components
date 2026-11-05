@@ -1,4 +1,9 @@
 import type { LazyImagePlugin, LazyImageContext } from "../../components/LazyLoadImagePlugin/plugins/types";
+import type { LazyLoadImageCoreProps } from "../../components/LazyLoadImagePlugin/LazyLoadImageCore";
+
+type NavigatorWithBattery = Navigator & {
+  getBattery?: () => Promise<{ level: number }>;
+};
 
 export interface BatteryAwareConfig {
   enabled?: boolean;
@@ -9,7 +14,8 @@ export interface BatteryAwareConfig {
 
 async function getBatteryLevel(): Promise<number | null> {
   try {
-    const nav: any = navigator as any;
+    const nav: NavigatorWithBattery | undefined =
+      typeof navigator !== "undefined" ? (navigator as NavigatorWithBattery) : undefined;
     if (nav && typeof nav.getBattery === "function") {
       const battery = await nav.getBattery();
       return battery?.level ?? null;
@@ -61,8 +67,8 @@ export function createBatteryAwarePlugin(
       },
       transformProps: (props) => {
         if (!enabled) return props;
-        const next: any = { ...props };
-        next.loading = "lazy" as any;
+        const next: LazyLoadImageCoreProps & { "data-disable-preconnect"?: string } = { ...props };
+        next.loading = "lazy";
         if (disablePreconnect) {
           // 通过自定义属性标记，供 PreconnectPlugin 读取后跳过
           next["data-disable-preconnect"] = "true";

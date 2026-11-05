@@ -79,7 +79,7 @@ describe("Core 加载链路回归（P0-1 / P0-2 / P1-1 / P1-2）", () => {
     expect(ref.current!.getState().isLoaded).toBe(false);
 
     // 去掉伪装后，本次请求的正常 load 事件仍应生效
-    delete (img as any).currentSrc;
+    delete (img as unknown as { currentSrc?: string }).currentSrc;
     await fire(img, "load");
     expect(ref.current!.getState().isLoaded).toBe(true);
 

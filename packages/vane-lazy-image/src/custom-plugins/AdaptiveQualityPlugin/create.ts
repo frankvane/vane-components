@@ -14,8 +14,14 @@ interface NetworkInformationLike {
   saveData?: boolean;
   addEventListener?: (type: "change", listener: (e: Event) => void) => void;
   removeEventListener?: (type: "change", listener: (e: Event) => void) => void;
-  onchange?: ((this: any, ev: Event) => any) | null;
+  onchange?: ((this: NetworkInformationLike, ev: Event) => void) | null;
 }
+
+type NavigatorWithConnection = Navigator & {
+  connection?: NetworkInformationLike;
+  mozConnection?: NetworkInformationLike;
+  webkitConnection?: NetworkInformationLike;
+};
 
 export interface AdaptiveQualityConfig {
   lowQ?: number; // 低速网络质量值
@@ -42,8 +48,9 @@ function setQuality(u: URL, q: number) {
 // 使用全局单例，避免重复检测
 
 function getConnection(): NetworkInformationLike | undefined {
-  const nav: any = typeof navigator !== "undefined" ? navigator : undefined;
-  return (nav?.connection || nav?.mozConnection || nav?.webkitConnection) as NetworkInformationLike | undefined;
+  const nav: NavigatorWithConnection | undefined =
+    typeof navigator !== "undefined" ? (navigator as NavigatorWithConnection) : undefined;
+  return nav?.connection || nav?.mozConnection || nav?.webkitConnection;
 }
 
 function computeQuality(cfg: AdaptiveQualityConfig): number {
@@ -85,7 +92,7 @@ export function createAdaptiveQualityPlugin(config: AdaptiveQualityConfig = {}):
             const u = new URL(raw, typeof window !== "undefined" ? window.location.origin : "http://localhost");
             const q = computeQuality(config);
             setQuality(u, q);
-            if (img) img.src = u.toString(); else (context as any).src = u.toString();
+            if (img) img.src = u.toString(); else context.src = u.toString();
           } catch {}
         };
         try {

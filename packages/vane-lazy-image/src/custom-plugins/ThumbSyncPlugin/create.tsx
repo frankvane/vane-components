@@ -23,7 +23,6 @@ export interface ThumbSyncConfig {
 
 export function createThumbSyncPlugin(config: ThumbSyncConfig = {}): GalleryPlugin {
   const {
-    gap = 8,
     thumbWidth = 64,
     thumbHeight = 64,
     showActiveRing = true,

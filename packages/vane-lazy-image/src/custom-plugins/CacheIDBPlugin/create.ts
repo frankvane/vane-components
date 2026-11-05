@@ -43,7 +43,7 @@ async function idbGetRaw(
     const store = tx.objectStore(cfg.storeName);
     const value: IDBValue | undefined = await new Promise((resolve, reject) => {
       const req = store.get(key);
-      req.onsuccess = () => resolve(req.result as any);
+      req.onsuccess = () => resolve(req.result as IDBValue | undefined);
       req.onerror = () => reject(req.error);
     });
     if (!value) return undefined;

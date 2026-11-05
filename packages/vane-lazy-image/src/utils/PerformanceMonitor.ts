@@ -35,7 +35,10 @@ export interface PerformanceMetrics {
     /** Time to First Byte (首字节时间) */
     ttfb?: number;
   };
-  /** 自定义指标 */
+  /**
+   * 自定义指标。
+   * 公共契约位：键值由宿主任意写入（setCustomMetric），保留 any 以免破坏读取方。
+   */
   custom: Record<string, any>;
 }
 
@@ -137,7 +140,7 @@ export class PerformanceMonitor {
     if (typeof performance !== 'undefined' && performance.mark) {
       try {
         performance.mark(`${this.id}:${name}`);
-      } catch (error) {
+      } catch {
         // 忽略错误（某些环境可能不支持）
       }
     }
@@ -180,7 +183,7 @@ export class PerformanceMonitor {
           `${this.id}:${startMark}`,
           endMark ? `${this.id}:${endMark}` : undefined
         );
-      } catch (error) {
+      } catch {
         // 忽略错误
       }
     }
@@ -197,7 +200,7 @@ export class PerformanceMonitor {
    * @param key - 指标键
    * @param value - 指标值
    */
-  setCustomMetric(key: string, value: any): void {
+  setCustomMetric(key: string, value: unknown): void {
     if (!this.config.enabled) return;
     this.metrics.custom[key] = value;
   }
@@ -243,7 +246,7 @@ export class PerformanceMonitor {
           }
         });
         lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
-      } catch (error) {
+      } catch {
         // 某些环境可能不支持 PerformanceObserver
       }
     }
@@ -362,7 +365,7 @@ export class PerformanceMonitor {
             performance.clearMeasures(entry.name);
           }
         });
-      } catch (error) {
+      } catch {
         // 忽略错误
       }
     }

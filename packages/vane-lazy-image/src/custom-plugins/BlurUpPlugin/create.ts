@@ -1,5 +1,9 @@
 import type { LazyImagePlugin, LazyImageContext } from "../../components/LazyLoadImagePlugin/plugins/types";
 
+type BlurImageElement = HTMLImageElement & {
+  __lliPrevFilterNoBlur?: string;
+};
+
 export interface BlurUpConfig {
   startBlur?: number; // px
   endBlur?: number; // px
@@ -15,25 +19,25 @@ export function createBlurUpPlugin(config: BlurUpConfig = {}): LazyImagePlugin {
     hooks: {
       // 在 props 层为 <img> 注入初始模糊，确保元素挂载后立即可见
       transformProps: (props) => {
-        const prevFilter = (props.imageStyle as any)?.filter as string | undefined;
+        const prevFilter = props.imageStyle?.filter as string | undefined;
         const base = (prevFilter || "").replace(/blur\([^)]*\)/, "").trim();
         const nextFilter = base ? `${base} blur(${startBlur}px)` : `blur(${startBlur}px)`;
 
-        const prevTransition = (props.imageStyle as any)?.transition as string | undefined;
+        const prevTransition = props.imageStyle?.transition as string | undefined;
         // 合成过渡，确保不丢失不透明度的过渡，同时添加 filter 过渡
         const opacityTransition = "opacity 180ms ease";
         const hasOpacity = !!prevTransition && /opacity\s*\d*ms/.test(prevTransition);
         const transitionBase = hasOpacity ? prevTransition! : opacityTransition;
         const nextTransition = `${transitionBase}, filter ${durationMs}ms ease`;
 
-        const willChangePrev = (props.imageStyle as any)?.willChange as string | undefined;
+        const willChangePrev = props.imageStyle?.willChange as string | undefined;
         const willChange = willChangePrev
           ? `${willChangePrev}, filter`
           : "filter";
 
         // P2-1：Core 默认在 loading 阶段把 img opacity 置 0，导致「模糊占位」根本看不见。
         // 未显式指定 opacity 时补成 1；调用方显式传入时保持其值。
-        const prevOpacity = (props.imageStyle as any)?.opacity as number | string | undefined;
+        const prevOpacity = props.imageStyle?.opacity;
 
         return {
           ...props,
@@ -47,7 +51,7 @@ export function createBlurUpPlugin(config: BlurUpConfig = {}): LazyImagePlugin {
         } as typeof props;
       },
       onBeforeLoad: (context: LazyImageContext) => {
-        const img = context.imageRef?.current as any;
+        const img = context.imageRef?.current as BlurImageElement | null;
         if (!img) return true;
 
         try {
@@ -62,7 +66,7 @@ export function createBlurUpPlugin(config: BlurUpConfig = {}): LazyImagePlugin {
         return true;
       },
       onLoadSuccess: (context: LazyImageContext) => {
-        const img = context.imageRef?.current as any;
+        const img = context.imageRef?.current as BlurImageElement | null;
         if (!img) return;
         try {
           const base = img.__lliPrevFilterNoBlur ?? (img.style.filter || "").replace(/blur\([^)]*\)/, "").trim();
@@ -71,7 +75,7 @@ export function createBlurUpPlugin(config: BlurUpConfig = {}): LazyImagePlugin {
         } catch {}
       },
       onUnmount: (context: LazyImageContext) => {
-        const img = context.imageRef?.current as any;
+        const img = context.imageRef?.current as BlurImageElement | null;
         if (!img) return;
         try {
           if (img.__lliPrevFilterNoBlur !== undefined) {

@@ -7,7 +7,7 @@ import { galleryPreset } from "../src/gallery/presets/gallery";
 import type { GalleryImage } from "../src/gallery/types";
 
 // 让 React 15+ 的 act() 警告安静（happy-dom 下需显式声明 act 环境）
-(globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
+(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 const images: GalleryImage[] = [
   { src: "a.jpg", alt: "A" },

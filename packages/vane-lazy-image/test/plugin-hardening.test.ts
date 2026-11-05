@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type {
   LazyImageContext,
   LazyImageHooks,
+  LazyLoadImageCoreProps,
 } from "../src/components/LazyLoadImagePlugin/plugins/types";
 
 import { createCDNFallbackPlugin } from "../src/custom-plugins/CDNFallbackPlugin";
@@ -21,7 +22,7 @@ import { createResponsivePlugin } from "../src/custom-plugins/ResponsivePlugin";
 import { createRetryOnErrorPlugin } from "../src/custom-plugins/RetryOnErrorPlugin";
 import { performanceFirstPreset } from "../src/presets/performance-first";
 
-type AnyHooks = LazyImageHooks & Record<string, any>;
+type AnyHooks = LazyImageHooks;
 
 function makeBus() {
   return {
@@ -91,7 +92,7 @@ afterEach(() => {
 describe("P0-3 CDN 回退有上限且可去重", () => {
   it("原始 + 每个 CDN 各尝试一次后终止，且默认不追加缓存击穿参数", async () => {
     const img = makeImg("/img/a.jpg");
-    const sharedData = new Map<string, any>();
+    const sharedData = new Map<string, unknown>();
     const ctx = makeContext({ src: "/img/a.jpg", imageRef: { current: img }, sharedData });
     const hooks = createCDNFallbackPlugin({
       cdnBases: ["https://cdn1.example.com", "https://cdn2.example.com"],
@@ -111,7 +112,7 @@ describe("P0-3 CDN 回退有上限且可去重", () => {
 
   it("换图（onSrcChange）后尝试计数归零", async () => {
     const img = makeImg("/img/a.jpg");
-    const sharedData = new Map<string, any>();
+    const sharedData = new Map<string, unknown>();
     const ctx = makeContext({ src: "/img/a.jpg", imageRef: { current: img }, sharedData });
     const hooks = createCDNFallbackPlugin({ cdnBases: ["https://cdn1.example.com"] }).hooks as AnyHooks;
 
@@ -215,25 +216,25 @@ describe("P1-8 ScrollIdle 引用计数与监听释放", () => {
 describe("P2 系列：占位 / 骨架 / 预取 / 响应式 / 重试 / 缓存", () => {
   it("P2-1 AspectRatioSpacer 在 transformProps 阶段写入 aspect-ratio，且尊重显式值", () => {
     const hooks = createAspectRatioSpacerPlugin({ ratio: 16 / 9 }).hooks as AnyHooks;
-    const injected = hooks.transformProps!({ src: "/a.jpg" } as any);
+    const injected = hooks.transformProps!({ src: "/a.jpg" });
     expect(String(injected.containerStyle?.aspectRatio)).toBe(String(16 / 9));
 
     const explicit = hooks.transformProps!({
       src: "/a.jpg",
       containerStyle: { aspectRatio: "1 / 1" },
-    } as any);
+    });
     expect(explicit.containerStyle?.aspectRatio).toBe("1 / 1");
   });
 
   it("P2-1 BlurUp 未显式指定 opacity 时补 1，显式值保持", () => {
     const hooks = createBlurUpPlugin().hooks as AnyHooks;
-    const injected = hooks.transformProps!({ src: "/a.jpg", imageStyle: {} } as any);
+    const injected = hooks.transformProps!({ src: "/a.jpg", imageStyle: {} });
     expect(injected.imageStyle?.opacity).toBe(1);
 
     const explicit = hooks.transformProps!({
       src: "/a.jpg",
       imageStyle: { opacity: 0 },
-    } as any);
+    });
     expect(explicit.imageStyle?.opacity).toBe(0);
   });
 
@@ -277,7 +278,7 @@ describe("P2 系列：占位 / 骨架 / 预取 / 响应式 / 重试 / 缓存", (
 
   it("P2-4 Responsive 在 transformProps 阶段写入 srcset/sizes，成功后跳过 blob/data", () => {
     const hooks = createResponsivePlugin().hooks as AnyHooks;
-    const props: any = { src: "/img/a.jpg" };
+    const props: LazyLoadImageCoreProps = { src: "/img/a.jpg" };
     const next = hooks.transformProps!(props);
     expect(next.srcSet).toContain("w=400 400w");
     expect(next.srcSet).toContain("w=800 800w");
@@ -291,7 +292,7 @@ describe("P2 系列：占位 / 骨架 / 预取 / 响应式 / 重试 / 缓存", (
 
   it("P2-5 RetryOnError 计数按 src 隔离，换图后取消旧定时器", () => {
     vi.useFakeTimers();
-    const sharedData = new Map<string, any>();
+    const sharedData = new Map<string, unknown>();
     const img = makeImg("/retry/a.jpg");
     const plugin = createRetryOnErrorPlugin({ baseDelayMs: 10, jitter: false, maxRetries: 2 });
     const hooks = plugin.hooks as AnyHooks;
@@ -314,11 +315,11 @@ describe("P2 系列：占位 / 骨架 / 预取 / 响应式 / 重试 / 缓存", (
 
   it("P2-6 CacheMemory 缓存 Blob 并在读取时创建 objectURL", async () => {
     MemoryCache.clear();
-    const original = (URL as any).createObjectURL;
-    (URL as any).createObjectURL = vi.fn(() => "blob:memory-hit");
+    const original = URL.createObjectURL;
+    URL.createObjectURL = vi.fn(() => "blob:memory-hit");
     try {
       const blob = new Blob(["x"], { type: "image/png" });
-      const sharedData = new Map<string, any>([["fetch-loader:blob", blob]]);
+      const sharedData = new Map<string, unknown>([["fetch-loader:blob", blob]]);
       const plugin = createMemoryCachePlugin();
       const ctx = makeContext({ src: "/mem/a.jpg", sharedData });
 
@@ -331,7 +332,7 @@ describe("P2 系列：占位 / 骨架 / 预取 / 响应式 / 重试 / 缓存", (
       expect(display).toBe("blob:memory-hit");
       expect(sharedData.get("fetch-loader:object-url")).toBe("blob:memory-hit");
     } finally {
-      (URL as any).createObjectURL = original;
+      URL.createObjectURL = original;
       MemoryCache.clear();
     }
   });
@@ -339,20 +340,20 @@ describe("P2 系列：占位 / 骨架 / 预取 / 响应式 / 重试 / 缓存", (
   it("P2-6 CachePrewarm 预热只写 Blob，不创建 objectURL", async () => {
     MemoryCache.clear();
     const createSpy = vi.fn(() => "blob:prewarm");
-    const original = (URL as any).createObjectURL;
-    (URL as any).createObjectURL = createSpy;
+    const original = URL.createObjectURL;
+    URL.createObjectURL = createSpy;
     vi.stubGlobal("fetch", vi.fn(async () => new Response(new Blob(["p"], { type: "image/png" }))));
     try {
       const src = `/prewarm-${Date.now()}-${Math.random()}.jpg`;
       const plugin = createCachePrewarmPlugin({ trigger: "enter", preferMemory: true });
-      (plugin.hooks as AnyHooks).onEnterViewport!(makeContext({ src, isIntersecting: true }) as any, undefined);
+      (plugin.hooks as AnyHooks).onEnterViewport!(makeContext({ src, isIntersecting: true }), undefined);
       await FLUSH();
       await FLUSH();
 
       expect(MemoryCache.get(src) instanceof Blob).toBe(true);
       expect(createSpy).not.toHaveBeenCalled();
     } finally {
-      (URL as any).createObjectURL = original;
+      URL.createObjectURL = original;
       MemoryCache.clear();
     }
   });

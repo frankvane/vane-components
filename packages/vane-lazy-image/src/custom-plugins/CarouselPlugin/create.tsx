@@ -40,7 +40,7 @@ export function createCarouselPlugin(config: CarouselConfig = {}): GalleryPlugin
         root.removeEventListener("mouseenter", enter);
         root.removeEventListener("mouseleave", leave);
       };
-    }, [pauseOnHover]);
+    }, []);
 
     // 自动推进：playing 且未悬停时，每 interval 推进一帧（activeIndex 变化即重置计时）
     React.useEffect(() => {
@@ -49,7 +49,7 @@ export function createCarouselPlugin(config: CarouselConfig = {}): GalleryPlugin
         setActiveIndex((activeIndex + 1) % len);
       }, interval);
       return () => window.clearTimeout(id);
-    }, [playing, hovering, activeIndex, len, interval, setActiveIndex]);
+    }, [playing, hovering, activeIndex, len, setActiveIndex]);
 
     if (len < 2) return null;
 

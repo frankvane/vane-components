@@ -6,7 +6,8 @@
  * 本模块是两者唯一的转换点，插件源码只写领域语义。
  */
 
-import type { LazyImagePlugin } from "./types";
+import type { LazyImagePlugin, LazyImageData } from "./types";
+import type { LazyLoadImageCoreProps } from "../LazyLoadImageCore";
 import type { Plugin } from "vane-plugin-core";
 
 /** 领域 priority 基准值：kernelPriority = BASE - domainPriority */
@@ -15,15 +16,19 @@ export const DOMAIN_PRIORITY_BASE = 1000;
 export const DOMAIN_PRIORITY_DEFAULT = 100;
 
 /** 领域插件 → 内核插件（priority 语义转换，不改动传入对象） */
-export function toKernelPlugin(plugin: LazyImagePlugin): Plugin<any, any> {
+export function toKernelPlugin(
+  plugin: LazyImagePlugin
+): Plugin<LazyLoadImageCoreProps, LazyImageData> {
   const domainPriority = plugin.priority ?? DOMAIN_PRIORITY_DEFAULT;
   return {
     ...plugin,
     priority: DOMAIN_PRIORITY_BASE - domainPriority,
-  } as Plugin<any, any>;
+  } as Plugin<LazyLoadImageCoreProps, LazyImageData>;
 }
 
 /** 批量转换（保持顺序） */
-export function toKernelPlugins(plugins: LazyImagePlugin[]): Plugin<any, any>[] {
+export function toKernelPlugins(
+  plugins: LazyImagePlugin[]
+): Plugin<LazyLoadImageCoreProps, LazyImageData>[] {
   return plugins.map(toKernelPlugin);
 }

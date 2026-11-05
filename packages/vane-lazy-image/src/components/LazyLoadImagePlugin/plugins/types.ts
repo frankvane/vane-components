@@ -96,7 +96,10 @@ export interface LazyImageContext
     duration?: number;
     size?: number;
   };
-  /** 插件自身配置（createXxxPlugin(config) 传入的那个对象） */
+  /**
+   * 插件自身配置（createXxxPlugin(config) 传入的那个对象）。
+   * 公共契约位：各插件 config 形状由各自工厂决定，这里保留 any 以便跨包复用。
+   */
   config?: Record<string, any>;
   /** 重新加载：会先中止在途请求，再（若仍在视口）重新发起加载 */
   reload?(): void;
@@ -207,7 +210,10 @@ export interface LazyImagePlugin
   priority?: number;
 }
 
-/** 领域插件工厂（可调用 + 挂 .meta，供文档生成与 demo 导航使用） */
+/**
+ * 领域插件工厂（可调用 + 挂 .meta，供文档生成与 demo 导航使用）。
+ * 公共契约位：Config 默认值 any 保留（历史的无配置调用方依赖该默认值）。
+ */
 export type LazyImagePluginCreator<Config = any> = PluginCreator<
   Config,
   LazyLoadImageCoreProps,

@@ -12,6 +12,23 @@
 
 import type { DeviceInfo, NetworkInfo } from "../components/LazyLoadImagePlugin/plugins/types";
 
+/** 浏览器 NetworkInformation（各厂商前缀下都可能不存在） */
+interface NetworkConnectionLike {
+  effectiveType?: NetworkInfo["effectiveType"];
+  downlink?: number;
+  rtt?: number;
+  saveData?: boolean;
+  addEventListener: (type: string, listener: () => void) => void;
+  removeEventListener: (type: string, listener: () => void) => void;
+}
+
+/** navigator 在部分浏览器上带 connection / mozConnection / webkitConnection */
+type NavigatorWithConnection = Navigator & {
+  connection?: NetworkConnectionLike;
+  mozConnection?: NetworkConnectionLike;
+  webkitConnection?: NetworkConnectionLike;
+};
+
 /**
  * 全局上下文管理器（单例）
  */
@@ -55,7 +72,10 @@ class GlobalContextManager {
     this.initialized = true;
 
     // 监听网络类型/速率变化
-    const nav: any = typeof navigator !== "undefined" ? navigator : undefined;
+    const nav =
+      typeof navigator !== "undefined"
+        ? (navigator as NavigatorWithConnection)
+        : undefined;
     const conn = nav?.connection || nav?.mozConnection || nav?.webkitConnection;
     if (conn) {
       const handleConnChange = () => {
@@ -142,8 +162,8 @@ class GlobalContextManager {
    */
   private detectNetwork(): NetworkInfo | undefined {
     if (typeof navigator === "undefined") return undefined; // SSR 环境无 networkInfo
-    const nav: any = navigator;
-    const conn = nav?.connection || nav?.mozConnection || nav?.webkitConnection;
+    const nav = navigator as NavigatorWithConnection;
+    const conn = nav.connection || nav.mozConnection || nav.webkitConnection;
     return {
       // 🆕 在线状态取自 navigator.onLine，并由 online/offline 事件维护
       online: nav.onLine !== undefined ? nav.onLine : true,

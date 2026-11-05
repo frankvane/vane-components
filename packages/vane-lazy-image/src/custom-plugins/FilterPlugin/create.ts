@@ -1,5 +1,10 @@
 import type { LazyImagePlugin } from "../../components/LazyLoadImagePlugin/plugins/types";
 
+type FilterImageElement = HTMLImageElement & {
+  __lliFilterEnter?: () => void;
+  __lliFilterLeave?: () => void;
+};
+
 /**
  * Filter plugin configuration
  * - filter: filter type, one of
@@ -50,7 +55,7 @@ export const createFilterPlugin = (
     name: "filter",
     hooks: {
       onLoadSuccess(context) {
-        const img = context.imageRef?.current as any;
+        const img = context.imageRef?.current as FilterImageElement | null;
         if (!img) return;
         img.style.filter = filterStr;
         if (hover && filterStr !== "none") {
@@ -67,7 +72,7 @@ export const createFilterPlugin = (
         }
       },
       onUnmount(context) {
-        const img = context.imageRef?.current as any;
+        const img = context.imageRef?.current as FilterImageElement | null;
         if (!img) return;
         const onEnter = img.__lliFilterEnter;
         const onLeave = img.__lliFilterLeave;

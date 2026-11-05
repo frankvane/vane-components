@@ -32,10 +32,10 @@ export function createAuthPlugin(config: AuthPluginConfig = {}): LazyImagePlugin
             p.src = u.toString();
           }
           if (config.crossOrigin) {
-            (p as any).crossOrigin = config.crossOrigin;
+            p.crossOrigin = config.crossOrigin;
           }
           if (config.referrerPolicy) {
-            (p as any).referrerPolicy = config.referrerPolicy;
+            p.referrerPolicy = config.referrerPolicy;
           }
         } catch {}
         return p;

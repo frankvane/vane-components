@@ -15,7 +15,7 @@ export function createAspectRatioSpacerPlugin(config: AspectRatioSpacerConfig = 
       // P2-1：在 transformProps 阶段就写入容器 aspect-ratio，首帧即占位（避免 CLS）。
       // 调用方通过 containerStyle.aspectRatio 显式覆盖时保持其值。
       transformProps: (props) => {
-        const prev = (props.containerStyle as any)?.aspectRatio;
+        const prev = props.containerStyle?.aspectRatio;
         return {
           ...props,
           containerStyle: {

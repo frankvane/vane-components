@@ -24,7 +24,7 @@ const ScrollIdleWatcher = (() => {
     TargetKey,
     {
       isIdle: boolean;
-      timer: any;
+      timer: ReturnType<typeof setTimeout> | null;
       idleWaiters: Set<(v: void) => void>;
       idleMs: number;
       initialized: boolean;
@@ -42,7 +42,7 @@ const ScrollIdleWatcher = (() => {
     }
     const state = {
       isIdle: true,
-      timer: null as any,
+      timer: null as ReturnType<typeof setTimeout> | null,
       idleWaiters: new Set<(v: void) => void>(),
       idleMs: idleMs > 0 ? idleMs : 120,
       initialized: false,
@@ -73,15 +73,15 @@ const ScrollIdleWatcher = (() => {
       };
     } else {
       try {
-        target.addEventListener("scroll", onScroll as any, { passive: true } as any);
-        target.addEventListener("wheel", onScroll as any, { passive: true } as any);
-        target.addEventListener("touchmove", onScroll as any, { passive: true } as any);
+        target.addEventListener("scroll", onScroll, { passive: true });
+        target.addEventListener("wheel", onScroll, { passive: true });
+        target.addEventListener("touchmove", onScroll, { passive: true });
       } catch {}
       state.cleanup = () => {
         try {
-          target.removeEventListener("scroll", onScroll as any);
-          target.removeEventListener("wheel", onScroll as any);
-          target.removeEventListener("touchmove", onScroll as any);
+          target.removeEventListener("scroll", onScroll);
+          target.removeEventListener("wheel", onScroll);
+          target.removeEventListener("touchmove", onScroll);
         } catch {}
       };
     }
@@ -95,7 +95,7 @@ const ScrollIdleWatcher = (() => {
     const s = ensure(target, idleMs);
     if (s.isIdle) return;
     await new Promise<void>((resolve) => {
-      let timeout: any = null;
+      let timeout: ReturnType<typeof setTimeout> | null = null;
       const resolver = () => {
         if (timeout) clearTimeout(timeout);
         resolve();

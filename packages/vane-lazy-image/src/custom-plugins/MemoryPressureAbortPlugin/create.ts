@@ -12,6 +12,10 @@ export interface MemoryPressureAbortConfig {
   abortOnLeave?: boolean;
 }
 
+type NavigatorWithDeviceMemory = Navigator & {
+  deviceMemory?: number;
+};
+
 function rewriteToLowQuality(src: string, width: number): string {
   try {
     const url = new URL(src, window.location.href);
@@ -52,7 +56,8 @@ export function createMemoryPressureAbortPlugin(
   } = config;
 
   const shouldDowngrade = (ctx: LazyImageContext): boolean => {
-    const nav: any = typeof navigator !== "undefined" ? navigator : undefined;
+    const nav: NavigatorWithDeviceMemory | undefined =
+      typeof navigator !== "undefined" ? (navigator as NavigatorWithDeviceMemory) : undefined;
     const deviceMemory = Number(nav?.deviceMemory || 8);
     const isMobile = ctx.deviceInfo?.type === "mobile";
     const saveData = Boolean(ctx.networkInfo?.saveData);

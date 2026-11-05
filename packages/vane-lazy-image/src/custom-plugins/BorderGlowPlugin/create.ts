@@ -1,4 +1,15 @@
-import type { LazyImagePlugin } from "../../components/LazyLoadImagePlugin/plugins/types";
+import type { LazyImagePlugin, LazyImageContext } from "../../components/LazyLoadImagePlugin/plugins/types";
+
+type GlowElement = HTMLElement & {
+  __lliPrevShadow?: string;
+  __lliPrevTransition?: string;
+  __lliGlowEnter?: () => void;
+  __lliGlowLeave?: () => void;
+};
+
+type LazyImageContextWithGlow = LazyImageContext & {
+  __lliGlowTarget?: GlowElement;
+};
 
 export type BorderGlowPluginConfig = {
   color?: string; // default rgba(0, 153, 255, 0.6)
@@ -22,16 +33,16 @@ export const createBorderGlowPlugin = (
     name: "border-glow",
     hooks: {
       onLoadSuccess(context) {
-        const container = context.containerRef?.current as any;
-        const parent = (container?.parentElement ?? null) as any;
-        const grand = (parent?.parentElement ?? null) as any;
-        const img = context.imageRef?.current as any;
+        const container = context.containerRef?.current ?? null;
+        const parent = (container?.parentElement ?? null) as GlowElement | null;
+        const grand = (parent?.parentElement ?? null) as GlowElement | null;
+        const img = context.imageRef?.current as GlowElement | null;
         // 优先对外层卡片（再外一层）应用阴影，避免被父容器的 overflow: hidden 裁剪
-        const target = grand || parent || container || img;
+        const target = grand || parent || (container as GlowElement | null) || img;
         if (!target) return;
         // 卸载时 refs 已被 React 置空，这里把目标节点记在 context 上，
         // 否则 onUnmount 拿不到 target 会直接 return，阴影会残留在外层节点上（实测会漏到下一个页面）
-        (context as any).__lliGlowTarget = target;
+        (context as LazyImageContextWithGlow).__lliGlowTarget = target;
         // 记录原始阴影，便于还原
         target.__lliPrevShadow = target.style.boxShadow || "";
         target.__lliPrevTransition = target.style.transition || "";
@@ -62,7 +73,7 @@ export const createBorderGlowPlugin = (
         target.addEventListener("mouseleave", onLeave);
       },
       onUnmount(context) {
-        const target = (context as any).__lliGlowTarget as any;
+        const target = (context as LazyImageContextWithGlow).__lliGlowTarget;
         if (!target) return;
         const onEnter = target.__lliGlowEnter;
         const onLeave = target.__lliGlowLeave;
@@ -75,7 +86,7 @@ export const createBorderGlowPlugin = (
         delete target.__lliPrevTransition;
         delete target.__lliGlowEnter;
         delete target.__lliGlowLeave;
-        delete (context as any).__lliGlowTarget;
+        delete (context as LazyImageContextWithGlow).__lliGlowTarget;
       },
     },
   };

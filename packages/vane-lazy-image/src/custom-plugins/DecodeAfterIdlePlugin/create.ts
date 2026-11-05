@@ -5,10 +5,16 @@ export interface DecodeAfterIdleConfig {
   timeoutMs?: number;
 }
 
-const ric: any =
-  typeof (window as any) !== "undefined" && (window as any).requestIdleCallback
-    ? (window as any).requestIdleCallback
-    : (cb: () => void, opts?: { timeout?: number }) => setTimeout(cb, opts?.timeout ?? 0);
+type IdleWindow = Window & {
+  requestIdleCallback?: (cb: () => void, opts?: { timeout?: number }) => void;
+};
+
+const ric: (cb: () => void, opts?: { timeout?: number }) => void =
+  typeof window !== "undefined" && (window as IdleWindow).requestIdleCallback
+    ? (window as IdleWindow).requestIdleCallback!
+    : (cb: () => void, opts?: { timeout?: number }) => {
+        setTimeout(cb, opts?.timeout ?? 0);
+      };
 
 export function createDecodeAfterIdlePlugin(
   config: DecodeAfterIdleConfig = {}
@@ -23,10 +29,10 @@ export function createDecodeAfterIdlePlugin(
       onLoadSuccess: (context) => {
         if (!enabled) return;
         const img = context.imageRef?.current as HTMLImageElement | null;
-        if (!img || !(img as any).decode) return;
+        if (!img || !img.decode) return;
         ric(async () => {
           try {
-            await (img as any).decode?.();
+            await img.decode();
           } catch {
             // ignore decode errors
           }
@@ -34,7 +40,7 @@ export function createDecodeAfterIdlePlugin(
       },
       transformProps: (props) => ({
         ...props,
-        decoding: "async" as any,
+        decoding: "async" as const,
       }),
     },
   } as LazyImagePlugin;

@@ -7,6 +7,10 @@ export interface DataSaverPluginConfig {
   qualityParam?: string; // query param name, e.g. "quality" or "q"
 }
 
+type NavigatorWithConnection = Navigator & {
+  connection?: { saveData?: boolean };
+};
+
 function appendQuery(src: string, key: string, value: string): string {
   try {
     const u = new URL(
@@ -38,7 +42,7 @@ export function createDataSaverPlugin(
     hooks: {
       transformProps: (props) => {
         try {
-          const saveData = (navigator as any)?.connection?.saveData === true;
+          const saveData = (navigator as NavigatorWithConnection)?.connection?.saveData === true;
           if (!respectSaveData || !saveData) return props;
           const q = Math.max(0, Math.min(1, fallbackQuality));
           const nextSrc = appendQuery(props.src, qualityParam, String(q));

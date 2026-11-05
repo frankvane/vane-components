@@ -16,10 +16,14 @@ export interface LocalizationPluginConfig {
   fallbackSrc?: string;
 }
 
+type NavigatorWithUserLanguage = Navigator & {
+  userLanguage?: string;
+};
+
 function detectBrowserLocale(): string {
   if (typeof navigator === "undefined") return "en";
   const lang =
-    navigator.language || (navigator as any).userLanguage || "en";
+    navigator.language || (navigator as NavigatorWithUserLanguage).userLanguage || "en";
   return lang.split("-")[0].toLowerCase();
 }
 

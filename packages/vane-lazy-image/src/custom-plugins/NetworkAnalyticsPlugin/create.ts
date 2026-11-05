@@ -3,9 +3,12 @@ import type { LazyImagePlugin, LazyImageContext } from "../../components/LazyLoa
 export interface NetworkAnalyticsPluginConfig {
   reportEndpoint?: string;
   /** 自定义上报函数（若提供则优先使用） */
+  // 公共契约位：宿主自定义上报回调，事件负载字段由宿主决定，保留 Record<string, any>。
   report?: (event: string, data: Record<string, any>) => void;
   trackCDN?: boolean;
 }
+
+type AnalyticsPayload = Record<string, unknown> & { src?: string };
 
 function getHostname(src: string): string | null {
   try {
@@ -16,7 +19,7 @@ function getHostname(src: string): string | null {
   }
 }
 
-async function defaultReport(endpoint: string, payload: Record<string, any>) {
+async function defaultReport(endpoint: string, payload: AnalyticsPayload) {
   try {
     await fetch(endpoint, {
       method: "POST",
@@ -33,7 +36,7 @@ async function defaultReport(endpoint: string, payload: Record<string, any>) {
 const emittedEvents = new Map<string, number>();
 const DEBOUNCE_TIME = 100; // 100ms 防抖时间
 
-function emit(config: NetworkAnalyticsPluginConfig, event: string, data: Record<string, any>) {
+function emit(config: NetworkAnalyticsPluginConfig, event: string, data: AnalyticsPayload) {
   // ⭐ 事件去重：同一事件+src 短时间内只触发一次
   const key = `${event}:${data.src || ''}`;
   const now = Date.now();
@@ -55,7 +58,6 @@ function emit(config: NetworkAnalyticsPluginConfig, event: string, data: Record<
   } else if (config.reportEndpoint) {
     void defaultReport(config.reportEndpoint, { event, ...data });
   } else {
-    // eslint-disable-next-line no-console
     try { console.debug("[LLI][net]", event, data); } catch {}
   }
 }

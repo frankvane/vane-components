@@ -18,8 +18,8 @@ export function createExifOrientationPlugin(
         if (!enabled) return props;
         const imageStyle = {
           ...(props.imageStyle || {}),
-          imageOrientation: "from-image" as any,
-        } as React.CSSProperties as any;
+          imageOrientation: "from-image",
+        } as React.CSSProperties;
         return {
           ...props,
           imageStyle,

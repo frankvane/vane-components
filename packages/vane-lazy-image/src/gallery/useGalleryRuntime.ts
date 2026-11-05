@@ -8,6 +8,7 @@
 
 import { useCallback, useState } from "react";
 import { usePluginRuntime } from "vane-plugin-core";
+import type { PluginContext } from "vane-plugin-core";
 import type {
   GalleryContext,
   GalleryCoreProps,
@@ -16,7 +17,9 @@ import type {
 
 export interface GalleryRuntime {
   /** 插件管理器（已排序、生命周期内稳定） */
-  runtime: ReturnType<typeof usePluginRuntime<any, any>>;
+  runtime: ReturnType<
+    typeof usePluginRuntime<GalleryCoreProps, unknown>
+  >;
   activeIndex: number;
   setActiveIndex: (i: number) => void;
   frameIndex: number;
@@ -53,7 +56,7 @@ export function useGalleryRuntime({
 
   // 领域上下文：经 extendContext 注入内核 context（含 forceUpdate / bus / setState 等）
   const extendContext = useCallback(
-    (base: any): GalleryContext => ({
+    (base: PluginContext<GalleryCoreProps, unknown>): GalleryContext => ({
       ...base,
       images: props.images,
       activeIndex,
@@ -68,7 +71,7 @@ export function useGalleryRuntime({
     [props.images, activeIndex, setActiveIndex, frameIndex, zoom, favorited]
   );
 
-  const runtime = usePluginRuntime<any, any>({
+  const runtime = usePluginRuntime<GalleryCoreProps, unknown>({
     plugins,
     props,
     extendContext,

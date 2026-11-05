@@ -1,5 +1,15 @@
 import type { LazyImagePlugin, LazyImageContext } from "../../components/LazyLoadImagePlugin/plugins/types";
 
+type ParallaxImageElement = HTMLImageElement & {
+  __lliParallaxScroll?: EventListener;
+  __lliParallaxResize?: EventListener;
+  __lliParallaxRafId?: number | null;
+};
+
+type LazyImageContextWithParallax = LazyImageContext & {
+  __lliParallaxImg?: ParallaxImageElement;
+};
+
 export interface ParallaxConfig {
   strength?: number; // 0..1，偏移强度（默认 0.2）
   axis?: "y" | "x"; // 轴向
@@ -16,7 +26,7 @@ export function createParallaxPlugin(config: ParallaxConfig = {}): LazyImagePlug
     const offset = ((center - viewport / 2) / viewport) * (strength * 100);
     const tx = axis === "x" ? offset : 0;
     const ty = axis === "y" ? offset : 0;
-    (img as any).style.transform = `translate(${tx}px, ${ty}px)`;
+    img.style.transform = `translate(${tx}px, ${ty}px)`;
   }
 
   return {
@@ -29,15 +39,15 @@ export function createParallaxPlugin(config: ParallaxConfig = {}): LazyImagePlug
         // 旧实现在这里直接 return，整条监听链都没挂上（插件静默失效）。改为 rAF 重试。
         let tries = 0;
         const start = () => {
-          const img = context.imageRef?.current as any;
+          const img = context.imageRef?.current as ParallaxImageElement | null;
           if (!img) {
             if (tries++ < 60) requestAnimationFrame(start);
             return;
           }
           attach(img);
         };
-        const attach = (img: any) => {
-        (context as any).__lliParallaxImg = img;
+        const attach = (img: ParallaxImageElement) => {
+        (context as LazyImageContextWithParallax).__lliParallaxImg = img;
         img.style.willChange = "transform";
 
         // 🔥 关键修复：使用 RAF 优化性能
@@ -74,7 +84,7 @@ export function createParallaxPlugin(config: ParallaxConfig = {}): LazyImagePlug
 
           // 🔥 返回清理函数
           return () => {
-            if (img.__lliParallaxRafId !== null) {
+            if (img.__lliParallaxRafId != null) {
               cancelAnimationFrame(img.__lliParallaxRafId);
             }
           };
@@ -83,11 +93,12 @@ export function createParallaxPlugin(config: ParallaxConfig = {}): LazyImagePlug
       },
       onUnmount: (context: LazyImageContext) => {
         // refs 在卸载时已置空，用挂载时记下的节点做清理
-        const img = ((context as any).__lliParallaxImg || context.imageRef?.current) as any;
+        const img = ((context as LazyImageContextWithParallax).__lliParallaxImg ||
+          context.imageRef?.current) as ParallaxImageElement | null;
         if (!img) return;
 
         // 🔥 取消 RAF
-        if (img.__lliParallaxRafId !== null) {
+        if (img.__lliParallaxRafId != null) {
           try {
             cancelAnimationFrame(img.__lliParallaxRafId);
           } catch {}
@@ -95,8 +106,8 @@ export function createParallaxPlugin(config: ParallaxConfig = {}): LazyImagePlug
 
         const onScroll = img.__lliParallaxScroll;
         const onResize = img.__lliParallaxResize;
-        if (onScroll) window.removeEventListener("scroll", onScroll as any);
-        if (onResize) window.removeEventListener("resize", onResize as any);
+        if (onScroll) window.removeEventListener("scroll", onScroll);
+        if (onResize) window.removeEventListener("resize", onResize);
         img.style.transform = "";
         img.style.willChange = "";
         delete img.__lliParallaxScroll;

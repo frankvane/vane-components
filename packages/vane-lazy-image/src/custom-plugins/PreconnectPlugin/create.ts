@@ -19,7 +19,7 @@ function addPreconnect(origin: string, crossOrigin: string | null = "anonymous")
   link.id = id;
   link.rel = "preconnect";
   link.href = origin;
-  if (crossOrigin) link.crossOrigin = crossOrigin as any;
+  if (crossOrigin) link.crossOrigin = crossOrigin;
   document.head.appendChild(link);
 }
 

@@ -30,7 +30,7 @@ export interface GalleryImage {
 }
 
 /** Gallery 域插件的上下文（内核 context + 图集协调态） */
-export interface GalleryContext extends PluginContext<any, any> {
+export interface GalleryContext extends PluginContext<GalleryCoreProps, unknown> {
   images: GalleryImage[];
   activeIndex: number;
   setActiveIndex: (i: number) => void;
@@ -43,7 +43,7 @@ export interface GalleryContext extends PluginContext<any, any> {
 }
 
 /** Gallery 域插件的钩子表（内核通用钩子 + 图集领域渲染槽 + 领域事件） */
-export interface GalleryHooks extends PluginHooks<any, any> {
+export interface GalleryHooks extends PluginHooks<GalleryCoreProps, unknown> {
   /** 缩略图区渲染（ThumbSync / Indicator） */
   galleryThumbArea?(ctx: GalleryContext): React.ReactNode;
   /** 工具条区渲染（Counter / ZoomControl / Favorite） */
@@ -59,12 +59,19 @@ export interface GalleryHooks extends PluginHooks<any, any> {
 }
 
 /** Gallery 域插件 */
-export interface GalleryPlugin extends Plugin<any, any> {
+export interface GalleryPlugin extends Plugin<GalleryCoreProps, unknown> {
   hooks: GalleryHooks;
 }
 
-/** Gallery 域插件工厂（可调用 + 挂 .meta） */
-export type GalleryPluginCreator<Config = any> = PluginCreator<Config, any, any>;
+/**
+ * Gallery 域插件工厂（可调用 + 挂 .meta）。
+ * 公共契约位：Config 默认值 any 保留（历史的无配置调用方依赖该默认值）。
+ */
+export type GalleryPluginCreator<Config = any> = PluginCreator<
+  Config,
+  GalleryCoreProps,
+  unknown
+>;
 
 /** GalleryCore 对外 props */
 export interface GalleryCoreProps {

@@ -62,7 +62,6 @@ export function createPredictiveLoadingPlugin(
   config: PredictiveLoadingPluginConfig = {}
 ): LazyImagePlugin {
   const {
-    model = "heuristic",
     strategy = "increment",
     predict,
     maxPreload = 3,

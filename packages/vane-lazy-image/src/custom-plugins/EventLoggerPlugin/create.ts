@@ -5,9 +5,8 @@ export interface EventLoggerConfig {
   prefix?: string;
 }
 
-function log(prefix: string, ...args: any[]) {
+function log(prefix: string, ...args: unknown[]) {
   try {
-    // eslint-disable-next-line no-console
     console.log(prefix, ...args);
   } catch {}
 }

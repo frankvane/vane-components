@@ -13,7 +13,11 @@ export interface ConcurrencyControlConfig {
   debug?: boolean;
 }
 
-type QueueEntry = { resolve: () => void; reject?: (err: any) => void; timer?: any };
+type QueueEntry = {
+  resolve: () => void;
+  reject?: (err: unknown) => void;
+  timer?: ReturnType<typeof setTimeout> | null;
+};
 type BucketState = { current: number; queue: QueueEntry[] };
 
 /**
@@ -150,7 +154,7 @@ export function createConcurrencyControlPlugin(
         // 若组件卸载但仍处在并发占位状态，进行释放以避免“幽灵占位”
         const key = context.sharedData?.get("cc:key");
         if (typeof key === "string") {
-          const adaptiveMax = computeAdaptiveMax(maxConcurrent, context as any);
+          const adaptiveMax = computeAdaptiveMax(maxConcurrent, context);
           ConcurrencyGate.release(key, adaptiveMax, debug);
           try { context.sharedData?.delete("cc:key"); } catch {}
         }

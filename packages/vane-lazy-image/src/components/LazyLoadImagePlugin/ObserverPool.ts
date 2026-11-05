@@ -461,7 +461,6 @@ class IntersectionObserverPool {
    */
   public cleanup(): number {
     let cleaned = 0;
-    const now = Date.now();
 
     this.observerCallbacks.forEach((callbacks, key) => {
       if (callbacks.size === 0) {

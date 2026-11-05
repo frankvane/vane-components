@@ -1,6 +1,10 @@
 import React from "react";
 import type { LazyImagePlugin, LazyImageContext } from "../../components/LazyLoadImagePlugin/plugins/types";
 
+type DominantColorImage = HTMLImageElement & {
+  __lliDominantColor?: string | null;
+};
+
 export interface ColorExtractionConfig {
   setContainerBg?: boolean; // 是否设置容器背景为主色
   sampleSize?: number; // 采样步长（像素），越大越快但越不精确
@@ -56,14 +60,14 @@ export function createColorExtractionPlugin(config: ColorExtractionConfig = {}):
     hooks: {
       // 确保在加载前为 <img> 设置跨域策略
       transformProps: (props) => {
-        return { ...props, crossOrigin: "anonymous" } as any;
+        return { ...props, crossOrigin: "anonymous" as const };
       },
       onMount: (context: LazyImageContext) => {
         // 尝试启用跨域像素访问
         try { context.imageRef?.current?.setAttribute("crossOrigin", "anonymous"); } catch {}
       },
       onLoadSuccess: (context: LazyImageContext) => {
-        const img = context.imageRef?.current as HTMLImageElement | null;
+        const img = context.imageRef?.current as DominantColorImage | null;
         if (!img) return;
         const color = computeDominantColor(img, sampleSize);
         if (setContainerBg && color) {
@@ -76,7 +80,7 @@ export function createColorExtractionPlugin(config: ColorExtractionConfig = {}):
           } catch {}
         }
         try { context.sharedData?.set("dominant-color", color); } catch {}
-        try { (img as any).__lliDominantColor = color; } catch {}
+        try { img.__lliDominantColor = color; } catch {}
       },
       renderOverlay: (context: LazyImageContext) => {
         if (!showOverlay) return null;
@@ -86,7 +90,7 @@ export function createColorExtractionPlugin(config: ColorExtractionConfig = {}):
             let alive = true;
             const tick = () => {
               if (!alive) return;
-              const img = context.imageRef?.current as any;
+              const img = context.imageRef?.current as DominantColorImage | null;
               const c = img?.__lliDominantColor || context.sharedData?.get("dominant-color") || null;
               setColor(c || null);
             };
@@ -95,7 +99,7 @@ export function createColorExtractionPlugin(config: ColorExtractionConfig = {}):
               alive = false;
               cancelAnimationFrame(raf);
             };
-          }, [context]);
+          }, []);
 
           const style: React.CSSProperties = {
             position: "absolute",
