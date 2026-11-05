@@ -25,7 +25,7 @@ import type {
   ActivityPluginContext,
   ActivityData,
 } from "./plugins/types";
-import { ActivitySlotProvider } from "./plugins/slots";
+import { ActivitySlotProvider } from "./plugins/ActivitySlotProvider";
 import { computeProgress, deriveRewards } from "./domain";
 import { resolveExclusivePlugins } from "./exclusive";
 

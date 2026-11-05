@@ -15,8 +15,8 @@ export type {
   ExclusiveResolution,
 } from "./components/ActivityPlugin/exclusive";
 export type { WithPluginsConfig } from "vane-plugin-core";
+export { ActivitySlotProvider } from "./components/ActivityPlugin/plugins/ActivitySlotProvider";
 export {
-  ActivitySlotProvider,
   renderActivitySlot,
   useActivitySlot,
   useActivityContext,

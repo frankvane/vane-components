@@ -1,8 +1,8 @@
 export { default as ActivityCore } from "./ActivityCore";
 export { withPlugins } from "./withPlugins";
 export type { WithPluginsConfig } from "vane-plugin-core";
+export { ActivitySlotProvider } from "./plugins/ActivitySlotProvider";
 export {
-  ActivitySlotProvider,
   renderActivitySlot,
   useActivitySlot,
   useActivityContext,

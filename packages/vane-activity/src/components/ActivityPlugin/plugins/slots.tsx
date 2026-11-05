@@ -12,46 +12,21 @@
  * 与插件组件（它们通过 useActivitySlot / useActivityContext 读取）。
  */
 
-import React, { createContext, useContext, useMemo } from "react";
+import React, { createContext, useContext } from "react";
 import { PluginErrorBoundary } from "vane-plugin-core";
-import type { Plugin } from "vane-plugin-core";
 import type {
-  ActivityCoreProps,
   ActivityData,
   ActivityPlugin,
   ActivityPluginContext,
   ActivitySlotName,
 } from "./types";
 
-interface SlotContextValue {
+export interface SlotContextValue {
   orderedPlugins: ActivityPlugin<ActivityData>[];
   context: ActivityPluginContext<ActivityData>;
 }
 
-const SlotContext = createContext<SlotContextValue | null>(null);
-
-/**
- * 由 withPlugins 包在 WrappedComponent 外层，下发 orderedPlugins 与领域上下文。
- */
-export function ActivitySlotProvider<T = ActivityData>({
-  orderedPlugins,
-  context,
-  children,
-}: {
-  orderedPlugins: Plugin<ActivityCoreProps<T>, T>[];
-  context: ActivityPluginContext<T>;
-  children: React.ReactNode;
-}) {
-  const value = useMemo<SlotContextValue>(
-    () => ({
-      // 泛型插件集合在槽位层统一按默认领域数据渲染；渲染只读 hooks + 排序字段。
-      orderedPlugins: orderedPlugins as unknown as ActivityPlugin<ActivityData>[],
-      context: context as unknown as ActivityPluginContext<ActivityData>,
-    }),
-    [orderedPlugins, context]
-  );
-  return <SlotContext.Provider value={value}>{children}</SlotContext.Provider>;
-}
+export const SlotContext = createContext<SlotContextValue | null>(null);
 
 /**
  * 每个 plugins 数组的「槽位 → 已排序候选插件」缓存。
