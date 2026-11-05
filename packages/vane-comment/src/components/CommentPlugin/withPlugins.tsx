@@ -19,10 +19,12 @@
 
 import React, { forwardRef, useCallback, useEffect, useMemo, useRef } from "react";
 import { usePluginRuntime } from "vane-plugin-core";
-import type { WithPluginsConfig } from "vane-plugin-core";
+import type { PluginContext, PluginHooks, WithPluginsConfig } from "vane-plugin-core";
 import type {
+  Comment,
   CommentCoreProps,
   CommentCoreRef,
+  CommentData,
   CommentPlugin,
   CommentPluginContext,
   SortMode,
@@ -30,6 +32,11 @@ import type {
 import { CommentSlotProvider } from "./plugins/slots";
 import { sortComments } from "./sort";
 
+/**
+ * 泛型默认值保留 any：跨包契约位。第三方以 `withCommentPlugins(Core, plugins)`
+ * 直接使用时由 Core 的 props 推断 T；不指定泛型时不做约束，收紧为 CommentData
+ * 会让既有调用方（自定义 data 形态）的 tsc 失败。
+ */
 export function withCommentPlugins<T = any>(
   WrappedComponent: React.ForwardRefExoticComponent<
     React.PropsWithoutRef<CommentCoreProps<T>> & React.RefAttributes<CommentCoreRef>
@@ -48,7 +55,9 @@ export function withCommentPlugins<T = any>(
       // 领域上下文扩展：只补充评论专属字段 sortMode / setSortMode。
       // 排序 + transformData 在拿到 runtime 之后再算（见下方），避免与 runtime 的鸡生蛋依赖。
       const extendContext = useCallback(
-        (base: any): any => {
+        (
+          base: PluginContext<CommentCoreProps<T>, T>
+        ): PluginContext<CommentCoreProps<T>, T> => {
           const mode: SortMode =
             (base.state?.sortMode as SortMode | undefined) ??
             props.defaultSortMode ??
@@ -57,7 +66,7 @@ export function withCommentPlugins<T = any>(
             ...base,
             sortMode: mode,
             setSortMode: (m: SortMode) => base.setState({ sortMode: m }),
-          };
+          } as unknown as PluginContext<CommentCoreProps<T>, T>;
         },
         [props]
       );
@@ -77,8 +86,10 @@ export function withCommentPlugins<T = any>(
       ctxRef.current = runtime.context as CommentPluginContext<T>;
 
       const execute = useCallback(
-        (hookName: string, ...args: unknown[]) =>
-          runtime.execute(hookName as any, ...args),
+        (
+          hookName: keyof PluginHooks<CommentCoreProps<T>, T>,
+          ...args: unknown[]
+        ) => runtime.execute(hookName, ...args),
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [runtime.manager]
       );
@@ -115,12 +126,12 @@ export function withCommentPlugins<T = any>(
       const rawData = runtime.context.data;
       const pipelineState = runtime.state;
       const sortedComments = useMemo(() => {
-        const baseData = ((rawData as any[] | undefined) ?? []) as any[];
+        const baseData = ((rawData as unknown as Comment[] | undefined) ?? []);
         const transformed =
-          (runtime.transformData(baseData as unknown as T) as unknown as any[]) ??
+          (runtime.transformData(baseData as unknown as T) as unknown as Comment[]) ??
           baseData;
         const mode: SortMode =
-          (runtime.context as any).sortMode ??
+          (runtime.context as CommentPluginContext<T>).sortMode ??
           props.defaultSortMode ??
           "custom";
         return sortComments(transformed, mode);
@@ -164,8 +175,8 @@ export function withCommentPlugins<T = any>(
 
       return (
         <CommentSlotProvider
-          orderedPlugins={runtime.orderedPlugins as unknown as CommentPlugin<any>[]}
-          context={domainContext as unknown as CommentPluginContext<T>}
+          orderedPlugins={runtime.orderedPlugins as unknown as CommentPlugin<CommentData>[]}
+          context={domainContext as unknown as CommentPluginContext<CommentData>}
         >
           <WrappedComponent
             ref={ref as React.Ref<CommentCoreRef>}

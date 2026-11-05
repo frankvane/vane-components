@@ -4,6 +4,7 @@ import type {
   CommentPluginContext,
   Comment,
 } from "../../components/CommentPlugin/plugins/types";
+import { ReactionBar } from "./ReactionBar";
 import doc from "./doc.json";
 
 export interface ReactionPluginConfig {
@@ -13,53 +14,10 @@ export interface ReactionPluginConfig {
 
 const DEFAULT_EMOJIS = ["👍", "❤️", "😂", "🎉"];
 
-const actionBtn: React.CSSProperties = {
-  border: "none",
-  background: "transparent",
-  color: "inherit",
-  cursor: "pointer",
-  fontSize: 13,
-  padding: 0,
-  flexShrink: 0,
-};
-
-/** 多表情反应条：点击累加对应表情计数，回调 onReact(id, emoji) */
-function ReactionBar({
-  comment,
-  onReact,
-  emojis,
-}: {
-  comment: Comment;
-  onReact?: (id: string, emoji: string) => void;
-  emojis: string[];
-}) {
-  const reactions = comment.reactions ?? {};
-  return (
-    <span data-testid="comment-reaction" style={{ display: "inline-flex", gap: 6, flexShrink: 0 }}>
-      {emojis.map((e) => {
-        const n = reactions[e] ?? 0;
-        return (
-          <button
-            key={e}
-            type="button"
-            onClick={() => onReact?.(comment.id, e)}
-            style={{
-              ...actionBtn,
-              color: n > 0 ? "#1565c0" : "inherit",
-              opacity: n > 0 ? 1 : 0.7,
-            }}
-          >
-            {e}
-            {n > 0 ? ` ${n}` : ""}
-          </button>
-        );
-      })}
-    </span>
-  );
-}
-
 /**
  * ReactionPlugin - 多表情反应：每条评论操作行渲染快速表情反应条，带计数。
+ *
+ * 泛型默认值保留 any：跨包契约位（第三方可传自定义 data 形态，收紧会让既有调用方 tsc 失败）。
  */
 export function createReactionPlugin<T = any>(
   config: ReactionPluginConfig = {}

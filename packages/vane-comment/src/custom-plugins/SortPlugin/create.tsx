@@ -4,7 +4,7 @@ import type {
   CommentPluginContext,
   SortMode,
 } from "../../components/CommentPlugin/plugins/types";
-import { SORT_LABELS } from "../../components/CommentPlugin/sort";
+import { SortBar } from "./SortBar";
 import doc from "./doc.json";
 
 export interface SortPluginConfig {
@@ -14,51 +14,11 @@ export interface SortPluginConfig {
   defaultMode?: SortMode;
 }
 
-/** 排序栏：渲染模式按钮，点击切换 sortMode（写内核 state → 列表重排） */
-function SortBar({
-  context,
-  modes,
-}: {
-  context: CommentPluginContext<any>;
-  modes: SortMode[];
-}) {
-  const active = context.sortMode;
-  return (
-    <div style={{ display: "inline-flex", gap: 4 }}>
-      {modes.map((mode) => {
-        const isActive = active === mode;
-        return (
-          <button
-            key={mode}
-            type="button"
-            onClick={() => {
-              context.setSortMode(mode);
-              (context.props.onSortChange as ((m: SortMode) => void) | undefined)?.(
-                mode
-              );
-            }}
-            style={{
-              border: "none",
-              borderRadius: 999,
-              padding: "4px 12px",
-              fontSize: 13,
-              cursor: "pointer",
-              background: isActive ? "rgba(29,161,242,0.16)" : "transparent",
-              color: isActive ? "#1565c0" : "inherit",
-              opacity: isActive ? 1 : 0.7,
-            }}
-          >
-            {SORT_LABELS[mode]}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
 /**
  * SortPlugin - 排序：顶栏渲染排序栏，切换经内核 state 驱动 CommentCore 列表重排。
  * 实际重排由 withCommentPlugins 的 extendContext（sortComments）完成，本插件仅提供控制面。
+ *
+ * 泛型默认值保留 any：跨包契约位（第三方可传自定义 data 形态，收紧会让既有调用方 tsc 失败）。
  */
 export function createSortPlugin<T = any>(
   config: SortPluginConfig = {}

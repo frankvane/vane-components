@@ -4,6 +4,7 @@ import type {
   CommentPluginContext,
   Comment,
 } from "../../components/CommentPlugin/plugins/types";
+import { FilterBar } from "./FilterBar";
 import doc from "./doc.json";
 
 export interface FilterPluginConfig {
@@ -11,51 +12,10 @@ export interface FilterPluginConfig {
   options?: Array<"all" | "image" | "replies">;
 }
 
-const LABELS: Record<string, string> = {
-  all: "全部",
-  image: "有图",
-  replies: "有回复",
-};
-
-const chip = (active: boolean): React.CSSProperties => ({
-  border: "none",
-  borderRadius: 999,
-  padding: "4px 12px",
-  fontSize: 13,
-  cursor: "pointer",
-  background: active ? "rgba(29,161,242,0.16)" : "transparent",
-  color: active ? "#1565c0" : "inherit",
-  opacity: active ? 1 : 0.7,
-});
-
-/** 筛选栏：点击切换 state.filter，由 transformData 过滤列表 */
-function FilterBar({
-  context,
-  options,
-}: {
-  context: CommentPluginContext<any>;
-  options: string[];
-}) {
-  const active = (context.state as any)?.filter ?? "all";
-  const set = (key: string) => context.setState({ filter: key });
-  return (
-    <div data-testid="comment-filter" style={{ display: "inline-flex", gap: 4 }}>
-      {options.map((key) => (
-        <button
-          key={key}
-          type="button"
-          onClick={() => set(key)}
-          style={chip(active === key)}
-        >
-          {LABELS[key] ?? key}
-        </button>
-      ))}
-    </div>
-  );
-}
-
 /**
  * FilterPlugin - 筛选：顶栏「全部/有图/有回复」筛选，经 transformData 过滤评论列表。
+ *
+ * 泛型默认值保留 any：跨包契约位（第三方可传自定义 data 形态，收紧会让既有调用方 tsc 失败）。
  */
 export function createFilterPlugin<T = any>(
   config: FilterPluginConfig = {}
@@ -70,10 +30,11 @@ export function createFilterPlugin<T = any>(
     enabled: true,
     hooks: {
       renderToolbar: (context: CommentPluginContext<T>) => (
-        <FilterBar context={context as CommentPluginContext<any>} options={options} />
+        <FilterBar context={context} options={options} />
       ),
       transformData: (context: CommentPluginContext<T>, data: T): T => {
-        const filter = (context.state as any)?.filter ?? "all";
+        const raw = context.state.filter;
+        const filter = typeof raw === "string" ? raw : "all";
         if (filter === "all" || !Array.isArray(data)) return data;
         const arr = data as Comment[];
         if (filter === "image")

@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { useCommentSlot } from "./plugins/slots";
+import { useCommentSlot } from "./plugins/slotContext";
 import type { Comment, CommentCoreProps, CommentCoreRef } from "./plugins/types";
 import { formatRelativeTime, renderCommentContent } from "./content";
 
@@ -73,7 +73,7 @@ const CommentCore = forwardRef<CommentCoreRef, CommentCoreProps>(
             : { width: 0, height: 0 };
         },
       }),
-      [forceUpdate]
+      [forceUpdate, containerRef]
     );
 
     const showLoadMore = typeof onLoadMore === "function" && !loading;

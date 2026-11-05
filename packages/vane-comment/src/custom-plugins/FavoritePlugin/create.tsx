@@ -4,48 +4,13 @@ import type {
   CommentPluginContext,
   Comment,
 } from "../../components/CommentPlugin/plugins/types";
+import { FavoriteButton } from "./FavoriteButton";
 import doc from "./doc.json";
-
-const actionBtn: React.CSSProperties = {
-  border: "none",
-  background: "transparent",
-  color: "inherit",
-  cursor: "pointer",
-  fontSize: 13,
-  padding: 0,
-  flexShrink: 0,
-};
-
-/**
- * 收藏按钮：完全受控（状态只来自 comment.favorited），点击只回调 onFavorite(id, next)。
- * 与 LikePlugin 一致：本地 state 会在服务端拒绝 / 列表刷新后与 props 分叉。
- */
-function FavoriteButton({
-  comment,
-  onFavorite,
-}: {
-  comment: Comment;
-  onFavorite?: (id: string, next: boolean) => void;
-}) {
-  const fav = !!comment.favorited;
-  const handle = () => {
-    onFavorite?.(comment.id, !fav);
-  };
-  return (
-    <button
-      type="button"
-      data-testid="comment-favorite"
-      onClick={handle}
-      aria-pressed={fav}
-      style={{ ...actionBtn, color: fav ? "#faad14" : "inherit" }}
-    >
-      {fav ? "★已收藏" : "☆收藏"}
-    </button>
-  );
-}
 
 /**
  * FavoritePlugin - 收藏：每条评论操作行渲染收藏按钮，切换回调 onFavorite。
+ *
+ * 泛型默认值保留 any：跨包契约位（第三方可传自定义 data 形态，收紧会让既有调用方 tsc 失败）。
  */
 export function createFavoritePlugin<T = any>(): CommentPlugin<T> {
   return {

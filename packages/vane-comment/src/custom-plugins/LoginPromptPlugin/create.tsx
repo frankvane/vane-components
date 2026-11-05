@@ -7,6 +7,8 @@ import doc from "./doc.json";
 
 /**
  * LoginPromptPlugin - 未登录引导：底部渲染登录引导条，回调 onLogin。
+ *
+ * 泛型默认值保留 any：跨包契约位（第三方可传自定义 data 形态，收紧会让既有调用方 tsc 失败）。
  */
 export function createLoginPromptPlugin<T = any>(): CommentPlugin<T> {
   return {

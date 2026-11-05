@@ -15,6 +15,8 @@ function formatAbs(ts: number): string {
 
 /**
  * TimestampPlugin - 绝对时间：Core 默认展示相对时间，本插件在操作行补充「绝对时间」芯片，便于精确查看。
+ *
+ * 泛型默认值保留 any：跨包契约位（第三方可传自定义 data 形态，收紧会让既有调用方 tsc 失败）。
  */
 export function createTimestampPlugin<T = any>(): CommentPlugin<T> {
   return {

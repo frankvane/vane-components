@@ -12,7 +12,7 @@ import { createLikePlugin } from "../src/custom-plugins/LikePlugin";
 import { createRichComposerPlugin } from "../src/custom-plugins/RichComposerPlugin";
 import { fileOf, mount, mountSync, tick } from "./helpers";
 
-(globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
+(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 const AUTHOR = { id: "u-test", name: "测试用户" };
 const clipboardDescriptor = Object.getOwnPropertyDescriptor(
@@ -50,7 +50,7 @@ afterEach(() => {
   if (clipboardDescriptor) {
     Object.defineProperty(navigator, "clipboard", clipboardDescriptor);
   } else {
-    delete (navigator as any).clipboard;
+    delete (navigator as unknown as Record<string, unknown>).clipboard;
   }
 });
 

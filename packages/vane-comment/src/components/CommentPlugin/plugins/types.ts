@@ -209,7 +209,12 @@ export interface CommentPlugin<T = CommentData>
   hooks: CommentPluginHooks<T>;
 }
 
-/** 插件工厂：可调用 + 挂载 meta，供文档生成与 demo 导航使用 */
+/**
+ * 插件工厂：可调用 + 挂载 meta，供文档生成与 demo 导航使用。
+ *
+ * Config 默认 any 与内核 PluginCreator<Config = any, ...> 对齐（跨包契约位）：
+ * 各插件配置形状不同，未传泛型时不做约束；收紧会让既有插件工厂无法赋值。
+ */
 export type CommentPluginCreator<Config = any, T = CommentData> = PluginCreator<
   Config,
   CommentCoreProps<T>,

@@ -1,4 +1,3 @@
-import React from "react";
 import type {
   CommentPlugin,
   CommentPluginContext,
@@ -75,6 +74,8 @@ function maskComment(
 
 /**
  * ModerationPlugin - 审核：经 transformData 屏蔽敏感词（替换为 **）并过滤待审/已删评论。
+ *
+ * 泛型默认值保留 any：跨包契约位（第三方可传自定义 data 形态，收紧会让既有调用方 tsc 失败）。
  */
 export function createModerationPlugin<T = any>(
   config: ModerationPluginConfig = {}

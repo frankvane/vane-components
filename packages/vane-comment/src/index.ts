@@ -11,10 +11,12 @@ export { default as CommentCore } from "./components/CommentPlugin/CommentCore";
 export { withCommentPlugins } from "./components/CommentPlugin/withPlugins";
 export {
   CommentSlotProvider,
+} from "./components/CommentPlugin/plugins/slots";
+export {
   renderCommentSlot,
   useCommentSlot,
   useCommentContext,
-} from "./components/CommentPlugin/plugins/slots";
+} from "./components/CommentPlugin/plugins/slotContext";
 
 // ===== 领域类型 =====
 export type {

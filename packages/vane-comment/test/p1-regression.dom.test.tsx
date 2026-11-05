@@ -9,7 +9,7 @@ import { createRichComposerPlugin } from "../src/custom-plugins/RichComposerPlug
 import { mount, tick, typeInto } from "./helpers";
 
 // React 18 的 act 环境标记（与既有 selftest.dom.test.tsx 一致）
-(globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
+(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 const AUTHOR = { id: "u-test", name: "测试用户" };
 
