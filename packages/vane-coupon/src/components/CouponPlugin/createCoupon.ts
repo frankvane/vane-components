@@ -7,6 +7,9 @@ import type { CouponPlugin } from "./plugins/types";
  *
  * 与内核 withPlugins 的差别是这里已绑定 Core，调用方只需给插件数组：
  *   const Coupon = createCouponCard([createClaimStatePlugin(), createValidityPlugin()]);
+ *
+ * 用 .ts 而非 .tsx：本文件不含 JSX，同时导出了工厂函数与组件实例
+ * （CouponCard），放在 .tsx 里会触发 react-refresh 的「只导出组件」告警。
  */
 export function createCouponCard(plugins: CouponPlugin[] = []) {
   return withPlugins(CouponCore, plugins);

@@ -19,7 +19,7 @@ import { createCountdownPlugin } from "../src/custom-plugins/CountdownPlugin";
 import { createCopyCodePlugin } from "../src/custom-plugins/CopyCodePlugin";
 import { createChannelPlugin } from "../src/custom-plugins/ChannelPlugin";
 
-(globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
+(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 const DAY = 24 * 60 * 60 * 1000;
 const base: CouponData = { id: "f1", title: "修复回归券", amount: 10 };
@@ -480,8 +480,11 @@ describe("CP-P2-7 复制兜底失败上报", () => {
       value: undefined,
       configurable: true,
     });
-    const originalExec = (document as any).execCommand;
-    (document as any).execCommand = () => false;
+    const docWithExec = document as Document & {
+      execCommand?: () => boolean;
+    };
+    const originalExec = docWithExec.execCommand;
+    docWithExec.execCommand = () => false;
 
     try {
       const Coupon = createCouponCard([
@@ -500,9 +503,9 @@ describe("CP-P2-7 复制兜底失败上报", () => {
       if (originalClipboard) {
         Object.defineProperty(navigator, "clipboard", originalClipboard);
       } else {
-        delete (navigator as any).clipboard;
+        delete (navigator as unknown as { clipboard?: Clipboard }).clipboard;
       }
-      (document as any).execCommand = originalExec;
+      docWithExec.execCommand = originalExec;
     }
   });
 });

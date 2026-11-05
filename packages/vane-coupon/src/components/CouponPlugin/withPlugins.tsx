@@ -1,6 +1,6 @@
 import React, { forwardRef, useCallback, useEffect, useMemo, useRef } from "react";
 import { renderPluginSlot, usePluginRuntime } from "vane-plugin-core";
-import type { WithPluginsConfig } from "vane-plugin-core";
+import type { PluginContext, WithPluginsConfig } from "vane-plugin-core";
 import type {
   CouponData,
   CouponEligibility,
@@ -55,12 +55,14 @@ export function withPlugins(
       }, []);
 
       // 领域上下文扩展：内核 context + 券领域字段。
-      // 返回类型放宽到 any：领域 CouponPluginContext 是内核 context 的超集，结构兼容。
+      // CouponPluginContext 是内核 context 的超集，结构兼容，返回时按内核签名标注。
       const coupon = props.coupon;
       const order = props.order ?? null;
       const extendContext = useCallback(
-        (base: any): any => {
-          const state = base.state ?? {};
+        (
+          base: PluginContext<CouponCoreProps, unknown>
+        ): PluginContext<CouponCoreProps, unknown> => {
+          const state = (base.state ?? {}) as Record<string, unknown>;
           const ctx: CouponPluginContext = {
             ...base,
             coupon,
@@ -70,7 +72,7 @@ export function withPlugins(
             validity: (state.validity ?? null) as CouponValidity | null,
             eligible: (state.eligible ?? null) as CouponEligibility | null,
             quotaReached: state.quotaReached === true,
-            rulesExpanded: state.rulesExpanded ?? false,
+            rulesExpanded: (state.rulesExpanded ?? false) as boolean,
             toggleRules,
           };
           return ctx;
@@ -79,7 +81,7 @@ export function withPlugins(
       );
 
       const runtime = usePluginRuntime<CouponCoreProps, unknown>({
-        plugins: plugins as any,
+        plugins,
         props,
         data: props.data,
         containerRef,
@@ -95,7 +97,7 @@ export function withPlugins(
 
       const execute = useCallback(
         (hookName: string, ...args: unknown[]) =>
-          runtime.execute(hookName as any, ...args),
+          runtime.execute(hookName as never, ...args),
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [runtime.manager]
       );
@@ -106,7 +108,6 @@ export function withPlugins(
       // 否则「运行时换配置」后倒计时/初始化会永久停摆。
       useEffect(() => {
         void execute("onMount");
-        // eslint-disable-next-line react-hooks/exhaustive-deps
       }, [execute, runtime.orderedPlugins]);
 
       // onUnmount 由内核在卸载的 useLayoutEffect 内统一执行

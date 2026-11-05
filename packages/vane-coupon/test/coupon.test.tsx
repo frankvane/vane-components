@@ -12,7 +12,7 @@ import {
   createClaimStatePlugin as createClaimStateFromIndex,
 } from "../src/custom-plugins";
 
-(globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
+(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -71,8 +71,8 @@ describe("插件工厂结构（三件套契约）", () => {
       expect(plugin.name).toBe(expectedNames[i]);
       expect(plugin.priority).toBe(expectedPriorities[i]);
       // .meta 挂载（丢 meta → demo 插件卡空白）
-      expect((factory as any).meta).toBeTruthy();
-      expect((factory as any).meta.name).toContain("Plugin");
+      expect(factory.meta).toBeTruthy();
+      expect(factory.meta.name).toContain("Plugin");
     });
   });
 

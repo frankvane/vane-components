@@ -15,7 +15,7 @@ import { createHistoryPlugin } from "../src/custom-plugins/HistoryPlugin";
 import { createAnalyticsPlugin } from "../src/custom-plugins/AnalyticsPlugin";
 import { createDetailLinkPlugin } from "../src/custom-plugins/DetailLinkPlugin";
 
-(globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
+(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 const base: CouponData = { id: "x1", title: "扩展插件测试券", amount: 10, threshold: 0 };
 
@@ -249,7 +249,7 @@ describe("AnalyticsPlugin", () => {
         priority: 95,
         config: {},
         hooks: {
-          onMount: (ctx) => ctx.bus.on("coupon:analytics", (p: any) => busEvents.push(p.event)),
+          onMount: (ctx) => ctx.bus.on("coupon:analytics", (p: { event: string }) => busEvents.push(p.event)),
         },
       } as CouponPlugin,
     ]);

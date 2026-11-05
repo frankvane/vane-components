@@ -100,7 +100,11 @@ export interface CouponData {
   scope?: CouponScope;
   /** 互斥组：同组券不可同时使用（如「品类券」「品牌券」） */
   exclusiveGroup?: string;
-  /** 任意业务数据 */
+  /**
+   * 公共契约位：任意业务数据。
+   * 宿主可透传自定义字段给插件（插件通过 config / ctx.coupon 读取），
+   * 关闭索引签名会让现有宿主代码报错，故保留 any。
+   */
   [key: string]: any;
 }
 
@@ -275,6 +279,7 @@ export interface CouponPlugin extends Plugin<CouponCoreProps, unknown> {
   hooks: CouponPluginHooks;
 }
 
+/** 公共契约位：工厂 Config 泛型默认值 any 保留（不传配置的调用方依赖默认值） */
 export type CouponPluginCreator<Config = any> = PluginCreator<
   Config,
   CouponCoreProps,
