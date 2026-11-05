@@ -9,7 +9,7 @@
  *    并订阅 skuVariant，切规格后状态实时跟着变。
  */
 
-import type { CardPlugin, PluginCreator } from "../../components/CardPlugin/plugins/types";
+import type { CardPlugin, PluginBus, PluginCreator } from "../../components/CardPlugin/plugins/types";
 import { BusKeys } from "../../components/CardPlugin/plugins/BusKeys";
 import { setupForceUpdateOnBusKeys } from "../../components/CardPlugin/plugins/utils/busHelpers";
 import React from "react";
@@ -27,16 +27,17 @@ export interface InventoryPluginConfig {
  * 于是只传 price/title/image 的卡片首帧就被判成售罄并盖上整卡蒙层（P0-1）。
  */
 function resolveInventory(
-  context: { bus?: any; data?: any }
+  context: { bus?: PluginBus; data?: unknown }
 ): number | undefined {
   const variant = context.bus?.getData?.(BusKeys.skuVariant) as
     | { stock?: number }
     | undefined;
   if (typeof variant?.stock === "number") return variant.stock;
-  const inventory = (context.data as any)?.inventory;
+  const inventory = (context.data as { inventory?: number } | undefined)?.inventory;
   return typeof inventory === "number" ? inventory : undefined;
 }
 
+// 公共契约位：工厂泛型默认值 any 保留（不写 T 的调用方依赖默认值）。
 export const createInventoryPlugin: PluginCreator<any, InventoryPluginConfig> = (
   config = {}
 ) => {

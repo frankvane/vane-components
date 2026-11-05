@@ -45,10 +45,11 @@ function appliedCut(subtotal: number, applied?: CouponLike): number {
   return computeCouponCut(subtotal, applied);
 }
 
+// 公共契约位：工厂泛型默认值 any 保留（不写 T 的调用方依赖默认值）。
 export const createCouponRecommendPlugin: PluginCreator<any, CouponRecommendPluginConfig> = (
   config
 ) => {
-  const cfg = applyDefaults<CouponRecommendPluginConfig>(config || ({} as any), {
+  const cfg = applyDefaults<CouponRecommendPluginConfig>(config || {}, {
     coupons: [],
     placement: "footer",
     autoApplyBest: false,
@@ -71,7 +72,7 @@ export const createCouponRecommendPlugin: PluginCreator<any, CouponRecommendPlug
         ]);
         // 自动应用当前最优券（可选）
         if (cfg.autoApplyBest) {
-          const price = Number((context.bus?.getData?.(BusKeys.skuPrice) as any) ?? (context.data as any)?.price ?? 0);
+          const price = Number(context.bus?.getData?.(BusKeys.skuPrice) ?? (context.data as { price?: number } | undefined)?.price ?? 0);
           const qty = Number(context.bus?.getData?.(BusKeys.quantity) ?? 1);
           const subtotal = price * qty;
           const best = pickBestCoupon(cfg.coupons, subtotal);
@@ -81,7 +82,7 @@ export const createCouponRecommendPlugin: PluginCreator<any, CouponRecommendPlug
       },
       renderFooter: (context) => {
         if (cfg.placement !== "footer" || !cfg.coupons.length) return null;
-        const price = Number((context.bus?.getData?.(BusKeys.skuPrice) as any) ?? (context.data as any)?.price ?? 0);
+        const price = Number(context.bus?.getData?.(BusKeys.skuPrice) ?? (context.data as { price?: number } | undefined)?.price ?? 0);
         const qty = Number(context.bus?.getData?.(BusKeys.quantity) ?? 1);
         const subtotal = price * qty;
         const applied = context.bus?.getData?.(BusKeys.couponApplied) as Coupon | undefined;
@@ -111,7 +112,7 @@ export const createCouponRecommendPlugin: PluginCreator<any, CouponRecommendPlug
       },
       renderOverlay: (context) => {
         if (cfg.placement !== "overlay" || !cfg.coupons.length) return null;
-        const price = Number((context.bus?.getData?.(BusKeys.skuPrice) as any) ?? (context.data as any)?.price ?? 0);
+        const price = Number(context.bus?.getData?.(BusKeys.skuPrice) ?? (context.data as { price?: number } | undefined)?.price ?? 0);
         const qty = Number(context.bus?.getData?.(BusKeys.quantity) ?? 1);
         const subtotal = price * qty;
         const applied = context.bus?.getData?.(BusKeys.couponApplied) as Coupon | undefined;
@@ -134,7 +135,7 @@ export const createCouponRecommendPlugin: PluginCreator<any, CouponRecommendPlug
       },
       renderPriceArea: (context) => {
         if (!cfg.coupons.length) return null;
-        const price = Number((context.bus?.getData?.(BusKeys.skuPrice) as any) ?? (context.data as any)?.price ?? 0);
+        const price = Number(context.bus?.getData?.(BusKeys.skuPrice) ?? (context.data as { price?: number } | undefined)?.price ?? 0);
         const qty = Number(context.bus?.getData?.(BusKeys.quantity) ?? 1);
         const subtotal = price * qty;
         const applied = context.bus?.getData?.(BusKeys.couponApplied) as Coupon | undefined;

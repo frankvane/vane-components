@@ -7,9 +7,12 @@
  *
  * 与内核 composeSlots 保持同一套排序规则（config.order 升序 → priority 降序），
  * 单个插件渲染抛错只丢自己那一段（PluginErrorBoundary 隔离）。
+ *
+ * 本文件只含运行时逻辑（context / 渲染函数 / hooks），组件 CardSlotProvider 在
+ * 独立文件里，避免 react-refresh 把「组件 + 非组件导出」判为不可热更新。
  */
 
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { PluginErrorBoundary } from "vane-plugin-core";
 import { BusKeys } from "./BusKeys";
 import type { CardPlugin, CardPluginContext, PluginBus } from "./types";
@@ -17,40 +20,20 @@ import type { ProductAttributes } from "../types/product";
 
 export type PluginSlotName = "priceArea";
 
-interface SlotContextValue {
-  orderedPlugins: CardPlugin<any>[];
-  context: CardPluginContext<any>;
+export interface SlotContextValue {
+  orderedPlugins: CardPlugin<unknown>[];
+  context: CardPluginContext<unknown>;
 }
 
-const SlotContext = createContext<SlotContextValue | null>(null);
-
-/**
- * 由 withPlugins 包在 WrappedComponent 外层，把当前实例的 orderedPlugins 与
- * 领域上下文下发给所有复合组件（它们通过 usePluginSlot 读价格区片段）。
- */
-export function CardSlotProvider({
-  orderedPlugins,
-  context,
-  children,
-}: {
-  orderedPlugins: CardPlugin<any>[];
-  context: CardPluginContext<any>;
-  children: React.ReactNode;
-}) {
-  const value = useMemo<SlotContextValue>(
-    () => ({ orderedPlugins, context }),
-    [orderedPlugins, context]
-  );
-  return <SlotContext.Provider value={value}>{children}</SlotContext.Provider>;
-}
+export const SlotContext = createContext<SlotContextValue | null>(null);
 
 /**
  * 渲染某个领域槽位的所有插件输出。
  * 排序：config.order 升序（越小越靠前）→ priority 降序（越大越靠后）。
  */
 export function renderDomainSlot(
-  plugins: CardPlugin<any>[],
-  context: CardPluginContext<any>,
+  plugins: CardPlugin<unknown>[],
+  context: CardPluginContext<unknown>,
   hookName: "renderPriceArea"
 ): React.ReactNode[] {
   return [...plugins]
@@ -66,9 +49,12 @@ export function renderDomainSlot(
     )
     .map((plugin) => {
       try {
-        const node = (plugin.hooks as Record<string, (ctx: CardPluginContext<any>) => React.ReactNode>)[hookName](
-          context
-        );
+        const node = (
+          plugin.hooks as Record<
+            string,
+            (ctx: CardPluginContext<unknown>) => React.ReactNode
+          >
+        )[hookName](context);
         if (node === null || node === undefined) return null;
         // 每个插件单独一层错误边界：某个插件渲染期抛错只丢它自己。
         // key 只用插件名：带 index 会让片段在列表变化时错位重挂（P2-3）。
@@ -90,8 +76,9 @@ export function renderDomainSlot(
 
 /**
  * 复合组件读取价格区片段（签名与旧 SlotsContext.usePluginSlot 完全一致，零改动）。
+ * 槽位参数当前只有 priceArea，保留形参以维持对外签名；前缀 _ 表示有意不使用。
  */
-export function usePluginSlot(slot: PluginSlotName): React.ReactNode[] {
+export function usePluginSlot(_slot: PluginSlotName): React.ReactNode[] {
   const ctx = useContext(SlotContext);
   if (!ctx) return [];
   return renderDomainSlot(ctx.orderedPlugins, ctx.context, "renderPriceArea");

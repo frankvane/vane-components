@@ -20,8 +20,7 @@ describe("CardCore 可见性契约", () => {
   });
 
   it("重渲染不重建 IntersectionObserver", () => {
-    let calls = 0;
-    const h = renderCore({ onVisibilityChange: () => { calls += 1; } });
+    const h = renderCore({ onVisibilityChange: () => {} });
     const before = ioInstances().length;
     expect(before).toBe(1);
 
@@ -29,11 +28,11 @@ describe("CardCore 可见性契约", () => {
     const ref = h.ref;
     act(() => {
       h.root.render(
-        React.createElement(CardCore as any, {
+        React.createElement(CardCore, {
           ref,
           cardId: "test-card",
           data: {},
-          onVisibilityChange: () => { calls += 1; },
+          onVisibilityChange: () => {},
         })
       );
     });

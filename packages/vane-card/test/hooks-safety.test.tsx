@@ -11,7 +11,6 @@
  * 兜底（改回旧写法会直接报 error，闸门不允许 --quiet 之外的红灯）；下面的用例
  * 补的是行为面：组件被正确挂载、内容真的渲染、父级重渲染时不丢不炸。
  */
-import React from "react";
 import { describe, it, expect, beforeEach } from "vitest";
 import type { CardPlugin } from "../src/components/CardPlugin/plugins/types";
 import {

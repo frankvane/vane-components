@@ -12,9 +12,11 @@ export interface ActionsPluginConfig {
   showWishlistButton?: boolean;
   cartButtonText?: { add: string; remove: string };
   wishlistButtonText?: { add: string; remove: string };
+  // 公共契约位：自定义操作渲染函数由宿主实现，上下文按 any 开放。
   renderCustomActions?: (context: any) => React.ReactNode;
 }
 
+// 公共契约位：工厂泛型默认值 any 保留（不写 T 的调用方依赖默认值）。
 export const createActionsPlugin: PluginCreator<any, ActionsPluginConfig> = (
   config = {}
 ) => {

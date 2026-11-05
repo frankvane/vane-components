@@ -67,7 +67,6 @@ export const OrderSummaryPanel: React.FC<OrderSummaryPanelProps> = ({
     data?.oldPrice,
     showTax,
     showShipping,
-    showDiscount,
     taxRate,
     shippingFee,
     freeShippingThreshold,
@@ -76,7 +75,10 @@ export const OrderSummaryPanel: React.FC<OrderSummaryPanelProps> = ({
   // 使用 useEffect 触发回调；改为依赖原子字段，避免对象引用变化造成的循环
   React.useEffect(() => {
     onOrderChange?.(summary);
-    // 仅在关键数值变化时触发，以避免“Maximum update depth exceeded”
+    // 仅在关键数值变化时触发，以避免“Maximum update depth exceeded”。
+    // 不把 summary 整体放进依赖：showDiscount 等展示开关变化会让 memo 产出新对象，
+    // 从而重复回调，属于本次清理不允许改变的运行时行为。
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     summary.subtotal,
     summary.tax,

@@ -16,6 +16,7 @@ export interface ComparePricePluginConfig {
   priceDiffHighlightThreshold?: number; // 与当前价差超过阈值高亮
 }
 
+// 公共契约位：工厂泛型默认值 any 保留（不写 T 的调用方依赖默认值）。
 export const createComparePricePlugin: PluginCreator<any, ComparePricePluginConfig> = (
   config = {}
 ) => {
@@ -43,7 +44,9 @@ export const createComparePricePlugin: PluginCreator<any, ComparePricePluginConf
       renderFooter: (context) => {
         if (!competitors.length) return null;
         const currentPrice = Number(
-          (context.bus?.getData?.(BusKeys.skuPrice) as any) ?? (context.data as any)?.price ?? 0
+          context.bus?.getData?.(BusKeys.skuPrice) ??
+            (context.data as { price?: number } | undefined)?.price ??
+            0
         );
 
         let list = [...competitors];
@@ -92,7 +95,9 @@ export const createComparePricePlugin: PluginCreator<any, ComparePricePluginConf
       renderPriceArea: (context) => {
         if (!competitors.length) return null;
         const currentPrice = Number(
-          (context.bus?.getData?.(BusKeys.skuPrice) as any) ?? (context.data as any)?.price ?? 0
+          context.bus?.getData?.(BusKeys.skuPrice) ??
+            (context.data as { price?: number } | undefined)?.price ??
+            0
         );
         const lowest = competitors.reduce((min, c) => (c.price < min ? c.price : min), Infinity);
         if (!isFinite(lowest)) return null;

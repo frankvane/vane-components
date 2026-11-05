@@ -51,6 +51,7 @@ function readableOn(bg: string): string {
   return onWhite >= onInk ? "#fff" : "#222";
 }
 
+// 公共契约位：工厂泛型默认值 any 保留（不写 T 的调用方依赖默认值）。
 export const createUserTagPlugin: PluginCreator<any, UserTagPluginConfig> = (
   config = {}
 ) => {
@@ -66,10 +67,11 @@ export const createUserTagPlugin: PluginCreator<any, UserTagPluginConfig> = (
         // 配置优先、data 兜底：与 BadgePlugin 一致（显式配置 > 数据默认值）。
         // 反过来写的话，示例页里传的 tags 会被商品数据顶掉，页面上永远看不到自己配的标签。
         const configured = normalizeTags(tags);
-        const list = (configured.length ? configured : normalizeTags((context.data as any)?.tags)).slice(
-          0,
-          maxTags
-        );
+        const list = (
+          configured.length
+            ? configured
+            : normalizeTags((context.data as { tags?: string[] } | undefined)?.tags)
+        ).slice(0, maxTags);
         if (!list.length) return null;
 
         return (

@@ -16,6 +16,7 @@ export interface VideoPluginConfig {
   order?: number;
 }
 
+// 公共契约位：工厂泛型默认值 any 保留（不写 T 的调用方依赖默认值）。
 export const createVideoPlugin: PluginCreator<any, VideoPluginConfig> = (
   config = {}
 ) => {
@@ -40,7 +41,8 @@ export const createVideoPlugin: PluginCreator<any, VideoPluginConfig> = (
         if (context.bus?.getData?.("media.handledByGallery")) {
           return null;
         }
-        const videoSrc = (context.data as any)?.video || config.src;
+        const data = context.data as { video?: string; poster?: string } | undefined;
+        const videoSrc = data?.video || config.src;
         if (!videoSrc) return null;
 
         return (
@@ -50,7 +52,7 @@ export const createVideoPlugin: PluginCreator<any, VideoPluginConfig> = (
               muted={muted}
               loop={loop}
               controls={controls}
-              poster={poster || (context.data as any)?.poster}
+              poster={poster || data?.poster}
               style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", ...style }}
             >
               <source src={videoSrc} />

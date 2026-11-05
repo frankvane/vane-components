@@ -32,22 +32,19 @@ import {
   PluginErrorBoundary,
   usePluginRuntime,
 } from "vane-plugin-core";
+import type { PluginContext, PluginHooks, Plugin } from "vane-plugin-core";
 import type { CardCoreProps, CardCoreRef } from "../core/CardCore";
 import type {
   CardPlugin,
   CardPluginContext,
+  CardPluginHooks,
   CardSize,
   CardState,
   DeviceInfo,
   PluginBus,
   WithPluginsConfig,
 } from "./types";
-import { CardSlotProvider } from "./slots";
-
-export interface WithPluginsConfigInternal<T = any> {
-  plugins: CardPlugin<T>[];
-  enableDebug?: boolean;
-}
+import { CardSlotProvider } from "./CardSlotProvider";
 
 const INITIAL_STATE: CardState = {
   isHovered: false,
@@ -58,6 +55,7 @@ const INITIAL_STATE: CardState = {
   wishlist: false,
 };
 
+// 公共契约位：泛型默认值 any 保留（withPlugins 对外导出，不写 T 的调用方依赖默认值）。
 export function withPlugins<T = any>(
   WrappedComponent: React.ForwardRefExoticComponent<
     React.PropsWithoutRef<CardCoreProps<T>> & React.RefAttributes<CardCoreRef>
@@ -69,6 +67,21 @@ export function withPlugins<T = any>(
     : config;
   const { plugins, enableDebug = false } = normalized;
 
+  // 插件数组 → 内核插件：config 在 HOC 创建时固定，一次映射即可，
+  // 不需要放进渲染期的 useMemo。
+  // 领域字段适配：vane-card 的公开配置叫 headerPosition（before/after），
+  // 内核认的是 config.slotPosition，这里做一次映射；不做的话 headerPosition
+  // 会被内核忽略，所有头部插件都落到默认的 after 段。
+  const kernelPlugins = plugins.map((p) => {
+    const hp = (p.config as { headerPosition?: string } | undefined)
+      ?.headerPosition;
+    if (hp !== "before" && hp !== "after") return p;
+    return {
+      ...p,
+      config: { ...(p.config as object), slotPosition: hp },
+    };
+  }) as unknown as Plugin<CardCoreProps<T>, T>[];
+
   const WithPluginsComponent = forwardRef<CardCoreRef, CardCoreProps<T>>(
     (props, ref) => {
       const containerRef = useRef<HTMLDivElement | null>(null);
@@ -78,30 +91,15 @@ export function withPlugins<T = any>(
       const transformedPropsRef = useRef<CardCoreProps<T>>(props);
       const transformedDataRef = useRef<T | undefined>(props.data as T | undefined);
 
-      // 插件数组 → 内核插件。
-      // 领域字段适配：vane-card 的公开配置叫 headerPosition（before/after），
-      // 内核认的是 config.slotPosition，这里做一次映射；不做的话 headerPosition
-      // 会被内核忽略，所有头部插件都落到默认的 after 段。
-      const kernelPlugins = useMemo(
-        () =>
-          plugins.map((p) => {
-            const hp = (p.config as { headerPosition?: string } | undefined)
-              ?.headerPosition;
-            if (hp !== "before" && hp !== "after") return p as any;
-            return {
-              ...p,
-              config: { ...(p.config as object), slotPosition: hp },
-            } as any;
-          }),
-        [plugins]
-      );
+      // 插件数组 → 内核插件见 HOC 创建处（kernelPlugins 为静态配置）。
 
-      // 领域上下文扩展：在内核 context 基础上附加卡片专属字段
-      // 返回类型放宽到 any：内核要求返回 PluginContext，而领域 CardPluginContext 是
-      // 在其上叠加字段的超集（含 base 的 refs/shared/logger），结构兼容，仅需绕过
-      // 类型系统的精确匹配。
+      // 领域上下文扩展：在内核 context 基础上附加卡片专属字段。
+      // 内核要求返回 PluginContext，而领域 CardPluginContext 是其上叠加字段的超集
+      // （含 base 的 refs/shared/logger），结构兼容，仅需绕过类型系统的精确匹配。
       const extendContext = useCallback(
-        (base: any): any => {
+        (
+          base: PluginContext<CardCoreProps<T>, T>
+        ): PluginContext<CardCoreProps<T>, T> => {
           const tProps = () => transformedPropsRef.current;
           const latestProps = () => propsRef.current;
           const size = (): CardSize =>
@@ -117,12 +115,14 @@ export function withPlugins<T = any>(
               (base.refs?.getContainer
                 ? base.refs.getContainer()
                 : null) as HTMLDivElement | null,
-            state: (base.state ?? {}) as CardState,
-            setState: (updates: Partial<CardState>) => base.setState(updates),
+            state: (base.state ?? {}) as unknown as CardState,
+            setState: (updates: Partial<CardState>) =>
+              base.setState(updates as Record<string, unknown>),
             size: size(),
             props: tProps(),
             bus: base.bus as PluginBus,
-            sharedData: (base.shared as Map<string, any>) ?? new Map(),
+            sharedData: (base.shared ??
+              new Map()) as CardPluginContext<T>["sharedData"],
             deviceInfo: base.deviceInfo as DeviceInfo,
             forceUpdate: base.forceUpdate,
             getSize: () => size(),
@@ -138,7 +138,7 @@ export function withPlugins<T = any>(
             },
             size: { get: size, enumerable: true, configurable: true },
           });
-          return ctx;
+          return ctx as unknown as PluginContext<CardCoreProps<T>, T>;
         },
         // 稳定回调：内部一律从 propsRef / transformedPropsRef 读最新值
         [containerRef]
@@ -158,22 +158,28 @@ export function withPlugins<T = any>(
       const ctxRef = useRef(runtime.context as unknown as CardPluginContext<T>);
 
       const execute = useCallback(
-        (hookName: string, ...args: unknown[]) =>
-          runtime.execute(hookName as any, ...args),
+        (hookName: keyof CardPluginHooks<T>, ...args: unknown[]) =>
+          // 卡片领域钩子与内核钩子键集合一致即可直接分发；收窄到内核键类型
+          // 以满足 execute 的签名（实现分支未变）。
+          runtime.execute(
+            hookName as keyof PluginHooks<CardCoreProps<T>, T>,
+            ...args
+          ),
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [runtime.manager]
       );
 
       // transformProps / transformData 走与内核同一套插件链（P2-1 / P2-2）：
       // 结果按输入 memo 化，props 不变时不重复执行插件链。
+      const { transformProps, transformData } = runtime;
       const transformedProps = useMemo(
-        () => runtime.transformProps(props) as CardCoreProps<T>,
-        [runtime.transformProps, props]
+        () => transformProps(props) as CardCoreProps<T>,
+        [transformProps, props]
       );
       const sourceData = (transformedProps.data ?? props.data) as T | undefined;
       const transformedData = useMemo(
-        () => (sourceData === undefined ? undefined : runtime.transformData(sourceData)),
-        [runtime.transformData, sourceData]
+        () => (sourceData === undefined ? undefined : transformData(sourceData)),
+        [transformData, sourceData]
       );
 
       // 渲染期同步写入（而非 layout effect）：composeSlots 在同一次渲染里就会读取
@@ -273,8 +279,8 @@ export function withPlugins<T = any>(
 
       return (
         <CardSlotProvider
-          orderedPlugins={runtime.orderedPlugins as unknown as CardPlugin<any>[]}
-          context={runtime.context as unknown as CardPluginContext<T>}
+          orderedPlugins={runtime.orderedPlugins as unknown as CardPlugin<unknown>[]}
+          context={runtime.context as unknown as CardPluginContext<unknown>}
         >
           <WrappedComponent
             ref={(node: CardCoreRef | null) => {

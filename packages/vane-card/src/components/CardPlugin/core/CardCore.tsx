@@ -25,6 +25,8 @@ import React, {
 
 // ============ Props 定义 ============
 
+// 公共契约位：泛型默认值 any 保留。CardCoreProps 对外导出，不写 T 的调用方
+// 依赖这个默认值；收紧为 unknown 会让现有 TS 调用方直接报错。
 export interface CardCoreProps<T = any> {
   // ===== 数据相关 =====
   /**
@@ -38,7 +40,9 @@ export interface CardCoreProps<T = any> {
   data?: T;
 
   /**
-   * 渲染函数
+   * 渲染函数。
+   * 第二个参数 context 是 Core 传给调用方的运行时快照（当前只含 isVisible），
+   * 属于对外 props 契约，改为具体形状会收窄调用方写法，故按原签名保留 any。
    */
   renderContent?: (data: T, context: any) => React.ReactNode;
 
@@ -111,6 +115,7 @@ export interface CardCoreRef {
 
 // ============ 核心组件实现 ============
 
+// 公共契约位：组件泛型默认值 any 保留（与 CardCoreProps 同一约定）。
 const CardCore = forwardRef<CardCoreRef, CardCoreProps>(function CardCore<
   T = any
 >(props: CardCoreProps<T>, ref: React.ForwardedRef<CardCoreRef>) {

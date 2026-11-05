@@ -67,6 +67,7 @@ export function __getLiveRegionUsers(): number {
   return liveRegionUsers;
 }
 
+// 公共契约位：工厂泛型默认值 any 保留（不写 T 的调用方依赖默认值）。
 export const createA11yPlugin: PluginCreator<any, A11yPluginConfig> = (
   config = {}
 ) => {
@@ -87,7 +88,9 @@ export const createA11yPlugin: PluginCreator<any, A11yPluginConfig> = (
         if (!container) return;
 
         const name =
-          (context.data as any)?.name || (context.data as any)?.title || "商品卡片";
+          (context.data as { name?: string; title?: string } | undefined)?.name ||
+          (context.data as { name?: string; title?: string } | undefined)?.title ||
+          "商品卡片";
         container.setAttribute("role", "article");
         container.setAttribute("aria-label", name);
 

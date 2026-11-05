@@ -253,7 +253,7 @@ describe("CARD-P2-1 transformData 真正接入渲染链", () => {
       version: "1.0.0",
       priority: 10,
       hooks: {
-        transformData: (_context, data: any) => ({
+        transformData: (_context, data: { price?: number }) => ({
           ...data,
           price: (data?.price ?? 0) * 2,
         }),
@@ -265,7 +265,7 @@ describe("CARD-P2-1 transformData 真正接入渲染链", () => {
 
     const { container } = renderCard([doubling], {
       data: { price: 100 },
-      renderContent: (data: any) => React.createElement("span", { id: "core-data" }, String(data.price)),
+      renderContent: (data: { price?: number }) => React.createElement("span", { id: "core-data" }, String(data.price)),
     });
     await flush();
 
@@ -323,7 +323,7 @@ describe("CARD-P2-6 画廊越界与不安全外链", () => {
   });
 
   it("javascript: 协议的缩放链接不外跳", async () => {
-    const openSpy = vi.spyOn(window, "open").mockImplementation(() => null as any);
+    const openSpy = vi.spyOn(window, "open").mockImplementation(() => null);
 
     const bad = renderCard([createGalleryPlugin({ images: ["javascript:alert(1)"], enableZoom: true })], {
       data: {},

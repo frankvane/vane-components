@@ -31,6 +31,7 @@ function formatCurrency(value: number, currency?: string, locale?: string) {
   }
 }
 
+// 公共契约位：工厂泛型默认值 any 保留（不写 T 的调用方依赖默认值）。
 export const createOrderSummaryPlugin: PluginCreator<any, OrderSummaryPluginConfig> = (
   config = {}
 ) => {
@@ -62,7 +63,9 @@ export const createOrderSummaryPlugin: PluginCreator<any, OrderSummaryPluginConf
       renderFooter: (context) => {
         if (cfg.placement !== "footer") return null;
         const skuPrice = context.bus?.getData?.(BusKeys.skuPrice);
-        const price = Number((skuPrice as any) ?? (context.data as any)?.price ?? 0);
+        const price = Number(
+          skuPrice ?? (context.data as { price?: number } | undefined)?.price ?? 0
+        );
         const qty = Number(context.bus?.getData?.(BusKeys.quantity) ?? 1);
         const appliedCoupon = context.bus?.getData?.(BusKeys.couponApplied) as CouponLike | undefined;
         const subtotal = price * qty;
@@ -110,7 +113,9 @@ export const createOrderSummaryPlugin: PluginCreator<any, OrderSummaryPluginConf
       renderOverlay: (context) => {
         if (cfg.placement !== "overlay") return null;
         const skuPrice = context.bus?.getData?.(BusKeys.skuPrice);
-        const price = Number((skuPrice as any) ?? (context.data as any)?.price ?? 0);
+        const price = Number(
+          skuPrice ?? (context.data as { price?: number } | undefined)?.price ?? 0
+        );
         const qty = Number(context.bus?.getData?.(BusKeys.quantity) ?? 1);
         const appliedCoupon = context.bus?.getData?.(BusKeys.couponApplied) as CouponLike | undefined;
         const subtotal = price * qty;

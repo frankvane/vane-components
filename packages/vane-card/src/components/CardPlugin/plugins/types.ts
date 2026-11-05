@@ -8,6 +8,13 @@
  *  - 已删除 9 个死钩子（onSelectionChange / onCartChange / onWishlistChange /
  *    onBeforeDataChange / onDataChange / renderContainer / renderContentWrapper /
  *    renderBadge / renderActions），其能力由 setState 差分 / renderOverlay 替代。
+ *
+ * 保留 any 的位置（均为公共契约位，收紧会破坏调用方编译）：
+ *  - CardPluginContext<T = any> / CardPluginHooks<T = any> / CardPlugin<T = any> /
+ *    WithPluginsConfig<T = any>：泛型默认值，不写 T 的调用方依赖它成立；
+ *  - sharedData: Map<string, any>：跨插件共享数据位，插件作者按自身约定读取；
+ *  - config?: Record<string, any>：插件配置是开放结构（headerPosition / order 等各异）；
+ *  - PluginCreator<T = any, Config = any>：工厂签名，与上面三个泛型默认值同源。
  */
 
 import type React from "react";

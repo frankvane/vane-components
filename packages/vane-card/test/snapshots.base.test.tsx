@@ -12,6 +12,7 @@ import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { describe, it, expect, vi } from "vitest";
 import { createPluginManager, createPluginBus } from "vane-plugin-core";
+import type { Plugin, PluginContext } from "vane-plugin-core";
 import { BusKeys } from "../src/components/CardPlugin/plugins/BusKeys";
 import { createSKUPlugin } from "../src/custom-plugins";
 import { createQuantityPlugin } from "../src/custom-plugins";
@@ -64,8 +65,8 @@ describe("C2 行为基线（R2 修复 + 总线协议）", () => {
     // —— 真实内核：5 个消费者插件 onMount 订阅总线，返回清理函数 ——
     const bus = createPluginBus();
     const offCalls = { count: 0 };
-    const realOn = (bus as any).on.bind(bus);
-    vi.spyOn(bus, "on").mockImplementation((...args: any[]) => {
+    const realOn = bus.on.bind(bus);
+    vi.spyOn(bus, "on").mockImplementation((...args: Parameters<typeof bus.on>) => {
       const realOff = realOn(...args);
       return () => {
         offCalls.count += 1;
@@ -82,9 +83,9 @@ describe("C2 行为基线（R2 修复 + 总线协议）", () => {
       createCouponRecommendPlugin(),
       createOrderSummaryPlugin(),
     ];
-    manager.registerAll(consumers as any);
+    manager.registerAll(consumers as unknown as Plugin[]);
 
-    const ctx: any = {
+    const ctx: Record<string, unknown> = {
       bus,
       data: { price: 100, skuList: [{ id: "a", price: 100, stock: 5 }] },
       forceUpdate: vi.fn(),
@@ -95,8 +96,8 @@ describe("C2 行为基线（R2 修复 + 总线协议）", () => {
       getContainer: () => null,
     };
 
-    await manager.executeHook("onMount", ctx);
-    const registeredOn = (bus.on as any).mock.calls.length;
+    await manager.executeHook("onMount", ctx as unknown as PluginContext);
+    const registeredOn = vi.mocked(bus.on).mock.calls.length;
 
     // 卸载：内核 clear() 逆序执行 onMount 返回的清理函数 → bus.off 计数 == on 计数
     manager.clear();

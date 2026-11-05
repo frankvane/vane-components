@@ -22,5 +22,6 @@ export type { PluginBus } from "./types";
 export { withPlugins } from "./withPlugins";
 export { BusKeys } from "./BusKeys";
 export type { BusKey } from "./BusKeys";
-export { usePluginSlot, renderDomainSlot, CardSlotProvider } from "./slots";
+export { usePluginSlot, renderDomainSlot } from "./slots";
+export { CardSlotProvider } from "./CardSlotProvider";
 export { setupForceUpdateOnBusKeys } from "./utils/busHelpers";

@@ -13,6 +13,7 @@
 import React, { act } from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createPluginManager, createPluginBus } from "vane-plugin-core";
+import type { Plugin, PluginContext } from "vane-plugin-core";
 import type { CardPlugin } from "../src/components/CardPlugin/plugins/types";
 import { usePluginSlot } from "../src/components/CardPlugin/plugins/slots";
 import { renderCard, installObservers, flush } from "./helpers";
@@ -103,7 +104,7 @@ describe("插件运行期语义", () => {
   it("renderPriceArea：3 个插件按 config.order 升序渲染（R5）", () => {
     function Sink() {
       const nodes = usePluginSlot("priceArea");
-      return React.createElement("div", { id: "sink" }, nodes as any);
+      return React.createElement("div", { id: "sink" }, nodes);
     }
     const p1: CardPlugin = {
       name: "p1",
@@ -145,7 +146,7 @@ describe("插件运行期语义", () => {
     const p: CardPlugin = {
       name: "st",
       hooks: {
-        onStateChange: (_ctx, prev: any, next: any) => {
+        onStateChange: (_ctx, prev: { isVisible?: boolean }, next: { isVisible?: boolean }) => {
           diffs.push([Boolean(prev.isVisible), Boolean(next.isVisible)]);
         },
       },
@@ -167,14 +168,14 @@ describe("内核级语义（vane-plugin-core 直接驱动）", () => {
         name: "a",
         priority: 10,
         hooks: { onClick: () => { order.push("a"); return false; } },
-      } as any,
+      } as unknown as Plugin,
       {
         name: "b",
         priority: 5,
         hooks: { onClick: () => { order.push("b"); } },
-      } as any,
+      } as unknown as Plugin,
     ]);
-    await manager.executeHook("onClick", {} as any);
+    await manager.executeHook("onClick", {} as unknown as PluginContext);
     expect(order).toEqual(["a"]);
   });
 
@@ -197,8 +198,8 @@ describe("内核级语义（vane-plugin-core 直接驱动）", () => {
 
     const bus = createPluginBus();
     let off = 0;
-    const realOn = (bus as any).on.bind(bus);
-    vi.spyOn(bus, "on").mockImplementation((...args: any[]) => {
+    const realOn = bus.on.bind(bus);
+    vi.spyOn(bus, "on").mockImplementation((...args: Parameters<typeof bus.on>) => {
       const o = realOn(...args);
       return () => {
         off += 1;
@@ -212,8 +213,8 @@ describe("内核级语义（vane-plugin-core 直接驱动）", () => {
       createComparePricePlugin(),
       createCouponRecommendPlugin(),
       createOrderSummaryPlugin(),
-    ] as any);
-    const ctx: any = {
+    ] as unknown as Plugin[]);
+    const ctx: Record<string, unknown> = {
       bus,
       data: { price: 100 },
       forceUpdate: vi.fn(),
@@ -223,8 +224,8 @@ describe("内核级语义（vane-plugin-core 直接驱动）", () => {
       getContainer: () => null,
       setState: () => {},
     };
-    await manager.executeHook("onMount", ctx);
-    const onCount = (bus.on as any).mock.calls.length;
+    await manager.executeHook("onMount", ctx as unknown as PluginContext);
+    const onCount = vi.mocked(bus.on).mock.calls.length;
     manager.clear();
     expect(off).toBe(onCount);
     expect(off).toBeGreaterThan(0);

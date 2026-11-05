@@ -12,15 +12,13 @@ export interface StatePluginConfig {
   onWishlistChange?: (cardId: string, isWishlisted: boolean) => void;
 }
 
+// 公共契约位：工厂泛型默认值 any 保留（不写 T 的调用方依赖默认值）。
 export const createStatePlugin: PluginCreator<any, StatePluginConfig> = (
   config = {}
 ) => {
-  const {
-    enableCart = true,
-    enableWishlist = true,
-    onCartChange,
-    onWishlistChange,
-  } = config;
+  // enableCart / enableWishlist 是历史配置项，从未参与状态逻辑；
+  // 保留在 config 里原样透传，但不再解构，避免「声明了却不使用」。
+  const { onCartChange, onWishlistChange } = config;
 
   const plugin: CardPlugin = {
     name: "StatePlugin",

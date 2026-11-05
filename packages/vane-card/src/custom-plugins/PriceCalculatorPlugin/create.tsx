@@ -3,7 +3,6 @@
  */
 import type { CardPlugin, PluginCreator } from "../../components/CardPlugin/plugins/types";
 import { BusKeys } from "../../components/CardPlugin/plugins/BusKeys";
-import { setupForceUpdateOnBusKeys } from "../../components/CardPlugin/plugins/utils/busHelpers";
 import { applyDefaults } from "../../components/CardPlugin/plugins/utils/config";
 import { computeCouponCut, type CouponLike } from "../../components/CardPlugin/plugins/utils/coupon";
 import React from "react";
@@ -44,6 +43,7 @@ function readOriginalPrice(data: unknown): number {
   return Number(d.oldPrice ?? d.originalPrice ?? 0);
 }
 
+// 公共契约位：工厂泛型默认值 any 保留（不写 T 的调用方依赖默认值）。
 export const createPriceCalculatorPlugin: PluginCreator<any, PriceCalculatorPluginConfig> = (
   config = {}
 ) => {
@@ -68,7 +68,7 @@ export const createPriceCalculatorPlugin: PluginCreator<any, PriceCalculatorPlug
         // 在价格/数量/优惠券相关键变化时触发更新与事件发布
         const recalc = () => {
           const skuPrice = context.bus?.getData?.(BusKeys.skuPrice);
-          const price = Number((skuPrice as any) ?? (context.data as any)?.price ?? 0);
+          const price = Number(skuPrice ?? (context.data as { price?: number } | undefined)?.price ?? 0);
           const quantity = Number(context.bus?.getData?.(BusKeys.quantity) ?? 1);
           const appliedCoupon = context.bus?.getData?.(BusKeys.couponApplied) as CouponLike | undefined;
           const subtotal = price * quantity;
@@ -101,7 +101,7 @@ export const createPriceCalculatorPlugin: PluginCreator<any, PriceCalculatorPlug
       renderFooter: (context) => {
         const skuPrice = context.bus?.getData?.(BusKeys.skuPrice);
         const price = Number(
-          (skuPrice as any) ?? (context.data as any)?.price ?? 0
+          skuPrice ?? (context.data as { price?: number } | undefined)?.price ?? 0
         );
         const originalPrice = readOriginalPrice(context.data);
         const hasOriginal = cfg.showOriginalPrice && originalPrice > price && originalPrice > 0;
@@ -149,7 +149,7 @@ export const createPriceCalculatorPlugin: PluginCreator<any, PriceCalculatorPlug
       renderPriceArea: (context) => {
         const skuPrice = context.bus?.getData?.(BusKeys.skuPrice);
         const price = Number(
-          (skuPrice as any) ?? (context.data as any)?.price ?? 0
+          skuPrice ?? (context.data as { price?: number } | undefined)?.price ?? 0
         );
         const originalPrice = readOriginalPrice(context.data);
         const hasOriginal = cfg.showOriginalPrice && originalPrice > price && originalPrice > 0;

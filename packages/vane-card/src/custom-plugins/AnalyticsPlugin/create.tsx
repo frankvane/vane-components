@@ -14,7 +14,9 @@ import type { CardPlugin, CardPluginContext } from "../../components/CardPlugin/
 import React from "react";
 
 export interface AnalyticsPluginConfig {
+  // 公共契约位：上报载荷由宿主自定义，保持 any。
   transport?: (event: string, payload: any) => void; // 自定义上报管道
+  // 公共契约位：第三方 SDK 的载荷同样由宿主定义，保持 any。
   sdk?: { track?: (event: string, payload: any) => void }; // 第三方 SDK
   minExposureMs?: number; // 最小曝光时长阈值，短于此不记入曝光退出
 }
@@ -25,7 +27,7 @@ const VISIBLE_SINCE = "__analytics.visibleSince";
 export const createAnalyticsPlugin = (
   config: AnalyticsPluginConfig = {}
 ): CardPlugin => {
-  const send = (event: string, payload: any) => {
+  const send = (event: string, payload: unknown) => {
     try {
       if (typeof config.transport === "function") {
         config.transport(event, payload);
@@ -47,10 +49,10 @@ export const createAnalyticsPlugin = (
     hooks: {
       onMount: (context: CardPluginContext) => {
         // 只订阅总线；曝光交给 onVisibilityChange
-        const offSku = context.bus?.on?.("sku:change", (data: any) => {
+        const offSku = context.bus?.on?.("sku:change", (data: Record<string, unknown>) => {
           send("sku_change", { cardId: context.cardId, ...data });
         });
-        const offPrice = context.bus?.on?.("price:change", (data: any) => {
+        const offPrice = context.bus?.on?.("price:change", (data: Record<string, unknown>) => {
           send("price_change", { cardId: context.cardId, ...data });
         });
 

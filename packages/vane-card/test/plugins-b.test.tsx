@@ -34,17 +34,17 @@ beforeEach(() => {
  * 这条顺序约定是卡片的隐式契约 —— Analytics(50) 之所以能收到
  * PriceCalculator(20) 的首个 price:change，靠的就是 50 > 20。
  */
-function probe(sink: Array<{ event: string; payload: any }>): CardPlugin {
+function probe(sink: Array<{ event: string; payload: unknown }>): CardPlugin {
   return {
     name: "probe",
     priority: 999,
     hooks: {
       onMount: (ctx) => {
         const offs = [
-          ctx.bus?.on?.("price:change", (payload: any) =>
+          ctx.bus?.on?.("price:change", (payload: unknown) =>
             sink.push({ event: "price:change", payload })
           ),
-          ctx.bus?.on?.("sku:change", (payload: any) =>
+          ctx.bus?.on?.("sku:change", (payload: unknown) =>
             sink.push({ event: "sku:change", payload })
           ),
         ];
@@ -56,7 +56,7 @@ function probe(sink: Array<{ event: string; payload: any }>): CardPlugin {
 
 describe("价格链路（Quantity → PriceCalculator → 总线）", () => {
   it("PriceCalculator 在 onMount 发布 price:change，含单价/数量/小计/合计", async () => {
-    const events: Array<{ event: string; payload: any }> = [];
+    const events: Array<{ event: string; payload: unknown }> = [];
     renderCard(
       [createQuantityPlugin(), createPriceCalculatorPlugin(), probe(events)],
       { data: { price: 100 } }
@@ -65,7 +65,12 @@ describe("价格链路（Quantity → PriceCalculator → 总线）", () => {
 
     const priceEvents = events.filter((e) => e.event === "price:change");
     expect(priceEvents.length).toBeGreaterThan(0);
-    const last = priceEvents[priceEvents.length - 1].payload;
+    const last = priceEvents[priceEvents.length - 1].payload as {
+      price?: number;
+      quantity?: number;
+      subtotal?: number;
+      total?: number;
+    };
     expect(last.price).toBe(100);
     expect(last.quantity).toBe(1);
     expect(last.subtotal).toBe(100);
@@ -73,7 +78,7 @@ describe("价格链路（Quantity → PriceCalculator → 总线）", () => {
   });
 
   it("套用优惠券后合计被扣减（券走总线，不靠插件互相 import）", async () => {
-    const events: Array<{ event: string; payload: any }> = [];
+    const events: Array<{ event: string; payload: unknown }> = [];
     renderCard(
       [
         createCouponPlugin({ coupons: [{ code: "C10", discount: 10 }], autoApply: true }),
@@ -85,7 +90,9 @@ describe("价格链路（Quantity → PriceCalculator → 总线）", () => {
     await flush();
 
     const priceEvents = events.filter((e) => e.event === "price:change");
-    const discounted = priceEvents.some((e) => e.payload.total === 90);
+    const discounted = priceEvents.some(
+      (e) => (e.payload as { total?: number }).total === 90
+    );
     expect(discounted).toBe(true);
   });
 });
@@ -98,7 +105,7 @@ describe("Analytics 复用 Core 的可见性观测", () => {
   });
 
   it("可见性变化经 Core 下发，产生 exposure_enter / exposure_exit", async () => {
-    const seen: Array<[string, any]> = [];
+    const seen: Array<[string, unknown]> = [];
     renderCard([
       createAnalyticsPlugin({ transport: (event, payload) => seen.push([event, payload]) }),
     ]);
@@ -107,17 +114,17 @@ describe("Analytics 复用 Core 的可见性观测", () => {
     expect(seen.some(([e]) => e === "exposure_enter")).toBe(true);
 
     // 手动模拟「离开视口」：Core 的 IO 回调里拿到的是我们注入的 mock
-    const io = ioInstances()[0] as any;
+    const io = ioInstances()[0];
     io.callback([{ isIntersecting: false, target: io.observed[0] }]);
     await flush();
 
     const exit = seen.find(([e]) => e === "exposure_exit");
     expect(exit).toBeTruthy();
-    expect(typeof exit?.[1].dwellMs).toBe("number");
+    expect(typeof (exit?.[1] as { dwellMs?: number } | undefined)?.dwellMs).toBe("number");
   });
 
   it("minExposureMs 未达标时不上报 exposure_exit", async () => {
-    const seen: Array<[string, any]> = [];
+    const seen: Array<[string, unknown]> = [];
     renderCard([
       createAnalyticsPlugin({
         minExposureMs: 60_000,
@@ -126,7 +133,7 @@ describe("Analytics 复用 Core 的可见性观测", () => {
     ]);
     await flush();
 
-    const io = ioInstances()[0] as any;
+    const io = ioInstances()[0];
     io.callback([{ isIntersecting: false, target: io.observed[0] }]);
     await flush();
 

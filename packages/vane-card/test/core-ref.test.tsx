@@ -14,7 +14,7 @@ describe("CardCore Ref 契约", () => {
     const dom = ref.current?.getContainer();
     expect(dom).not.toBeNull();
     expect(dom?.tagName).toBe("DIV");
-    expect(container.contains(dom as any)).toBe(true);
+    expect(container.contains(dom as HTMLDivElement)).toBe(true);
   });
 
   it("getSize 返回 { width, height }（happy-dom 下为 0）", () => {
@@ -29,8 +29,8 @@ describe("CardCore Ref 契约", () => {
   });
 
   it("ref 双通道：containerRefExternal 也能拿到容器", () => {
-    const ext = { current: null as any };
-    const { container } = renderCore({ containerRefExternal: ext as any });
+    const ext: React.RefObject<HTMLDivElement | null> = { current: null };
+    const { container } = renderCore({ containerRefExternal: ext });
     expect(ext.current).not.toBeNull();
     expect(container.contains(ext.current)).toBe(true);
   });

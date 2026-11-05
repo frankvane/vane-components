@@ -6,6 +6,7 @@ export interface ResponsivePluginConfig {
   containerStyles?: { mobile?: React.CSSProperties; tablet?: React.CSSProperties; desktop?: React.CSSProperties };
 }
 
+// 公共契约位：工厂泛型默认值 any 保留（不写 T 的调用方依赖默认值）。
 export const createResponsivePlugin: PluginCreator<any, ResponsivePluginConfig> = (
   config = {}
 ) => {

@@ -36,7 +36,7 @@ import { UpsellBundle } from "./components/UpsellBundle";
 import { VariantMediaSwitcher } from "./components/VariantMediaSwitcher";
 import { VariantSelector } from "./components/VariantSelector";
 import { Warranty } from "./components/Warranty";
-import { ProductCard as ProductCardMain } from "./ProductCard";
+import { ProductCard as ProductCardMain } from "./ProductCardRoot";
 
 /**
  * `<ProductCard>` 及其 38 个子组件。

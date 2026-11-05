@@ -1,11 +1,13 @@
 /**
  * QuantityPlugin - 数量步进器插件
  */
-import type { CardPlugin, PluginCreator } from "../../components/CardPlugin/plugins/types";
+import type { CardPlugin, PluginBus, PluginCreator } from "../../components/CardPlugin/plugins/types";
 import { BusKeys } from "../../components/CardPlugin/plugins/BusKeys";
 import { setupForceUpdateOnBusKeys } from "../../components/CardPlugin/plugins/utils/busHelpers";
 import { applyDefaults } from "../../components/CardPlugin/plugins/utils/config";
 import React from "react";
+
+import { Stepper } from "./internal";
 
 export interface QuantityPluginConfig {
   min?: number;
@@ -17,11 +19,15 @@ export interface QuantityPluginConfig {
   clampOnMaxDecrease?: boolean; // 当最大值下降时是否钳制到新上限
 }
 
-function getMax(context: any, config: QuantityPluginConfig, min: number): number {
+function getMax(
+  context: { bus?: PluginBus; data?: unknown },
+  config: QuantityPluginConfig,
+  min: number
+): number {
   if (typeof config.max === "number") return Math.max(min, config.max);
   const variant = context.bus?.getData?.(BusKeys.skuVariant) as { stock?: number } | undefined;
   const stockVariant = config.useVariantStock !== false ? variant?.stock : undefined;
-  const inventory = (context.data as any)?.inventory as number | undefined;
+  const inventory = (context.data as { inventory?: number } | undefined)?.inventory;
   const cap = typeof stockVariant === "number" ? stockVariant : typeof inventory === "number" ? inventory : undefined;
   if (typeof cap === "number") {
     // 库存为 0 时直接返回 0（缺货），避免最小值提升为 1
@@ -31,131 +37,7 @@ function getMax(context: any, config: QuantityPluginConfig, min: number): number
   return 99;
 }
 
-const Stepper: React.FC<{
-  context: any;
-  min: number;
-  step: number;
-  max: number;
-  resetOnVariantChange?: boolean;
-  clampOnMaxDecrease?: boolean;
-}> = ({ context, min, step, max, resetOnVariantChange = true, clampOnMaxDecrease = true }) => {
-  const minActive = max === 0 ? 0 : min;
-  const q = (context.bus?.getData?.(BusKeys.quantity) as number | undefined) ?? minActive;
-  // 输入防抖与本地显示值（不立即写入总线）
-  const [inputVal, setInputVal] = React.useState<string>(String(q));
-  React.useEffect(() => {
-    setInputVal(String(q));
-  }, [q]);
-  const timerRef = React.useRef<number | undefined>(undefined);
-  // 卸载时清掉未触发的防抖定时器，避免组件已卸载还写总线（P2-8）
-  React.useEffect(
-    () => () => {
-      if (timerRef.current) window.clearTimeout(timerRef.current);
-    },
-    []
-  );
-  const setQ = (next: number) => {
-    const clamped = Math.min(Math.max(next, minActive), max);
-    context.bus?.setData?.(BusKeys.quantity, clamped);
-  };
-  const dec = () => setQ(q - step);
-  const inc = () => setQ(q + step);
-
-  // 当规格切换时重置数量到默认值；当库存上限缩小时自动钳制
-  const variantSku = (context.bus?.getData?.(BusKeys.skuVariant) as { sku?: string } | undefined)?.sku;
-  const prevSkuRef = React.useRef<string | undefined>(variantSku);
-  React.useEffect(() => {
-    if (prevSkuRef.current !== variantSku) {
-      prevSkuRef.current = variantSku;
-      if (resetOnVariantChange) {
-        setQ(max === 0 ? 0 : min);
-      }
-    }
-  }, [variantSku, min, max, resetOnVariantChange]);
-
-  React.useEffect(() => {
-    if (max === 0) {
-      if (q !== 0) setQ(0);
-    } else if (clampOnMaxDecrease && q > max) {
-      setQ(max);
-    }
-  }, [max, clampOnMaxDecrease]);
-
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-      <span style={{ fontSize: 12, color: "#666" }}>数量</span>
-      <button
-        onClick={dec}
-        disabled={q <= minActive}
-        style={{
-          minWidth: 32,
-          lineHeight: 1,
-          padding: "4px 10px",
-          border: "1px solid #ddd",
-          borderRadius: 6,
-          background: "#fff",
-          // 按钮自己内联了白底，就必须自己给字色：只靠继承的话，宿主是深色
-          // 页面时 -/+ 会变成浅字压在白底上（demo 里就这么丢过一次）。
-          color: q <= minActive ? "#8f8f8f" : "#333",
-          cursor: q <= minActive ? "not-allowed" : "pointer",
-        }}
-      >
-        -
-      </button>
-      <input
-        type="number"
-        value={inputVal}
-        min={minActive}
-        max={max}
-        step={step}
-        onChange={(e) => {
-          const val = e.target.value;
-          setInputVal(val);
-          if (timerRef.current) {
-            window.clearTimeout(timerRef.current);
-          }
-          timerRef.current = window.setTimeout(() => {
-            const n = Number(val);
-            if (Number.isFinite(n)) {
-              setQ(n);
-            }
-          }, 150);
-        }}
-        disabled={max === 0}
-        style={{ width: 56, textAlign: "center", padding: "4px 8px", border: "1px solid #ddd", borderRadius: 6, background: max === 0 ? "#f7f7f7" : "#fff", color: max === 0 ? "#bbb" : "#333" }}
-      />
-      <button
-        onClick={inc}
-        disabled={q >= max || max === 0}
-        style={{
-          minWidth: 32,
-          lineHeight: 1,
-          padding: "4px 10px",
-          border: "1px solid #ddd",
-          borderRadius: 6,
-          background: "#fff",
-          color: q >= max || max === 0 ? "#8f8f8f" : "#333",
-          cursor: q >= max || max === 0 ? "not-allowed" : "pointer",
-        }}
-      >
-        +
-      </button>
-      {max === 0 ? (
-        <span style={{ marginLeft: "auto", fontSize: 12, color: "#c62828", fontWeight: 700 }}>缺货</span>
-      ) : (
-        <span style={{ marginLeft: "auto", fontSize: 12, color: "#6b6b6b" }}>最大 {max}</span>
-      )}
-      {(() => {
-        const n = Number(inputVal);
-        const invalid = !Number.isFinite(n) || n < minActive || n > max;
-        return invalid ? (
-          <span style={{ marginLeft: 8, fontSize: 12, color: "#c62828" }}>请输入 {minActive} 至 {max} 的整数</span>
-        ) : null;
-      })()}
-    </div>
-  );
-};
-
+// 公共契约位：工厂泛型默认值 any 保留（不写 T 的调用方依赖默认值）。
 export const createQuantityPlugin: PluginCreator<any, QuantityPluginConfig> = (
   config = {}
 ) => {

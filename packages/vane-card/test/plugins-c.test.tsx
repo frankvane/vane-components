@@ -162,7 +162,7 @@ describe("AnimationPlugin 生命周期", () => {
       addEventListener: () => {},
       removeEventListener: () => {},
       dispatchEvent: () => false,
-    })) as any;
+    })) as unknown as typeof window.matchMedia;
 
     try {
       const { container } = renderCard([createAnimationPlugin() as CardPlugin]);

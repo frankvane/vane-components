@@ -8,12 +8,14 @@
  * 派生键（P1-3）：每次选择变化都先清后写（`writeSkuDerivedKeys`），
  * 并且 onMount 返回总线订阅，只装 SKUPlugin 时选中态也能刷新。
  */
-import type { CardPlugin, PluginCreator } from "../../components/CardPlugin/plugins/types";
+import type { CardPlugin, PluginBus, PluginCreator } from "../../components/CardPlugin/plugins/types";
 import { BusKeys } from "../../components/CardPlugin/plugins/BusKeys";
 import { attributesMatchExactly } from "../../components/CardPlugin/types/product";
 import { setupForceUpdateOnBusKeys } from "../../components/CardPlugin/plugins/utils/busHelpers";
 import { writeSkuDerivedKeys } from "../../components/CardPlugin/plugins/utils/sku";
 import React from "react";
+
+import { Selector } from "./internal";
 
 export interface SKUAttribute {
   name: string; // 如 颜色、尺码
@@ -42,44 +44,7 @@ function matchVariant(
   return variants.find((v) => attributesMatchExactly(v.attrs, selection));
 }
 
-const Selector: React.FC<{
-  attributes: SKUAttribute[];
-  selection: Record<string, string>;
-  onChange: (name: string, value: string) => void;
-}> = ({ attributes, selection, onChange }) => {
-  return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 10 }}>
-      {attributes.map((attr) => (
-        <div key={attr.name} style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 12, color: "#666", minWidth: 60 }}>{attr.name}</span>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            {attr.options.map((opt) => {
-              const active = selection[attr.name] === opt;
-              return (
-                <button
-                  key={opt}
-                  onClick={() => onChange(attr.name, opt)}
-                  style={{
-                    padding: "6px 10px",
-                    borderRadius: 6,
-                    border: active ? "2px solid #2e7d32" : "1px solid #ddd",
-                    background: active ? "#E8F5E9" : "#fff",
-                    color: "#333",
-                    cursor: "pointer",
-                    fontSize: 12,
-                  }}
-                >
-                  {opt}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-};
-
+// 公共契约位：工厂泛型默认值 any 保留（不写 T 的调用方依赖默认值）。
 export const createSKUPlugin: PluginCreator<any, SKUPluginConfig> = (config) => {
   const attributes = config?.attributes || [];
   const variants = config?.variants || [];
@@ -87,7 +52,7 @@ export const createSKUPlugin: PluginCreator<any, SKUPluginConfig> = (config) => 
 
   /** 唯一的「写选择 + 写派生键 + 发事件」入口（footer / overlay / 首屏共用） */
   const applySelection = (
-    context: { bus?: any },
+    context: { bus?: PluginBus },
     next: Record<string, string>
   ) => {
     const bus = context.bus;
@@ -112,7 +77,8 @@ export const createSKUPlugin: PluginCreator<any, SKUPluginConfig> = (config) => 
       onMount: (context) => {
         // 初始化选择
         const initSel = attributes.reduce<Record<string, string>>((acc, a) => {
-          const d = (context.data as any)?.defaultAttrs?.[a.name];
+          const d = (context.data as { defaultAttrs?: Record<string, string> } | undefined)
+            ?.defaultAttrs?.[a.name];
           if (d) acc[a.name] = d;
           return acc;
         }, {});

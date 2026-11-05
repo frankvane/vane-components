@@ -11,17 +11,17 @@ import CardCore, {
 } from "../src/components/CardPlugin/core/CardCore";
 import { withPlugins } from "../src/components/CardPlugin/plugins/withPlugins";
 import type { CardPlugin } from "../src/components/CardPlugin/plugins/types";
-import { ProductCard } from "../src/components/CardPlugin/compound/ProductCard";
+import { ProductCard } from "../src/components/CardPlugin/compound/ProductCardRoot";
 import type { ProductData } from "../src/components/CardPlugin/types/product";
 
-(globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
+(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 // ---- Observer 桩 ----
 class MockIntersectionObserver {
   static instances: MockIntersectionObserver[] = [];
-  callback: any;
+  callback: (entries: Array<{ isIntersecting: boolean; target: Element }>) => void;
   observed: Element[] = [];
-  constructor(cb: any) {
+  constructor(cb: (entries: Array<{ isIntersecting: boolean; target: Element }>) => void) {
     this.callback = cb;
     MockIntersectionObserver.instances.push(this);
   }
@@ -37,9 +37,9 @@ class MockIntersectionObserver {
 
 class MockResizeObserver {
   static instances: MockResizeObserver[] = [];
-  callback: any;
+  callback: (entries: Array<{ contentRect: { width: number; height: number } }>) => void;
   observed: Element[] = [];
-  constructor(cb: any) {
+  constructor(cb: (entries: Array<{ contentRect: { width: number; height: number } }>) => void) {
     this.callback = cb;
     MockResizeObserver.instances.push(this);
   }
@@ -56,8 +56,10 @@ class MockResizeObserver {
 export function installObservers() {
   MockIntersectionObserver.instances = [];
   MockResizeObserver.instances = [];
-  (globalThis as any).IntersectionObserver = MockIntersectionObserver as any;
-  (globalThis as any).ResizeObserver = MockResizeObserver as any;
+  (globalThis as unknown as Record<string, unknown>).IntersectionObserver =
+    MockIntersectionObserver;
+  (globalThis as unknown as Record<string, unknown>).ResizeObserver =
+    MockResizeObserver;
 }
 export function ioInstances() {
   return MockIntersectionObserver.instances;
@@ -72,7 +74,7 @@ export interface RenderHandle {
   ref: React.RefObject<CardCoreRef>;
   unmount: () => void;
   /** 用新的 props 重渲染同一棵树（用于验证 hooks 顺序在重渲染中保持稳定） */
-  rerender: (next: Partial<CardCoreProps<any>>) => Promise<void>;
+  rerender: (next: Partial<CardCoreProps>) => Promise<void>;
 }
 
 /**
@@ -91,17 +93,17 @@ export async function flush(times = 3): Promise<void> {
 
 /** 用 withPlugins 包装 CardCore 渲染一张卡（真实插件系统链路） */
 export function renderCard(
-  plugins: CardPlugin<any>[],
-  props: Partial<CardCoreProps<any>> = {}
+  plugins: CardPlugin[],
+  props: Partial<CardCoreProps> = {}
 ): RenderHandle {
-  const Wrapped = withPlugins(CardCore as any, { plugins });
+  const Wrapped = withPlugins(CardCore, { plugins });
   const ref = React.createRef<CardCoreRef>();
   const container = document.createElement("div");
   document.body.appendChild(container);
   const root = createRoot(container);
   const baseProps = { cardId: "test-card", data: {}, ...props };
   const render = (p: Record<string, unknown>) =>
-    root.render(React.createElement(Wrapped, { ref, ...p } as any));
+    root.render(React.createElement(Wrapped, { ref, ...p } as unknown as CardCoreProps));
   act(() => {
     render(baseProps);
   });
@@ -123,7 +125,7 @@ export function renderCard(
 
 /** 直接渲染 CardCore（不带插件系统），用于 Core 单测 */
 export function renderCore(
-  props: Partial<CardCoreProps<any>> = {}
+  props: Partial<CardCoreProps> = {}
 ): RenderHandle {  const ref = React.createRef<CardCoreRef>();
   const container = document.createElement("div");
   document.body.appendChild(container);
@@ -134,7 +136,7 @@ export function renderCore(
     ...props,
   };
   const render = (p: Record<string, unknown>) =>
-    root.render(React.createElement(CardCore as any, { ref, ...p } as any));
+    root.render(React.createElement(CardCore, { ref, ...p } as unknown as CardCoreProps));
   act(() => {
     render(current);
   });
