@@ -8,8 +8,9 @@
  *    最高 priority 且返回非 null 的插件胜出，否则由核心渲染默认结构。
  *
  * 排序规则与内核一致：config.order 升序（越小越靠前）→ priority 降序（越大越靠后）。
- * ResumeSlotProvider 把当前实例的 orderedPlugins 与领域上下文下发给 ResumeCore
- * 与内容区子组件（它们通过 useResumeSlot / useResumeContext 读取）。
+ * ResumeSlotProvider（见同目录 ResumeSlotProvider.tsx）把当前实例的 orderedPlugins
+ * 与领域上下文下发给 ResumeCore 与内容区子组件（它们通过 useResumeSlot /
+ * useResumeContext 读取）。
  */
 
 import React, { createContext, useContext, useMemo, useRef } from "react";
@@ -21,17 +22,19 @@ import type {
 } from "./types";
 import { DECORATIVE_SLOTS } from "./types";
 
-type SlotGroups = Partial<Record<ResumeSlotName, ResumePlugin<any>[]>>;
+type SlotGroups = Partial<Record<ResumeSlotName, ResumePlugin<unknown>[]>>;
 
-interface SlotContextValue {
-  orderedPlugins: ResumePlugin<any>[];
-  context: ResumePluginContext<any>;
+export interface SlotContextValue {
+  orderedPlugins: ResumePlugin<unknown>[];
+  context: ResumePluginContext<unknown>;
   slots: SlotGroups;
 }
 
-const SlotContext = createContext<SlotContextValue | null>(null);
+export const SlotContext = createContext<SlotContextValue | null>(null);
 
-function sortByOrder(plugins: ResumePlugin<any>[]): ResumePlugin<any>[] {
+function sortByOrder(
+  plugins: ResumePlugin<unknown>[]
+): ResumePlugin<unknown>[] {
   return [...plugins].sort(
     (a, b) =>
       (a.config?.order ?? 0) - (b.config?.order ?? 0) ||
@@ -40,7 +43,9 @@ function sortByOrder(plugins: ResumePlugin<any>[]): ResumePlugin<any>[] {
 }
 
 /** 把插件按装饰累积槽预分组（过滤 + 排序一次完成） */
-export function groupPluginsBySlot(plugins: ResumePlugin<any>[]): SlotGroups {
+export function groupPluginsBySlot(
+  plugins: ResumePlugin<unknown>[]
+): SlotGroups {
   const groups: SlotGroups = {};
   for (const slot of DECORATIVE_SLOTS) {
     groups[slot] = sortByOrder(
@@ -54,31 +59,10 @@ export function groupPluginsBySlot(plugins: ResumePlugin<any>[]): SlotGroups {
   return groups;
 }
 
-/**
- * 由 withResumePlugins 包在 WrappedComponent 外层，把当前实例的 orderedPlugins 与
- * 领域上下文下发给 ResumeCore 与子组件。
- */
-export function ResumeSlotProvider({
-  orderedPlugins,
-  context,
-  children,
-}: {
-  orderedPlugins: ResumePlugin<any>[];
-  context: ResumePluginContext<any>;
-  children: React.ReactNode;
-}) {
-  const slots = useMemo(() => groupPluginsBySlot(orderedPlugins), [orderedPlugins]);
-  const value = useMemo<SlotContextValue>(
-    () => ({ orderedPlugins, context, slots }),
-    [orderedPlugins, context, slots]
-  );
-  return <SlotContext.Provider value={value}>{children}</SlotContext.Provider>;
-}
-
 /** 渲染一个已分组的装饰累积槽（不重复排序 / 过滤） */
 function renderSlotGroup(
-  plugins: ResumePlugin<any>[],
-  context: ResumePluginContext<any>,
+  plugins: ResumePlugin<unknown>[],
+  context: ResumePluginContext<unknown>,
   hookName: ResumeSlotName
 ): React.ReactNode[] {
   return plugins.reduce<React.ReactNode[]>((acc, plugin) => {
@@ -86,7 +70,7 @@ function renderSlotGroup(
       const node = (
         plugin.hooks as Record<
           string,
-          (ctx: ResumePluginContext<any>) => React.ReactNode
+          (ctx: ResumePluginContext<unknown>) => React.ReactNode
         >
       )[hookName](context);
       if (node === null || node === undefined) return acc;
@@ -105,8 +89,8 @@ function renderSlotGroup(
 
 /** 渲染某个装饰累积槽的所有插件输出 */
 export function renderResumeSlot(
-  plugins: ResumePlugin<any>[],
-  context: ResumePluginContext<any>,
+  plugins: ResumePlugin<unknown>[],
+  context: ResumePluginContext<unknown>,
   hookName: ResumeSlotName
 ): React.ReactNode[] {
   return renderSlotGroup(
@@ -130,8 +114,8 @@ function resolveFallback(fallback: ContentFallback): React.ReactNode {
  * 若无任何插件返回非 null，才调用 fallback 生成核心默认结构。
  */
 export function resolveResumeContentSlot(
-  plugins: ResumePlugin<any>[],
-  context: ResumePluginContext<any>,
+  plugins: ResumePlugin<unknown>[],
+  context: ResumePluginContext<unknown>,
   hookName: ResumeSlotName,
   fallback: ContentFallback
 ): React.ReactNode {
@@ -149,7 +133,7 @@ export function resolveResumeContentSlot(
       const node = (
         plugin.hooks as Record<
           string,
-          (ctx: ResumePluginContext<any>) => React.ReactNode
+          (ctx: ResumePluginContext<unknown>) => React.ReactNode
         >
       )[hookName](context);
       if (node !== null && node !== undefined) {
@@ -217,7 +201,10 @@ export function useResumeContentSlot(
   );
 }
 
-/** 读取领域上下文（含 transformData 后的 data、state、setState、bus、forceUpdate…） */
+/**
+ * 读取领域上下文（含 transformData 后的 data、state、setState、bus、forceUpdate…）。
+ * 公共契约位：泛型默认值 any 保留，调用方不传 T 时沿用旧签名。
+ */
 export function useResumeContext<T = any>(): ResumePluginContext<T> | null {
   const ctx = useContext(SlotContext);
   return (ctx?.context as ResumePluginContext<T>) ?? null;

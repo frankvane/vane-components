@@ -21,21 +21,21 @@ import React, {
   useState,
 } from "react";
 import { renderPluginSlot, PluginErrorBoundary, usePluginRuntime } from "vane-plugin-core";
-import type { WithPluginsConfig } from "vane-plugin-core";
+import type { PluginContext, WithPluginsConfig } from "vane-plugin-core";
 import type {
   ResumeCoreProps,
   ResumeCoreRef,
   ResumePlugin,
   ResumePluginContext,
 } from "./plugins/types";
-import { ResumeSlotProvider } from "./plugins/slots";
+import { ResumeSlotProvider } from "./plugins/ResumeSlotProvider";
 
 /** onPropsChange 浅比较时忽略的字段：children / ref 容器每次渲染都可能新建 */
 const IGNORED_PROP_KEYS = new Set(["children", "containerRefExternal"]);
 
 function resumePropsEqual(
-  a: ResumeCoreProps<any>,
-  b: ResumeCoreProps<any>
+  a: ResumeCoreProps<unknown>,
+  b: ResumeCoreProps<unknown>
 ): boolean {
   const ra = a as Record<string, unknown>;
   const rb = b as Record<string, unknown>;
@@ -47,6 +47,7 @@ function resumePropsEqual(
   return true;
 }
 
+/** 公共契约位：HOC 泛型默认值 any 保留（不写 T 的调用方依赖默认值） */
 export function withResumePlugins<T = any>(
   WrappedComponent: React.ForwardRefExoticComponent<
     React.PropsWithoutRef<ResumeCoreProps<T>> & React.RefAttributes<ResumeCoreRef>
@@ -63,7 +64,12 @@ export function withResumePlugins<T = any>(
       const containerRef = useRef<HTMLDivElement | null>(null);
 
       // 简历领域无受控/非受控切换（板块顺序等全走 ctx.state），extendContext 直接透传 base。
-      const extendContext = useCallback((base: any): any => base, []);
+      const extendContext = useCallback(
+        (
+          base: PluginContext<ResumeCoreProps<T>, T>
+        ): PluginContext<ResumeCoreProps<T>, T> => base,
+        []
+      );
 
       const runtime = usePluginRuntime<ResumeCoreProps<T>, T>({
         plugins,
@@ -120,7 +126,7 @@ export function withResumePlugins<T = any>(
 
       const execute = useCallback(
         (hookName: string, ...args: unknown[]) =>
-          runtime.execute(hookName as any, ...args),
+          runtime.execute(hookName as never, ...args),
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [runtime.manager]
       );
@@ -172,7 +178,7 @@ export function withResumePlugins<T = any>(
 
       return (
         <ResumeSlotProvider
-          orderedPlugins={runtime.orderedPlugins as unknown as ResumePlugin<any>[]}
+          orderedPlugins={runtime.orderedPlugins as unknown as ResumePlugin<unknown>[]}
           context={domainContext}
         >
           <WrappedComponent

@@ -2,7 +2,6 @@ import type {
   PluginDoc,
 } from "vane-plugin-core";
 import type { ResumePluginCreator, ResumePluginContext, 
-  ResumeCoreProps,
   ResumeData,
   SectionKey,
 } from "../../components/ResumePlugin/plugins/types";

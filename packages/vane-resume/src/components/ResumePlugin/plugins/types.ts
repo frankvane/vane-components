@@ -3,7 +3,6 @@ import type {
   PluginContext,
   PluginHooks,
   Plugin,
-  PluginCreator,
   PluginDoc,
   PluginBus,
 } from "vane-plugin-core";
@@ -222,6 +221,8 @@ export interface ResumePlugin<T = ResumeData> extends Plugin<ResumeCoreProps<T>,
  * 基础 Plugin。这样在工厂内书写 onMount / renderToolbar / renderWork 等钩子时，ctx 会被
  * 正确推断为领域上下文，而不是因内核 PluginHooks 的索引签名 `[k:string]: unknown`
  * 而退化成 implicitly any。meta 字段用于文档生成与 demo 导航。
+ *
+ * 公共契约位：工厂 Config 泛型默认值 any 保留（不传配置的调用方依赖默认值）。
  */
 export interface ResumePluginCreator<Config = any, T = ResumeData> {
   (config?: Config): ResumePlugin<T>;

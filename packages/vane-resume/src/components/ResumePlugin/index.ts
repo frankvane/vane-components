@@ -1,7 +1,7 @@
 export { default as ResumeCore } from "./ResumeCore";
 export { withResumePlugins } from "./withPlugins";
+export { ResumeSlotProvider } from "./plugins/ResumeSlotProvider";
 export {
-  ResumeSlotProvider,
   renderResumeSlot,
   resolveResumeContentSlot,
   useResumeSlot,

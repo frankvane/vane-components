@@ -13,8 +13,8 @@ export {
   withResumePlugins,
   withResumePlugins as withPlugins,
 } from "./components/ResumePlugin/withPlugins";
+export { ResumeSlotProvider } from "./components/ResumePlugin/plugins/ResumeSlotProvider";
 export {
-  ResumeSlotProvider,
   renderResumeSlot,
   resolveResumeContentSlot,
   useResumeSlot,
