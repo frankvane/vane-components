@@ -23,18 +23,18 @@ import type {
 } from "./types";
 import { DECORATIVE_SLOTS } from "./types";
 
-type AnyCandidatePlugin = CandidatePlugin<Candidate>;
-type AnyContext = CandidatePluginContext<Candidate>;
+export type AnyCandidatePlugin = CandidatePlugin<Candidate>;
+export type AnyContext = CandidatePluginContext<Candidate>;
 type GlobalSlots = Pick<SlotGroups, "renderToolbar" | "renderFooter">;
 type SlotGroups = Partial<Record<CandidateSlotName, AnyCandidatePlugin[]>>;
 
-interface SlotContextValue {
+export interface SlotContextValue {
   orderedPlugins: AnyCandidatePlugin[];
   context: AnyContext;
   slots: SlotGroups;
 }
 
-const SlotContext = createContext<SlotContextValue | null>(null);
+export const SlotContext = createContext<SlotContextValue | null>(null);
 
 function sortByOrder(plugins: AnyCandidatePlugin[]): AnyCandidatePlugin[] {
   return [...plugins].sort(
@@ -57,27 +57,6 @@ export function groupPluginsBySlot(plugins: AnyCandidatePlugin[]): SlotGroups {
     );
   }
   return groups;
-}
-
-/**
- * 由 withCandidatePlugins 包在 WrappedComponent 外层，把当前实例的 orderedPlugins 与
- * 领域上下文下发给 CandidateCore。
- */
-export function CandidateSlotProvider({
-  orderedPlugins,
-  context,
-  children,
-}: {
-  orderedPlugins: AnyCandidatePlugin[];
-  context: AnyContext;
-  children: React.ReactNode;
-}) {
-  const slots = useMemo(() => groupPluginsBySlot(orderedPlugins), [orderedPlugins]);
-  const value = useMemo<SlotContextValue>(
-    () => ({ orderedPlugins, context, slots }),
-    [orderedPlugins, context, slots]
-  );
-  return <SlotContext.Provider value={value}>{children}</SlotContext.Provider>;
 }
 
 /** 逐插件调用装饰槽钩子并拼接输出，单插件抛错只丢自己那一段 */

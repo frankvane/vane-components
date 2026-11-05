@@ -35,7 +35,7 @@ import type {
 } from "./plugins/types";
 import { DEFAULT_STAGES } from "./plugins/types";
 import { applyCandidatePatch, moveStage, patchMeaningful, withHistory } from "./domain";
-import { CandidateSlotProvider } from "./plugins/slots";
+import { CandidateSlotProvider } from "./plugins/CandidateSlotProvider";
 
 /** onPropsChange 浅比较时忽略的字段：children / ref 容器每次渲染都可能新建 */
 const IGNORED_PROP_KEYS = new Set(["children", "containerRefExternal"]);

@@ -12,8 +12,8 @@ export {
   withCandidatePlugins,
   withCandidatePlugins as withPlugins,
 } from "./components/CandidatePlugin/withPlugins";
+export { CandidateSlotProvider } from "./components/CandidatePlugin/plugins/CandidateSlotProvider";
 export {
-  CandidateSlotProvider,
   renderCandidateSlot,
   resolveCandidateContentSlot,
   useCandidateSlot,

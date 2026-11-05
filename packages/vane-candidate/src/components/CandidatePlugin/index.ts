@@ -3,8 +3,8 @@ export {
   withCandidatePlugins,
   withCandidatePlugins as withPlugins,
 } from "./withPlugins";
+export { CandidateSlotProvider } from "./plugins/CandidateSlotProvider";
 export {
-  CandidateSlotProvider,
   renderCandidateSlot,
   resolveCandidateContentSlot,
   useCandidateSlot,
