@@ -6,8 +6,8 @@ export { DanmakuCore } from "./components/DanmakuPlugin/DanmakuCore";
 export { withDanmakuPlugins } from "./components/DanmakuPlugin/withPlugins";
 export { DanmakuScheduler, draw, measure } from "./components/DanmakuPlugin/render";
 export type { RenderOptions, Active } from "./components/DanmakuPlugin/render";
+export { DanmakuSlotProvider } from "./components/DanmakuPlugin/plugins/DanmakuSlotProvider";
 export {
-  DanmakuSlotProvider,
   useDanmakuSlot,
   useDanmakuContext,
 } from "./components/DanmakuPlugin/plugins/slots";

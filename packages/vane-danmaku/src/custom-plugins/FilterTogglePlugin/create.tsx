@@ -1,82 +1,16 @@
-import { useState } from "react";
 import type {
   DanmakuPlugin,
   DanmakuPluginContext,
 } from "../../components/DanmakuPlugin/plugins/types";
 import type { PluginDoc } from "vane-plugin-core";
 import doc from "./doc.json";
+import { FilterToggle } from "./internal";
 
 export interface FilterToggleConfig {
   /** 默认开启的过滤项 key（其余默认关） */
   defaults?: string[];
   /** 切换回调（消费方可据此重建对应数据面插件）；与 bus 广播并存 */
   onToggle?: (key: string, enabled: boolean) => void;
-}
-
-const FILTERS: { key: string; label: string }[] = [
-  { key: "sensitive", label: "敏感词" },
-  { key: "mute", label: "静音用户" },
-  { key: "keyword", label: "关键词屏" },
-  { key: "lang", label: "语种" },
-  { key: "dedup", label: "去重" },
-];
-
-const WRAP: React.CSSProperties = {
-  display: "flex",
-  flexWrap: "wrap",
-  gap: 6,
-  pointerEvents: "auto",
-};
-const CHIP = (on: boolean): React.CSSProperties => ({
-  pointerEvents: "auto",
-  cursor: "pointer",
-  border: "1px solid rgba(255,255,255,0.25)",
-  borderRadius: 999,
-  padding: "3px 10px",
-  font: "12px system-ui, sans-serif",
-  color: "#fff",
-  background: on ? "rgba(255,122,41,0.9)" : "rgba(255,255,255,0.12)",
-  userSelect: "none",
-});
-
-function FilterToggle({
-  context,
-  defaults,
-  onToggle,
-}: {
-  context: DanmakuPluginContext;
-  defaults?: string[];
-  onToggle?: FilterToggleConfig["onToggle"];
-}) {
-  const [on, setOn] = useState<Record<string, boolean>>(() => {
-    const enabled = new Set(defaults ?? FILTERS.map((f) => f.key));
-    return Object.fromEntries(FILTERS.map((f) => [f.key, enabled.has(f.key)]));
-  });
-
-  const toggle = (key: string) => {
-    setOn((prev) => {
-      const next = { ...prev, [key]: !prev[key] };
-      context.bus.emit("danmaku:filter", { key, enabled: next[key] });
-      onToggle?.(key, next[key]);
-      return next;
-    });
-  };
-
-  return (
-    <div style={WRAP}>
-      {FILTERS.map((f) => (
-        <button
-          key={f.key}
-          type="button"
-          aria-pressed={!!on[f.key]}
-          style={CHIP(on[f.key])}
-          onClick={() => toggle(f.key)}
-        >
-          {f.label}
-        </button>
-      ))}
-    </div>
-  );
 }
 
 /**

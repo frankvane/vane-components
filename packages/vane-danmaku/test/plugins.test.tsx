@@ -1,5 +1,10 @@
 import { describe, it, expect, vi } from "vitest";
-import type { DanmakuItem, DanmakuData, DanmakuPluginContext } from "../src/components/DanmakuPlugin/plugins/types";
+import type {
+  DanmakuItem,
+  DanmakuData,
+  DanmakuPlugin,
+  DanmakuPluginContext,
+} from "../src/components/DanmakuPlugin/plugins/types";
 import { createDedupPlugin } from "../src/custom-plugins/DedupPlugin";
 import { createRateLimitPlugin } from "../src/custom-plugins/RateLimitPlugin";
 import { createKeywordHighlightPlugin } from "../src/custom-plugins/KeywordHighlightPlugin";
@@ -31,8 +36,8 @@ function item(partial: Partial<DanmakuItem> & { id: string; text: string }): Dan
   } as DanmakuItem;
 }
 
-function run(plugin: { hooks: any }, data: DanmakuData): DanmakuData {
-  return plugin.hooks.transformData(ctx, data);
+function run(plugin: DanmakuPlugin, data: DanmakuData): DanmakuData {
+  return plugin.hooks.transformData!(ctx, data);
 }
 
 describe("数据面插件 transformData", () => {

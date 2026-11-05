@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useMemo } from "react";
+import React, { createContext, useContext } from "react";
 import { PluginErrorBoundary } from "vane-plugin-core";
 import type {
   DanmakuPlugin,
@@ -8,42 +8,21 @@ import type {
 
 type SlotHook = "renderOverlay" | "renderHeader" | "renderFooter";
 
-interface SlotContextValue {
-  orderedPlugins: DanmakuPlugin<any>[];
-  context: DanmakuPluginContext<any>;
+export interface SlotContextValue {
+  orderedPlugins: DanmakuPlugin<unknown>[];
+  context: DanmakuPluginContext<unknown>;
 }
 
-const SlotContext = createContext<SlotContextValue | null>(null);
-
-/**
- * 弹幕 DOM 插槽提供者：把运行时排好序的插件 + 领域上下文下发给 Core，
- * 供 useDanmakuSlot 渲染 overlay / header / footer（控制面板 / 过滤开关 / 指令输入框等）。
- * 弹幕主体（飞行文字）由 canvas 内核绘制，这些 DOM 槽只承载交互控件。
- */
-export function DanmakuSlotProvider({
-  orderedPlugins,
-  context,
-  children,
-}: {
-  orderedPlugins: DanmakuPlugin<any>[];
-  context: DanmakuPluginContext<any>;
-  children: React.ReactNode;
-}) {
-  const value = useMemo<SlotContextValue>(
-    () => ({ orderedPlugins, context }),
-    [orderedPlugins, context]
-  );
-  return <SlotContext.Provider value={value}>{children}</SlotContext.Provider>;
-}
+export const SlotContext = createContext<SlotContextValue | null>(null);
 
 /**
  * 渲染某个槽位的插件产物。
  * 注意：槽位钩子必须是纯渲染函数（只返回 JSX），不得调用 React hooks ——
- * 它们是在本组件渲染体内被直接调用的；需要状态请在返回的子组件内部管理。
+ * 它们是在 Slot 组件渲染体内被直接调用的；需要状态请在返回的子组件内部管理。
  */
 function renderDanmakuSlot(
-  plugins: DanmakuPlugin<any>[],
-  context: DanmakuPluginContext<any>,
+  plugins: DanmakuPlugin<unknown>[],
+  context: DanmakuPluginContext<unknown>,
   hook: SlotHook
 ): React.ReactNode[] {
   return [...plugins]
@@ -60,7 +39,10 @@ function renderDanmakuSlot(
     .map((plugin) => {
       try {
         const node = (
-          plugin.hooks as Record<string, (ctx: DanmakuPluginContext<any>) => React.ReactNode>
+          plugin.hooks as Record<
+            string,
+            (ctx: DanmakuPluginContext<unknown>) => React.ReactNode
+          >
         )[hook](context);
         if (node === null || node === undefined) return null;
         return (
@@ -83,7 +65,10 @@ export function useDanmakuSlot(slot: SlotHook): React.ReactNode[] {
   return renderDanmakuSlot(ctx.orderedPlugins, ctx.context, slot);
 }
 
-/** 子组件读取领域上下文（含 data / bus / state） */
+/**
+ * 子组件读取领域上下文（含 data / bus / state）。
+ * 公共契约位：泛型默认值 any 保留，调用方不传 T 时沿用旧签名。
+ */
 export function useDanmakuContext<T = any>(): DanmakuPluginContext<T> | null {
   const ctx = useContext(SlotContext);
   return (ctx?.context as DanmakuPluginContext<T>) ?? null;

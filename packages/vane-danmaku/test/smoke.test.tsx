@@ -7,18 +7,18 @@ import type { DanmakuData, DanmakuPluginContext } from "../src/components/Danmak
 
 function ctxStub(): DanmakuPluginContext {
   return {
-    props: {} as any,
+    props: {},
     data: { items: [] },
-    bus: { emit: vi.fn() } as any,
+    bus: { emit: vi.fn() },
     refs: {},
     state: {},
     setState: () => {},
     shared: new Map(),
-    deviceInfo: {} as any,
+    deviceInfo: {},
     forceUpdate: () => {},
     getSize: () => ({ width: 0, height: 0 }),
     logger: console,
-  } as DanmakuPluginContext;
+  } as unknown as DanmakuPluginContext;
 }
 
 describe("vane-danmaku 数据面插件", () => {
@@ -30,7 +30,7 @@ describe("vane-danmaku 数据面插件", () => {
         { id: "2", text: "广告 加微信", mode: "scroll", time: 0, meta: {} },
       ],
     };
-    const out = (p.hooks.transformData as any)(ctxStub(), data) as DanmakuData;
+    const out = p.hooks.transformData!(ctxStub(), data);
     expect(out.items[0].text).toBe("正常弹幕");
     expect(out.items[1].text).not.toContain("广告");
     expect(out.items[1].renderHint?.masked).toBe(true);
@@ -44,7 +44,7 @@ describe("vane-danmaku 数据面插件", () => {
         { id: "2", text: "大佬", mode: "scroll", time: 0, meta: { level: 30 } },
       ],
     };
-    const out = (p.hooks.transformData as any)(ctxStub(), data) as DanmakuData;
+    const out = p.hooks.transformData!(ctxStub(), data);
     expect(out.items[0].renderHint?.pinned).toBeUndefined();
     expect(out.items[1].renderHint?.pinned).toBe(true);
     expect(out.items[1].renderHint?.ring).toBe(true);
@@ -54,14 +54,14 @@ describe("vane-danmaku 数据面插件", () => {
     const p = createCmdParsePlugin();
     const emit = vi.fn();
     const ctx = ctxStub();
-    ctx.bus = { emit } as any;
+    ctx.bus = { emit } as unknown as DanmakuPluginContext["bus"];
     const data: DanmakuData = {
       items: [
         { id: "1", text: "普通弹幕", mode: "scroll", time: 0, meta: {} },
         { id: "2", text: "/clear", mode: "scroll", time: 0, meta: {} },
       ],
     };
-    const out = (p.hooks.transformData as any)(ctx, data) as DanmakuData;
+    const out = p.hooks.transformData!(ctx, data);
     expect(out.items).toHaveLength(1);
     expect(emit).toHaveBeenCalledWith("danmaku:command", expect.objectContaining({ type: "clear" }));
   });
@@ -76,7 +76,7 @@ describe("vane-danmaku 数据面插件", () => {
         { id: "2", text: "y", mode: "scroll", time: 0, meta: { userId: "u2" } },
       ],
     };
-    const out = (p.hooks.transformData as any)(ctxStub(), data) as DanmakuData;
+    const out = p.hooks.transformData!(ctxStub(), data);
     expect(out.items[0].meta.fanBadge?.name).toBe("老粉");
     expect(out.items[1].meta.fanBadge).toBeUndefined();
   });

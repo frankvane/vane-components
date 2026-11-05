@@ -36,8 +36,12 @@ export function createGiftComboPlugin(
         data: DanmakuData
       ): DanmakuData => {
         const out = [];
-        let last: { uid: string; base: string; count: number; item: any } | null =
-          null;
+        let last: {
+          uid: string;
+          base: string;
+          count: number;
+          item: DanmakuItem;
+        } | null = null;
         for (const it of data.items) {
           const m = it.text.match(re);
           if (m && it.meta.userId) {

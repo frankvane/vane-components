@@ -9,7 +9,7 @@ import type {
   DanmakuPluginContext,
   Rect,
 } from "./plugins/types";
-import { DanmakuSlotProvider } from "./plugins/slots";
+import { DanmakuSlotProvider } from "./plugins/DanmakuSlotProvider";
 
 /**
  * withDanmakuPlugins —— 弹幕装配 HOC（接 vane-plugin-core）。
@@ -23,6 +23,7 @@ import { DanmakuSlotProvider } from "./plugins/slots";
  *  3. DOM 插槽：overlay / header / footer 经 DanmakuSlotProvider 下发给 Core。
  *  4. 生命周期：onMount / onUnmount 钩子链由 HOC 转发（Core 仅调用 props.onMount）。
  */
+/** 公共契约位：HOC 泛型默认值 any 保留（不写 T 的调用方依赖默认值） */
 export function withDanmakuPlugins<T = any>(
   WrappedComponent: React.ForwardRefExoticComponent<
     React.PropsWithoutRef<DanmakuCoreProps> & React.RefAttributes<DanmakuCoreRef>
@@ -30,7 +31,7 @@ export function withDanmakuPlugins<T = any>(
   config: WithPluginsConfig<DanmakuCoreProps> | DanmakuPlugin<T>[]
 ) {
   const normalized: WithPluginsConfig<DanmakuCoreProps> = Array.isArray(config)
-    ? { plugins: config as DanmakuPlugin<any>[] }
+    ? { plugins: config as DanmakuPlugin[] }
     : config;
 
   const { plugins, enableDebug = false } = normalized;
@@ -40,7 +41,7 @@ export function withDanmakuPlugins<T = any>(
       const containerRef = useRef<HTMLDivElement | null>(null);
 
       const runtime = usePluginRuntime<DanmakuCoreProps, DanmakuData>({
-        plugins: plugins as DanmakuPlugin<any>[],
+        plugins: plugins as DanmakuPlugin[],
         props,
         data: { items: props.items, now: props.currentTime },
         containerRef,
@@ -49,7 +50,7 @@ export function withDanmakuPlugins<T = any>(
 
       const execute = useCallback(
         (hookName: string, ...args: unknown[]) =>
-          runtime.execute(hookName as any, ...args),
+          runtime.execute(hookName as never, ...args),
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [runtime.manager]
       );
@@ -110,7 +111,7 @@ export function withDanmakuPlugins<T = any>(
 
       return (
         <DanmakuSlotProvider
-          orderedPlugins={runtime.orderedPlugins as unknown as DanmakuPlugin<any>[]}
+          orderedPlugins={runtime.orderedPlugins as unknown as DanmakuPlugin<unknown>[]}
           context={domainContext}
         >
           <WrappedComponent
