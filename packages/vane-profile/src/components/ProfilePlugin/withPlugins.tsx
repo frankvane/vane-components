@@ -27,15 +27,25 @@ import {
   PluginErrorBoundary,
   usePluginRuntime,
 } from "vane-plugin-core";
-import type { WithPluginsConfig } from "vane-plugin-core";
+import type {
+  PluginContext,
+  PluginHooks,
+  WithPluginsConfig,
+} from "vane-plugin-core";
 import type {
   ProfileCoreProps,
   ProfileCoreRef,
   ProfilePlugin,
   ProfilePluginContext,
+  ProfilePluginHooks,
 } from "./plugins/types";
-import { ProfileSlotProvider } from "./plugins/slots";
+import { ProfileSlotProvider } from "./plugins/ProfileSlotProvider";
 
+/**
+ * 泛型默认值保留 any（公共契约位）：宿主以 withPlugins<MyData>(ProfileCore, [...])
+ * 显式指定 data 形态；不写泛型时历史上保持「未约束」语义，收紧为 unknown 会让
+ * 既有调用方的 props.data 属性访问 tsc 失败。
+ */
 export function withPlugins<T = any>(
   WrappedComponent: React.ForwardRefExoticComponent<
     React.PropsWithoutRef<ProfileCoreProps<T>> & React.RefAttributes<ProfileCoreRef>
@@ -55,14 +65,13 @@ export function withPlugins<T = any>(
       const isTabControlled = props.activeTab !== undefined;
 
       // 领域上下文扩展：在内核 context 基础上附加主页专属字段。
-      // 返回类型放宽到 any：内核要求返回 PluginContext，而领域 ProfilePluginContext 是
-      // 在其上叠加字段的超集（含 base 的 refs/shared/logger），结构兼容，仅需绕过
-      // 类型系统的精确匹配。
+      // 返回 ProfilePluginContext<T>（内核 PluginContext 的超集），结构上可赋回内核类型；
+      // 无需再放宽到 any。
       //  - 受控模式：activeTab 只读 props.onActiveTabChange 回调，不写内部 state；
       //  - 非受控模式：写内核 state（base.setState）触发 context 重建。
       // 依赖收敛到真正参与渲染的字段，避免宿主任意 props 变化都让 extendContext 换身份。
       const extendContext = useCallback(
-        (base: any): any => {
+        (base: PluginContext<ProfileCoreProps<T>, T>): ProfilePluginContext<T> => {
           const currentTab: string | null = isTabControlled
             ? ((props.activeTab as string | null | undefined) ?? null)
             : ((base.state?.activeTab as string | null | undefined) ??
@@ -125,8 +134,13 @@ export function withPlugins<T = any>(
       );
 
       const execute = useCallback(
-        (hookName: string, ...args: unknown[]) =>
-          runtime.execute(hookName as any, ...args),
+        (hookName: keyof ProfilePluginHooks<T>, ...args: unknown[]) =>
+          // onTabChange 是领域钩子，不在内核 PluginHooks 的键集合里；运行时按字符串分发，
+          // 这里收窄到内核键类型以满足 execute 的签名（实现分支未变）。
+          runtime.execute(
+            hookName as keyof PluginHooks<ProfileCoreProps<T>, T>,
+            ...args
+          ),
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [runtime.manager]
       );
@@ -192,7 +206,7 @@ export function withPlugins<T = any>(
 
       return (
         <ProfileSlotProvider
-          orderedPlugins={runtime.orderedPlugins as unknown as ProfilePlugin<any>[]}
+          orderedPlugins={runtime.orderedPlugins as unknown as ProfilePlugin<unknown>[]}
           context={domainContext}
         >
           <WrappedComponent

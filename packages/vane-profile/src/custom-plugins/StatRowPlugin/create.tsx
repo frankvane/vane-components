@@ -4,7 +4,6 @@ import type {
   ProfilePluginContext,
   StatItem,
 } from "../../components/ProfilePlugin/plugins/types";
-import doc from "./doc.json";
 
 export interface StatRowConfig {
   /** 显式指标（覆盖 context.stats） */
@@ -23,6 +22,7 @@ export interface StatRowConfig {
  * 走领域槽 `renderStatRow`（由 ProfileCore 的 `vp-stat-row` 消费）。
  * 数据源：config.items ?? context.stats ?? []。每项显示 值（大）+ 标签（小）。
  */
+// 泛型默认值 any：公共契约位（同 types.ts 顶部约定），收紧为 unknown 会让不写 T 的调用方 tsc 失败。
 export function createStatRowPlugin<T = any>(
   config: StatRowConfig = {}
 ): ProfilePlugin<T> {

@@ -91,8 +91,8 @@ describe("FollowEcho onPropsChange", () => {
 
 describe("插件 meta 契约（PluginCreator）", () => {
   it("工厂挂载 .meta（name 与目录一致）", () => {
-    expect((createBannerSlotPlugin as any).meta?.name).toBe("BannerSlot");
-    expect((createTabSyncPlugin as any).meta?.name).toBe("TabSync");
+    expect(createBannerSlotPlugin.meta?.name).toBe("BannerSlot");
+    expect(createTabSyncPlugin.meta?.name).toBe("TabSync");
   });
 
   it("子路径工厂可独立引入且功能一致", async () => {

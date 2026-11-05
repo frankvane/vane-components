@@ -3,7 +3,6 @@ import type {
   ProfilePlugin,
   ProfilePluginContext,
 } from "../../components/ProfilePlugin/plugins/types";
-import doc from "./doc.json";
 
 export type LiveStatusKind = "online" | "away" | "busy" | "offline" | "live";
 
@@ -30,6 +29,7 @@ const META: Record<LiveStatusKind, { color: string; label: string }> = {
  * 走领域槽 `renderBioArea`（与 BioSlot / SocialLinks / TagList 同区，按 priority 串联）。
  * status=live 时显示红点 + 「直播中：{liveTitle}」。
  */
+// 泛型默认值 any：公共契约位（同 types.ts 顶部约定），收紧为 unknown 会让不写 T 的调用方 tsc 失败。
 export function createLiveStatusPlugin<T = any>(
   config: LiveStatusConfig = {}
 ): ProfilePlugin<T> {

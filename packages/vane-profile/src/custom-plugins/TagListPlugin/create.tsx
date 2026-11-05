@@ -3,7 +3,6 @@ import type {
   ProfilePlugin,
   ProfilePluginContext,
 } from "../../components/ProfilePlugin/plugins/types";
-import doc from "./doc.json";
 
 export interface TagListConfig {
   /** 标签文本列表 */
@@ -18,6 +17,7 @@ export interface TagListConfig {
  * 走领域槽 `renderBioArea`（与 BioSlot / SocialLinks 同区，按 priority 串联）。
  * tags 为空时整体返回 null。
  */
+// 泛型默认值 any：公共契约位（同 types.ts 顶部约定），收紧为 unknown 会让不写 T 的调用方 tsc 失败。
 export function createTagListPlugin<T = any>(
   config: TagListConfig = { tags: [] }
 ): ProfilePlugin<T> {

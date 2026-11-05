@@ -4,7 +4,6 @@ import type {
   ProfilePluginContext,
 } from "../../components/ProfilePlugin/plugins/types";
 import { safeHref } from "../../components/ProfilePlugin/plugins/safe-url";
-import doc from "./doc.json";
 
 export interface ContactCardConfig {
   /** 邮箱（渲染为 mailto: 链接） */
@@ -32,6 +31,7 @@ interface Row {
  * 走领域槽 `renderBioArea`（与 BioSlot / SocialLinks / TagList 同区，按 priority 串联）。
  * 全部为空时不渲染。外链一律带 `rel="noreferrer noopener"`，电话 / 邮箱走 tel:/mailto:。
  */
+// 泛型默认值 any：公共契约位（同 types.ts 顶部约定），收紧为 unknown 会让不写 T 的调用方 tsc 失败。
 export function createContactCardPlugin<T = any>(
   config: ContactCardConfig = {}
 ): ProfilePlugin<T> {

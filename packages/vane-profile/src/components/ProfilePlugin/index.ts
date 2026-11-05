@@ -8,8 +8,8 @@ export { default as ProfileCore } from "./ProfileCore";
 // 插件系统（装配器 / 领域槽位 / 上下文 hook / 类型）
 export { withPlugins } from "./withPlugins";
 export type { WithPluginsConfig } from "./withPlugins";
+export { ProfileSlotProvider } from "./plugins/ProfileSlotProvider";
 export {
-  ProfileSlotProvider,
   renderProfileSlot,
   useProfileSlot,
   useProfileContext,

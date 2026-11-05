@@ -4,7 +4,6 @@ import type {
   ProfilePluginContext,
 } from "../../components/ProfilePlugin/plugins/types";
 import { safeHref } from "../../components/ProfilePlugin/plugins/safe-url";
-import doc from "./doc.json";
 
 export interface SocialLink {
   /** 平台标识（决定默认文案与图标字），如 weibo / github / email / site */
@@ -46,6 +45,7 @@ const PRESET: Record<string, { glyph: string; label: string }> = {
  * 走领域槽 `renderBioArea`（与 BioSlot / TagList 同区，按 priority 串联）。
  * 图标用单/双字占位（无图片资源），链接新窗口打开并带 rel 防钓鱼。
  */
+// 泛型默认值 any：公共契约位（同 types.ts 顶部约定），收紧为 unknown 会让不写 T 的调用方 tsc 失败。
 export function createSocialLinksPlugin<T = any>(
   config: SocialLinksConfig = { links: [] }
 ): ProfilePlugin<T> {

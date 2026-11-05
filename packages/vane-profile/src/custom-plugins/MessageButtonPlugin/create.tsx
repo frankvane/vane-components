@@ -3,7 +3,6 @@ import type {
   ProfilePlugin,
   ProfilePluginContext,
 } from "../../components/ProfilePlugin/plugins/types";
-import doc from "./doc.json";
 
 export interface MessageButtonConfig {
   /** 按钮尺寸，默认 md */
@@ -19,6 +18,7 @@ export interface MessageButtonConfig {
  *
  * 走领域槽 `renderFollowArea`。点击触发 onMessage（消费方在此拉起会话）。
  */
+// 泛型默认值 any：公共契约位（同 types.ts 顶部约定），收紧为 unknown 会让不写 T 的调用方 tsc 失败。
 export function createMessageButtonPlugin<T = any>(
   config: MessageButtonConfig = {}
 ): ProfilePlugin<T> {

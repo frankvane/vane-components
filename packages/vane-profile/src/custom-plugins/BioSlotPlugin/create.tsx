@@ -3,7 +3,6 @@ import type {
   ProfilePlugin,
   ProfilePluginContext,
 } from "../../components/ProfilePlugin/plugins/types";
-import doc from "./doc.json";
 
 export interface BioSlotConfig {
   /** 昵称（头图已用 overlay 显示时留空，避免重复） */
@@ -24,6 +23,7 @@ export interface BioSlotConfig {
  * 走领域槽 `renderBioArea`（由 ProfileCore 的 `vp-bio-area` 消费，排在头图与数据行之间）。
  * 内容全空时整体返回 null，不占空间。
  */
+// 泛型默认值 any：公共契约位（同 types.ts 顶部约定），收紧为 unknown 会让不写 T 的调用方 tsc 失败。
 export function createBioSlotPlugin<T = any>(
   config: BioSlotConfig = {}
 ): ProfilePlugin<T> {

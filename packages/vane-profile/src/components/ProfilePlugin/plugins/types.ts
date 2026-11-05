@@ -21,6 +21,12 @@ import type {
  * 约定：领域钩子一律用「方法语法」声明参数（context: ProfilePluginContext<T>），
  * 以便内核把 context 收窄为领域上下文时通过 bivariance 校验（strictFunctionTypes 下
  * 参数逆变会拒绝领域钩子赋值）。
+ *
+ * 泛型默认值约定：本文件 ProfileCoreProps / ProfilePluginContext / ProfilePluginHooks /
+ * ProfilePlugin / ProfilePluginCreator 的 T（以及后者的 Config）默认值保持 any。
+ * 这些都是对外导出的公共契约位——消费方常以「不写全泛型」的形式使用（withPlugins 不传 T、
+ * 直接声明 ProfilePlugin 数组等），收紧为 unknown 会让其 props/data 属性访问与赋值
+ * 直接 tsc 失败。实现内部（slots.tsx / withPlugins.tsx 的存取与渲染）已全部收敛为 unknown。
  */
 
 // ============ 领域数据 ============

@@ -15,7 +15,7 @@ import type {
   ProfilePlugin,
 } from "../src/components/ProfilePlugin/plugins/types";
 
-(globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
+(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 /**
  * 冲刷微任务：`executeHook` 是 async（钩子体在首个 await 之后才执行），
@@ -36,22 +36,22 @@ export interface RenderHandle {
   ref: React.RefObject<ProfileCoreRef>;
   unmount: () => void;
   /** 用新的 props 重渲染同一棵树 */
-  rerender: (next: Partial<ProfileCoreProps<any>>) => Promise<void>;
+  rerender: (next: Partial<ProfileCoreProps>) => Promise<void>;
 }
 
 /** 用 withPlugins 包装 ProfileCore，跑真实插件系统链路 */
 export function renderProfile(
-  plugins: ProfilePlugin<any>[],
-  props: Partial<ProfileCoreProps<any>> = {}
+  plugins: ProfilePlugin[],
+  props: Partial<ProfileCoreProps> = {}
 ): RenderHandle {
-  const Wrapped = withPlugins(ProfileCore as any, { plugins });
+  const Wrapped = withPlugins(ProfileCore, { plugins });
   const ref = React.createRef<ProfileCoreRef>();
   const container = document.createElement("div");
   document.body.appendChild(container);
   const root = createRoot(container);
-  let current: Record<string, unknown> = { ...props };
-  const render = (p: Record<string, unknown>) =>
-    root.render(React.createElement(Wrapped, { ref, ...p } as any));
+  let current: Partial<ProfileCoreProps> = { ...props };
+  const render = (p: Partial<ProfileCoreProps>) =>
+    root.render(React.createElement(Wrapped, { ref, ...p }));
   act(() => {
     render(current);
   });
@@ -72,15 +72,15 @@ export function renderProfile(
 
 /** 直接渲染 ProfileCore（不带插件系统），用于 Core 单测 */
 export function renderCore(
-  props: Partial<ProfileCoreProps<any>> = {}
+  props: Partial<ProfileCoreProps> = {}
 ): RenderHandle {
   const ref = React.createRef<ProfileCoreRef>();
   const container = document.createElement("div");
   document.body.appendChild(container);
   const root = createRoot(container);
-  let current: Record<string, unknown> = { ...props };
-  const render = (p: Record<string, unknown>) =>
-    root.render(React.createElement(ProfileCore as any, { ref, ...p } as any));
+  let current: Partial<ProfileCoreProps> = { ...props };
+  const render = (p: Partial<ProfileCoreProps>) =>
+    root.render(React.createElement(ProfileCore, { ref, ...p }));
   act(() => {
     render(current);
   });

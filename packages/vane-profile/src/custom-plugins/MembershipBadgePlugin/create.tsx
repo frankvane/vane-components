@@ -3,7 +3,6 @@ import type {
   ProfilePlugin,
   ProfilePluginContext,
 } from "../../components/ProfilePlugin/plugins/types";
-import doc from "./doc.json";
 
 export interface MembershipBadgeConfig {
   /** 会员等级 1-3，决定配色与默认文案（VIP1/VIP2/VIP3） */
@@ -26,6 +25,7 @@ const PALETTE: Record<number, { bg: string; fg: string }> = {
  * 走领域槽 `renderBadgeArea`（与 VerifyBadge / QRShare 同区，浮于头图右上，
  * 按 priority 与它们横向并排）。verified=false 时不渲染（无会员不占位置）。
  */
+// 泛型默认值 any：公共契约位（同 types.ts 顶部约定），收紧为 unknown 会让不写 T 的调用方 tsc 失败。
 export function createMembershipBadgePlugin<T = any>(
   config: MembershipBadgeConfig = {}
 ): ProfilePlugin<T> {

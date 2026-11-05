@@ -3,7 +3,6 @@ import type {
   ProfilePlugin,
   ProfilePluginContext,
 } from "../../components/ProfilePlugin/plugins/types";
-import doc from "./doc.json";
 
 export interface ActivitySummaryConfig {
   /** 最近活跃描述，如「2 小时前」 */
@@ -22,6 +21,7 @@ export interface ActivitySummaryConfig {
  * 走领域槽 `renderBioArea`（与 BioSlot / SocialLinks / TagList / ContactCard 同区串联）。
  * 三项全空时不渲染。
  */
+// 泛型默认值 any：公共契约位（同 types.ts 顶部约定），收紧为 unknown 会让不写 T 的调用方 tsc 失败。
 export function createActivitySummaryPlugin<T = any>(
   config: ActivitySummaryConfig = {}
 ): ProfilePlugin<T> {

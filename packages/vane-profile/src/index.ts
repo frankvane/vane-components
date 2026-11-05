@@ -9,8 +9,8 @@
 // ===== Core + 插件系统 =====
 export { default as ProfileCore } from "./components/ProfilePlugin/ProfileCore";
 export { withPlugins } from "./components/ProfilePlugin/withPlugins";
+export { ProfileSlotProvider } from "./components/ProfilePlugin/plugins/ProfileSlotProvider";
 export {
-  ProfileSlotProvider,
   renderProfileSlot,
   useProfileSlot,
   useProfileContext,

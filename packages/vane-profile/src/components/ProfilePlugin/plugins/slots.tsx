@@ -7,8 +7,8 @@
  * 与内核 composeSlots 保持同一套排序规则（config.order 升序 → priority 降序），
  * 单个插件渲染抛错只丢自己那一段（PluginErrorBoundary 隔离）。
  *
- * ProfileSlotProvider 把当前实例的 orderedPlugins 与领域上下文下发给 ProfileCore
- * 与内容区子组件（它们通过 useProfileSlot / useProfileContext 读取）。
+ * ProfileSlotProvider 组件在 ./ProfileSlotProvider.tsx：本文件只保留排序 / 渲染 /
+ * 读取钩子等纯运行时逻辑（不含组件导出），以满足 react-refresh 的 Fast Refresh 约束。
  */
 
 import React, { createContext, useContext, useMemo } from "react";
@@ -30,18 +30,26 @@ const SLOT_NAMES: ProfileSlotName[] = [
   "renderContentArea",
 ];
 
-type SlotGroups = Record<ProfileSlotName, ProfilePlugin<any>[]>;
+/**
+ * 槽位层不关心 data 的具体形态，统一以 `unknown` 存取。
+ * ProfilePlugin<T> → ProfilePlugin<unknown> 的赋值由钩子的方法语法双变兼容
+ * （领域钩子声明用方法语法正是因为 strictFunctionTypes 下参数逆变）。
+ */
+type StoredPlugin = ProfilePlugin<unknown>;
+type StoredContext = ProfilePluginContext<unknown>;
 
-interface SlotContextValue {
-  orderedPlugins: ProfilePlugin<any>[];
-  context: ProfilePluginContext<any>;
+type SlotGroups<T = unknown> = Record<ProfileSlotName, ProfilePlugin<T>[]>;
+
+export interface SlotContextValue {
+  orderedPlugins: StoredPlugin[];
+  context: StoredContext;
   /** 按槽预分组（已过滤未启用 / 未实现该钩子的插件，并完成排序） */
   slots: SlotGroups;
 }
 
-const SlotContext = createContext<SlotContextValue | null>(null);
+export const SlotContext = createContext<SlotContextValue | null>(null);
 
-function sortByOrder(plugins: ProfilePlugin<any>[]): ProfilePlugin<any>[] {
+function sortByOrder<T>(plugins: ProfilePlugin<T>[]): ProfilePlugin<T>[] {
   return plugins.sort(
     (a, b) =>
       (a.config?.order ?? 0) - (b.config?.order ?? 0) ||
@@ -50,8 +58,8 @@ function sortByOrder(plugins: ProfilePlugin<any>[]): ProfilePlugin<any>[] {
 }
 
 /** 把插件按 7 个领域槽分组（过滤 + 排序一次完成） */
-export function groupPluginsBySlot(plugins: ProfilePlugin<any>[]): SlotGroups {
-  const groups = {} as SlotGroups;
+export function groupPluginsBySlot<T>(plugins: ProfilePlugin<T>[]): SlotGroups<T> {
+  const groups = {} as SlotGroups<T>;
   for (const slot of SLOT_NAMES) {
     groups[slot] = sortByOrder(
       plugins.filter(
@@ -64,31 +72,10 @@ export function groupPluginsBySlot(plugins: ProfilePlugin<any>[]): SlotGroups {
   return groups;
 }
 
-/**
- * 由 withProfilePlugins 包在 WrappedComponent 外层，把当前实例的 orderedPlugins 与
- * 领域上下文下发给 ProfileCore 与内容区子组件。
- */
-export function ProfileSlotProvider({
-  orderedPlugins,
-  context,
-  children,
-}: {
-  orderedPlugins: ProfilePlugin<any>[];
-  context: ProfilePluginContext<any>;
-  children: React.ReactNode;
-}) {
-  const slots = useMemo(() => groupPluginsBySlot(orderedPlugins), [orderedPlugins]);
-  const value = useMemo<SlotContextValue>(
-    () => ({ orderedPlugins, context, slots }),
-    [orderedPlugins, context, slots]
-  );
-  return <SlotContext.Provider value={value}>{children}</SlotContext.Provider>;
-}
-
 /** 渲染一个已分组的槽位列表（不重复排序 / 过滤） */
-function renderSlotGroup(
-  plugins: ProfilePlugin<any>[],
-  context: ProfilePluginContext<any>,
+function renderSlotGroup<T>(
+  plugins: ProfilePlugin<T>[],
+  context: ProfilePluginContext<T>,
   hookName: ProfileSlotName
 ): React.ReactNode[] {
   return plugins.reduce<React.ReactNode[]>((acc, plugin) => {
@@ -96,7 +83,7 @@ function renderSlotGroup(
       const node = (
         plugin.hooks as Record<
           string,
-          (ctx: ProfilePluginContext<any>) => React.ReactNode
+          (ctx: ProfilePluginContext<T>) => React.ReactNode
         >
       )[hookName](context);
       if (node === null || node === undefined) return acc;
@@ -123,9 +110,9 @@ function renderSlotGroup(
  * 渲染某个领域槽位的所有插件输出。
  * 排序：config.order 升序（越小越靠前）→ priority 降序（越大越靠后）。
  */
-export function renderProfileSlot(
-  plugins: ProfilePlugin<any>[],
-  context: ProfilePluginContext<any>,
+export function renderProfileSlot<T>(
+  plugins: ProfilePlugin<T>[],
+  context: ProfilePluginContext<T>,
   hookName: ProfileSlotName
 ): React.ReactNode[] {
   return renderSlotGroup(groupPluginsBySlot(plugins)[hookName], context, hookName);
@@ -150,8 +137,11 @@ export function useProfileSlot(slot: ProfileSlotName): React.ReactNode[] {
 /**
  * 读取领域上下文（含 activeTab / stats / followState / verified 等）。
  * 内容区子组件通过它订阅 activeTab，以实现 TabSync 的「页签切换 → 内容区联动重渲染」。
+ *
+ * 泛型默认值保留 any（跨包契约位：第三方插件传入自定义 data 形态时
+ * 不指定泛型不做约束，收紧为 unknown 会让既有调用方的属性访问 tsc 失败）。
  */
 export function useProfileContext<T = any>(): ProfilePluginContext<T> | null {
   const ctx = useContext(SlotContext);
-  return (ctx?.context as ProfilePluginContext<T>) ?? null;
+  return (ctx?.context as unknown as ProfilePluginContext<T>) ?? null;
 }

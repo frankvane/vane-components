@@ -4,7 +4,6 @@ import type {
   ProfilePluginContext,
 } from "../../components/ProfilePlugin/plugins/types";
 import { cssImageUrl } from "../../components/ProfilePlugin/plugins/safe-url";
-import doc from "./doc.json";
 
 export interface WorkItem {
   /** 唯一 id（作 React key） */
@@ -53,6 +52,7 @@ const FALLBACK_COLORS = [
  * 当 `config.tab` 有值时，只在对应页签激活时才渲染，实现「切到作品 tab 才出网格」。
  * 没有内容插件时 Core 会回退到 children，因此本插件与 TabSync 文本区可二选一。
  */
+// 泛型默认值 any：公共契约位（同 types.ts 顶部约定），收紧为 unknown 会让不写 T 的调用方 tsc 失败。
 export function createWorksGridPlugin<T = any>(
   config: WorksGridConfig = { items: [] }
 ): ProfilePlugin<T> {

@@ -3,7 +3,6 @@ import type {
   ProfilePlugin,
   ProfilePluginContext,
 } from "../../components/ProfilePlugin/plugins/types";
-import doc from "./doc.json";
 
 export interface AchievementItem {
   /** 唯一 id */
@@ -39,6 +38,7 @@ export interface AchievementWallConfig {
  * 走领域槽 `renderContentArea`（Core 有内容插件时以它替代 children）。
  * config.tab 与 context.activeTab 联动：切到对应页签才出墙。
  */
+// 泛型默认值 any：公共契约位（同 types.ts 顶部约定），收紧为 unknown 会让不写 T 的调用方 tsc 失败。
 export function createAchievementWallPlugin<T = any>(
   config: AchievementWallConfig = {}
 ): ProfilePlugin<T> {

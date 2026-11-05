@@ -4,7 +4,7 @@ import type {
   ProfilePluginContext,
   BadgeType,
 } from "../../components/ProfilePlugin/plugins/types";
-import doc from "./doc.json";
+import { BadgeIcon } from "./internal";
 
 export interface VerifyBadgeConfig {
   /** 强制认证态，覆盖 context.verified */
@@ -17,30 +17,13 @@ export interface VerifyBadgeConfig {
   showLabel?: boolean;
 }
 
-/** 内联 SVG 对勾徽标（不引外部资源） */
-function BadgeIcon({ type }: { type: BadgeType }) {
-  const color = type === "institution" ? "#ff8f00" : "#1da1f2";
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
-      <circle cx="12" cy="12" r="11" fill={color} />
-      <path
-        d="M7 12.5l3 3 7-7"
-        fill="none"
-        stroke="#fff"
-        strokeWidth="2.4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
 /**
  * VerifyBadge - 认证徽标：个人 / 机构认证对勾，浮于头图右上角。
  *
  * 走领域槽 `renderBadgeArea`（由 ProfileCore 的 `vp-badge-area` 消费，绝对定位
  * 于头图右上）。`verified` 为 false（config 或 context）时不渲染。
  */
+// 泛型默认值 any：公共契约位（同 types.ts 顶部约定），收紧为 unknown 会让不写 T 的调用方 tsc 失败。
 export function createVerifyBadgePlugin<T = any>(
   config: VerifyBadgeConfig = {}
 ): ProfilePlugin<T> {

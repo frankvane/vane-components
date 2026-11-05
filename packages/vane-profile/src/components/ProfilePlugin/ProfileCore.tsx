@@ -59,7 +59,7 @@ const ProfileCore = forwardRef<ProfileCoreRef, ProfileCoreProps>(
         },
         getActiveTab: () => activeTab,
       }),
-      [forceUpdate, activeTab]
+      [containerRef, forceUpdate, activeTab]
     );
 
     return (
