@@ -12,13 +12,14 @@ export type URLSyncConfig = {
  * - 监听 props 变化，更新 URL
  * - 初次挂载时读取 URL 并向 bus 广播（页面可据此设置状态）
  */
+// T 默认 any：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
 export function createURLSyncPlugin<T = any>(config: URLSyncConfig = {}): WaterfallPlugin<T> {
   const mode = config.mode || "hash";
   const keys = config.keys || ["pageIndex", "pageSize", "searchQuery"];
   /** 首次读到的 URL 快照：既用于注入 props，也用于判断「这次 props 变化要不要写 URL」 */
-  let initialParams: Record<string, any> | null = null;
+  let initialParams: Record<string, unknown> | null = null;
   let initialInjected = false;
-  const getInitialParams = (): Record<string, any> => {
+  const getInitialParams = (): Record<string, unknown> => {
     if (initialParams === null) initialParams = readFromURL();
     return initialParams;
   };
@@ -30,7 +31,7 @@ export function createURLSyncPlugin<T = any>(config: URLSyncConfig = {}): Waterf
         const idx = hash.indexOf("?");
         const paramStr = idx >= 0 ? hash.slice(idx + 1) : hash.replace(/^#/, "");
         const params = new URLSearchParams(paramStr);
-        const state: Record<string, any> = {};
+        const state: Record<string, unknown> = {};
         keys.forEach((k) => {
           const v = params.get(k);
           if (v !== null) state[k] = v;
@@ -38,7 +39,7 @@ export function createURLSyncPlugin<T = any>(config: URLSyncConfig = {}): Waterf
         return state;
       } else {
         const params = new URLSearchParams(window.location.search);
-        const state: Record<string, any> = {};
+        const state: Record<string, unknown> = {};
         keys.forEach((k) => {
           const v = params.get(k);
           if (v !== null) state[k] = v;
@@ -50,7 +51,7 @@ export function createURLSyncPlugin<T = any>(config: URLSyncConfig = {}): Waterf
     }
   }
 
-  function writeToURL(next: Record<string, any>) {
+  function writeToURL(next: Record<string, unknown>) {
     try {
       const params = new URLSearchParams();
       keys.forEach((k) => {
@@ -89,7 +90,7 @@ export function createURLSyncPlugin<T = any>(config: URLSyncConfig = {}): Waterf
       transformProps: (props) => {
         if (initialInjected) return props;
         const initial = getInitialParams();
-        const next: Record<string, any> = { ...props };
+        const next: Record<string, unknown> = { ...props };
         let changed = false;
         keys.forEach((k) => {
           if (initial[k] !== undefined) {
@@ -98,13 +99,14 @@ export function createURLSyncPlugin<T = any>(config: URLSyncConfig = {}): Waterf
           }
         });
         if (changed) initialInjected = true;
-        return next as typeof props;
+        // 值是「运行时键 + 原始 props 形状」：props 用 Record 收窄后需回到原类型
+        return next as unknown as typeof props;
       },
       onMount: (context) => {
         context.bus?.emit("urlsync:init", getInitialParams());
       },
       onPropsChange: (context, _prev, nextProps) => {
-        const next: Record<string, any> = {};
+        const next: Record<string, unknown> = {};
         // 按字符串键取值：keys 是运行时数组，只读基本可序列化的值
         const source = (nextProps ?? {}) as unknown as Record<string, unknown>;
         keys.forEach((k) => {

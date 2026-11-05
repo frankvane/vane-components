@@ -25,6 +25,7 @@ export type PinItemConfig = {
  *  - 置顶项不参与列轮转，永远落在 `config.column`。
  *  - 同一列多条置顶按 pinnedIndices 顺序纵向堆叠。
  */
+// T 默认 any：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
 export function createPinItemPlugin<T = any>(config: PinItemConfig): WaterfallPlugin<T> {
   const pinned = new Set(config.pinnedIndices);
   const targetColumn = Math.max(0, config.column ?? 0);

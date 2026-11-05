@@ -30,6 +30,7 @@ import React, {
   useState,
 } from "react";
 import { composeSlots, PluginErrorBoundary, usePluginRuntime } from "vane-plugin-core";
+import type { Plugin, PluginContext } from "vane-plugin-core";
 import type { LayoutHooks } from "./layout";
 import type {
   DragInfo,
@@ -37,11 +38,17 @@ import type {
   LayoutInfo,
   NetworkInfo,
   ViewportInfo,
+  WaterfallData,
   WaterfallPlugin,
   WaterfallPluginContext,
 } from "./plugins/types";
 import type { WaterfallCoreProps, WaterfallCoreRef } from "./WaterfallCore";
 
+/**
+ * 泛型默认值说明：与 plugins/types.ts 同因——调用方大量以 `withPlugins(WaterfallCore, ...)`
+ * 或 `WithPluginsConfig` 的简写形态使用；默认值改 unknown 会让 T 推断成 unknown，
+ * demo 的 `renderItem` / `keyExtractor` 参数随之失去具体类型。保留 any 作为「未指定」占位。
+ */
 export interface WithPluginsConfig<T = any> {
   plugins: WaterfallPlugin<T>[];
   enableDebug?: boolean;
@@ -101,12 +108,27 @@ async function safeAwait<A extends unknown[], R>(
   }
 }
 
+interface NetworkConnectionLike {
+  effectiveType?: string;
+  downlink?: number;
+  rtt?: number;
+  saveData?: boolean;
+}
+
+/** 各浏览器暴露连接信息的前缀不同（标准 / Firefox / WebKit） */
+type NavigatorWithConnection = Navigator & {
+  connection?: NetworkConnectionLike;
+  mozConnection?: NetworkConnectionLike;
+  webkitConnection?: NetworkConnectionLike;
+};
+
 function detectNetwork(): NetworkInfo | undefined {
-  const nav = typeof navigator !== "undefined" ? (navigator as any) : undefined;
+  const nav =
+    typeof navigator !== "undefined" ? (navigator as NavigatorWithConnection) : undefined;
   const conn = nav?.connection || nav?.mozConnection || nav?.webkitConnection;
   if (!conn) return undefined;
   return {
-    effectiveType: conn.effectiveType || "4g",
+    effectiveType: (conn.effectiveType || "4g") as NetworkInfo["effectiveType"],
     downlink: Number(conn.downlink || 10),
     rtt: Number(conn.rtt || 50),
     saveData: Boolean(conn.saveData || false),
@@ -135,6 +157,7 @@ function scanVisible(
   return { set, range: end < 0 ? { start: 0, end: 0 } : { start, end } };
 }
 
+// T 默认 any：与 plugins/types.ts 的「泛型默认值说明」同因（HOC 常被简写调用）
 export function withPlugins<T = any>(
   WrappedComponent: React.ForwardRefExoticComponent<
     React.PropsWithoutRef<WaterfallCoreProps<T>> &
@@ -182,7 +205,9 @@ export function withPlugins<T = any>(
       const [transformVersion, setTransformVersion] = useState(0);
 
       const extendContext = useCallback(
-        (base: any): WaterfallPluginContext<T> => {
+        (
+          base: PluginContext<WaterfallCoreProps<T>, WaterfallData>
+        ): WaterfallPluginContext<T> => {
           // 布局类字段一律「优先读 Core 实时值」：state 更新是异步的，
           // `onLayoutComplete` 里拿到的 context 仍是上一次渲染的快照——旧版就因此
           // 让插件在布局完成钩子里读不到新位置（只能自己去 DOM 里量）。
@@ -215,11 +240,11 @@ export function withPlugins<T = any>(
             getItemPosition: (index: number) => livePositions().get(index) ?? null,
             isLayouting,
             isScrolling: viewport.isScrolling,
-            isDragging: Boolean((base.state as any)?.dragInfo?.isDragging),
-            error: ((base.state as any)?.error as Error) ?? null,
-            sharedData: base.shared as Map<string, any>,
+            isDragging: Boolean((base.state.dragInfo as DragInfo | undefined)?.isDragging),
+            error: (base.state.error as Error | undefined) ?? null,
+            sharedData: base.shared as WaterfallPluginContext<T>["sharedData"],
             networkInfo,
-            dragInfo: (base.state as any)?.dragInfo as DragInfo | undefined,
+            dragInfo: base.state.dragInfo as DragInfo | undefined,
             relayout: () => coreRef.current?.relayout(),
             scrollToItem: (index, options) => coreRef.current?.scrollToItem(index, options),
             scrollToTop: (options) => coreRef.current?.scrollToTop(options),
@@ -246,15 +271,15 @@ export function withPlugins<T = any>(
             // 「props 能覆盖插件状态」，页面不用 hand-roll 一个插件就能控制（P2-2）
             hasMore: {
               get: () =>
-                (transformedPropsRef.current as any)?.hasMore ??
-                (((base.state as any)?.hasMore as boolean | undefined) ?? true),
+                transformedPropsRef.current?.hasMore ??
+                ((base.state.hasMore as boolean | undefined) ?? true),
               enumerable: true,
               configurable: true,
             },
             isLoading: {
               get: () =>
-                (transformedPropsRef.current as any)?.isLoading ??
-                (((base.state as any)?.isLoading as boolean | undefined) ?? false),
+                transformedPropsRef.current?.isLoading ??
+                ((base.state.isLoading as boolean | undefined) ?? false),
               enumerable: true,
               configurable: true,
             },
@@ -280,9 +305,14 @@ export function withPlugins<T = any>(
         [layout, itemPositions, viewport, isLayouting, networkInfo]
       );
 
-      const kernelPlugins = plugins as any;
+      // 领域插件 → 内核插件：钩子收窄是 Omit 出来的领域签名，运行时同构，
+      // 这里是唯一的类型擦除边界（与 plugin-core 的 withPlugins 同款做法）
+      const kernelPlugins = plugins as unknown as Plugin<
+        WaterfallCoreProps<T>,
+        WaterfallData
+      >[];
 
-      const runtime = usePluginRuntime<WaterfallCoreProps<T>, any>({
+      const runtime = usePluginRuntime<WaterfallCoreProps<T>, WaterfallData>({
         plugins: kernelPlugins,
         props,
         enableDebug,
@@ -306,8 +336,7 @@ export function withPlugins<T = any>(
       );
 
       const execute = useCallback(
-        (hookName: string, ...args: unknown[]) =>
-          runtime.execute(hookName as any, ...args),
+        (hookName: string, ...args: unknown[]) => runtime.execute(hookName, ...args),
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [runtime.manager]
       );
@@ -440,6 +469,9 @@ export function withPlugins<T = any>(
         // transformVersion 是插件的显式失效信号（见 props:invalidate）
         void transformVersion;
         return runtime.transformProps(props) as WaterfallCoreProps<T>;
+      // 依赖只列 runtime.transformProps（它在 runtime 生命周期内身份稳定）。
+      // 列 runtime 本身会让每个渲染都产生新对象 → 这里必然重算，缓存失效（P1-3）。
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       }, [runtime.transformProps, props, transformVersion]);
 
       // 分页与无限加载互斥：同时启用时两者都会改写 items，谁在链尾谁生效，

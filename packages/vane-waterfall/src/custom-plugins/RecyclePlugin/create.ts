@@ -13,6 +13,7 @@ export type RecycleConfig = {
  * - 当项离开视口时，设置其元素为 `visibility:hidden`，减少绘制压力
  * - 当项进入视口时，恢复为 `visibility:visible`
  */
+// T 默认 any：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
 export function createRecyclePlugin<T = any>(config: RecycleConfig): WaterfallPlugin<T> {
   const visibleSet = new Set<number>();
 

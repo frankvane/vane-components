@@ -1,4 +1,5 @@
 import type { WaterfallPlugin } from "../../components/WaterfallPlugin/plugins/types";
+import type { WaterfallCoreProps } from "../../components/WaterfallPlugin/WaterfallCore";
 
 export type ReducedMotionConfig = {
   /** 当用户偏好减少动画时，是否禁用 transform 定位 */
@@ -25,6 +26,7 @@ const QUERY = "(prefers-reduced-motion: reduce)";
  * 定位方式（`useTransform`）是 props 层的，运行时切换要等下一次重渲染才生效；
  * 过渡效果则是即时生效的。
  */
+// T 默认 any：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
 export function createReducedMotionPlugin<T = any>(
   config: ReducedMotionConfig = {}
 ): WaterfallPlugin<T> {
@@ -87,9 +89,9 @@ export function createReducedMotionPlugin<T = any>(
     enabled: true,
     hooks: {
       transformProps: (props) => {
-        if (!prefersReduce) return props as any;
+        if (!prefersReduce) return props;
 
-        const next: any = { ...props };
+        const next: WaterfallCoreProps<T> = { ...props };
         if (disableTransform) {
           next.useTransform = false;
         }

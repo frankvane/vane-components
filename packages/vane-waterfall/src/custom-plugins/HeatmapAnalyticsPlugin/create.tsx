@@ -28,6 +28,7 @@ export type HeatmapAnalyticsStats = {
  * - 可选在顶部显示统计摘要叠层
  * - `getStats()` 把内存里的统计吐出来，方便接到自己的上报通道
  */
+// T 默认 any：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
 export function createHeatmapAnalyticsPlugin<T = any>(
   config: HeatmapAnalyticsConfig = {}
 ): WaterfallPlugin<T> & { getStats: () => HeatmapAnalyticsStats } {

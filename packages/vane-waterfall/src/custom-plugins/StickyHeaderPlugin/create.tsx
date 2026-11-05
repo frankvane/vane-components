@@ -11,6 +11,7 @@ export type StickyHeaderConfig = {
  * StickyHeaderPlugin - 吸顶标题（实验版）
  * - 简化实现：始终显示一个吸顶条，可与 GroupingPlugin 联动
  */
+// T 默认 any：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
 export function createStickyHeaderPlugin<T = any>(config: StickyHeaderConfig = {}): WaterfallPlugin<T> {
   const title = config.title || "分组标题";
   const showHint = config.showHint ?? false;

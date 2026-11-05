@@ -19,6 +19,7 @@ export type AutoColumnConfig = {
  * 现算好传进来，不用再拿 window.innerWidth 近似（旧版那样在窄容器里会多排一列）。
  * 公式：columns = floor((available + columnGap) / (minColumnWidth + columnGap))
  */
+// T 默认 any：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
 export function createAutoColumnPlugin<T = any>(
   config: AutoColumnConfig
 ): WaterfallPlugin<T> {

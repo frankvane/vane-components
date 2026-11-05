@@ -66,9 +66,10 @@ beforeEach(() => {
   document.body.appendChild(host);
   root = createRoot(host);
   // happy-dom 的 scrollTo 不改变滚动位置，这里只记录调用
-  Element.prototype.scrollTo = function scrollTo(options: any) {
+  const mockScrollTo = (options?: ScrollToOptions) => {
     scrollCalls.push({ top: options?.top ?? 0, behavior: options?.behavior });
-  } as any;
+  };
+  Element.prototype.scrollTo = mockScrollTo as typeof Element.prototype.scrollTo;
 });
 
 afterEach(() => {

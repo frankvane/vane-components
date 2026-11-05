@@ -47,6 +47,11 @@ import { computeVisibleRange, resolveEstimateHeight, type VirtualizeOptions } fr
 
 // ============ Props ============
 
+/**
+ * T 默认 any：与 plugins/types.ts 的「泛型默认值说明」同因。
+ * 大量消费方以 `WaterfallCoreProps`（不写泛型）标注 props，默认值收紧成 unknown
+ * 会让 renderItem / keyExtractor 的参数退化为 unknown。
+ */
 export interface WaterfallCoreProps<T = any> {
   // ---- 数据 ----
   items: T[];
@@ -231,15 +236,15 @@ function toVisibility(
 
 // ============ 项单元 ============
 
-interface WaterfallItemProps {
+interface WaterfallItemProps<T> {
   index: number;
-  item: any;
+  item: T;
   position: ItemPosition | undefined;
   useTransform: boolean;
   itemStyle?: React.CSSProperties;
   itemClassName?: string;
-  renderItem: (item: any, index: number) => React.ReactNode;
-  onClick?: (index: number, item: any, event: React.MouseEvent) => void;
+  renderItem: (item: T, index: number) => React.ReactNode;
+  onClick?: (index: number, item: T, event: React.MouseEvent) => void;
   itemRef: (el: HTMLDivElement | null) => void;
 }
 
@@ -251,7 +256,7 @@ interface WaterfallItemProps {
  * `position` 来自布局 Map、`item` 来自 items 数组、`itemRef` 按 index 缓存在
  * `itemRefCallbacksRef` 里（见 `getItemRefCallback`）。
  */
-const WaterfallItem = React.memo(function WaterfallItem({
+function WaterfallItemContent<T>({
   index,
   item,
   position,
@@ -261,7 +266,7 @@ const WaterfallItem = React.memo(function WaterfallItem({
   renderItem,
   onClick,
   itemRef,
-}: WaterfallItemProps) {
+}: WaterfallItemProps<T>) {
   const style: React.CSSProperties = position
     ? useTransform
       ? {
@@ -291,12 +296,18 @@ const WaterfallItem = React.memo(function WaterfallItem({
       {renderItem(item, index)}
     </div>
   );
-});
+}
+
+/**
+ * React.memo 不保留泛型签名（会退化成 unknown/any），用 typeof 把泛型还给使用处；
+ * 运行时仍是普通 memo 组件，不额外包一层。
+ */
+const WaterfallItem = React.memo(WaterfallItemContent) as typeof WaterfallItemContent;
 
 // ============ 组件 ============
 
 const WaterfallCore = forwardRef<WaterfallCoreRef, WaterfallCoreProps>(
-  function WaterfallCore<T = any>(
+  function WaterfallCore<T = unknown>(
     props: WaterfallCoreProps<T>,
     ref: React.ForwardedRef<WaterfallCoreRef>
   ) {
@@ -423,6 +434,12 @@ const WaterfallCore = forwardRef<WaterfallCoreRef, WaterfallCoreProps>(
       () => normalizeVirtualize(JSON.parse(virtualizeKey) ?? undefined),
       [virtualizeKey]
     );
+    // 布局只读取这三个估值字段：拆成原始值后依赖表可以精确到字段，
+    // 避免 overscan 等与布局无关的配置变化导致 calculateLayout 换身份（ctx.refs 抖动）
+    const virtualAdaptiveEstimate = virtual?.adaptiveEstimate;
+    const virtualEstimateHeight = virtual?.estimateHeight;
+    const virtualEstimateQuantile = virtual?.estimateQuantile;
+    const isVirtual = virtual !== null;
 
     // ---- state ----
     const [layoutInfo, setLayoutInfo] = useState<LayoutInfo>(() => ({
@@ -536,7 +553,7 @@ const WaterfallCore = forwardRef<WaterfallCoreRef, WaterfallCoreProps>(
       // 但如果这次请求的布局参数和正在跑的那一次完全一样，补跑没有意义 ——
       // 挂载时「挂载 effect + items effect」本来就会各来一次，补跑只会让
       // onLayoutComplete 多触发一遍（埋点类插件会重复上报）。
-      const sig = `${columns}|${columnGapValue}|${rowGapValue}|${paddingValues.top},${paddingValues.right},${paddingValues.bottom},${paddingValues.left}|${alignmentMode}|${virtual?.estimateHeight ?? ""}|${virtual?.adaptiveEstimate ?? ""}|${virtual?.estimateQuantile ?? ""}`;
+      const sig = `${columns}|${columnGapValue}|${rowGapValue}|${paddingValues.top},${paddingValues.right},${paddingValues.bottom},${paddingValues.left}|${alignmentMode}|${virtualEstimateHeight ?? ""}|${virtualAdaptiveEstimate ?? ""}|${virtualEstimateQuantile ?? ""}`;
       if (isCalculatingLayoutRef.current) {
         if (sig !== activeSigRef.current || layoutHooks !== activeHooksRef.current) {
           pendingRelayoutRef.current = true;
@@ -575,14 +592,14 @@ const WaterfallCore = forwardRef<WaterfallCoreRef, WaterfallCoreProps>(
         // 重叠由「量到真高就立刻重排」兜住（误差只存在一帧，且多数落在视口外），
         // 而不是靠把估值整体抬高 —— 抬高只是把误差从「重叠」换成「滚动条虚长」。
         let estimate: number | undefined;
-        if (virtual) {
-          if (virtual.adaptiveEstimate === false) {
-            estimate = virtual.estimateHeight;
+        if (isVirtual) {
+          if (virtualAdaptiveEstimate === false) {
+            estimate = virtualEstimateHeight;
           } else {
             const raw = resolveEstimateHeight(
               measuredHeightsRef.current.values(),
-              virtual.estimateHeight ?? 240,
-              virtual.estimateQuantile
+              virtualEstimateHeight ?? 240,
+              virtualEstimateQuantile
             );
             // 滞回：样本每多一项就换一次估值会让画面持续微抖，差 8px 以内不更新
             if (Math.abs(raw - estimateRef.current) > 8) estimateRef.current = raw;
@@ -665,7 +682,10 @@ const WaterfallCore = forwardRef<WaterfallCoreRef, WaterfallCoreProps>(
       rowGapValue,
       paddingValues,
       alignmentMode,
-      virtual?.estimateHeight,
+      isVirtual,
+      virtualAdaptiveEstimate,
+      virtualEstimateHeight,
+      virtualEstimateQuantile,
       layoutHooks,
       onBeforeLayout,
       onLayout,
@@ -828,6 +848,7 @@ const WaterfallCore = forwardRef<WaterfallCoreRef, WaterfallCoreProps>(
       throttleDelay,
       debounceDelay,
       maybeReachBottom,
+      containerRef,
     ]);
 
     // ---- 尺寸变化 ----
@@ -849,20 +870,22 @@ const WaterfallCore = forwardRef<WaterfallCoreRef, WaterfallCoreProps>(
         containerObserverRef.current.observe(container);
       }
 
+      // 项级 observer 集合的 Map 身份在组件生命周期内不变（useRef 初始化一次），
+      // 挂载时取一次引用即可；cleanup 时用它断干净，不依赖 React 的 null ref 回调时序。
+      const itemObservers = itemResizeObserversRef.current;
+
       return () => {
         onUnmount?.();
         containerObserverRef.current?.disconnect();
         containerObserverRef.current = null;
-        // 项级 observer：旧版只靠 ref 回调传 null 来 disconnect，
-        // 整树卸载时依赖 React 的调用时序，这里显式兜一层。
-        itemResizeObserversRef.current.forEach((ro) => {
+        itemObservers.forEach((ro) => {
           try {
             ro.disconnect();
           } catch {
             /* noop */
           }
         });
-        itemResizeObserversRef.current.clear();
+        itemObservers.clear();
         if (scrollEndTimerRef.current) window.clearTimeout(scrollEndTimerRef.current);
         if (layoutTimerRef.current) window.clearTimeout(layoutTimerRef.current);
         if (reachBottomTimerRef.current != null) {

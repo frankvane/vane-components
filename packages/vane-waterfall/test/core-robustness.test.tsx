@@ -82,9 +82,9 @@ beforeEach(() => {
   host = document.createElement("div");
   document.body.appendChild(host);
   root = createRoot(host);
-  Element.prototype.scrollTo = function scrollTo() {
+  Element.prototype.scrollTo = () => {
     /* noop */
-  } as any;
+  };
 });
 
 afterEach(() => {
@@ -109,8 +109,8 @@ function renderCore(
       columns={1}
       gap={10}
       debounceDelay={0}
-      renderItem={(item: any) => <div data-h={item.h}>{item.id}</div>}
-      keyExtractor={(item: any) => item.id}
+      renderItem={(item) => <div data-h={item.h}>{item.id}</div>}
+      keyExtractor={(item) => item.id}
       {...extra}
     />
   );

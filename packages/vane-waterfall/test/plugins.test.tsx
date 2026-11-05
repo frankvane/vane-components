@@ -15,9 +15,9 @@ import { afterAll, beforeAll, beforeEach, afterEach, describe, expect, it } from
 import * as plugins from "../src/custom-plugins";
 import WaterfallCore, { type WaterfallCoreRef } from "../src/components/WaterfallPlugin/WaterfallCore";
 import { withPlugins } from "../src/components/WaterfallPlugin/withPlugins";
-import type { WaterfallPlugin } from "../src/components/WaterfallPlugin/plugins/types";
+import type { WaterfallPlugin, WaterfallPluginContext } from "../src/components/WaterfallPlugin/plugins/types";
 
-(globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
+(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 const ALLOWED_HOOKS = new Set([
   "onMount",
@@ -43,7 +43,7 @@ const ALLOWED_HOOKS = new Set([
 ]);
 
 /** 每个插件的最小可用配置（必填项） */
-const MIN_CONFIG: Record<string, any> = {
+const MIN_CONFIG: Record<string, unknown> = {
   createAlignmentPlugin: { mode: "shortest" },
   createAutoColumnPlugin: { minColumnWidth: 200 },
   createResponsiveColumnsPlugin: { breakpoints: { sm: { width: 0, columns: 2 } } },
@@ -54,9 +54,12 @@ const MIN_CONFIG: Record<string, any> = {
   createRecyclePlugin: { poolSize: 20 },
 };
 
+type FactoryMeta = { name?: string; description?: string };
+type PluginFactory = ((config?: unknown) => WaterfallPlugin) & { meta?: FactoryMeta };
+
 const factories = Object.entries(plugins).filter(
   ([name, value]) => name.startsWith("create") && typeof value === "function"
-) as Array<[string, ((config?: any) => WaterfallPlugin<any>) & { meta?: any }]>;
+) as unknown as Array<[string, PluginFactory]>;
 
 describe("插件一致性", () => {
   it("导出 26 个插件工厂", () => {
@@ -66,9 +69,9 @@ describe("插件一致性", () => {
   it("每个工厂都有 .meta，且 name 与工厂名对应", () => {
     for (const [name, factory] of factories) {
       expect(factory.meta, `${name} 缺少 .meta`).toBeTruthy();
-      expect(factory.meta.name).toMatch(/Plugin$/);
-      expect(typeof factory.meta.description).toBe("string");
-      expect(factory.meta.description.length).toBeGreaterThan(8);
+      expect(factory.meta!.name).toMatch(/Plugin$/);
+      expect(typeof factory.meta!.description).toBe("string");
+      expect(factory.meta!.description!.length).toBeGreaterThan(8);
     }
   });
 
@@ -176,7 +179,7 @@ const ITEMS = Array.from({ length: 10 }, (_v, index) => ({
   name: index % 2 === 0 ? "even" : "odd",
 }));
 
-async function mount(pluginList: WaterfallPlugin[], extra: Record<string, any> = {}) {
+async function mount(pluginList: WaterfallPlugin[], extra: Record<string, unknown> = {}) {
   const Wrapped = withPlugins(WaterfallCore, pluginList);
   const rendered: string[] = [];
   await act(async () => {
@@ -187,11 +190,11 @@ async function mount(pluginList: WaterfallPlugin[], extra: Record<string, any> =
         columns={2}
         gap={10}
         debounceDelay={0}
-        renderItem={(item: any) => {
+        renderItem={(item) => {
           rendered.push(item.id);
           return <div data-h={item.h}>{item.id}</div>;
         }}
-        keyExtractor={(item: any) => item.id}
+        keyExtractor={(item) => item.id}
         {...extra}
       />
     );
@@ -206,8 +209,8 @@ describe("端到端", () => {
   it("数据管线：Filter → Sort → Pagination 组合结果正确", async () => {
     const rendered = await mount(
       [
-        plugins.createFilterPlugin({ predicate: (item: any) => item.price >= 30 }),
-        plugins.createSortPlugin({ comparator: (a: any, b: any) => b.price - a.price }),
+        plugins.createFilterPlugin({ predicate: (item) => item.price >= 30 }),
+        plugins.createSortPlugin({ comparator: (a, b) => b.price - a.price }),
         plugins.createPaginationPlugin({ pageSize: 3 }),
       ],
       { pageIndex: 1 }
@@ -275,7 +278,7 @@ describe("端到端", () => {
 
   it("覆盖层渲染在滚动容器内部且可被 StickyHeader 用 sticky 定位", async () => {
     await mount([
-      plugins.createGroupingPlugin({ groupBy: (item: any) => item.name }),
+      plugins.createGroupingPlugin({ groupBy: (item) => item.name }),
       plugins.createStickyHeaderPlugin({ title: "今日推荐" }),
     ]);
 
@@ -290,12 +293,12 @@ describe("端到端", () => {
     const plugin = plugins.createRecyclePlugin({ poolSize: 5 });
     const el = document.createElement("div");
     const container = document.createElement("div");
-    const context: any = {
+    const context = {
       getItemRef: (index: number) => (index === 0 ? el : null),
       containerRef: { current: container },
       props: {},
       itemRefs: new Map([[0, el]]),
-    };
+    } as unknown as WaterfallPluginContext;
 
     plugin.hooks.onItemLeaveViewport!(context, 0, {
       index: 0,

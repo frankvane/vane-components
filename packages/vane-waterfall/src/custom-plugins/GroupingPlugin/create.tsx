@@ -3,6 +3,7 @@ import type {
   WaterfallPluginContext,
 } from "../../components/WaterfallPlugin/plugins/types";
 
+/** T 默认 any：与 plugins/types.ts 的泛型默认值说明同因（配置类型常被简写引用） */
 export type GroupingConfig<T = any> = {
   /** 分组函数，返回组键（默认取 item.category） */
   groupBy?: (item: T, index: number) => string | number;
@@ -21,11 +22,15 @@ const INDEX_KEY = "GROUP_INDEX";
  * 吸顶条只能显示写死的标题。这里改成挂载即算，并在 items 变化与布局完成时重算，
  * 同时把结果 emit 出去（`grouping:change`），页面不用轮询 sharedData。
  */
+// T 默认 any：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
 export function createGroupingPlugin<T = any>(
   config: GroupingConfig<T> = {}
 ): WaterfallPlugin<T> {
-  const groupBy =
-    config.groupBy ?? ((item: any) => item?.category ?? "default");
+  const groupBy: (item: T, index: number) => string | number =
+    config.groupBy ??
+    ((item) =>
+      (item as unknown as { category?: string | number } | null | undefined)?.category ??
+      "default");
   const showOverlay = config.showOverlay ?? false;
 
   /** 上一次的输入集合：items 引用不变就不重算（onLayoutComplete 每次布局都会调到这里，P2-7） */

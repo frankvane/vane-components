@@ -11,7 +11,8 @@ import { act } from "react-dom/test-utils";
 import { afterAll, beforeAll, beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 import WaterfallCore, { type WaterfallCoreRef } from "../src/components/WaterfallPlugin/WaterfallCore";
 
-(globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
+// React 18 的 act 环境标记（官方推荐的测试环境开关）
+(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 const CONTAINER_WIDTH = 900;
 
@@ -31,7 +32,7 @@ class MockResizeObserver {
     this.targets.clear();
   }
   trigger(el: Element) {
-    this.callback([{ target: el } as unknown as ResizeObserverEntry], this as any);
+    this.callback([{ target: el } as unknown as ResizeObserverEntry], this);
   }
   static triggerAll() {
     for (const instance of MockResizeObserver.instances) {

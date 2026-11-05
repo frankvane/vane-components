@@ -1,5 +1,6 @@
 import type { WaterfallPlugin } from "../../components/WaterfallPlugin/plugins/types";
 
+/** T 默认 any：与 plugins/types.ts 的泛型默认值说明同因（配置类型常被简写引用） */
 export type ScrollAnchorConfig<T = any> = {
   /** 通过此函数提取锚点 id（默认使用 item.id） */
   getAnchorId?: (item: T, index: number) => string | number | undefined;
@@ -10,8 +11,11 @@ export type ScrollAnchorConfig<T = any> = {
  * - 渲染一个简单的锚点跳转控件
  * - 支持通过 bus 事件 anchor:scrollToId 跳转
  */
+// T 默认 any：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
 export function createScrollAnchorPlugin<T = any>(config: ScrollAnchorConfig<T> = {}): WaterfallPlugin<T> {
-  const getAnchorId = config.getAnchorId || ((item: any) => item?.id);
+  const getAnchorId: (item: T, index: number) => string | number | undefined =
+    config.getAnchorId ||
+    ((item) => (item as unknown as { id?: string | number } | null | undefined)?.id);
   let unsubscribe: (() => void) | undefined;
   return {
     name: "ScrollAnchorPlugin",

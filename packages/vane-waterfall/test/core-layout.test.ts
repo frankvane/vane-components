@@ -11,7 +11,36 @@ import { computeLayout, computeScrollTopForItem } from "../src/components/Waterf
 
 const round = (n: number) => Number(n.toFixed(4));
 
-const cases = fixture.cases as any[];
+type LayoutInput = Parameters<typeof computeLayout>[0] & {
+  heightsBefore: number[];
+  heightsAfter: number[];
+};
+
+interface LayoutExpect {
+  columnWidth?: number;
+  columnHeights?: number[];
+  totalHeight?: number;
+  columns?: number[];
+  positions?: Array<{ index: number; x: number; y: number; column?: number }>;
+  maxColumnHeight?: number;
+  trailingGap?: number;
+  before?: { columns?: number[]; y?: number[] };
+  after?: { columns?: number[]; y?: number[] };
+  totalHeightBefore?: number;
+  totalHeightAfter?: number;
+  y?: number;
+  start?: number;
+  center?: number;
+  end?: number;
+}
+
+interface LayoutCase {
+  id: string;
+  input: LayoutInput;
+  expect: LayoutExpect;
+}
+
+const cases = fixture.cases as unknown as LayoutCase[];
 const byId = (id: string) => cases.find((c) => c.id === id)!;
 
 describe("布局等价性（旧算法快照）", () => {
@@ -65,12 +94,12 @@ describe("布局等价性（旧算法快照）", () => {
     const after = computeLayout({ ...c.input, heights: c.input.heightsAfter, containerWidth: fixture.containerWidth });
 
     expect(before.positions.size).toBe(4);
-    expect([...before.positions.values()].map((p) => p.column)).toEqual(c.expect.before.columns);
-    expect([...before.positions.values()].map((p) => round(p.y))).toEqual(c.expect.before.y);
+    expect([...before.positions.values()].map((p) => p.column)).toEqual(c.expect.before!.columns);
+    expect([...before.positions.values()].map((p) => round(p.y))).toEqual(c.expect.before!.y);
     expect(round(before.totalHeight)).toBe(c.expect.totalHeightBefore);
 
-    expect([...after.positions.values()].map((p) => p.column)).toEqual(c.expect.after.columns);
-    expect([...after.positions.values()].map((p) => round(p.y))).toEqual(c.expect.after.y);
+    expect([...after.positions.values()].map((p) => p.column)).toEqual(c.expect.after!.columns);
+    expect([...after.positions.values()].map((p) => round(p.y))).toEqual(c.expect.after!.y);
     expect(round(after.totalHeight)).toBe(c.expect.totalHeightAfter);
   });
 

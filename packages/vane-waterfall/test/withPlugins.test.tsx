@@ -13,7 +13,7 @@ import WaterfallCore, {
 import { withPlugins } from "../src/components/WaterfallPlugin/withPlugins";
 import type { WaterfallPlugin } from "../src/components/WaterfallPlugin/plugins/types";
 
-(globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
+(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 // ---- 测量桩（happy-dom 无布局引擎）----
 const proto = HTMLElement.prototype;
@@ -178,7 +178,7 @@ describe("装配层语义", () => {
   });
 
   it("上下文里能读到布局、视口与项位置", async () => {
-    let snapshot: any = null;
+    let snapshot: unknown = null;
     await mount([
       makePlugin("reader", {
         onLayoutComplete: (ctx) => {

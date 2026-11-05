@@ -24,6 +24,7 @@ export type A11yConfig = {
  *     `(context, content, index)`，而 DragReorder 写的是 `(context, index, item, children)`，
  *     同一个钩子两套参数顺序，靠"谁先装"决定传入什么，属于隐蔽的错位 bug。
  */
+// T 默认 any：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
 export function createA11yPlugin<T = any>(config: A11yConfig = {}): WaterfallPlugin<T> {
   const containerRole = config.containerRole ?? "list";
   const itemRole = config.itemRole ?? "listitem";

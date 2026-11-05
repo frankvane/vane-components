@@ -15,54 +15,88 @@ import { act } from "react-dom/test-utils";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import WaterfallCore, {
+  type WaterfallCoreProps,
   type WaterfallCoreRef,
 } from "../src/components/WaterfallPlugin/WaterfallCore";
 import { withPlugins } from "../src/components/WaterfallPlugin/withPlugins";
-import type { WaterfallPlugin } from "../src/components/WaterfallPlugin/plugins/types";
+import type {
+  ItemVisibility,
+  WaterfallPlugin,
+  WaterfallPluginContext,
+} from "../src/components/WaterfallPlugin/plugins/types";
 import * as plugins from "../src/custom-plugins";
 
-(globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
+(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
-/** 宽松上下文：只填当前用例用得到的字段，其余给最小可用的桩 */
-function makeCtx<T = any>(overrides: Record<string, any> = {}): any {
-  const sharedData = overrides.sharedData ?? new Map<string, any>();
-  const bus = overrides.bus ?? { emit: () => {} };
-  return {
+/** 测试用的宽松数据项：各用例只关心自己用到的字段 */
+interface TestItem {
+  id?: string;
+  price?: number;
+  h?: number;
+  cat?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * 测试桩上下文：只填当前用例用得到的字段，其余给最小可用值。
+ * 这里必须做一次断言（真实上下文有二十多个字段），但不再用 any 扩散到用例里。
+ */
+function makeCtx(overrides: Record<string, unknown> = {}): WaterfallPluginContext<TestItem> {
+  const base = {
     items: [],
     rawItems: [],
     itemCount: 0,
     props: {},
     containerRef: { current: null },
-    sharedData,
-    bus,
+    sharedData: new Map<string, unknown>(),
+    bus: { emit: () => {} },
     forceUpdate: () => {},
     getItemRef: () => null,
     visibleRange: { start: 0, end: 0 },
     isLayouting: false,
     ...overrides,
   };
+  return base as unknown as WaterfallPluginContext<TestItem>;
+}
+
+/** 分组/吸顶共享的 GROUPS / GROUP_INDEX 容器（值类型由插件按 key 约定写入） */
+function makeSharedData(): WaterfallPluginContext<TestItem>["sharedData"] {
+  return new Map();
+}
+
+/** 单测里只需 transformProps 的入参形状，缺省字段用最小桩补齐 */
+function rawProps<T>(props: Record<string, unknown>): WaterfallCoreProps<T> {
+  return { items: [], renderItem: () => null, ...props } as unknown as WaterfallCoreProps<T>;
 }
 
 describe("P2-3 Pagination", () => {
   it("页码越界时钳到最后一页，不再静默变成空列表", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const plugin = plugins.createPaginationPlugin<number>({ pageSize: 3 });
-    const out: any = plugin.hooks.transformProps!({
-      items: [1, 2, 3, 4, 5, 6, 7],
-      pageIndex: 9,
-      pageSize: 3,
-    } as any);
+    const out = plugin.hooks.transformProps!(
+      rawProps<number>({
+        items: [1, 2, 3, 4, 5, 6, 7],
+        pageIndex: 9,
+        pageSize: 3,
+      })
+    );
     expect(out.items).toEqual([7]);
     warn.mockRestore();
   });
 
   it("非法页码（NaN / 负数 / 小数）归一为合法页", () => {
     const plugin = plugins.createPaginationPlugin<number>({ pageSize: 2 });
-    const nan: any = plugin.hooks.transformProps!({ items: [1, 2, 3, 4], pageIndex: NaN } as any);
+    const nan = plugin.hooks.transformProps!(
+      rawProps<number>({ items: [1, 2, 3, 4], pageIndex: NaN })
+    );
     expect(nan.items).toEqual([1, 2]);
-    const negative: any = plugin.hooks.transformProps!({ items: [1, 2, 3, 4], pageIndex: -3 } as any);
+    const negative = plugin.hooks.transformProps!(
+      rawProps<number>({ items: [1, 2, 3, 4], pageIndex: -3 })
+    );
     expect(negative.items).toEqual([1, 2]);
-    const fractional: any = plugin.hooks.transformProps!({ items: [1, 2, 3, 4], pageIndex: 2.7 } as any);
+    const fractional = plugin.hooks.transformProps!(
+      rawProps<number>({ items: [1, 2, 3, 4], pageIndex: 2.7 })
+    );
     expect(fractional.items).toEqual([3, 4]);
   });
 });
@@ -72,7 +106,7 @@ describe("P2-2 InfiniteScroll 实例锁", () => {
     let release!: () => void;
     const firstPromise = new Promise<void>((resolve) => (release = resolve));
     const calls: string[] = [];
-    const plugin = plugins.createInfiniteScrollPlugin<any>({ threshold: 300 });
+    const plugin = plugins.createInfiniteScrollPlugin<TestItem>({ threshold: 300 });
     const ctxA = makeCtx({
       containerRef: { current: document.createElement("div") },
       props: {
@@ -109,7 +143,7 @@ describe("P2-2 InfiniteScroll 实例锁", () => {
 
   it("hasMore=false 时不再触发 onLoadMore", async () => {
     const calls: number[] = [];
-    const plugin = plugins.createInfiniteScrollPlugin<any>({ threshold: 300 });
+    const plugin = plugins.createInfiniteScrollPlugin<TestItem>({ threshold: 300 });
     const ctx = makeCtx({ hasMore: false, props: { onLoadMore: () => calls.push(1) } });
     await plugin.hooks.onReachBottom!(ctx, 0);
     expect(calls).toHaveLength(0);
@@ -123,7 +157,7 @@ describe("P2-4 Recycle 池上限", () => {
     const ctx = makeCtx({ getItemRef: (index: number) => els[index] ?? null });
 
     for (const index of [0, 1, 2]) {
-      plugin.hooks.onItemEnterViewport!(ctx, index, undefined as any);
+      plugin.hooks.onItemEnterViewport!(ctx, index, undefined as unknown as ItemVisibility);
     }
 
     expect(els[0].style.visibility).toBe("hidden");
@@ -148,7 +182,7 @@ describe("P2-5 Gap 响应式按容器宽度", () => {
     });
     const ctx = makeCtx({ containerRef: { current: container } });
     plugin.hooks.onMount!(ctx);
-    const out: any = plugin.hooks.transformProps!({} as any);
+    const out = plugin.hooks.transformProps!(rawProps<TestItem>({}));
 
     expect(out.columnGap).toBe(20);
     expect(out.rowGap).toBe(20);
@@ -162,11 +196,11 @@ describe("P2-6 StatePersistence schema 与恢复时机", () => {
   it("只读取带 schema 的快照，旧格式直接丢弃", () => {
     localStorage.setItem("wf-state", JSON.stringify({ pageIndex: 3 }));
     const plugin = plugins.createStatePersistencePlugin({ storageKey: "wf-state" });
-    const props = { pageIndex: 1 } as any;
-    expect((plugin.hooks.transformProps!(props) as any).pageIndex).toBe(1);
+    const baseProps = rawProps<TestItem>({ pageIndex: 1 });
+    expect(plugin.hooks.transformProps!(baseProps).pageIndex).toBe(1);
 
     localStorage.setItem("wf-state", JSON.stringify({ version: 1, state: { pageIndex: 3 } }));
-    expect((plugin.hooks.transformProps!(props) as any).pageIndex).toBe(3);
+    expect(plugin.hooks.transformProps!(baseProps).pageIndex).toBe(3);
   });
 
   it("滚动位置在首次布局完成后恢复，onMount 不提前 scrollTo", () => {
@@ -176,7 +210,7 @@ describe("P2-6 StatePersistence schema 与恢复时机", () => {
     );
     const container = document.createElement("div");
     const scrollTo = vi.fn();
-    container.scrollTo = scrollTo as any;
+    container.scrollTo = scrollTo as unknown as typeof container.scrollTo;
     const plugin = plugins.createStatePersistencePlugin({ storageKey: "wf-scroll" });
     const ctx = makeCtx({ containerRef: { current: container } });
 
@@ -221,7 +255,7 @@ describe("P2-6 URLSync 读写", () => {
       mode: "hash",
       keys: ["pageIndex", "searchQuery"],
     });
-    const out: any = plugin.hooks.transformProps!({ pageIndex: 1 } as any);
+    const out = plugin.hooks.transformProps!(rawProps<TestItem>({ pageIndex: 1 }));
     expect(out.pageIndex).toBe("3");
     expect(out.searchQuery).toBe("abc");
   });
@@ -230,13 +264,13 @@ describe("P2-6 URLSync 读写", () => {
     window.history.replaceState(null, "", `#?pageIndex=3`);
     const replace = vi.spyOn(window.history, "replaceState");
     const plugin = plugins.createURLSyncPlugin({ mode: "hash", keys: ["pageIndex"] });
-    plugin.hooks.transformProps!({ pageIndex: 1 } as any);
+    plugin.hooks.transformProps!(rawProps<TestItem>({ pageIndex: 1 }));
     const ctx = makeCtx();
 
-    plugin.hooks.onPropsChange!(ctx, {} as any, { pageIndex: "3" } as any);
+    plugin.hooks.onPropsChange!(ctx, rawProps<TestItem>({}), rawProps<TestItem>({ pageIndex: "3" }));
     expect(replace).not.toHaveBeenCalled();
 
-    plugin.hooks.onPropsChange!(ctx, {} as any, { pageIndex: "5" } as any);
+    plugin.hooks.onPropsChange!(ctx, rawProps<TestItem>({}), rawProps<TestItem>({ pageIndex: "5" }));
     expect(replace).toHaveBeenCalled();
     replace.mockRestore();
   });
@@ -271,20 +305,20 @@ function textOf(node: React.ReactNode): string {
   if (node === null || node === undefined || typeof node === "boolean") return "";
   if (typeof node === "string" || typeof node === "number") return String(node);
   if (Array.isArray(node)) return node.map(textOf).join("");
-  if (React.isValidElement(node)) return textOf((node.props as any).children);
+  if (React.isValidElement(node)) return textOf((node.props as { children?: React.ReactNode }).children);
   return "";
 }
 
 describe("P2-7 分组与吸顶", () => {
   it("items 引用不变时不重复重算 / emit，替换数据才 emit", () => {
-    const sharedData = new Map<string, any>();
+    const sharedData = makeSharedData();
     const events: string[] = [];
     const ctx = makeCtx({
       items: [{ cat: "a" }, { cat: "b" }],
       sharedData,
       bus: { emit: (event: string) => events.push(event) },
     });
-    const plugin = plugins.createGroupingPlugin<any>({ groupBy: (item: any) => item.cat });
+    const plugin = plugins.createGroupingPlugin<TestItem>({ groupBy: (item) => item.cat ?? "" });
 
     plugin.hooks.onMount!(ctx);
     expect(events).toEqual(["grouping:change"]);
@@ -293,7 +327,7 @@ describe("P2-7 分组与吸顶", () => {
 
     // 同一份 items：布局完成 / props 变化都不应再广播
     plugin.hooks.onLayoutComplete!(ctx);
-    plugin.hooks.onPropsChange!(ctx, {} as any, {} as any);
+    plugin.hooks.onPropsChange!(ctx, rawProps<TestItem>({}), rawProps<TestItem>({}));
     expect(events).toEqual(["grouping:change"]);
 
     ctx.items = [{ cat: "b" }, { cat: "b" }];
@@ -302,10 +336,9 @@ describe("P2-7 分组与吸顶", () => {
   });
 
   it("吸顶条显示当前可见项所属分组，而不是恒为第一组", () => {
-    const sharedData = new Map<string, any>([
-      ["GROUPS", new Map<string | number, number[]>([["a", [0, 1]], ["b", [2, 3]]])],
-      ["GROUP_INDEX", new Map<number, string>([[0, "a"], [1, "a"], [2, "b"], [3, "b"]])],
-    ]);
+    const sharedData = makeSharedData();
+    sharedData.set("GROUPS", new Map<string | number, number[]>([["a", [0, 1]], ["b", [2, 3]]]));
+    sharedData.set("GROUP_INDEX", new Map<number, string>([[0, "a"], [1, "a"], [2, "b"], [3, "b"]]));
     const plugin = plugins.createStickyHeaderPlugin({ title: "分组" });
 
     const at = (start: number) =>
@@ -325,14 +358,14 @@ describe("P2-8 统计按稳定 key", () => {
     const items = [{ id: "x" }, { id: "y" }];
     const ctx = makeCtx({
       items,
-      props: { keyExtractor: (item: any) => item.id },
+      props: { keyExtractor: (item: TestItem) => item.id ?? "" },
     });
-    const plugin = plugins.createClickAnalyticsPlugin<any>({});
+    const plugin = plugins.createClickAnalyticsPlugin<TestItem>({});
 
     plugin.hooks.onLayoutComplete!(ctx);
-    plugin.hooks.onItemClick!(ctx, 0, items[0], {} as any);
-    plugin.hooks.onItemClick!(ctx, 0, items[0], {} as any);
-    plugin.hooks.onItemClick!(ctx, 1, items[1], {} as any);
+    plugin.hooks.onItemClick!(ctx, 0, items[0], {} as React.MouseEvent);
+    plugin.hooks.onItemClick!(ctx, 0, items[0], {} as React.MouseEvent);
+    plugin.hooks.onItemClick!(ctx, 1, items[1], {} as React.MouseEvent);
 
     const stats = plugin.getStats();
     expect(stats.total).toBe(3);
@@ -351,9 +384,9 @@ describe("P2-8 统计按稳定 key", () => {
     const ctx = makeCtx({
       items: [{ id: "a" }, { id: "b" }, { id: "c" }],
       visibleRange: { start: 0, end: 2 },
-      props: { keyExtractor: (item: any) => item.id },
+      props: { keyExtractor: (item: TestItem) => item.id ?? "" },
     });
-    const plugin = plugins.createHeatmapAnalyticsPlugin<any>({});
+    const plugin = plugins.createHeatmapAnalyticsPlugin<TestItem>({});
 
     plugin.hooks.onLayoutComplete!(ctx);
     expect(plugin.getStats().totalViews).toBe(3);
@@ -379,17 +412,17 @@ describe("P2-9 A11y roving tabindex", () => {
     const plugin = plugins.createA11yPlugin({});
 
     const wrapper = (index: number) =>
-      plugin.hooks.renderItemWrapper!(ctx, null, index) as React.ReactElement;
+      plugin.hooks.renderItemWrapper!(ctx, null, index) as unknown as React.ReactElement;
 
-    expect((wrapper(0).props as any).tabIndex).toBe(0);
-    expect((wrapper(1).props as any).tabIndex).toBe(-1);
+    expect((wrapper(0).props as { tabIndex?: number }).tabIndex).toBe(0);
+    expect((wrapper(1).props as { tabIndex?: number }).tabIndex).toBe(-1);
     // 旧实现给每项写死 outline:none，焦点完全不可见
-    expect((wrapper(1).props as any).style).toBeUndefined();
-    expect((wrapper(1).props as any)["aria-setsize"]).toBe(3);
+    expect((wrapper(1).props as { style?: unknown }).style).toBeUndefined();
+    expect((wrapper(1).props as { "aria-setsize"?: number })["aria-setsize"]).toBe(3);
 
-    plugin.hooks.onItemClick!(ctx, 2, {}, {} as any);
-    expect((wrapper(0).props as any).tabIndex).toBe(-1);
-    expect((wrapper(2).props as any).tabIndex).toBe(0);
+    plugin.hooks.onItemClick!(ctx, 2, {}, {} as React.MouseEvent);
+    expect((wrapper(0).props as { tabIndex?: number }).tabIndex).toBe(-1);
+    expect((wrapper(2).props as { tabIndex?: number }).tabIndex).toBe(0);
   });
 });
 
@@ -462,8 +495,8 @@ async function flush(ms = 30) {
 
 describe("P2-1 插件上下文的数据集合", () => {
   it("items 是渲染集合、rawItems 是原始集合；hasMore/isLoading 可由 props 覆盖", async () => {
-    let seen: any = null;
-    const probe: WaterfallPlugin<any> = {
+    let seen!: WaterfallPluginContext<TestItem>;
+    const probe: WaterfallPlugin<TestItem> = {
       name: "ProbePlugin",
       hooks: {
         onLayoutComplete: (context) => {
@@ -477,7 +510,7 @@ describe("P2-1 插件上下文的数据集合", () => {
       { id: "c", price: 50, h: 100 },
     ];
     const Wrapped = withPlugins(WaterfallCore, [
-      plugins.createFilterPlugin<any>({ predicate: (item) => item.price >= 30 }),
+      plugins.createFilterPlugin<TestItem>({ predicate: (item) => (item.price ?? 0) >= 30 }),
       probe,
     ]);
 
@@ -489,8 +522,8 @@ describe("P2-1 插件上下文的数据集合", () => {
           columns={1}
           gap={10}
           debounceDelay={0}
-          renderItem={(item: any) => <div data-h={item.h}>{item.id}</div>}
-          keyExtractor={(item: any) => item.id}
+          renderItem={(item) => <div data-h={item.h}>{item.id}</div>}
+          keyExtractor={(item) => item.id ?? ""}
           hasMore={false}
           isLoading={true}
         />
@@ -521,8 +554,8 @@ describe("P2-1 插件上下文的数据集合", () => {
           columns={1}
           gap={10}
           debounceDelay={0}
-          renderItem={(item: any) => <div data-h={item.h}>{item.id}</div>}
-          keyExtractor={(item: any) => item.id}
+          renderItem={(item) => <div data-h={item.h}>{item.id}</div>}
+          keyExtractor={(item) => item.id ?? ""}
         />
       );
     });
@@ -539,7 +572,7 @@ describe("P2-11 项单元 memo", () => {
   it("同一 items / renderItem 重渲染不重复调用 renderItem", async () => {
     let calls = 0;
     const items = [{ id: "a", h: 100 }, { id: "b", h: 100 }];
-    const renderItem = (item: any) => {
+    const renderItem = (item: TestItem) => {
       calls += 1;
       return <div data-h={item.h}>{item.id}</div>;
     };
@@ -551,7 +584,7 @@ describe("P2-11 项单元 memo", () => {
         gap={10}
         debounceDelay={0}
         renderItem={renderItem}
-        keyExtractor={(item: any) => item.id}
+        keyExtractor={(item) => item.id ?? ""}
       />
     );
 

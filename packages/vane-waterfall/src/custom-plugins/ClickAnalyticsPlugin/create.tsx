@@ -23,6 +23,7 @@ export type ClickAnalyticsStats = {
  * - 可选控制台输出日志
  * - `getStats()` 把内存里的计数吐出来，方便接到自己的上报通道
  */
+// T 默认 any：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
 export function createClickAnalyticsPlugin<T = any>(
   config: ClickAnalyticsConfig = {}
 ): WaterfallPlugin<T> & { getStats: () => ClickAnalyticsStats } {

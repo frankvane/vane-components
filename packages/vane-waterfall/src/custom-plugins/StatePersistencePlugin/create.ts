@@ -17,6 +17,7 @@ export type StatePersistenceConfig = {
  * - 挂载时尝试恢复快照；卸载时写入快照
  * - 快照包含：scrollTop（可选）与部分 props 键
  */
+// T 默认 any：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
 export function createStatePersistencePlugin<T = any>(config: StatePersistenceConfig = {}): WaterfallPlugin<T> {
   const key = config.storageKey || "waterfall-state";
   const persistScroll = config.persistScroll ?? true;
@@ -30,7 +31,7 @@ export function createStatePersistencePlugin<T = any>(config: StatePersistenceCo
   const instanceKey = (context: WaterfallPluginContext<T>): object =>
     (context.containerRef?.current as unknown as object) ?? (context.bus as unknown as object);
 
-  function read(): Record<string, any> | null {
+  function read(): Record<string, unknown> | null {
     try {
       const raw = localStorage.getItem(key);
       if (!raw) return null;
@@ -44,7 +45,7 @@ export function createStatePersistencePlugin<T = any>(config: StatePersistenceCo
     }
   }
 
-  function write(data: Record<string, any>) {
+  function write(data: Record<string, unknown>) {
     try {
       localStorage.setItem(key, JSON.stringify({ version: SCHEMA_VERSION, state: data }));
     } catch {}
@@ -59,7 +60,7 @@ export function createStatePersistencePlugin<T = any>(config: StatePersistenceCo
         if (initialInjected) return props;
         const snap = read();
         if (!snap) return props;
-        const next: Record<string, any> = { ...props };
+        const next: Record<string, unknown> = { ...props };
         let changed = false;
         persistKeys.forEach((k) => {
           if (snap[k] !== undefined) {
@@ -68,7 +69,8 @@ export function createStatePersistencePlugin<T = any>(config: StatePersistenceCo
           }
         });
         if (changed) initialInjected = true;
-        return next as typeof props;
+        // 值是「运行时键 + 原始 props 形状」：props 用 Record 收窄后需回到原类型
+        return next as unknown as typeof props;
       },
       onMount: (context) => {
         const snap = read();
@@ -76,7 +78,7 @@ export function createStatePersistencePlugin<T = any>(config: StatePersistenceCo
         // 滚动位置**不在这里恢复**：onMount 时内容总高还是 0，
         // scrollTo 会被钳到 0，看起来像「恢复没生效」。等首次布局完成再恢复（见下）
         // 广播持久化的键，便于页面采用
-        const restored: Record<string, any> = {};
+        const restored: Record<string, unknown> = {};
         persistKeys.forEach((k) => {
           if (snap[k] !== undefined) restored[k] = snap[k];
         });
@@ -109,7 +111,7 @@ export function createStatePersistencePlugin<T = any>(config: StatePersistenceCo
       // props 变化时，增量更新快照（立即持久化分页/查询键）
       onPropsChange: (_context, _prev, nextProps) => {
         const snap = read() || {};
-        const data: Record<string, any> = { ...snap };
+        const data: Record<string, unknown> = { ...snap };
         // 按字符串键取值：persistKeys 是运行时数组，无法在类型层收窄到 keyof props
         const source = (nextProps ?? {}) as unknown as Record<string, unknown>;
         persistKeys.forEach((k) => {
@@ -120,7 +122,7 @@ export function createStatePersistencePlugin<T = any>(config: StatePersistenceCo
         write(data);
       },
       onUnmount: (context) => {
-        const data: Record<string, any> = {};
+        const data: Record<string, unknown> = {};
         if (persistScroll) {
           data.scrollTop = context.containerRef.current?.scrollTop || 0;
         }

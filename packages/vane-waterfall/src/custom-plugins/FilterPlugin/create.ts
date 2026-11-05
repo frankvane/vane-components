@@ -1,5 +1,6 @@
 import type { WaterfallPlugin } from "../../components/WaterfallPlugin/plugins/types";
 
+/** T 默认 any：与 plugins/types.ts 的泛型默认值说明同因（配置类型常被简写引用） */
 export type FilterConfig<T = any> = {
   /** 初始筛选函数，可被 props.filterFn 覆盖 */
   predicate?: (item: T, index: number) => boolean;
@@ -13,13 +14,14 @@ export type FilterConfig<T = any> = {
  * FilterPlugin - 基于筛选函数过滤 items
  * 优先使用 props.filterFn，其次使用创建插件时传入的 predicate
  */
+// T 默认 any：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
 export function createFilterPlugin<T = any>(config: FilterConfig<T> = {}): WaterfallPlugin<T> {
   return {
     name: "FilterPlugin",
     priority: 40,
     enabled: true,
     hooks: {
-      transformProps: (props: any) => {
+      transformProps: (props) => {
         const items: T[] = Array.isArray(props.items) ? props.items : [];
         const fn: ((item: T, index: number) => boolean) | undefined = props.filterFn || config.predicate;
         if (typeof fn !== "function") return props;
@@ -30,17 +32,17 @@ export function createFilterPlugin<T = any>(config: FilterConfig<T> = {}): Water
             return true;
           }
         });
-        return { ...props, items: filtered } as any;
+        return { ...props, items: filtered };
       },
-      onPropsChange: (context, prevProps: any, nextProps: any) => {
-        const prevFn = prevProps?.filterFn;
-        const nextFn = nextProps?.filterFn;
-        const enabledFromProps = typeof nextProps?.scrollToTopOnFilterChange === "boolean"
+      onPropsChange: (context, prevProps, nextProps) => {
+        const prevFn = prevProps.filterFn;
+        const nextFn = nextProps.filterFn;
+        const enabledFromProps = typeof nextProps.scrollToTopOnFilterChange === "boolean"
           ? nextProps.scrollToTopOnFilterChange
           : undefined;
         const shouldScroll = (enabledFromProps ?? Boolean(config.scrollToTop)) && prevFn !== nextFn;
         if (shouldScroll) {
-          const behavior: "auto" | "smooth" = (nextProps?.scrollToTopBehavior as any) ?? config.scrollBehavior ?? "auto";
+          const behavior: "auto" | "smooth" = nextProps.scrollToTopBehavior ?? config.scrollBehavior ?? "auto";
           context.scrollToTop?.({ behavior });
         }
       },
