@@ -5,6 +5,7 @@ import React, {
   useRef,
 } from "react";
 import { usePluginRuntime } from "vane-plugin-core";
+import type { PluginContext } from "vane-plugin-core";
 import type {
   ModalSheetCoreProps,
   ModalSheetCoreRef,
@@ -13,7 +14,7 @@ import type {
   ModalSheetWithPluginsConfig,
 } from "./types";
 import { createSheetState, type SheetEngineState } from "../engine";
-import { ModalSheetSlotProvider } from "./slots";
+import { ModalSheetSlotProvider } from "./ModalSheetSlotProvider";
 
 /**
  * withModalSheetPlugins —— 弹层装配 HOC（领域 HOC 铁律）：
@@ -29,7 +30,7 @@ export function withModalSheetPlugins(
     React.PropsWithoutRef<ModalSheetCoreProps> &
       React.RefAttributes<ModalSheetCoreRef>
   >,
-  config: ModalSheetWithPluginsConfig | ModalSheetPlugin<any>[]
+  config: ModalSheetWithPluginsConfig | ModalSheetPlugin<unknown>[]
 ) {
   const normalized: ModalSheetWithPluginsConfig = Array.isArray(config)
     ? { plugins: config as ModalSheetPlugin[] }
@@ -43,10 +44,13 @@ export function withModalSheetPlugins(
       const sheetStateRef = useRef<SheetEngineState>(createSheetState());
       const transformedRef = useRef<ModalSheetCoreProps>(props);
 
-      const extendContext = useCallback((base: any): ModalSheetPluginContext => {
-        const ctx = { ...base } as ModalSheetPluginContext;
-        // 时基值 getter：直读可变引擎状态，context 不因拖拽逐帧重建
-        Object.defineProperties(ctx, {
+      const extendContext = useCallback(
+        (
+          base: PluginContext<ModalSheetCoreProps, unknown>
+        ): PluginContext<ModalSheetCoreProps, unknown> => {
+          const ctx = { ...base } as ModalSheetPluginContext;
+          // 时基值 getter：直读可变引擎状态，context 不因拖拽逐帧重建
+          Object.defineProperties(ctx, {
           progress: {
             get: () => sheetStateRef.current.progress,
             enumerable: true,
@@ -103,11 +107,12 @@ export function withModalSheetPlugins(
         };
         ctx.setViewportInset = (px: number) =>
           sheetStateRef.current.engine?.setViewportInset(px);
-        return ctx;
+        // 领域 context 是内核 context 的超集，结构兼容，按内核签名返回
+        return ctx as unknown as PluginContext<ModalSheetCoreProps, unknown>;
       }, []);
 
-      const runtime = usePluginRuntime<ModalSheetCoreProps, any>({
-        plugins: plugins as any,
+      const runtime = usePluginRuntime<ModalSheetCoreProps, unknown>({
+        plugins,
         props,
         containerRef: rootRef,
         enableDebug,
@@ -198,7 +203,7 @@ export function withModalSheetPlugins(
 
       return (
         <ModalSheetSlotProvider
-          orderedPlugins={runtime.orderedPlugins as unknown as ModalSheetPlugin[]}
+          orderedPlugins={runtime.orderedPlugins as unknown as ModalSheetPlugin<unknown>[]}
           context={runtime.context as ModalSheetPluginContext}
         >
           <WrappedComponent ref={setRef} {...finalProps} />

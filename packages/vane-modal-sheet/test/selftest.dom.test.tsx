@@ -2,7 +2,7 @@ import { afterAll, describe, expect, it } from "vitest";
 import { runSelfTest } from "../demo/src/lib/selftest";
 
 // 与项目其它组件测试一致，声明 act 环境，避免 React 18 的 act 告警噪声。
-(globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
+(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 /**
  * 浏览器内自测的确定性版本：直接复用 demo 里的 runSelfTest（真实挂载 +

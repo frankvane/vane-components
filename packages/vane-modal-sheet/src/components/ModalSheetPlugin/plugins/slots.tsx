@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useMemo } from "react";
+import React, { createContext, useContext } from "react";
 import { PluginErrorBoundary } from "vane-plugin-core";
 import type { ModalSheetPlugin, ModalSheetPluginContext } from "./types";
 
@@ -9,35 +9,12 @@ export type ModalSheetSlotHook =
   | "renderFooter"
   | "renderOverlay";
 
-interface SlotContextValue {
+export interface SlotContextValue {
   orderedPlugins: ModalSheetPlugin[];
   context: ModalSheetPluginContext;
 }
 
-const SlotContext = createContext<SlotContextValue | null>(null);
-
-/**
- * 弹层 DOM 插槽提供者：把运行时排好序的插件 + 领域上下文下发给 Core，
- * 供 useModalSheetSlot 渲染 backdrop / handle / header / footer / overlay。
- * 面板的 transform / 高度由内核引擎独占，槽位只承载各插件自己的视觉件。
- */
-export function ModalSheetSlotProvider({
-  orderedPlugins,
-  context,
-  children,
-}: {
-  orderedPlugins: ModalSheetPlugin[];
-  context: ModalSheetPluginContext;
-  children: React.ReactNode;
-}) {
-  const value = useMemo<SlotContextValue>(
-    () => ({ orderedPlugins, context }),
-    [orderedPlugins, context]
-  );
-  return (
-    <SlotContext.Provider value={value}>{children}</SlotContext.Provider>
-  );
-}
+export const SlotContext = createContext<SlotContextValue | null>(null);
 
 /**
  * 渲染某个槽位的插件产物。
@@ -45,7 +22,7 @@ export function ModalSheetSlotProvider({
  * 槽位钩子必须是纯渲染函数（只返回 JSX），不得调用 React hooks。
  */
 function renderSlot(
-  plugins: ModalSheetPlugin<any>[],
+  plugins: ModalSheetPlugin<unknown>[],
   context: ModalSheetPluginContext,
   hook: ModalSheetSlotHook
 ): React.ReactNode[] {

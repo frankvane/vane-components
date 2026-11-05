@@ -1,5 +1,5 @@
 import type React from "react";
-import type { Plugin, PluginContext, PluginCreator, PluginDoc, PluginHooks, WithPluginsConfig } from "vane-plugin-core";
+import type { Plugin, PluginContext, PluginDoc, PluginHooks, WithPluginsConfig } from "vane-plugin-core";
 import type { SheetDetent, SheetEngineState, SheetPlacement } from "../engine";
 
 /**
@@ -132,6 +132,7 @@ export interface ModalSheetPluginHooks extends PluginHooks<ModalSheetCoreProps> 
   onClose?(context: ModalSheetPluginContext): unknown;
 }
 
+/** 公共契约位：插件泛型默认值 any 保留（`ModalSheetPlugin[]` 这类写法依赖默认值） */
 export type ModalSheetPlugin<T = any> = Plugin<ModalSheetCoreProps, T> & {
   hooks: ModalSheetPluginHooks;
 };
@@ -139,6 +140,8 @@ export type ModalSheetPlugin<T = any> = Plugin<ModalSheetCoreProps, T> & {
 /**
  * 领域插件工厂：返回值挂钩领域钩子接口（renderBackdrop / onSnap …），
  * 内核通用 PluginCreator 只会给通用 PluginHooks，领域钩子会掉进索引签名丢类型。
+ *
+ * 公共契约位：工厂 Config 泛型默认值 any 保留（不传配置的调用方依赖默认值）。
  */
 export type ModalSheetPluginCreator<Config = any> = {
   (config?: Config): ModalSheetPlugin;

@@ -8,6 +8,7 @@ import { createKeepMountedPlugin } from "../src/custom-plugins/KeepMountedPlugin
 import { createHistoryPlugin } from "../src/custom-plugins/HistoryPlugin";
 import { createBackdropPlugin } from "../src/custom-plugins/BackdropPlugin";
 import { createDragHandlePlugin } from "../src/custom-plugins/DragHandlePlugin";
+import type { ModalSheetPluginContext } from "../src/components/ModalSheetPlugin/plugins/types";
 import { createSnapDotsPlugin } from "../src/custom-plugins/SnapDotsPlugin";
 import { createStepFlowPlugin } from "../src/custom-plugins/StepFlowPlugin";
 import { createSearchBarPlugin } from "../src/custom-plugins/SearchBarPlugin";
@@ -87,7 +88,7 @@ describe("MVP 插件三件套", () => {
     const node = plugin.hooks.renderHandle?.({
       snapCount: 1,
       currentSnap: 0,
-    } as any);
+    } as unknown as ModalSheetPluginContext);
     expect(node).toBeNull();
   });
 });

@@ -13,7 +13,8 @@ export type {
   SnapDecision,
   SnapDecisionInput,
 } from "./engine";
-export { ModalSheetSlotProvider, useModalSheetContext, useModalSheetSlot } from "./plugins/slots";
+export { ModalSheetSlotProvider } from "./plugins/ModalSheetSlotProvider";
+export { useModalSheetContext, useModalSheetSlot } from "./plugins/slots";
 export type { ModalSheetSlotHook } from "./plugins/slots";
 export { withModalSheetPlugins } from "./plugins/withPlugins";
 export type {

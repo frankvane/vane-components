@@ -1,5 +1,4 @@
 import type {
-  ModalSheetCoreProps,
   ModalSheetPluginContext,
   ModalSheetPluginCreator,
 } from "../../components/ModalSheetPlugin/plugins/types";
