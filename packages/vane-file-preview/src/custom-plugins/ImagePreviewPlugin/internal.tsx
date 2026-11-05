@@ -1,0 +1,272 @@
+/**
+ * `ImagePreviewPlugin` 的组件层。
+ *
+ * 组件与插件工厂分文件：`create.tsx` 只导出工厂（非组件），这里只导出组件，
+ * 以满足 `react-refresh/only-export-components`。
+ */
+
+import React, { useRef } from "react";
+
+import { triggerDownload } from "../../components/FilePreviewPlugin/shared/fileHelpers";
+import { useSharedValue } from "../../components/FilePreviewPlugin/shared/useSharedValue";
+import {
+  FileMeta,
+  ToolbarButton,
+  ToolbarContainer,
+  ToolbarSeparator,
+} from "../../components/FilePreviewPlugin/shared/ToolbarComponents";
+import type {
+  FilePreviewPluginContext,
+} from "../../components/FilePreviewPlugin/plugins/types";
+import type { ImagePreviewPluginConfig } from "./create";
+
+type ResolvedConfig = Required<ImagePreviewPluginConfig>;
+
+// 带插件前缀：sharedData 是一张跨插件的表，裸 key 会和别的插件互踩
+const KEY_SCALE = "image:scale";
+const KEY_ROTATION = "image:rotation";
+const KEY_OFFSET = "image:offset";
+
+interface Offset {
+  x: number;
+  y: number;
+}
+
+const SCALE_STEP = 0.2;
+const ROTATE_STEP = 90;
+
+function clampScale(scale: number, config: ResolvedConfig): number {
+  return Math.min(Math.max(scale, config.minZoom), config.maxZoom);
+}
+
+// ============ 正文 ============
+
+export function ImageBody({
+  context,
+  config,
+}: {
+  context: FilePreviewPluginContext;
+  config: ResolvedConfig;
+}) {
+  const [scale, setScale] = useSharedValue(context, KEY_SCALE, 1);
+  const [rotation, setRotation] = useSharedValue(context, KEY_ROTATION, 0);
+  const [offset, setOffset] = useSharedValue<Offset>(context, KEY_OFFSET, {
+    x: 0,
+    y: 0,
+  });
+  const { file, state } = context;
+  const boxRef = useRef<HTMLDivElement | null>(null);
+  const dragRef = useRef<{
+    x: number;
+    y: number;
+    offsetX: number;
+    offsetY: number;
+  } | null>(null);
+
+  // 加载中由 Core 的 loading 覆盖层显示，失败由 Core 的 error 面板显示 ——
+  // 这里只管「成功之后画什么」，不重复造状态 UI。
+  if (state.state !== "loaded") return null;
+
+  /**
+   * 平移量必须夹住：放大后能拖动，但不能拖到整张图飞出视口。
+   * 上限按「缩放后多出来的那一半」算；未放大时为 0，等价于不许拖。
+   */
+  const clampOffset = (x: number, y: number): Offset => {
+    const box = boxRef.current;
+    const width = box?.clientWidth ?? 0;
+    const height = box?.clientHeight ?? 0;
+    const current = clampScale(scale, config);
+    const maxX = Math.max(0, (width * (current - 1)) / 2);
+    const maxY = Math.max(0, (height * (current - 1)) / 2);
+    return {
+      x: Math.min(maxX, Math.max(-maxX, x)),
+      y: Math.min(maxY, Math.max(-maxY, y)),
+    };
+  };
+
+  const reset = () => {
+    setScale(1);
+    setRotation(0);
+    setOffset({ x: 0, y: 0 });
+  };
+
+  const onPointerDown = (e: React.PointerEvent<HTMLImageElement>) => {
+    if (clampScale(scale, config) <= 1) return;
+    dragRef.current = {
+      x: e.clientX,
+      y: e.clientY,
+      offsetX: offset.x,
+      offsetY: offset.y,
+    };
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+  };
+
+  const onPointerMove = (e: React.PointerEvent<HTMLImageElement>) => {
+    const drag = dragRef.current;
+    if (!drag) return;
+    setOffset(
+      clampOffset(
+        drag.offsetX + e.clientX - drag.x,
+        drag.offsetY + e.clientY - drag.y
+      )
+    );
+  };
+
+  const onPointerUp = (e: React.PointerEvent<HTMLImageElement>) => {
+    dragRef.current = null;
+    e.currentTarget.releasePointerCapture?.(e.pointerId);
+  };
+
+  return (
+    <div
+      ref={boxRef}
+      style={{
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "#f5f5f5",
+        overflow: "hidden",
+        boxSizing: "border-box",
+      }}
+    >
+      <img
+        src={file.url}
+        alt={file.name}
+        draggable={false}
+        style={{
+          maxWidth: "100%",
+          maxHeight: "100%",
+          transform: `translate(${offset.x}px, ${offset.y}px) scale(${clampScale(
+            scale,
+            config
+          )}) rotate(${rotation}deg)`,
+          // 复位/缩放走同一条过渡，避免「点复位时突跳」；拖动时不加过渡，否则跟手感很差
+          transition: dragRef.current ? "none" : "transform 0.2s ease",
+          cursor:
+            clampScale(scale, config) > 1
+              ? "grab"
+              : config.enableZoom
+                ? "zoom-in"
+                : "default",
+          userSelect: "none",
+          touchAction: "none",
+        }}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
+        onDoubleClick={reset}
+        onError={() => {
+          context.reportState({
+            state: "error",
+            message: `图片加载失败：${file.name}`,
+          });
+        }}
+      />
+    </div>
+  );
+}
+
+// ============ 工具栏 ============
+
+export function ImageToolbar({
+  context,
+  config,
+}: {
+  context: FilePreviewPluginContext;
+  config: ResolvedConfig;
+}) {
+  const [scale, setScale] = useSharedValue(context, KEY_SCALE, 1);
+  const [rotation, setRotation] = useSharedValue(context, KEY_ROTATION, 0);
+  const [, setOffset] = useSharedValue<Offset>(context, KEY_OFFSET, {
+    x: 0,
+    y: 0,
+  });
+
+  const zoomBy = (delta: number) => {
+    const next = clampScale(scale + delta, config);
+    // 定到 3 位小数：0.2 累加会出 0.30000000000000004
+    setScale(Math.round(next * 1000) / 1000);
+  };
+
+  return (
+    <ToolbarContainer>
+      <FileMeta
+        name={context.file.name}
+        size={context.file.size}
+        type="Image"
+        icon="🖼️"
+      />
+
+      <ToolbarSeparator />
+
+      <span
+        style={{
+          fontSize: 12,
+          color: "#656d76",
+          fontWeight: 500,
+          width: 50,
+          fontVariantNumeric: "tabular-nums",
+          textAlign: "right",
+        }}
+      >
+        {Math.round(scale * 100)}%
+      </span>
+
+      {config.enableZoom && (
+        <>
+          <ToolbarButton
+            onClick={() => zoomBy(-SCALE_STEP)}
+            title="缩小"
+            variant="icon"
+            disabled={scale <= config.minZoom}
+          >
+            −
+          </ToolbarButton>
+          <ToolbarButton
+            onClick={() => zoomBy(SCALE_STEP)}
+            title="放大"
+            variant="icon"
+            disabled={scale >= config.maxZoom}
+          >
+            +
+          </ToolbarButton>
+        </>
+      )}
+
+      {config.enableRotate && (
+        <ToolbarButton
+          onClick={() => setRotation((rotation + ROTATE_STEP) % 360)}
+          title={`旋转（当前 ${rotation}°）`}
+          variant="icon"
+        >
+          ⟳
+        </ToolbarButton>
+      )}
+
+      <ToolbarButton
+        onClick={() => {
+          setScale(1);
+          setRotation(0);
+          setOffset({ x: 0, y: 0 });
+        }}
+        title="复位"
+        variant="icon"
+      >
+        ↺
+      </ToolbarButton>
+
+      <ToolbarSeparator />
+
+      <ToolbarButton
+        onClick={() => triggerDownload(context.file.url, context.file.name)}
+        icon="📥"
+        title="下载图片"
+      >
+        下载
+      </ToolbarButton>
+    </ToolbarContainer>
+  );
+}

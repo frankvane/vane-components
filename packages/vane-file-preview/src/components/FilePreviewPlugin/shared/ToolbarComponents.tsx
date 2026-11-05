@@ -17,7 +17,7 @@ import React from "react";
 import { formatBytes } from "./fileHelpers";
 
 /** 统一的工具栏尺寸与配色，插件只在此基础上加几何细节 */
-export const toolbarStyles = {
+const toolbarStyles = {
   container: {
     display: "flex",
     alignItems: "center",

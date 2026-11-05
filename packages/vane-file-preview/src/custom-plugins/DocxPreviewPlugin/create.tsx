@@ -25,30 +25,20 @@
  * 现在删掉，改为给 `renderAsync` 传 `className` 并只调它真正支持的选项。
  */
 
-import React, { useEffect, useRef, useState } from "react";
-
 import {
   triggerDownload,
 } from "../../components/FilePreviewPlugin/shared/fileHelpers";
-import {
-  ErrorPanel,
-  LoadingPanel,
-  MissingDependency,
-} from "../../components/FilePreviewPlugin/shared/panels";
 import {
   FileMeta,
   ToolbarButton,
   ToolbarContainer,
   ToolbarSeparator,
 } from "../../components/FilePreviewPlugin/shared/ToolbarComponents";
-import {
-  defaultOf,
-  useDynamicModule,
-} from "../../components/FilePreviewPlugin/shared/useDynamicModule";
 import type {
   FilePreviewPlugin,
   FilePreviewPluginContext,
 } from "../../components/FilePreviewPlugin/plugins/types";
+import { DocxPreviewBody } from "./internal";
 
 export interface DocxPreviewPluginConfig {
   /** 整个插件开关。默认 true（但只有 `file.docxMode === "docx-preview"` 时才会命中） */
@@ -62,132 +52,12 @@ export interface DocxPreviewPluginConfig {
 const DOCX_MIME =
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
-interface RenderOptions {
-  className?: string;
-  inWrapper?: boolean;
-  breakPages?: boolean;
-  renderHeaders?: boolean;
-  renderFooters?: boolean;
-}
-
-interface DocxPreviewModule {
-  renderAsync: (
-    data: ArrayBuffer,
-    bodyContainer: HTMLElement,
-    styleContainer?: HTMLElement | null,
-    options?: RenderOptions
-  ) => Promise<unknown>;
-}
-
 /** 模块级常量，引用稳定 */
 const loadDocxPreview = () => import("docx-preview");
 
 function isDocx(file: FilePreviewPluginContext["file"]): boolean {
   if (file.extension.toLowerCase().replace(/^\./, "") === "docx") return true;
   return file.type === DOCX_MIME;
-}
-
-type DocxState =
-  | { status: "loading" }
-  | { status: "ready" }
-  | { status: "error"; error: string };
-
-function DocxPreviewBody({
-  context,
-  config,
-}: {
-  context: FilePreviewPluginContext;
-  config: Required<DocxPreviewPluginConfig>;
-}) {
-  const { file } = context;
-  const docxModule = useDynamicModule(loadDocxPreview);
-  const hostRef = useRef<HTMLDivElement | null>(null);
-  const [state, setState] = useState<DocxState>({ status: "loading" });
-
-  useEffect(() => {
-    if (docxModule.status !== "ready") return;
-
-    let alive = true;
-    // 换文件 / 卸载时真的取消请求，而不是只在回调里比对 alive
-    const controller = new AbortController();
-    setState({ status: "loading" });
-
-    (async () => {
-      try {
-        const res = await fetch(file.url, { signal: controller.signal });
-        if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
-        const arrayBuffer = await res.arrayBuffer();
-        // fetch 完成时可能已经切走了：先在渲染前拦一次（P1-2）
-        if (!alive) return;
-
-        const docx = defaultOf<DocxPreviewModule>(docxModule.mod);
-        /*
-         * 先画到游离容器。renderAsync 是长操作，直接往 hostRef 里写的话，
-         * 中途切文件会留下「做了一半的旧文档」，而且 clear 发生在 fetch 之后、
-         * 旧文档在被清空前一直是可见的。
-         */
-        const staging = document.createElement("div");
-        await docx.renderAsync(arrayBuffer, staging, null, {
-          className: "vfp-docx",
-          inWrapper: true,
-          breakPages: config.breakPages,
-          renderHeaders: config.renderHeaders,
-          renderFooters: config.renderHeaders,
-        });
-
-        // 渲染完再检查一次：renderAsync 本身也可能跑了几百毫秒
-        if (!alive) return;
-        const host = hostRef.current;
-        if (!host) return;
-        host.replaceChildren(...Array.from(staging.childNodes));
-        setState({ status: "ready" });
-      } catch (err) {
-        // abort 不是错误，别把「用户切走了」显示成渲染失败
-        if (!alive || controller.signal.aborted) return;
-        setState({
-          status: "error",
-          error: err instanceof Error ? err.message : "DOCX 渲染失败",
-        });
-      }
-    })();
-
-    return () => {
-      alive = false;
-      controller.abort();
-    };
-  }, [file.url, docxModule, config.breakPages, config.renderHeaders]);
-
-  if (docxModule.status === "unavailable") {
-    return (
-      <MissingDependency
-        pkg="docx-preview"
-        feature="还原 docx 版式需要 docx-preview"
-        hint={
-          <>
-            只想把内容读出来（不需版式）可以装 <code>mammoth</code>，
-            并把 <code>file.docxMode</code> 设为 <code>"mammoth"</code> 或不设。
-          </>
-        }
-        error={docxModule.error.message}
-      />
-    );
-  }
-
-  if (docxModule.status === "loading") {
-    return <LoadingPanel icon="📄" label="正在加载 docx-preview…" />;
-  }
-
-  if (state.status === "error") {
-    return <ErrorPanel label="DOCX 渲染失败" error={state.error} />;
-  }
-
-  return (
-    <div style={{ height: "100%", overflow: "auto", background: "#e5e7eb" }}>
-      {/* renderAsync 会往这里塞 .docx-wrapper > section.docx 结构 */}
-      <div ref={hostRef} data-vfp-docx-mode="docx-preview" />
-      {state.status === "loading" && <LoadingPanel icon="📄" label="正在还原版式…" />}
-    </div>
-  );
 }
 
 export function createDocxPreviewPlugin(
@@ -216,7 +86,11 @@ export function createDocxPreviewPlugin(
         resolved.enabled && isDocx(file) && file.docxMode === "docx-preview",
 
       render: (context) => (
-        <DocxPreviewBody context={context} config={resolved} />
+        <DocxPreviewBody
+          context={context}
+          config={resolved}
+          loadDocxPreview={loadDocxPreview}
+        />
       ),
 
       renderToolbar: (context) => (

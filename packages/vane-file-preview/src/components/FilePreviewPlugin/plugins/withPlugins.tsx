@@ -34,6 +34,7 @@ import {
   PluginErrorBoundary,
   usePluginRuntime,
   type Plugin as KernelPlugin,
+  type PluginContext,
 } from "vane-plugin-core";
 
 import type {
@@ -42,7 +43,6 @@ import type {
 } from "../core/FilePreviewCore";
 import type {
   DeviceInfo,
-  FileInfo,
   FilePreviewPlugin,
   FilePreviewPluginContext,
   PluginBus,
@@ -51,32 +51,6 @@ import type {
   WithPluginsConfig,
 } from "./types";
 import { resolvePreview, unsupportedMessage } from "./resolve";
-
-/** 路由失败时替代正文的面板 */
-function UnsupportedNotice({ file }: { file: FileInfo }) {
-  return (
-    <div
-      data-vfp-unsupported
-      style={{
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 6,
-        padding: 24,
-        textAlign: "center",
-        color: "#8a8a8a",
-        boxSizing: "border-box",
-      }}
-    >
-      <span style={{ fontSize: 14 }}>{unsupportedMessage(file)}</span>
-      <span style={{ fontSize: 12, color: "#b0b0b0" }}>
-        没有插件声明支持它。装上对应的插件，或传一个自定义插件。
-      </span>
-    </div>
-  );
-}
 
 export function withPlugins(
   WrappedComponent: React.ForwardRefExoticComponent<
@@ -89,6 +63,12 @@ export function withPlugins(
     ? { plugins: config }
     : config;
   const { plugins, enableDebug = false } = normalized;
+
+  // 领域插件 → 内核插件（config 在 HOC 创建时固定，一次映射即可）。
+  // 结构上完全兼容（name / hooks / config / priority / enabled / dependencies），
+  // 只是 hooks 的 context 是领域 context：内核 executeHook 拿到的就是 extendContext
+  // 返回的那个对象，所以运行时是对的；类型上要跨过「方法参数逆变」这一关。
+  const kernelPlugins = plugins.map((p) => p as unknown as KernelPlugin);
 
   const WithPluginsComponent = forwardRef<
     FilePreviewCoreRef,
@@ -115,7 +95,7 @@ export function withPlugins(
     // 赢家路由：纯函数，可单测（见 test/resolve.test.ts）
     const winner = useMemo(
       () => resolvePreview(plugins, file),
-      [plugins, file]
+      [file]
     );
 
     /**
@@ -129,17 +109,10 @@ export function withPlugins(
      */
     const fileKey = `${file.url}|${file.name}`;
 
-    // 领域插件 → 内核插件。
-    // 结构上完全兼容（name / hooks / config / priority / enabled / dependencies），
-    // 只是 hooks 的 context 是领域 context：内核 executeHook 拿到的就是 extendContext
-    // 返回的那个对象，所以运行时是对的；类型上要跨过「方法参数逆变」这一关。
-    const kernelPlugins = useMemo(
-      () => plugins.map((p) => p as unknown as KernelPlugin),
-      [plugins]
-    );
-
     const extendContext = useCallback(
-      (base: any): any => {
+      (
+        base: PluginContext<FilePreviewCoreProps, unknown>
+      ): PluginContext<FilePreviewCoreProps, unknown> => {
         const measure = (): PreviewDimensions => {
           const el = containerRef.current;
           if (!el) return { width: 0, height: 0 };
@@ -174,13 +147,13 @@ export function withPlugins(
             configurable: true,
           },
         });
-        return ctx;
+        return ctx as unknown as PluginContext<FilePreviewCoreProps, unknown>;
       },
       // props / file 变化必须重建 context，否则插件读到旧文件
       [props, file]
     );
 
-    const runtime = usePluginRuntime<FilePreviewCoreProps, any>({
+    const runtime = usePluginRuntime<FilePreviewCoreProps, unknown>({
       plugins: kernelPlugins,
       props,
       containerRef,
@@ -275,7 +248,28 @@ export function withPlugins(
       children: (
         <PluginErrorBoundary>
           {winner === null ? (
-            <UnsupportedNotice file={file} />
+            // 内联渲染而非组件：避免「文件同时导出 withPlugins 与组件」触发
+            // react-refresh 告警，也避免把 shared/panels 拉进 core 子路径预算。
+            <div
+              data-vfp-unsupported
+              style={{
+                height: "100%",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 6,
+                padding: 24,
+                textAlign: "center",
+                color: "#8a8a8a",
+                boxSizing: "border-box",
+              }}
+            >
+              <span style={{ fontSize: 14 }}>{unsupportedMessage(file)}</span>
+              <span style={{ fontSize: 12, color: "#b0b0b0" }}>
+                没有插件声明支持它。装上对应的插件，或传一个自定义插件。
+              </span>
+            </div>
           ) : (
             <div
               style={{

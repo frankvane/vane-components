@@ -19,7 +19,7 @@ import type {
   FilePreviewPlugin,
 } from "../src/components/FilePreviewPlugin/plugins/types";
 
-(globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
+(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 export const TEXT_FILE: FileInfo = {
   name: "notes.txt",

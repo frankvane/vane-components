@@ -1,0 +1,389 @@
+/**
+ * `EpubPreviewPlugin` 的组件层。
+ *
+ * 组件与插件工厂分文件：`create.tsx` 只导出工厂（非组件），这里只导出组件，
+ * 以满足 `react-refresh/only-export-components`。
+ */
+
+import React, { useEffect, useMemo, useState } from "react";
+
+import { triggerDownload } from "../../components/FilePreviewPlugin/shared/fileHelpers";
+import {
+  ErrorPanel,
+  LoadingPanel,
+  MissingDependency,
+} from "../../components/FilePreviewPlugin/shared/panels";
+import {
+  FileMeta,
+  ToolbarButton,
+  ToolbarContainer,
+  ToolbarSeparator,
+} from "../../components/FilePreviewPlugin/shared/ToolbarComponents";
+import { useDynamicModule } from "../../components/FilePreviewPlugin/shared/useDynamicModule";
+import type {
+  FilePreviewPluginContext,
+} from "../../components/FilePreviewPlugin/plugins/types";
+import type { EpubPreviewPluginConfig } from "./create";
+
+type ResolvedConfig = Required<Omit<EpubPreviewPluginConfig, "startLocation">> & {
+  startLocation?: string;
+};
+
+type ReactReaderComponent = React.ComponentType<Record<string, unknown>>;
+
+/** 模块级常量：引用稳定，effect 只跑一次 */
+const loadReactReader = () => import("react-reader");
+
+type EpubState =
+  | { status: "loading" }
+  | { status: "ready"; data: ArrayBuffer; size: number }
+  | { status: "error"; error: string };
+
+/** EPUB 是 zip 容器，魔数一定是 `PK\x03\x04`（空归档是 `PK\x05\x06`） */
+function looksLikeZip(bytes: Uint8Array): boolean {
+  if (bytes.length < 4) return false;
+  return (
+    bytes[0] === 0x50 && // P
+    bytes[1] === 0x4b && // K
+    (bytes[2] === 0x03 || bytes[2] === 0x05 || bytes[2] === 0x07)
+  );
+}
+
+/**
+ * 在原始字节里找一段 ASCII。
+ *
+ * zip 的 local file header 与中央目录都把**文件名明文**存着（不压缩），
+ * 所以不解析 zip 也能判断「这个压缩包里有没有某个条目」。比上一版只看
+ * 魔数的好处：普通 zip 也能给出准确错误，而不是让 epub.js 内部去炸。
+ *
+ * 代价是 O(n·m) 的最坏情况，但只有魔数通过的文件才会走到这里，
+ * 而且 200KB 量级上首字节筛一遍就是几十微秒。
+ */
+function containsAscii(bytes: Uint8Array, needle: string): boolean {
+  const first = needle.charCodeAt(0);
+  const limit = bytes.length - needle.length;
+  outer: for (let i = 0; i <= limit; i++) {
+    if (bytes[i] !== first) continue;
+    for (let j = 1; j < needle.length; j++) {
+      if (bytes[i + j] !== needle.charCodeAt(j)) continue outer;
+    }
+    return true;
+  }
+  return false;
+}
+
+/** 任何 EPUB 都必须有的容器描述文件；普通 zip 不会有 */
+const EPUB_CONTAINER_PATH = "META-INF/container.xml";
+
+/**
+ * 失败信息里那段「文件开头是什么」。
+ *
+ * 上一版是 `new TextDecoder().decode(head).slice(0, 80)` —— 对二进制文件直接把
+ * 原始字节当 UTF-8 解，屏幕上就是一片 `PK☐☐☐UO☐☐` 加一堆替换符。对最后一个
+ * 「打不开」的提示来说，这既没有信息量，还像是程序崩了。
+ *
+ * 现在分三档：能认出格式就说格式；是纯文本就引一段原文；都不是才退到十六进制。
+ */
+function hexHead(bytes: Uint8Array, count = 8): string {
+  return Array.from(bytes.subarray(0, count))
+    .map((b) => b.toString(16).toUpperCase().padStart(2, "0"))
+    .join(" ");
+}
+
+/**
+ * 只认最常见的那几种 —— 这是给人看的提示，不是 file 命令。
+ * 导出仅供单测（造几个假头部就能覆盖分支，比塞真文件省事）。
+ */
+function sniffFormat(bytes: Uint8Array): string | null {
+  const at = (i: number) => bytes[i] ?? -1;
+  if (at(0) === 0x89 && at(1) === 0x50 && at(2) === 0x4e && at(3) === 0x47) return "PNG 图片";
+  if (at(0) === 0xff && at(1) === 0xd8 && at(2) === 0xff) return "JPEG 图片";
+  if (at(0) === 0x47 && at(1) === 0x49 && at(2) === 0x46) return "GIF 图片";
+  if (at(0) === 0x25 && at(1) === 0x50 && at(2) === 0x44 && at(3) === 0x46) return "PDF 文档";
+  if (at(0) === 0x1f && at(1) === 0x8b) return "GZIP 压缩包";
+  if (at(0) === 0x52 && at(1) === 0x61 && at(2) === 0x72 && at(3) === 0x21) return "RAR 压缩包";
+  const head = new TextDecoder("utf-8", { fatal: false })
+    .decode(bytes.subarray(0, 200))
+    .trimStart()
+    .toLowerCase();
+  if (head.startsWith("<!doctype html") || head.startsWith("<html"))
+    return "HTML 页面（服务器很可能返回了 404 或登录页，而不是文件本身）";
+  return null;
+}
+
+/**
+ * 内容是不是「像文本」的，是就返回开头一小段。
+ *
+ * 判据只看可打印字符比例：二进制文件里 0x00~0x1f 的控制字符会成片出现，
+ * 而 JSON / XML / 脚本基本都是可打印 ASCII。导出仅供单测。
+ */
+function readableText(bytes: Uint8Array, limit = 60): string | null {
+  const slice = bytes.subarray(0, 200);
+  if (slice.length === 0) return null;
+  let printable = 0;
+  for (const b of slice) {
+    if (b === 0x09 || b === 0x0a || b === 0x0d || (b >= 0x20 && b !== 0x7f)) printable++;
+  }
+  if (printable / slice.length < 0.95) return null;
+  return new TextDecoder("utf-8", { fatal: false })
+    .decode(slice)
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, limit);
+}
+
+/**
+ * 把 zip 条目缩成「一眼能认出这是什么项目」的长度。
+ *
+ * 直接截前 36 个字符会出现 `src/components/FilePreviewPlugin/co…` 与
+ * `…/cu…` 这种两条几乎一样的条目 —— 路径前缀把信息量全占了，文件名（唯一
+ * 有区别的部分）反而被截掉。所以深路径只留 `…/文件名`。
+ */
+function shortenEntry(name: string, limit = 28): string {
+  const parts = name.split("/");
+  const short = parts.length > 2 ? `…/${parts[parts.length - 1]}` : name;
+  return short.length > limit ? `${short.slice(0, limit - 1)}…` : short;
+}
+
+/**
+ * 从中央目录里抄出前几个条目名。
+ *
+ * 只用来「让错误信息说得具体」，所以不引 jszip，但**必须按 EOCD 正经解析**。
+ * 第一版是全文线性扫 `PK\x01\x02` 然后按固定偏移读长度 —— 真 zip 里压缩数据
+ * 完全可能恰好包含这四个字节，读出来的就是一段随机字节当文件名，面板上又是
+ * 一片乱码（和上一版的 `PK☐☐☐UO☐` 一样难看的另一种形式）。测试用的合成 zip
+ * 没有压缩数据，所以那条断言是绿的 —— 又一次「单测绿、真文件红」。
+ *
+ * 正确路径：文件尾的 EOCD（`PK\x05\x06`）→ 中央目录偏移 → 顺序走记录。
+ * 导出的原因：单测要直接验它。
+ */
+function listZipEntries(bytes: Uint8Array, limit = 8): string[] {
+  if (bytes.length < 22) return [];
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const decoder = new TextDecoder("utf-8", { fatal: false });
+
+  // EOCD 之后最多跟 64KB 注释，所以只在尾部这一段里找
+  let eocd = -1;
+  const stop = Math.max(0, bytes.length - 22 - 0xffff);
+  for (let i = bytes.length - 22; i >= stop; i--) {
+    if (
+      bytes[i] === 0x50 &&
+      bytes[i + 1] === 0x4b &&
+      bytes[i + 2] === 0x05 &&
+      bytes[i + 3] === 0x06
+    ) {
+      eocd = i;
+      break;
+    }
+  }
+  if (eocd < 0) return [];
+
+  let offset = view.getUint32(eocd + 16, true);
+  const total = view.getUint16(eocd + 10, true);
+  const names: string[] = [];
+
+  for (let n = 0; n < total && names.length < limit; n++) {
+    if (offset + 46 > bytes.length) break;
+    if (
+      bytes[offset] !== 0x50 ||
+      bytes[offset + 1] !== 0x4b ||
+      bytes[offset + 2] !== 0x01 ||
+      bytes[offset + 3] !== 0x02
+    ) {
+      break;
+    }
+    const nameLen = view.getUint16(offset + 28, true);
+    const extraLen = view.getUint16(offset + 30, true);
+    const commentLen = view.getUint16(offset + 32, true);
+    const start = offset + 46;
+    if (start + nameLen > bytes.length) break;
+    const name = decoder.decode(bytes.subarray(start, start + nameLen)).trim();
+    // 目录条目（`src/`）对「这到底是什么文件」没有信息量，跳过
+    if (name && !name.endsWith("/")) names.push(name);
+    offset = start + nameLen + extraLen + commentLen;
+  }
+  return names;
+}
+
+export function EpubBody({
+  context,
+  config,
+}: {
+  context: FilePreviewPluginContext;
+  config: ResolvedConfig;
+}) {
+  const deps = useDynamicModule(loadReactReader);
+  const [state, setState] = useState<EpubState>({ status: "loading" });
+  const [location, setLocation] = useState<string | number>(
+    config.startLocation ?? 0
+  );
+  const [chapters, setChapters] = useState(0);
+
+  useEffect(() => {
+    let alive = true;
+    setState({ status: "loading" });
+
+    (async () => {
+      try {
+        const res = await fetch(context.file.url);
+        if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+        const buf = await res.arrayBuffer();
+        const bytes = new Uint8Array(buf);
+
+        if (!looksLikeZip(bytes)) {
+          const format = sniffFormat(bytes);
+          const text = readableText(bytes);
+          throw new Error(
+            `这不是一个 EPUB 文件：文件头是 ${hexHead(bytes)}` +
+              (format ? `，看起来像 ${format}` : "，不是 zip 压缩包") +
+              (text ? `。开头内容：「${text}」` : "")
+          );
+        }
+
+        if (!containsAscii(bytes, EPUB_CONTAINER_PATH)) {
+          const entries = listZipEntries(bytes);
+          // 七八条深路径就能把面板撑成十几行。这个面板要的是「一眼看出这不是本书」，
+          // 不是完整目录树：取前 5 条、深路径只留 `…/文件名`。
+          const shown = entries.slice(0, 5).map((name) => shortenEntry(name));
+          throw new Error(
+            `这看起来是一个普通 ZIP，不是 EPUB：压缩包里找不到 ${EPUB_CONTAINER_PATH}。` +
+              (shown.length
+                ? `实际条目是：${shown.join("、")}${entries.length > 5 ? " 等" : ""}。`
+                : "")
+          );
+        }
+
+        if (!alive) return;
+        setState({ status: "ready", data: buf, size: bytes.length });
+      } catch (err) {
+        if (!alive) return;
+        setState({
+          status: "error",
+          error: err instanceof Error ? err.message : "EPUB 读取失败",
+        });
+      }
+    })();
+
+    return () => {
+      alive = false;
+    };
+  }, [context.file.url]);
+
+  const Reader = useMemo<ReactReaderComponent | null>(() => {
+    if (deps.status !== "ready") return null;
+    // react-reader 的 d.ts 里 `ReactReader` 的 props 是具体接口，
+    // 与这里的「宽松组件」形状不兼容，过一道 unknown
+    const mod = deps.mod as unknown as { ReactReader?: ReactReaderComponent };
+    return mod.ReactReader ?? null;
+  }, [deps]);
+
+  if (deps.status === "unavailable") {
+    return (
+      <MissingDependency
+        pkg="react-reader"
+        feature="EPUB 阅读器需要 react-reader（含 epub.js，约 200KB+）"
+        hint="只是不想看电子书的话，换一个插件或让文件落到兜底下载即可。"
+        error={deps.error.message}
+      />
+    );
+  }
+
+  if (deps.status === "loading" || state.status === "loading") {
+    return <LoadingPanel icon="📚" label="正在打开电子书…" />;
+  }
+
+  if (state.status === "error") {
+    return (
+      <ErrorPanel
+        label="EPUB 打开失败"
+        error={state.error}
+        action={{
+          label: "下载原始文件",
+          onClick: () => triggerDownload(context.file.url, context.file.name),
+        }}
+      />
+    );
+  }
+
+  if (!Reader) {
+    return (
+      <ErrorPanel
+        label="阅读器模块异常"
+        error="react-reader 已加载但没有导出 ReactReader 组件（版本不匹配？需要 >=2）。"
+      />
+    );
+  }
+
+  return (
+    <div
+      data-vfp-epub
+      // 章节数只有调试和 e2e 断言用得上（正文面积要全部让给阅读器），
+      // 所以挂在属性上而不是画一行字出来
+      data-vfp-epub-chapters={chapters}
+      style={{ height: "100%", position: "relative", background: "#fff" }}
+    >
+      <Reader
+        // ArrayBuffer 而不是 blob: URL —— 见文件头「为什么把 ArrayBuffer 直接给阅读器」
+        url={state.data}
+        title={context.file.name}
+        location={location}
+        locationChanged={(cfi: string) => setLocation(cfi)}
+        tocChanged={(toc: unknown[]) => setChapters(toc?.length ?? 0)}
+        showToc={config.showToc}
+        swipeable={config.swipeable}
+        epubOptions={{ allowScriptedContent: false }}
+        // react-reader 自己的默认视图是一个英文的 "Error loading book"，
+        // 与我们其余 16 个插件的面板风格也不一致。这里换成本地化面板：
+        // 用户至少知道「是书解析失败」而不是「阅读器坏了」。
+        loadingView={<LoadingPanel icon="📚" label="正在解析电子书…" />}
+        errorView={
+          <ErrorPanel
+            label="EPUB 解析失败"
+            error="epub.js 打不开这本书：压缩包结构不全、OPF 指向的章节缺失，或文件已损坏。可以下载后用其他阅读器确认。"
+            action={{
+              label: "下载原始文件",
+              onClick: () => triggerDownload(context.file.url, context.file.name),
+            }}
+          />
+        }
+      />
+    </div>
+  );
+}
+
+export function EpubToolbar({
+  context,
+  config,
+}: {
+  context: FilePreviewPluginContext;
+  config: ResolvedConfig;
+}) {
+  return (
+    <ToolbarContainer>
+      <FileMeta
+        name={context.file.name}
+        size={context.file.size}
+        type="EPUB"
+        icon="📚"
+      />
+      <ToolbarSeparator />
+      {/*
+        这里原来写着「epub.js 渲染（章节在 iframe 里）」。删掉有两个原因：
+        ① 它是实现细节，对看书的人没有信息量；
+        ② 打开失败时它自相矛盾 —— 正文是「EPUB 打开失败」，工具栏还在说
+           「章节在 iframe 里」。工具栏在装配层，看不到 EpubBody 的局部状态，
+           要修就得为这一句装饰性文案引入跨组件状态，不划算。
+      */}
+      <ToolbarButton
+        onClick={() => triggerDownload(context.file.url, context.file.name)}
+        icon="📥"
+        title="下载原始 EPUB"
+      >
+        下载
+      </ToolbarButton>
+      {config.showToc && (
+        <span style={{ fontSize: 11, color: "#6b6b6b" }}>左上角 ☰ 打开目录</span>
+      )}
+    </ToolbarContainer>
+  );
+}

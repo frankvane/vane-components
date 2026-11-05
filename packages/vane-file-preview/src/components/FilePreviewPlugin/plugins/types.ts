@@ -212,6 +212,7 @@ export interface FilePreviewPlugin {
   priority?: number;
 
   hooks: FilePreviewPluginHooks;
+  /** 公共契约位：插件配置是开放结构（各插件字段不同），保持 any 以便宿主透传 */
   config?: Record<string, any>;
 
   /** 依赖的插件名，先注册依赖再注册自己 */
@@ -222,7 +223,7 @@ export interface FilePreviewPlugin {
   destroy?: () => void | Promise<void>;
 }
 
-/** 插件工厂 */
+/** 插件工厂。公共契约位：Config 泛型默认值 any 保留，不传配置参数的调用方依赖它 */
 export type FilePreviewPluginCreator<Config = any> = (
   config?: Config
 ) => FilePreviewPlugin;

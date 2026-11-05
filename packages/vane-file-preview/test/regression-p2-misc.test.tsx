@@ -14,7 +14,7 @@ import { createImagePreviewPlugin } from "../src/custom-plugins/ImagePreviewPlug
 import { flush, renderPreview } from "./helpers";
 import type { FileInfo } from "../src/components/FilePreviewPlugin/plugins/types";
 
-(globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
+(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 describe("P2-8 · ToolbarButton 可访问性", () => {
   it("图标按钮有 aria-label，图标本身对读屏器隐藏", () => {
