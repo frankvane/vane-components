@@ -31,7 +31,7 @@ import { createStatePersistencePlugin } from "../src/custom-plugins/StatePersist
  * 每条用例对应一个已修复的缺陷编号（SKU-P0-x / SKU-P1-x / SKU-P2-x）。
  */
 
-(globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
+(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 const attributes: SkuAttribute[] = [
   { name: "颜色", options: [{ id: "red", label: "红" }, { id: "blue", label: "蓝" }] },

@@ -4,7 +4,7 @@ import {
   renderPluginSlot,
   usePluginRuntime,
 } from "vane-plugin-core";
-import type { WithPluginsConfig } from "vane-plugin-core";
+import type { PluginContext, WithPluginsConfig } from "vane-plugin-core";
 import {
   buildAvailability,
   isPurchasable,
@@ -154,10 +154,12 @@ export function withPlugins(
       );
 
       // 领域上下文扩展：内核 context + SKU 领域字段。
-      // 返回类型放宽到 any：领域 SkuPluginContext 是内核 context 的超集，结构兼容，
-      // 仅需绕过类型系统的精确匹配。
+      // 领域 SkuPluginContext 是内核 context 的超集，结构兼容，
+      // 返回时按内核签名标注，避免显式 any。
       const extendContext = useCallback(
-        (base: any): any => {
+        (
+          base: PluginContext<SkuSelectorCoreProps, unknown>
+        ): PluginContext<SkuSelectorCoreProps, unknown> => {
           const selection = stableSelectionOf(base.state?.selection);
           const { disabledMap } = availabilityOf(selection);
           const variant = matchVariant(variants, attributes, selection);
@@ -214,7 +216,10 @@ export function withPlugins(
             // 外部来源整段写入（同样走归一化）
             setSelection: (next: SkuSelection) => commitSelection(next),
           };
-          return ctx;
+          return ctx as unknown as PluginContext<
+            SkuSelectorCoreProps,
+            unknown
+          >;
         },
         [
           attributes,
@@ -228,7 +233,7 @@ export function withPlugins(
       );
 
       const runtime = usePluginRuntime<SkuSelectorCoreProps, unknown>({
-        plugins: plugins as any,
+        plugins,
         props,
         data: props.data,
         // 选择态初值只生效一次（useState 语义），后续一律由 setState 驱动。
@@ -260,7 +265,7 @@ export function withPlugins(
 
       const execute = useCallback(
         (hookName: string, ...args: unknown[]) =>
-          runtime.execute(hookName as any, ...args),
+          runtime.execute(hookName as never, ...args),
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [runtime.manager]
       );

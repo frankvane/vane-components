@@ -14,7 +14,7 @@ import { createUrlSyncPlugin } from "../src/custom-plugins/UrlSyncPlugin";
 import { createStatePersistencePlugin } from "../src/custom-plugins/StatePersistencePlugin";
 import { createSkuCodePlugin } from "../src/custom-plugins/SkuCodePlugin";
 
-(globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
+(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 const attributes: SkuAttribute[] = [
   { name: "颜色", options: [{ id: "red", label: "红" }, { id: "blue", label: "蓝" }] },

@@ -192,6 +192,7 @@ export interface SkuPlugin extends Plugin<SkuSelectorCoreProps, unknown> {
   hooks: SkuPluginHooks;
 }
 
+/** 公共契约位：工厂 Config 泛型默认值 any 保留（不传配置的调用方依赖默认值） */
 export type SkuPluginCreator<Config = any> = PluginCreator<
   Config,
   SkuSelectorCoreProps,

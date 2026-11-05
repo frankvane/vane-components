@@ -8,7 +8,7 @@ import { createPriceLinkPlugin } from "../src/custom-plugins/PriceLinkPlugin";
 import { createQuotaPlugin } from "../src/custom-plugins/QuotaPlugin";
 import { createImageLinkPlugin } from "../src/custom-plugins/ImageLinkPlugin";
 
-(globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
+(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 const attributes: SkuAttribute[] = [
   { name: "颜色", options: [{ id: "red", label: "红" }, { id: "blue", label: "蓝" }] },

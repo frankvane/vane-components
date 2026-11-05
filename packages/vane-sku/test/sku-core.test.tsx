@@ -6,7 +6,7 @@ import { createSkuSelector } from "../src";
 import type { SkuAttribute, SkuVariant } from "../src";
 
 // 让 React 的 act() 安静（happy-dom 下需显式声明 act 环境）
-(globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
+(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 const attributes: SkuAttribute[] = [
   { name: "颜色", options: [{ id: "red", label: "红" }, { id: "blue", label: "蓝" }] },
