@@ -26,7 +26,7 @@ const fmtDate = (ts: number): string => {
 export function createHistoryPlugin(config: HistoryConfig = {}): CouponPlugin {
   const max = config.max ?? 3;
   const format = config.format ?? fmtDate;
-  const mergedConfig = { slotPosition: "after", order: 10, ...config } as any;
+  const mergedConfig = { slotPosition: "after", order: 10, ...config };
 
   return {
     name: "history",

@@ -29,7 +29,7 @@ export interface ProgressConfig {
 export function createProgressPlugin(config: ProgressConfig = {}): CouponPlugin {
   const urgentPct = config.urgentPct ?? 20;
   const showRemaining = config.showRemaining ?? true;
-  const mergedConfig = { slotPosition: "after", order: 10, ...config } as any;
+  const mergedConfig = { slotPosition: "after", order: 10, ...config };
 
   return {
     name: "progress",

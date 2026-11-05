@@ -53,7 +53,7 @@ function fallbackCopy(text: string): boolean {
 
 export function createCopyCodePlugin(config: CopyCodeConfig = {}): CouponPlugin {
   const label = config.label ?? "券码";
-  const mergedConfig = { slotPosition: "after", order: 10, ...config } as any;
+  const mergedConfig = { slotPosition: "after", order: 10, ...config };
 
   const clearTimer = (context: CouponPluginContext): void => {
     const timer = context.shared.get(TIMER_KEY);

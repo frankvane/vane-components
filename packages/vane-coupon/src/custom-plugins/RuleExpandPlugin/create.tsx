@@ -36,7 +36,7 @@ export function createRuleExpandPlugin(
   const collapseText = config.collapseText ?? "收起";
   const showCount = config.showCount ?? true;
   const title = config.title ?? "使用规则";
-  const mergedConfig = { slotPosition: "after", order: 10, ...config } as any;
+  const mergedConfig = { slotPosition: "after", order: 10, ...config };
 
   return {
     name: "rule-expand",

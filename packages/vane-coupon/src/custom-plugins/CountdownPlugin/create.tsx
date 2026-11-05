@@ -35,7 +35,7 @@ const fmt = (ms: number): string => {
 
 export function createCountdownPlugin(config: CountdownConfig): CouponPlugin {
   const tickMs = config.tickMs ?? 1000;
-  const mergedConfig = { slotPosition: "before", order: 10, ...config } as any;
+  const mergedConfig = { slotPosition: "before", order: 10, ...config };
 
   return {
     name: "countdown",

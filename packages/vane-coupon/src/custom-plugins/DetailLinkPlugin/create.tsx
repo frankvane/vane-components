@@ -21,7 +21,7 @@ export function createDetailLinkPlugin(
   config: DetailLinkConfig = {}
 ): CouponPlugin {
   const text = config.text ?? "查看完整规则";
-  const mergedConfig = { slotPosition: "after", order: 10, ...config } as any;
+  const mergedConfig = { slotPosition: "after", order: 10, ...config };
 
   return {
     name: "detail-link",

@@ -15,7 +15,7 @@ export interface ChannelConfig {
 }
 
 export function createChannelPlugin(config: ChannelConfig = {}): CouponPlugin {
-  const mergedConfig = { slotPosition: "before", order: 20, ...config } as any;
+  const mergedConfig = { slotPosition: "before", order: 20, ...config };
 
   return {
     name: "channel",

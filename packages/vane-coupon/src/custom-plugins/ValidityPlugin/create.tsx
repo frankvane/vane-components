@@ -46,7 +46,7 @@ export function createValidityPlugin(
 ): CouponPlugin {
   const urgentDays = config.urgentDays ?? 3;
   const now = config.now ?? (() => Date.now());
-  const mergedConfig = { slotPosition: "after", order: 10, ...config } as any;
+  const mergedConfig = { slotPosition: "after", order: 10, ...config };
 
   function clearTimer(context: CouponPluginContext): void {
     const timer = context.shared.get(TIMER_KEY);

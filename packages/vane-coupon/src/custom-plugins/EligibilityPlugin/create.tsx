@@ -27,7 +27,7 @@ export interface EligibilityConfig {
 export function createEligibilityPlugin(
   config: EligibilityConfig = {}
 ): CouponPlugin {
-  const mergedConfig = { ...config } as any;
+  const mergedConfig = { ...config };
 
   const resolveOrder = (context: CouponPluginContext): CouponOrderContext | null =>
     config.order ?? context.order;

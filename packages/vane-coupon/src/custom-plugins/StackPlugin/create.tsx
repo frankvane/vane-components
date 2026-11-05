@@ -30,7 +30,7 @@ export interface StackConfig {
 export function createStackPlugin(config: StackConfig = {}): CouponPlugin {
   const text = config.text ?? "可叠加";
   const notStackableText = config.notStackableText ?? "不可叠加";
-  const mergedConfig = { slotPosition: "before", order: 10, ...config } as any;
+  const mergedConfig = { slotPosition: "before", order: 10, ...config };
 
   return {
     name: "stack",

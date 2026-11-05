@@ -20,7 +20,7 @@ export interface QuotaConfig {
 }
 
 export function createQuotaPlugin(config: QuotaConfig = {}): CouponPlugin {
-  const mergedConfig = { slotPosition: "after", order: 10, ...config } as any;
+  const mergedConfig = { slotPosition: "after", order: 10, ...config };
 
   const resolve = (context: CouponPluginContext) =>
     resolveQuota(context.coupon, {
