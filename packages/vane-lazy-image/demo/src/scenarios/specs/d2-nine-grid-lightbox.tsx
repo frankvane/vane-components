@@ -9,7 +9,7 @@ import {
 } from "vane-lazy-image";
 import type { CSSProperties } from "react";
 
-const Lazy = withPlugins(LazyLoadImageCore as any, [
+const Lazy = withPlugins(LazyLoadImageCore, [
   // 九宫格里单张图也可能被点开看大图
   createGalleryPlugin({
     enableLightbox: true,

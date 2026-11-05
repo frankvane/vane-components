@@ -11,7 +11,7 @@ import {
 import { DemoLayout } from "../components/DemoLayout";
 import React from "react";
 
-const LazyImage = withPlugins(LazyLoadImageCore as any, [
+const LazyImage = withPlugins(LazyLoadImageCore, [
   createBlurUpPlugin({ startBlur: 6, endBlur: 0, durationMs: 450 }),
   createFadeInPlugin({ durationMs: 450 }),
   createBorderGlowPlugin({}),

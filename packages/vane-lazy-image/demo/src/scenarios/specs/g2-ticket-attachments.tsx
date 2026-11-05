@@ -9,7 +9,7 @@ import {
 } from "vane-lazy-image";
 import type { CSSProperties } from "react";
 
-const Lazy = withPlugins(LazyLoadImageCore as any, [
+const Lazy = withPlugins(LazyLoadImageCore, [
   // 附件接口要求登录态：把 token 作为查询参数带上（也可换 cookie 方案）
   createAuthPlugin({ token: () => "demo-token-1f2e3d", tokenParam: "access_token" }),
   // 无权限/失效时给一个明确角标，而不是一张裂图

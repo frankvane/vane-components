@@ -37,7 +37,7 @@ const ComboEnginePerfDemo: React.FC = () => {
   // ⚡ 性能优化综合（引擎层）：离线降级 + 预连接 + 缓存预热 + 优先级加载
   const LazyImage = useMemo(
     () =>
-      withPlugins(LazyLoadImageCore as any, [
+      withPlugins(LazyLoadImageCore, [
         createOfflinePlugin({ showBadge: true }),
         createPreconnectPlugin({
           domains: ["https://picsum.photos", "https://img11.360buyimg.com"],

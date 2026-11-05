@@ -9,7 +9,7 @@ import {
 } from "vane-lazy-image";
 import type { CSSProperties } from "react";
 
-const Lazy = withPlugins(LazyLoadImageCore as any, [
+const Lazy = withPlugins(LazyLoadImageCore, [
   // 系统打开"省流量"时整体降质并关闭预取
   createDataSaverPlugin({ respectSaveData: true, fallbackQuality: 0.6, disablePreload: true }),
   // 电量低于 20%：请求宽度压到 640，并停掉预连接

@@ -32,6 +32,8 @@ function pushAnim(v: string) {
 
 
 // ---- LCP 采样（只有「性能收益」类结论需要，缺 API 时静默降级） ----
+/** LCP 条目：标准 lib.dom 的 PerformanceEntry 未包含 url / element，按真实浏览器字段补齐 */
+type LcpEntry = PerformanceEntry & { url?: string; element?: Element };
 let LCP_MS = 0;
 let LCP_TAG = "";
 let lcpStarted = false;
@@ -41,13 +43,13 @@ function startLcpObserver() {
   try {
     const po = new PerformanceObserver((list) => {
       const es = list.getEntries();
-      const e = es[es.length - 1] as any;
+      const e = es[es.length - 1] as LcpEntry;
       if (e) {
         LCP_MS = Math.round(e.startTime);
         LCP_TAG = (e.url ? String(e.url).split("/").slice(-2).join("/") : e.element?.tagName || "").slice(0, 40);
       }
     });
-    po.observe({ type: "largest-contentful-paint", buffered: true } as any);
+    po.observe({ type: "largest-contentful-paint", buffered: true } as PerformanceObserverInit);
   } catch {
     /* 浏览器不支持就留空 */
   }
@@ -63,7 +65,7 @@ function patchConsole() {
   patched = true;
   const origLog = console.log.bind(console);
   const origDebug = console.debug ? console.debug.bind(console) : origLog;
-  const push = (args: any[]) => {
+  const push = (args: unknown[]) => {
     try {
       const txt = args
         .map((a) => {
@@ -83,11 +85,11 @@ function patchConsole() {
       /* ignore */
     }
   };
-  console.log = (...a: any[]) => {
+  console.log = (...a: unknown[]) => {
     push(a);
     origLog(...a);
   };
-  console.debug = (...a: any[]) => {
+  console.debug = (...a: unknown[]) => {
     push(a);
     origDebug(...a);
   };
@@ -251,7 +253,7 @@ function readSnapshot(
           kb: e.transferSize ? (e.transferSize / 1024).toFixed(1) + "KB" : "0KB（缓存）",
           decoded: e.decodedBodySize ? (e.decodedBodySize / 1024).toFixed(1) + "KB" : "—",
           duration: Math.round(e.duration),
-          status: Number((e as any).responseStatus || 0),
+          status: Number((e as PerformanceResourceTiming & { responseStatus?: number }).responseStatus || 0),
         };
       }
     } catch {
@@ -277,16 +279,16 @@ function readSnapshot(
       objectposition: cs ? norm(cs.objectPosition) : "",
       imgfilter: cs ? norm(cs.filter) : "",
       imgtransform: cs ? norm(cs.transform) : "",
-      imgclip: cs ? norm((cs as any).clipPath) : "",
-      imgblend: cs ? norm((cs as any).mixBlendMode) : "",
+      imgclip: cs ? norm(cs.clipPath) : "",
+      imgblend: cs ? norm(cs.mixBlendMode) : "",
       imgtransition: cs ? norm(cs.transition) : "",
       imganimation: cs ? norm(cs.animationName) : "",
       imgradius: cs ? norm(cs.borderRadius) : "",
       // 只看「插件写进内联样式」的 image-orientation：from-image 本就是现代浏览器的计算默认值，
       // 用计算值无法区分是否由插件注入。
-      imgorientation: img ? norm((img.style as any).imageOrientation) : "",
+      imgorientation: img ? norm(img.style.imageOrientation) : "",
       bg: bs ? norm(bs.backgroundImage !== "none" ? bs.backgroundImage : bs.backgroundColor) : "",
-      ratio: pick((c) => (c as any).aspectRatio, ["auto", ""]),
+      ratio: pick((c) => c.aspectRatio, ["auto", ""]),
       shadow: pick((c) => c.boxShadow, ["none", ""]),
       boxfilter: pick((c) => c.filter, ["none", ""]),
       boxtransform: pick((c) => c.transform, ["none", ""]),
@@ -458,7 +460,7 @@ export const PluginObserver: React.FC<{
         if (an && an !== "none") pushAnim(`animation:${an} ${norm(cs.animationDuration)}`);
         const tr = norm(cs.transition);
         if (tr && tr !== norm(BASE.imgtransition)) pushAnim(`transition:${tr}`);
-        const orient = norm((img.style as any).imageOrientation);
+        const orient = norm(img.style.imageOrientation);
         if (orient) pushAnim(`image-orientation:${orient}`);
       }
       if (++n > 50) window.clearInterval(t);

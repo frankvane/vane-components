@@ -8,7 +8,7 @@ import {
 } from "vane-lazy-image";
 import type { CSSProperties } from "react";
 
-const Lazy = withPlugins(LazyLoadImageCore as any, [
+const Lazy = withPlugins(LazyLoadImageCore, [
   // 平铺水印：单张图被截图也能看出出处
   createWatermarkPlugin({
     text: "© VANE STUDIO · 仅供预览",

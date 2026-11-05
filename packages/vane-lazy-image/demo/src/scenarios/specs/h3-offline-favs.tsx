@@ -9,7 +9,7 @@ import {
 } from "vane-lazy-image";
 import type { CSSProperties } from "react";
 
-const Lazy = withPlugins(LazyLoadImageCore as any, [
+const Lazy = withPlugins(LazyLoadImageCore, [
   // 收藏夹里的图提前落库，断网也能出（缓存未命中才走网络）
   createIDBCachePlugin({ dbName: "vane-travel", ttlMs: 30 * 24 * 60 * 60 * 1000 }),
   // 监听 online/offline：断网时切到内置 SVG 离线占位，而不是空框

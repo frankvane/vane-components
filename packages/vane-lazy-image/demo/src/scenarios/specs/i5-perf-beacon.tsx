@@ -10,7 +10,7 @@ import {
 } from "vane-lazy-image";
 import type { CSSProperties } from "react";
 
-const Lazy = withPlugins(LazyLoadImageCore as any, [
+const Lazy = withPlugins(LazyLoadImageCore, [
   // 右上角浮层实时显示耗时/解码/命中情况
   createPerformanceMonitorPlugin({ showOverlay: true, overlayPosition: "top-right" }),
   // 事件日志：把 load-start / load-success / load-error 打到控制台

@@ -8,7 +8,7 @@ import {
 } from "vane-lazy-image";
 import type { CSSProperties } from "react";
 
-const Lazy = withPlugins(LazyLoadImageCore as any, [
+const Lazy = withPlugins(LazyLoadImageCore, [
   // 悬停触发一次 RGB 分离 + 扫描线；continuous 会让它一直抖（很吃性能，慎用）
   createGlitchEffectPlugin({
     style: "glitch-mix",

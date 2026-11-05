@@ -9,7 +9,7 @@ import {
 } from "vane-lazy-image";
 import type { CSSProperties } from "react";
 
-const Lazy = withPlugins(LazyLoadImageCore as any, [
+const Lazy = withPlugins(LazyLoadImageCore, [
   // 正文图 16:9，占位后滚动条不会因为图片到达而抖动
   createAspectRatioSpacerPlugin({ ratio: 16 / 9 }),
   // 低清占位：把同一地址缩到 24px 宽再模糊放大（真实项目换成后端返回的 base64）

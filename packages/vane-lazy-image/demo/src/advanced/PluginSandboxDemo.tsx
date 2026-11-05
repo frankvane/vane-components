@@ -8,6 +8,11 @@ import {
   wrapPluginHook,
 } from "vane-lazy-image/advanced";
 
+import type {
+  LazyImageContext,
+  LazyImagePlugin,
+} from "vane-lazy-image";
+
 import { DemoLayout } from "../components/DemoLayout";
 
 const PluginSandboxDemo: React.FC = () => {
@@ -21,11 +26,11 @@ const PluginSandboxDemo: React.FC = () => {
   };
 
   // 创建不安全插件 - 会抛出错误
-  const unsafePlugin = useMemo(() => ({
+  const unsafePlugin = useMemo<LazyImagePlugin>(() => ({
     name: "UnsafePlugin",
     version: "1.0.0",
     hooks: {
-      onLoadSuccess: (_context: any, displaySrc?: string) => {
+      onLoadSuccess: (_context: LazyImageContext, _displaySrc?: string) => {
         addLog("不安全插件: onLoadSuccess 被调用", "error");
         throw new Error("❌ 模拟插件错误：这是一个故意的错误！");
       },
@@ -33,7 +38,7 @@ const PluginSandboxDemo: React.FC = () => {
   }), []);
 
   // 创建安全插件 - 使用沙箱包装
-  const safePlugin = useMemo(() => {
+  const safePlugin = useMemo<LazyImagePlugin>(() => {
     const sandboxConfig: SandboxConfig = {
       pluginName: "SafePlugin",
       enabled: true,
@@ -47,7 +52,7 @@ const PluginSandboxDemo: React.FC = () => {
       version: "1.0.0",
       hooks: {
         onLoadSuccess: wrapPluginHook(
-          (_context: any, displaySrc?: string) => {
+          (_context: LazyImageContext, _displaySrc?: string) => {
             addLog("安全插件: onLoadSuccess 被调用", "success");
             throw new Error("这个错误会被沙箱捕获");
           },

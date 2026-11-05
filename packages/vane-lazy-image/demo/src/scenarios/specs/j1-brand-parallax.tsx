@@ -9,7 +9,7 @@ import {
 } from "vane-lazy-image";
 import type { CSSProperties } from "react";
 
-const Lazy = withPlugins(LazyLoadImageCore as any, [
+const Lazy = withPlugins(LazyLoadImageCore, [
   // 背景按 0.18 强度做 Y 轴视差，滚动时产生"慢一层"的纵深
   createParallaxPlugin({ strength: 0.18, axis: "y" }),
   // 分块揭示：fade-up 600ms，逐块延迟由 CSS 变量控制

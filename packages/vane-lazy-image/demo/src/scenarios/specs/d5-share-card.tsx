@@ -9,7 +9,7 @@ import {
 } from "vane-lazy-image";
 import type { CSSProperties } from "react";
 
-const Lazy = withPlugins(LazyLoadImageCore as any, [
+const Lazy = withPlugins(LazyLoadImageCore, [
   // 分享：微信/微博/复制链接，真实项目里接自己的分享 SDK
   createSocialSharePlugin({
     platforms: ["wechat", "twitter", "facebook"],

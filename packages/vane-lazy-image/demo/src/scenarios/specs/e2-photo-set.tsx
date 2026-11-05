@@ -10,7 +10,7 @@ import {
 import React from "react";
 import type { CSSProperties } from "react";
 
-const Lazy = withPlugins(LazyLoadImageCore as any, [
+const Lazy = withPlugins(LazyLoadImageCore, [
   createGalleryPlugin({ enableLightbox: true, buttonText: "全屏看图", overlayZIndex: 18 }),
   // 组图翻页时给一条"这张加载到哪"的细进度条，比转圈更安定
   createProgressOverlayPlugin({ showWhen: "loading", height: 3, color: "#c0392b" }),

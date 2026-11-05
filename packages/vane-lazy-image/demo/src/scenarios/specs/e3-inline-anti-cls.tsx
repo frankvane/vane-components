@@ -9,7 +9,7 @@ import {
 } from "vane-lazy-image";
 import type { CSSProperties } from "react";
 
-const Lazy = withPlugins(LazyLoadImageCore as any, [
+const Lazy = withPlugins(LazyLoadImageCore, [
   // 4:3 占位：图片到达前后段落位置完全一致
   createAspectRatioSpacerPlugin({ ratio: 4 / 3 }),
   createSkeletonPlugin({ type: "shimmer", backgroundColor: "#eceff1", highlightColor: "#f6f8f9", borderRadius: 2 }),

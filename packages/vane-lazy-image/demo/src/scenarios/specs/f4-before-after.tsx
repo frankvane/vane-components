@@ -12,7 +12,7 @@ const BEFORE = "https://picsum.photos/seed/vane-compare-a/800/520";
 const AFTER = "https://picsum.photos/seed/vane-compare-b/800/520";
 
 // 分割条可拖拽；不传 afterSrc 时默认用主图，真正做对比要显式给两套底片
-const Compare = withPlugins(LazyLoadImageCore as any, [
+const Compare = withPlugins(LazyLoadImageCore, [
   createComparisonPlugin({
     beforeSrc: BEFORE,
     afterSrc: AFTER,
@@ -23,13 +23,13 @@ const Compare = withPlugins(LazyLoadImageCore as any, [
 ]);
 
 // 预设各自装配一次，模块级常量保证组件身份稳定
-const Mono = withPlugins(LazyLoadImageCore as any, [
+const Mono = withPlugins(LazyLoadImageCore, [
   createFilterPlugin({ filter: "grayscale", amount: 0.55 }),
 ]);
-const Sepia = withPlugins(LazyLoadImageCore as any, [
+const Sepia = withPlugins(LazyLoadImageCore, [
   createFilterPlugin({ filter: "sepia", amount: 0.45 }),
 ]);
-const Vivid = withPlugins(LazyLoadImageCore as any, [
+const Vivid = withPlugins(LazyLoadImageCore, [
   createFilterPlugin({ filter: "saturate", amount: 0.4 }),
 ]);
 

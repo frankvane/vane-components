@@ -19,7 +19,7 @@ import {
 import { DemoLayout } from "../components/DemoLayout";
 import React from "react";
 
-const LazyImage = withPlugins(LazyLoadImageCore as any, [
+const LazyImage = withPlugins(LazyLoadImageCore, [
   createMemoryCachePlugin({ maxEntries: 300, ttlMs: 60 * 60 * 1000 }),
   createIDBCachePlugin({ ttlMs: 7 * 24 * 60 * 60 * 1000 }),
   // 双向网格滚动：容器级监听 + 双向轴向标注
@@ -64,13 +64,26 @@ const LazyImage = withPlugins(LazyLoadImageCore as any, [
   createEventLoggerPlugin({ enabled: true, prefix: "[GRID-Demo]" }),
 ]);
 
-const RW = ReactWindow as any;
-const GridNew = RW.Grid;
-const GridOld = RW.FixedSizeGrid;
+/**
+ * react-window v2 的 Grid 在 v1 类型里不存在，这里按「运行时探测到的可选组件」声明；
+ * v1 的 FixedSizeGrid 有完整类型，直接使用，保留原有的新版优先逻辑。
+ */
+type VirtualComponent = React.ComponentType<Record<string, unknown>>;
+const GridNew = (ReactWindow as { Grid?: VirtualComponent }).Grid;
+const GridOld = ReactWindow.FixedSizeGrid;
+
+/** 两版 grid 实例暴露的取容器方法与内部字段 */
+interface GridApi {
+  getElement?: () => HTMLElement | null;
+  getOuterElement?: () => HTMLElement | null;
+  getRootElement?: () => HTMLElement | null;
+  _outerRef?: { current?: HTMLElement | null };
+  _outerElement?: HTMLElement;
+}
 
 export default function VirtualGridDemo() {
   const gridOuterRef = React.useRef<HTMLDivElement | null>(null);
-  const gridRef = React.useRef<any>(null);
+  const gridRef = React.useRef<GridApi | null>(null);
   const [rootEl, setRootEl] = React.useState<HTMLElement | undefined>(
     undefined
   );
@@ -181,7 +194,7 @@ export default function VirtualGridDemo() {
             overscanColumnsCount={2}
             overscanRowsCount={4}
           >
-            {Cell as any}
+            {Cell}
           </GridOld>
         )}
       </div>

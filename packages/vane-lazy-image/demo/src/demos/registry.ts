@@ -32,13 +32,17 @@ const scnSrc = import.meta.glob<string>("../scenarios/*.tsx", {
 });
 
 function stageOf(
-  mods: Record<string, () => Promise<any>>,
+  mods: Record<string, () => Promise<unknown>>,
   src: Record<string, string>,
   file: string
 ): { Stage: ComponentType<DemoStageProps>; source: string } {
   const loader = mods[`../${file}`];
   const Stage = loader
-    ? lazy(() => loader().then((m) => ({ default: m.default })))
+    ? lazy(() =>
+        loader().then((m) => ({
+          default: (m as { default: ComponentType<DemoStageProps> }).default,
+        }))
+      )
     : (() => null);
   return { Stage, source: src[`../${file}`] ?? "" };
 }

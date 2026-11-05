@@ -11,7 +11,7 @@ import {
 import { DemoLayout } from "../components/DemoLayout";
 import React from "react";
 
-const LazyImage = withPlugins(LazyLoadImageCore as any, [
+const LazyImage = withPlugins(LazyLoadImageCore, [
   createErrorOverlayPlugin({ retryText: "重试" }),
   createErrorBadgePlugin({}),
   createFallbackImagePlugin({ fallbackSrc: "/404.jpg" }),

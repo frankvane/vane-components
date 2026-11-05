@@ -9,7 +9,7 @@ import {
 } from "vane-lazy-image";
 import type { CSSProperties } from "react";
 
-const Lazy = withPlugins(LazyLoadImageCore as any, [
+const Lazy = withPlugins(LazyLoadImageCore, [
   createCropPlugin({ enabled: true, focusPoint: { x: 0.5, y: 0.35 }, showLabel: false }),
   // 头像当作"正在直播"的信号灯：hover 时辉光增强
   createBorderGlowPlugin({

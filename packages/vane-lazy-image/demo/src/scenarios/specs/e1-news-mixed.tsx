@@ -9,7 +9,7 @@ import {
 } from "vane-lazy-image";
 import type { CSSProperties } from "react";
 
-const Lazy = withPlugins(LazyLoadImageCore as any, [
+const Lazy = withPlugins(LazyLoadImageCore, [
   // 头条图是唯一的 LCP 元素
   createPriorityLoadingPlugin({ priority: "high" }),
   // 新闻图大多 16:9，按容器宽度挑 400/800/1200

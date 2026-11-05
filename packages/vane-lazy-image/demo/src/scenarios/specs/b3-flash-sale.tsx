@@ -12,7 +12,7 @@ import {
 } from "vane-lazy-image";
 import type { CSSProperties } from "react";
 
-const Lazy = withPlugins(LazyLoadImageCore as any, [
+const Lazy = withPlugins(LazyLoadImageCore, [
   // 秒杀主图是会场唯一的大图，优先级拉满
   createPriorityLoadingPlugin({ priority: "high" }),
   // 价格由接口下发：这里用静态价示范，真实项目接 fetchPrice

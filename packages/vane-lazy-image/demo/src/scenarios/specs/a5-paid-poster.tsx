@@ -10,7 +10,7 @@ import {
 } from "vane-lazy-image";
 import type { CSSProperties } from "react";
 
-const Lazy = withPlugins(LazyLoadImageCore as any, [
+const Lazy = withPlugins(LazyLoadImageCore, [
   // token 由登录态提供；这里用函数形式，模拟「每次取最新 token」而不是写死
   createAuthPlugin({
     token: () => "demo-token-1f2e3d",

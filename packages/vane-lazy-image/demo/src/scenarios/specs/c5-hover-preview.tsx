@@ -9,7 +9,7 @@ import {
 } from "vane-lazy-image";
 import type { CSSProperties } from "react";
 
-const Lazy = withPlugins(LazyLoadImageCore as any, [
+const Lazy = withPlugins(LazyLoadImageCore, [
   // 悬停 300ms 后预取同一视频的后续帧（真实项目里换成视频首帧/雪碧图分片）
   createHoverPrefetchPlugin({
     trigger: "mouseenter",

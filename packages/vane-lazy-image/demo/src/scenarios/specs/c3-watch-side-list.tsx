@@ -9,7 +9,7 @@ import {
 } from "vane-lazy-image";
 import type { CSSProperties } from "react";
 
-const Lazy = withPlugins(LazyLoadImageCore as any, [
+const Lazy = withPlugins(LazyLoadImageCore, [
   // 滚动过程中一帧发十几个请求会把主视频的带宽抢光，等滚动停 120ms 再放行
   createScrollIdlePlugin({ idleMs: 120, onlyWhenIntersecting: true, maxWaitMs: 900 }),
   createViewportAwarePlugin({ rootMargin: "160px", once: true }),

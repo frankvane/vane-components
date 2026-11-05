@@ -9,7 +9,7 @@ import {
 } from "vane-lazy-image";
 import type { CSSProperties } from "react";
 
-const Lazy = withPlugins(LazyLoadImageCore as any, [
+const Lazy = withPlugins(LazyLoadImageCore, [
   // 只信任自家域名；Referer 缺失或跨域时按策略处理（这里不强校验，便于演示）
   createAntiHotlinkPlugin({ allowedDomains: ["picsum.photos"], checkReferer: false }),
   // 主域挂了按顺序回退到备用 CDN

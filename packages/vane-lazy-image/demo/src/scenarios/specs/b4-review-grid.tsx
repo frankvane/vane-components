@@ -10,7 +10,7 @@ import {
 } from "vane-lazy-image";
 import type { CSSProperties } from "react";
 
-const Lazy = withPlugins(LazyLoadImageCore as any, [
+const Lazy = withPlugins(LazyLoadImageCore, [
   // 用户图常年 404：兜一张"图已失效"占位，比破图标体面
   createFallbackImagePlugin({
     fallbackSrc: "https://picsum.photos/seed/vane-review-fallback/300/300",

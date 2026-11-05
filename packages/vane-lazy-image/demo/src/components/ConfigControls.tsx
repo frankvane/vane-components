@@ -30,7 +30,7 @@ function baseType(type: string): "enum" | "number" | "boolean" | "string" {
  * 这里只做**静态可判定**的还原；函数 / 数组 / 对象 / 含变量的表达式一律返回 undefined，
  * 由插件工厂自身的默认值兜底（宁可不下发，也不要下发作废的零值）。
  */
-export function parseDefault(raw?: string): any {
+export function parseDefault(raw?: string): unknown {
   if (raw === undefined || raw === null) return undefined;
   const s = String(raw).trim();
   if (!s) return undefined;
@@ -48,8 +48,7 @@ export function parseDefault(raw?: string): any {
   // 纯算术表达式（如 ratio: 4/3），只允许数字与四则运算符，避免执行任意代码
   if (/^[\d\s+\-*/.()]+$/.test(s)) {
     try {
-      // eslint-disable-next-line no-new-func
-      const v = Function(`"use strict";return (${s})`)();
+      const v: unknown = Function(`"use strict";return (${s})`)();
       if (typeof v === "number" && Number.isFinite(v)) return v;
     } catch {
       return undefined;
@@ -61,8 +60,13 @@ export function parseDefault(raw?: string): any {
 }
 
 /** 该字段在 doc.json 中声明了可静态还原的默认值 */
-export function declaredDefault(f: ConfigField): any {
+export function declaredDefault(f: ConfigField): unknown {
   return parseDefault(f.default);
+}
+
+/** 受控输入只接受字符串 / 数字，统一按文本回填（与原先 any 直传的渲染结果一致） */
+function scalarText(v: unknown): string {
+  return v === undefined || v === null ? "" : String(v);
 }
 
 /** 该字段没有声明可用的默认值时，控件的占位提示 */
@@ -76,8 +80,8 @@ function placeholderFor(f: ConfigField, kind: string): string {
 // 基于 doc.json config 生成参数控件（实时预览）。
 export const ConfigControls: React.FC<{
   fields: ConfigField[];
-  values: Record<string, any>;
-  onChange: (name: string, value: any) => void;
+  values: Record<string, unknown>;
+  onChange: (name: string, value: unknown) => void;
 }> = ({ fields, values, onChange }) => {
   if (!fields || fields.length === 0) {
     return (
@@ -101,7 +105,7 @@ export const ConfigControls: React.FC<{
             {kind === "enum" && (
               <select
                 className="control-input"
-                value={val ?? ""}
+                value={scalarText(val)}
                 onChange={(e) =>
                   onChange(f.name, e.target.value === "" ? undefined : e.target.value)
                 }
@@ -127,7 +131,7 @@ export const ConfigControls: React.FC<{
                 type="number"
                 className="control-input"
                 step="any"
-                value={val ?? ""}
+                value={scalarText(val)}
                 placeholder={placeholderFor(f, kind)}
                 onChange={(e) =>
                   onChange(f.name, e.target.value === "" ? undefined : Number(e.target.value))
@@ -138,7 +142,7 @@ export const ConfigControls: React.FC<{
               <input
                 type="text"
                 className="control-input"
-                value={val ?? ""}
+                value={scalarText(val)}
                 placeholder={placeholderFor(f, kind)}
                 onChange={(e) =>
                   onChange(f.name, e.target.value === "" ? undefined : e.target.value)
@@ -168,8 +172,8 @@ export const ConfigControls: React.FC<{
  * 这类出厂默认，导致实时预览大面积看不出效果。现在只下发 doc.json 真正声明过的默认值，
  * 未声明的字段直接省略，交给工厂自带默认兜底。
  */
-export function defaultValuesFor(fields: ConfigField[]): Record<string, any> {
-  const out: Record<string, any> = {};
+export function defaultValuesFor(fields: ConfigField[]): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
   for (const f of fields) {
     const v = declaredDefault(f);
     if (v !== undefined) out[f.name] = v;

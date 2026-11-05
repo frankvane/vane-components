@@ -9,7 +9,7 @@ import {
 } from "vane-lazy-image";
 import type { CSSProperties } from "react";
 
-const Lazy = withPlugins(LazyLoadImageCore as any, [
+const Lazy = withPlugins(LazyLoadImageCore, [
   // 小尺寸也要方的：按中心裁切，避免挤压变形
   createCropPlugin({ enabled: true, focusPoint: { x: 0.5, y: 0.5 }, showLabel: false }),
   // 分页来回翻时同一批用户不重复请求

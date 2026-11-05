@@ -9,7 +9,7 @@ import {
 } from "vane-lazy-image";
 import type { CSSProperties } from "react";
 
-const Lazy = withPlugins(LazyLoadImageCore as any, [
+const Lazy = withPlugins(LazyLoadImageCore, [
   // 横向滚动容器里，只有真正进入视口的卡片才发请求
   createViewportAwarePlugin({ rootMargin: "200px", once: true }),
   // 按滚动方向预测接下来会看到哪几张，提前 2 张预热

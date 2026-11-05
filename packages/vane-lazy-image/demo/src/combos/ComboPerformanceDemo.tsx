@@ -10,7 +10,7 @@ import {
 import { DemoLayout } from "../components/DemoLayout";
 import React from "react";
 
-const LazyImage = withPlugins(LazyLoadImageCore as any, [
+const LazyImage = withPlugins(LazyLoadImageCore, [
   createPreconnectPlugin({
     domains: ["https://picsum.photos", "https://img11.360buyimg.com"],
   }),

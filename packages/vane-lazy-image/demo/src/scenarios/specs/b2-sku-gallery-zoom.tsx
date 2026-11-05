@@ -11,7 +11,7 @@ import {
 import React from "react";
 import type { CSSProperties } from "react";
 
-const Lazy = withPlugins(LazyLoadImageCore as any, [
+const Lazy = withPlugins(LazyLoadImageCore, [
   createGalleryPlugin({ enableLightbox: true, buttonText: "查看大图", overlayZIndex: 12 }),
   // 商详页的放大镜：只做 1.08 倍轻放大，避免拖影
   createHoverZoomPlugin({ scale: 1.08, durationMs: 180 }),
@@ -25,7 +25,7 @@ const Lazy = withPlugins(LazyLoadImageCore as any, [
  * 会给**每一张**用这条链渲染的图都镶一层，56px 的缩略图直接被按钮盖死。
  * 这也是一条实用规则：同一屏里尺寸差很大的图，不要共用同一条装配链。
  */
-const Thumb = withPlugins(LazyLoadImageCore as any, []);
+const Thumb = withPlugins(LazyLoadImageCore, []);
 
 const SHOTS = [1, 2, 3, 4].map((i) => `https://picsum.photos/seed/vane-sku-${i}/600/600`);
 

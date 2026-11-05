@@ -9,7 +9,7 @@ import {
 } from "vane-lazy-image";
 import type { CSSProperties } from "react";
 
-const Lazy = withPlugins(LazyLoadImageCore as any, [
+const Lazy = withPlugins(LazyLoadImageCore, [
   // 证件照比例的人像统一按脸部中心裁成方图，外面再用 CSS 裁圆
   createCropPlugin({ enabled: true, focusPoint: { x: 0.5, y: 0.4 }, showLabel: false }),
   // 演员库常有失效图，兜底一张人形占位比留白体面

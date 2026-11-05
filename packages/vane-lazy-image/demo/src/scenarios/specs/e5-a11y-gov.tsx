@@ -9,7 +9,7 @@ import {
 } from "vane-lazy-image";
 import type { CSSProperties } from "react";
 
-const Lazy = withPlugins(LazyLoadImageCore as any, [
+const Lazy = withPlugins(LazyLoadImageCore, [
   // 给容器补 role/aria-busy，朗读器能播报"图片加载中"
   createA11yPlugin({
     enabled: true,

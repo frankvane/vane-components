@@ -44,7 +44,7 @@ const EngineInfraDemo: React.FC = () => {
   // 渲染 40 张图，制造大量被观察元素，便于直观看到 Observer 共享
   const LazyImage = useMemo(
     () =>
-      withPlugins(LazyLoadImageCore as any, [
+      withPlugins(LazyLoadImageCore, [
         createPreconnectPlugin({ domains: ["https://picsum.photos"] }),
       ]),
     []

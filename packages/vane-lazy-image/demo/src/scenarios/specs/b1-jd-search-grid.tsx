@@ -10,7 +10,7 @@ import {
 } from "vane-lazy-image";
 import type { CSSProperties } from "react";
 
-const Lazy = withPlugins(LazyLoadImageCore as any, [
+const Lazy = withPlugins(LazyLoadImageCore, [
   // 搜索页来回切排序/筛选，同一批主图不该重复请求
   createMemoryCachePlugin({ maxEntries: 240, ttlMs: 15 * 60 * 1000 }),
   createSkeletonPlugin({ type: "shimmer", backgroundColor: "#f2f3f5", highlightColor: "#fafafa" }),

@@ -10,7 +10,7 @@ import {
 } from "vane-lazy-image";
 import type { CSSProperties } from "react";
 
-const Lazy = withPlugins(LazyLoadImageCore as any, [
+const Lazy = withPlugins(LazyLoadImageCore, [
   // 图库用户会反复回看同一批图：落 IndexedDB，二次进入不走网络
   createIDBCachePlugin({ dbName: "vane-gallery", ttlMs: 7 * 24 * 60 * 60 * 1000 }),
   createConcurrencyControlPlugin({ maxConcurrent: 6, scope: "global", adaptive: true }),

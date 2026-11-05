@@ -27,7 +27,7 @@ const buildSrc = (base: string, w: number) => {
   }
 };
 
-const LazyImage = withPlugins(LazyLoadImageCore as any, [
+const LazyImage = withPlugins(LazyLoadImageCore, [
   createResponsivePlugin({
     variants,
     buildSrc,

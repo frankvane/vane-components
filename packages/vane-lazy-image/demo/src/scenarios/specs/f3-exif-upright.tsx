@@ -8,7 +8,7 @@ import {
 } from "vane-lazy-image";
 import type { CSSProperties } from "react";
 
-const Lazy = withPlugins(LazyLoadImageCore as any, [
+const Lazy = withPlugins(LazyLoadImageCore, [
   // 读 EXIF 的 Orientation 标记并转正（iOS/安卓直传图的高频坑）
   createExifOrientationPlugin({ enabled: true }),
   // 转正后按人脸/主体中心裁成 4:5，缩略图不歪

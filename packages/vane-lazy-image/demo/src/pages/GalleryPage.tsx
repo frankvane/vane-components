@@ -19,6 +19,7 @@ import { createVideoPosterPlugin } from "vane-lazy-image/custom-plugins/VideoPos
 import { createComparisonPlugin } from "vane-lazy-image/custom-plugins/ComparisonPlugin";
 import { createDownloadButtonPlugin } from "vane-lazy-image/custom-plugins/DownloadButtonPlugin";
 import type { GalleryImage, GalleryPlugin } from "vane-lazy-image/gallery";
+import type { LazyImagePlugin } from "vane-lazy-image";
 
 /**
  * 自包含占位图：内联 SVG data-URI，离线即可渲染，不依赖任何远程图床
@@ -52,10 +53,13 @@ const images: GalleryImage[] = [
   { src: placeholderImage("包装", 50), alt: "包装" },
 ];
 
-interface ToggleDef {
+/** 工厂 = 可调用 + 可能携带 .meta（供清单卡片取描述） */
+type ToggleCreator<P> = { (): P; meta?: { description?: string } };
+
+interface ToggleDef<P = GalleryPlugin> {
   key: string;
   label: string;
-  create: () => GalleryPlugin;
+  create: ToggleCreator<P>;
   optional: boolean;
   /** 清单卡片描述来源；包装型工厂（如 () => createX({...})）无法从 .create 取到
    *  .meta，需在此显式挂上真实 creator 的 meta，否则卡片描述空白。 */
@@ -63,7 +67,7 @@ interface ToggleDef {
 }
 
 // 10 个 gallery 域插件：4 个默认预设 + 6 个可选
-const DOMAIN_PLUGINS: ToggleDef[] = [
+const DOMAIN_PLUGINS: ToggleDef<GalleryPlugin>[] = [
   { key: "thumb", label: "缩略联动", create: createThumbSyncPlugin, optional: false },
   { key: "spin", label: "360 环物", create: createSpin360Plugin, optional: true },
   { key: "counter", label: "计数", create: createCounterPlugin, optional: false },
@@ -72,11 +76,11 @@ const DOMAIN_PLUGINS: ToggleDef[] = [
   { key: "zoom", label: "缩放控制", create: createZoomControlPlugin, optional: true },
   { key: "fullscreen", label: "全屏", create: createFullscreenPlugin, optional: true },
   { key: "preload", label: "相邻预加载", create: createThumbPreloadPlugin, optional: true },
-  { key: "hotspot", label: "热点", create: () => createHotspotPlugin({ hotspots: [{ x: 42, y: 38, label: "防水面料" }, { x: 66, y: 72, label: "透气网眼" }] }), meta: (createHotspotPlugin as any).meta, optional: true },
+  { key: "hotspot", label: "热点", create: () => createHotspotPlugin({ hotspots: [{ x: 42, y: 38, label: "防水面料" }, { x: 66, y: 72, label: "透气网眼" }] }), meta: createHotspotPlugin.meta, optional: true },
   { key: "favorite", label: "收藏", create: createFavoritePlugin, optional: true },
 ];
 
-const MAIN_PLUGINS: ToggleDef[] = [
+const MAIN_PLUGINS: ToggleDef<LazyImagePlugin>[] = [
   // 价格标签需配置价格数据，否则 renderOverlay 因 finalPrice 为 undefined 而返回 null。
   // 此处给一组示例价格（人民币 / 原价 / 折扣），选中即主图右上角显示价格标签。
   // 真实业务可改用 fetchPrice 按图片异步拉取，或后续让 GalleryImage 携带 price 字段。
@@ -90,7 +94,7 @@ const MAIN_PLUGINS: ToggleDef[] = [
         discount: "限时8折",
         currency: "¥",
       }),
-    meta: (createPriceTagPlugin as any).meta,
+    meta: createPriceTagPlugin.meta,
     optional: true,
   },
   { key: "hoverzoom", label: "悬停放大", create: createHoverZoomPlugin, optional: true },
@@ -103,7 +107,7 @@ const MAIN_PLUGINS: ToggleDef[] = [
     label: "视频位",
     create: () =>
       createVideoPosterPlugin({ videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4" }),
-    meta: (createVideoPosterPlugin as any).meta,
+    meta: createVideoPosterPlugin.meta,
     optional: true,
   },
   { key: "compare", label: "对比", create: createComparisonPlugin, optional: true },
@@ -208,7 +212,7 @@ const GalleryPage: React.FC = () => {
   }, [domain]);
 
   const mainPlugins = React.useMemo(() => {
-    const list: any[] = [];
+    const list: LazyImagePlugin[] = [];
     for (const d of MAIN_PLUGINS) {
       if (main[d.key]) list.push(d.create());
     }
@@ -317,9 +321,7 @@ const GalleryPage: React.FC = () => {
         <h2>图集插件清单（10）</h2>
         <div className="card-grid">
           {DOMAIN_PLUGINS.map((d) => {
-            const meta = (d.meta ?? (d.create as any).meta) as
-              | { description?: string }
-              | undefined;
+            const meta = d.meta ?? d.create.meta;
             return (
               <article key={d.key} className="plugin-card">
                 <h3>

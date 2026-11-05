@@ -8,7 +8,7 @@ import {
 } from "vane-lazy-image";
 import type { CSSProperties } from "react";
 
-const Lazy = withPlugins(LazyLoadImageCore as any, [
+const Lazy = withPlugins(LazyLoadImageCore, [
   // 3D 倾斜：最大 18°，带眩光与阴影，离开自动回正
   createDepthMapPlugin({
     style: "tilt",

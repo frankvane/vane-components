@@ -9,7 +9,7 @@ import {
 } from "vane-lazy-image";
 import type { CSSProperties } from "react";
 
-const Lazy = withPlugins(LazyLoadImageCore as any, [
+const Lazy = withPlugins(LazyLoadImageCore, [
   // 断网时切内置 SVG 占位；联网后自动重新取图（warm 会在恢复时预热）
   createOfflinePlugin({ cacheName: "vane-lazy-image-offline", warm: true, showBadge: true }),
   // 网络抖动导致的失败按指数退避重试

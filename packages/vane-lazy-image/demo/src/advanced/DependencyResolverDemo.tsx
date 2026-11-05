@@ -6,6 +6,8 @@ import {
 } from "vane-lazy-image";
 import React, { useState } from "react";
 
+import type { LazyImagePlugin } from "vane-lazy-image";
+
 import { DemoLayout } from "../components/DemoLayout";
 import { DependencyResolver } from "vane-lazy-image/advanced";
 
@@ -29,7 +31,7 @@ const createPluginWithDeps = (
 
 const DependencyResolverDemo: React.FC = () => {
   const [resolveLog, setResolveLog] = useState<string[]>([]);
-  const [registeredPlugins, setRegisteredPlugins] = useState<any[]>([]);
+  const [registeredPlugins, setRegisteredPlugins] = useState<LazyImagePlugin[]>([]);
   const [resolvedOrder, setResolvedOrder] = useState<string[]>([]);
   const [imageKey, setImageKey] = useState(0);
 
@@ -79,8 +81,11 @@ const DependencyResolverDemo: React.FC = () => {
       setResolvedOrder(order);
       setImageKey((prev) => prev + 1);
       addLog(`✨ 解析成功! 顺序: ${order.join(" → ")}`, "success");
-    } catch (error: any) {
-      addLog(`解析失败: ${error.message}`, "error");
+    } catch (error) {
+      addLog(
+        `解析失败: ${error instanceof Error ? error.message : String(error)}`,
+        "error"
+      );
       setResolvedOrder([]);
     }
   };
@@ -120,8 +125,11 @@ const DependencyResolverDemo: React.FC = () => {
       setResolvedOrder(order);
       setImageKey((prev) => prev + 1);
       addLog(`✨ 解析成功! 顺序: ${order.join(" → ")}`, "success");
-    } catch (error: any) {
-      addLog(`解析失败: ${error.message}`, "error");
+    } catch (error) {
+      addLog(
+        `解析失败: ${error instanceof Error ? error.message : String(error)}`,
+        "error"
+      );
       setResolvedOrder([]);
     }
   };
@@ -163,8 +171,11 @@ const DependencyResolverDemo: React.FC = () => {
       setResolvedOrder(order);
       setImageKey((prev) => prev + 1);
       addLog(`解析成功! 顺序: ${order.join(" → ")}`, "success");
-    } catch (error: any) {
-      addLog(`⚠️ 检测到循环依赖: ${error.message}`, "error");
+    } catch (error) {
+      addLog(
+        `⚠️ 检测到循环依赖: ${error instanceof Error ? error.message : String(error)}`,
+        "error"
+      );
       setResolvedOrder([]);
       setImageKey((prev) => prev + 1);
     }
@@ -203,8 +214,11 @@ const DependencyResolverDemo: React.FC = () => {
       setResolvedOrder(order);
       setImageKey((prev) => prev + 1);
       addLog(`✨ 解析成功! 顺序: ${order.join(" → ")}`, "success");
-    } catch (error: any) {
-      addLog(`⚠️ 解析失败: ${error.message}`, "error");
+    } catch (error) {
+      addLog(
+        `⚠️ 解析失败: ${error instanceof Error ? error.message : String(error)}`,
+        "error"
+      );
       setResolvedOrder([]);
       setImageKey((prev) => prev + 1);
     }

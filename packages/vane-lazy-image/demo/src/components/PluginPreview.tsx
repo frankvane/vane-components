@@ -24,7 +24,7 @@ import { getEnvState, setEnvState, type EnvState } from "./env-sim";
 type DemoAction = {
   label: string;
   hint: string;
-  patch?: Record<string, any>;
+  patch?: Record<string, unknown>;
   env?: Partial<EnvState>;
   emptyAlt?: boolean;
   multi?: boolean;
@@ -203,7 +203,7 @@ const DEMO_ACTIONS: Record<string, DemoAction[]> = {
  * 页面就无法展示该插件的作用。这里只补「doc 未声明且用户未改」的字段，
  * 参数面板里仍以 doc.json 默认值为准。
  */
-const DEMO_PRESETS: Record<string, Record<string, any>> = {
+const DEMO_PRESETS: Record<string, Record<string, unknown>> = {
   caption: { text: "示例说明文字 · Caption" },
   lqip: {
     // 内联 data URL（base64，避免 url() 里出现未转义的尖括号/空格导致 CSS 被丢弃）：
@@ -240,12 +240,15 @@ class EB extends React.Component<
   { children: React.ReactNode },
   { hasError: boolean; msg: string }
 > {
-  constructor(props: any) {
+  constructor(props: { children: React.ReactNode }) {
     super(props);
     this.state = { hasError: false, msg: "" };
   }
-  static getDerivedStateFromError(error: any) {
-    return { hasError: true, msg: String(error?.message || error) };
+  static getDerivedStateFromError(error: unknown) {
+    return {
+      hasError: true,
+      msg: String(error instanceof Error ? error.message : error),
+    };
   }
   render() {
     if (this.state.hasError) {
@@ -262,7 +265,7 @@ class EB extends React.Component<
 export const PluginPreview: React.FC<{ pluginId: string }> = ({ pluginId }) => {
   const meta = getPluginById(pluginId);
   const factory = getPluginFactory(pluginId);
-  const [values, setValues] = React.useState<Record<string, any>>({});
+  const [values, setValues] = React.useState<Record<string, unknown>>({});
   // 每个插件用自己的 seed，切换路由时同步重置（此前用 useState 只初始化一次，
   // 导致切插件后图片 URL 仍是首个 seed，预览与插件语义对不上）
   const defaultSrc = React.useMemo(
@@ -309,7 +312,7 @@ export const PluginPreview: React.FC<{ pluginId: string }> = ({ pluginId }) => {
   const effective = React.useMemo(() => {
     // 预设优先级高于 doc 默认值（否则 doc 里 showBadge:false 之类的默认值会把演示关掉），
     // 但低于用户手改值（手改后该字段已进 touched，不再出现在 presetKeys 里）
-    const out: Record<string, any> = { ...values };
+    const out: Record<string, unknown> = { ...values };
     for (const k of presetKeys) out[k] = preset[k];
     return out;
   }, [preset, presetKeys, values]);
@@ -318,19 +321,19 @@ export const PluginPreview: React.FC<{ pluginId: string }> = ({ pluginId }) => {
     return <div className="preview-error">未找到插件：{pluginId}</div>;
   }
 
-  let LazyImage: any = null;
+  let LazyImage: ReturnType<typeof withPlugins> | null = null;
   let composeError = "";
   try {
-    const cfgValues: Record<string, any> = {};
+    const cfgValues: Record<string, unknown> = {};
     for (const k of Object.keys(effective)) {
       if (effective[k] !== undefined && effective[k] !== "") cfgValues[k] = effective[k];
     }
-    LazyImage = withPlugins(LazyLoadImageCore as any, [factory(cfgValues)]);
-  } catch (e: any) {
-    composeError = String(e?.message || e);
+    LazyImage = withPlugins(LazyLoadImageCore, [factory(cfgValues)]);
+  } catch (e) {
+    composeError = String(e instanceof Error ? e.message : e);
   }
 
-  const onChange = (name: string, value: any) => {
+  const onChange = (name: string, value: unknown) => {
     touchedRef.current.add(name);
     setValues((v) => ({ ...v, [name]: value }));
   };
@@ -452,7 +455,7 @@ export const PluginPreview: React.FC<{ pluginId: string }> = ({ pluginId }) => {
       )}
 
       <div className="preview-stage" ref={stageRef}>
-        {composeError ? (
+        {composeError || !LazyImage ? (
           <div className="preview-error">组合出错：{composeError}</div>
         ) : (
           <EB>
@@ -523,15 +526,15 @@ export const StaticPreview: React.FC<{
   // 静态卡片一旦加载完就再也看不到过程
   const [replay, setReplay] = React.useState(0);
 
-  const normalize = (c: Record<string, any>) => {
-    const out: Record<string, any> = {};
+  const normalize = (c: Record<string, unknown>) => {
+    const out: Record<string, unknown> = {};
     for (const k of Object.keys(c || {})) {
       if (c[k] !== undefined && c[k] !== "") out[k] = c[k];
     }
     return out;
   };
 
-  const configs: Record<string, any>[] = example.configs?.length
+  const configs: Record<string, unknown>[] = example.configs?.length
     ? example.configs.map(normalize)
     : [normalize(example.config || {})];
 
@@ -539,15 +542,15 @@ export const StaticPreview: React.FC<{
     return <div className="preview-error">未找到插件：{pluginId}</div>;
   }
 
-  let LazyImage: any = null;
+  let LazyImage: ReturnType<typeof withPlugins> | null = null;
   let composeError = "";
   try {
     LazyImage = withPlugins(
-      LazyLoadImageCore as any,
+      LazyLoadImageCore,
       configs.map((cfg) => factory(cfg))
     );
-  } catch (e: any) {
-    composeError = String(e?.message || e);
+  } catch (e) {
+    composeError = String(e instanceof Error ? e.message : e);
   }
 
   return (
@@ -559,7 +562,7 @@ export const StaticPreview: React.FC<{
       >
         重播
       </button>
-      {composeError ? (
+      {composeError || !LazyImage ? (
         <div className="preview-error">组合出错：{composeError}</div>
       ) : (
         <EB>

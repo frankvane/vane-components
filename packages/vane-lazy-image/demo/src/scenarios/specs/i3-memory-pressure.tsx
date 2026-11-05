@@ -8,7 +8,7 @@ import {
 } from "vane-lazy-image";
 import type { CSSProperties } from "react";
 
-const Lazy = withPlugins(LazyLoadImageCore as any, [
+const Lazy = withPlugins(LazyLoadImageCore, [
   // 设备内存 ≤4GB 或移动端时开启；离开视口立即 abort，释放解码位图
   createMemoryPressureAbortPlugin({
     enabled: true,

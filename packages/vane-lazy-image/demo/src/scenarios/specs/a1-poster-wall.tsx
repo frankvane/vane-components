@@ -10,7 +10,7 @@ import {
 } from "vane-lazy-image";
 import type { CSSProperties } from "react";
 
-const Lazy = withPlugins(LazyLoadImageCore as any, [
+const Lazy = withPlugins(LazyLoadImageCore, [
   // 首屏海报是 LCP 主体，压过下游几十张图的请求
   createPriorityLoadingPlugin({ priority: "high" }),
   // 2:3 竖版占位，加载前后不跳动

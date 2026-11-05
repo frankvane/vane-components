@@ -4,7 +4,21 @@
 // 工厂通过 doc.name 推导：create${doc.name}，在 PluginPreview 中实时调用。
 
 import * as VL from "vane-lazy-image";
+import type { LazyImagePlugin } from "vane-lazy-image";
 import type { PluginDocLike } from "../components/PluginDoc";
+
+/** 插件配置：各插件字段形状不同，这里只约束「字符串键 → 任意值」的映射 */
+export type PluginConfig = Record<string, unknown>;
+
+/** 插件工厂：接收配置并返回插件实例（demo 侧统一签名） */
+export type PluginFactory = (cfg?: PluginConfig) => LazyImagePlugin;
+
+/** 工厂判定：运行时只能确认为函数，具体签名由各 creator 自行保证 */
+function isPluginFactory(
+  value: unknown
+): value is PluginFactory & { meta?: { name?: string } } {
+  return typeof value === "function";
+}
 
 export type Category =
   | "ecommerce"
@@ -117,8 +131,8 @@ export interface PluginExample {
   name: string;
   description?: string;
   src?: string;
-  config?: Record<string, any>; // 单实例场景
-  configs?: Record<string, any>[]; // 多实例场景（如多角标组合）
+  config?: PluginConfig; // 单实例场景
+  configs?: PluginConfig[]; // 多实例场景（如多角标组合）
 }
 
 export interface PluginMeta {
@@ -147,11 +161,19 @@ function slugify(dir: string): string {
     .toLowerCase();
 }
 
+/** doc.json 原始形态：在渲染用的 PluginDocLike 之上补出厂名与示例清单字段 */
+interface RawPluginDoc extends PluginDocLike {
+  name: string;
+  example?: string;
+  tags?: string[];
+  examples?: PluginExample[];
+}
+
 // 动态加载全部 doc.json（eager）
 const docs = import.meta.glob("../../../src/custom-plugins/*/doc.json", {
   eager: true,
   import: "default",
-}) as Record<string, any>;
+}) as Record<string, RawPluginDoc>;
 
 export const PLUGINS: PluginMeta[] = Object.keys(docs)
   .map((key) => {
@@ -196,18 +218,20 @@ export function getPluginById(id: string): PluginMeta | undefined {
   return PLUGINS.find((p) => p.id === id);
 }
 
-export function getPluginFactory(id: string): ((cfg?: any) => any) | undefined {
+export function getPluginFactory(id: string): PluginFactory | undefined {
   const meta = getPluginById(id);
   if (!meta) return undefined;
+  // 模块命名空间只能按字符串索引取值，先收敛为 unknown 记录，再逐个用守卫判定
+  const exports: Record<string, unknown> = VL;
   // 1) 快路径：create + doc.name
-  const direct = (VL as any)[meta.factoryName];
-  if (typeof direct === "function") return direct;
+  const direct = exports[meta.factoryName];
+  if (isPluginFactory(direct)) return direct;
   // 2) 兜底：导出名不一定等于 create+doc.name（如 LQIPPlugin→createLqipPlugin、
   //    CacheIDBPlugin→createIDBCachePlugin、CacheMemoryPlugin→createMemoryCachePlugin），
   //    改为按各 creator 携带的 .meta.name 反查（与旧版工坊同一机制）。
   for (const key of Object.keys(VL)) {
-    const fn = (VL as any)[key];
-    if (typeof fn === "function" && fn.meta && fn.meta.name === meta.dir) {
+    const fn = exports[key];
+    if (isPluginFactory(fn) && fn.meta && fn.meta.name === meta.dir) {
       return fn;
     }
   }

@@ -6,6 +6,7 @@ import {
   CATEGORY_LABELS,
   getPluginFactory,
   Category,
+  PluginFactory,
 } from "../data/plugin-catalog";
 import { CodeBlock } from "../components/CodeBlock";
 
@@ -31,17 +32,17 @@ export const WorkshopPage: React.FC = () => {
 
   const factories = selected
     .map((id) => ({ id, fn: getPluginFactory(id) }))
-    .filter((x) => x.fn);
+    .filter((x): x is { id: string; fn: PluginFactory } => Boolean(x.fn));
 
-  let LazyImage: any = null;
+  let LazyImage: ReturnType<typeof withPlugins> | null = null;
   let composeError = "";
   try {
     LazyImage = withPlugins(
-      LazyLoadImageCore as any,
-      factories.map((x) => (x.fn as any)({}))
+      LazyLoadImageCore,
+      factories.map((x) => x.fn({}))
     );
-  } catch (e: any) {
-    composeError = String(e?.message || e);
+  } catch (e) {
+    composeError = String(e instanceof Error ? e.message : e);
   }
 
   const selectedMetas = PLUGINS.filter((p) => selected.includes(p.id));
@@ -99,7 +100,7 @@ export const WorkshopPage: React.FC = () => {
             </div>
           </div>
           <div className="preview-stage">
-            {composeError ? (
+            {composeError || !LazyImage ? (
               <div className="preview-error">组合出错：{composeError}</div>
             ) : (
               <div style={{ width: 360, height: 240 }}>

@@ -9,7 +9,7 @@ import {
 } from "vane-lazy-image";
 import type { CSSProperties } from "react";
 
-const Lazy = withPlugins(LazyLoadImageCore as any, [
+const Lazy = withPlugins(LazyLoadImageCore, [
   // 播放页正文在滚动，推荐位等滚动停 200ms 再发请求，避免和其他图抢带宽
   createViewportDebouncePlugin({ debounceMs: 200, onlyWhenIntersecting: true }),
   // 看完一集点下一集时，侧栏图已在 IDB 里，二次进入不发请求

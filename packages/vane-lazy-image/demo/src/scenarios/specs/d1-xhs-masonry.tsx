@@ -15,7 +15,7 @@ import type { CSSProperties } from "react";
 function Note({ item }: { item: (typeof NOTES)[number] }) {
   const Lazy = React.useMemo(
     () =>
-      withPlugins(LazyLoadImageCore as any, [
+      withPlugins(LazyLoadImageCore, [
         createAspectRatioSpacerPlugin({ ratio: item.ratio }),
         createViewportAwarePlugin({ rootMargin: "150px", once: true }),
         createBlurUpPlugin({ startBlur: 10, durationMs: 420 }),

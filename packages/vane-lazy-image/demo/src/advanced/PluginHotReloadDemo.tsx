@@ -39,7 +39,7 @@ const PluginHotReloadDemo: React.FC = () => {
   // 注意：每次插件列表变化时都需要重新创建组件，因为 withPlugins 会捕获插件快照
   const ImageComponent = useMemo(() => {
     const activePlugins = pluginManager.getAllPlugins();
-    console.log("[热更新] 重新创建组件，当前插件:", activePlugins.map((p: any) => p.name));
+    console.log("[热更新] 重新创建组件，当前插件:", activePlugins.map((p) => p.name));
     return withPlugins(LazyLoadImageCore, activePlugins);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPlugins, imageKey]); // pluginManager 引用稳定，不需要作为依赖
@@ -57,7 +57,7 @@ const PluginHotReloadDemo: React.FC = () => {
 
     const exists = pluginManager
       .getAllPlugins()
-      .some((p: any) => p.name === badge.name);
+      .some((p) => p.name === badge.name);
     if (exists) {
       addLog(`插件已存在: ${badge.name}`, "error");
     } else {
@@ -71,7 +71,7 @@ const PluginHotReloadDemo: React.FC = () => {
   const handleRemoveBadge = () => {
     const exists = pluginManager
       .getAllPlugins()
-      .some((p: any) => p.name === "badge");
+      .some((p) => p.name === "badge");
     if (exists) {
       pluginManager.unregister("badge");
       setCurrentPlugins((prev) => prev.filter((name) => name !== "badge"));
@@ -107,7 +107,7 @@ const PluginHotReloadDemo: React.FC = () => {
   const handleResetPlugins = () => {
     // 卸载所有插件
     const allPlugins = pluginManager.getAllPlugins();
-    allPlugins.forEach((plugin: any) => pluginManager.unregister(plugin.name));
+    allPlugins.forEach((plugin) => pluginManager.unregister(plugin.name));
 
     // 重新注册默认插件
     const skeleton = createSkeletonPlugin({

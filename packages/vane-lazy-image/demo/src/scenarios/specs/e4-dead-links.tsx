@@ -9,7 +9,7 @@ import {
 } from "vane-lazy-image";
 import type { CSSProperties } from "react";
 
-const Lazy = withPlugins(LazyLoadImageCore as any, [
+const Lazy = withPlugins(LazyLoadImageCore, [
   // 主域 → 备用域按顺序试，命中即止
   createCDNFallbackPlugin({ cdnBases: ["https://picsum.photos"] }),
   createFallbackImagePlugin({

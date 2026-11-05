@@ -9,7 +9,7 @@ import {
 } from "vane-lazy-image";
 import type { CSSProperties } from "react";
 
-const Lazy = withPlugins(LazyLoadImageCore as any, [
+const Lazy = withPlugins(LazyLoadImageCore, [
   // Banner 就是 LCP 元素，直接拉到最高优先级
   createPriorityLoadingPlugin({ priority: "high" }),
   // 图床域名提前建连，省掉 DNS + TLS 的一个 RTT

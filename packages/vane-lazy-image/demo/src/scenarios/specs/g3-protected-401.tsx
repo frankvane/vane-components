@@ -20,7 +20,7 @@ const CASES = [
 function Protected({ token }: { token: string }) {
   const Lazy = React.useMemo(
     () =>
-      withPlugins(LazyLoadImageCore as any, [
+      withPlugins(LazyLoadImageCore, [
         createAuthPlugin({ token, tokenParam: "access_token" }),
         createRetryOnErrorPlugin({ maxRetries: 1, baseDelayMs: 300 }),
         createErrorOverlayPlugin({ message: "无法加载受保护资源", showRetry: true, retryText: "重试" }),

@@ -9,7 +9,7 @@ import {
 } from "vane-lazy-image";
 import type { CSSProperties } from "react";
 
-const Lazy = withPlugins(LazyLoadImageCore as any, [
+const Lazy = withPlugins(LazyLoadImageCore, [
   createGalleryPlugin({ enableLightbox: true, buttonText: "全屏", overlayZIndex: 20 }),
   // 下载按钮要带正确的文件名与扩展名，否则用户下到的是无后缀文件
   createDownloadButtonPlugin({

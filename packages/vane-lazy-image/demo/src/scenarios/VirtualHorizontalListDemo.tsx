@@ -19,7 +19,7 @@ import {
 import { DemoLayout } from "../components/DemoLayout";
 import React from "react";
 
-const LazyImage = withPlugins(LazyLoadImageCore as any, [
+const LazyImage = withPlugins(LazyLoadImageCore, [
   createMemoryCachePlugin({ maxEntries: 300, ttlMs: 60 * 60 * 1000 }),
   createIDBCachePlugin({ ttlMs: 7 * 24 * 60 * 60 * 1000 }),
   // 容器级滚动空闲：水平滚动场景
@@ -64,13 +64,26 @@ const LazyImage = withPlugins(LazyLoadImageCore as any, [
   createEventLoggerPlugin({ enabled: true, prefix: "[HL-Demo]" }),
 ]);
 
-const RW = ReactWindow as any;
-const GridNew = RW.Grid;
-const ListOld = RW.FixedSizeList;
+/**
+ * react-window v2 的 Grid 在 v1 类型里不存在，这里按「运行时探测到的可选组件」声明；
+ * v1 的 FixedSizeList 有完整类型，直接使用，保留原有的新版优先逻辑。
+ */
+type VirtualComponent = React.ComponentType<Record<string, unknown>>;
+const GridNew = (ReactWindow as { Grid?: VirtualComponent }).Grid;
+const ListOld = ReactWindow.FixedSizeList;
+
+/** 两版列表实例暴露的取容器方法与内部字段 */
+interface ListApi {
+  getElement?: () => HTMLElement | null;
+  getOuterElement?: () => HTMLElement | null;
+  getRootElement?: () => HTMLElement | null;
+  _outerRef?: { current?: HTMLElement | null };
+  _outerElement?: HTMLElement;
+}
 
 export default function VirtualHorizontalListDemo() {
   const listOuterRef = React.useRef<HTMLDivElement | null>(null);
-  const gridRef = React.useRef<any>(null);
+  const gridRef = React.useRef<ListApi | null>(null);
   const [rootEl, setRootEl] = React.useState<HTMLElement | undefined>(
     undefined
   );
@@ -166,7 +179,7 @@ export default function VirtualHorizontalListDemo() {
             outerRef={listOuterRef}
             overscanCount={8}
           >
-            {Cell as any}
+            {Cell}
           </ListOld>
         )}
       </div>

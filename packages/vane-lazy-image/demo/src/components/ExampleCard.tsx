@@ -4,7 +4,7 @@ import { CodeBlock } from "./CodeBlock";
 import type { PluginExample } from "../data/plugin-catalog";
 
 // 把配置对象格式化为可读的 JS 字面量（键不加引号，值为合法 JS）
-function toJs(value: any, indent = 0): string {
+function toJs(value: unknown, indent = 0): string {
   const pad = "  ".repeat(indent);
   if (value === null || value === undefined) return "undefined";
   if (Array.isArray(value)) {
@@ -13,9 +13,10 @@ function toJs(value: any, indent = 0): string {
     return "[\n" + items.join(",\n") + "\n" + pad + "]";
   }
   if (typeof value === "object") {
-    const keys = Object.keys(value);
+    const obj = value as Record<string, unknown>;
+    const keys = Object.keys(obj);
     if (keys.length === 0) return "{}";
-    const items = keys.map((k) => pad + "  " + k + ": " + toJs(value[k], indent + 1));
+    const items = keys.map((k) => pad + "  " + k + ": " + toJs(obj[k], indent + 1));
     return "{\n" + items.join(",\n") + "\n" + pad + "}";
   }
   if (typeof value === "string") return JSON.stringify(value);
@@ -27,7 +28,7 @@ function buildSource(
   factoryName: string,
   pluginId: string
 ): string {
-  const configs: Record<string, any>[] = example.configs?.length
+  const configs: Record<string, unknown>[] = example.configs?.length
     ? example.configs
     : [example.config || {}];
   const calls = configs

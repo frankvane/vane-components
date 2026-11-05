@@ -9,7 +9,7 @@ import {
 } from "vane-lazy-image";
 import type { CSSProperties } from "react";
 
-const Lazy = withPlugins(LazyLoadImageCore as any, [
+const Lazy = withPlugins(LazyLoadImageCore, [
   // 运行时嗅探浏览器支持哪种格式（canvas.toDataURL），决定是否改写后缀
   createWebPPlugin({
     enabled: true,

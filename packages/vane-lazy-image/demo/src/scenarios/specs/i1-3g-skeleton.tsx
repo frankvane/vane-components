@@ -9,7 +9,7 @@ import {
 } from "vane-lazy-image";
 import type { CSSProperties } from "react";
 
-const Lazy = withPlugins(LazyLoadImageCore as any, [
+const Lazy = withPlugins(LazyLoadImageCore, [
   // 采集 transferSize / duration / responseStatus，落到自己的日志端点
   createNetworkAnalyticsPlugin({ trackCDN: true }),
   createSkeletonPlugin({ type: "shimmer", backgroundColor: "#eef0f2", highlightColor: "#f7f9fa", borderRadius: 4 }),

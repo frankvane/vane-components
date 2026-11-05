@@ -79,6 +79,27 @@ export function subscribeEnv(fn: (e: EnvState) => void): () => void {
   };
 }
 
+/** 演示用的 Navigator 扩展：connection / getBattery 在标准 lib.dom 中并非所有环境都有 */
+interface SimulatedConnection {
+  addEventListener?: (type: string, listener: () => void) => void;
+  removeEventListener?: (type: string, listener: () => void) => void;
+  dispatchEvent?: (e: Event) => boolean;
+}
+
+interface SimulatedBattery {
+  level: number;
+  charging: boolean;
+  chargingTime: number;
+  dischargingTime: number;
+  addEventListener?: (type: string, listener: () => void) => void;
+  removeEventListener?: (type: string, listener: () => void) => void;
+}
+
+type NavigatorWithSimulation = Navigator & {
+  connection?: SimulatedConnection;
+  getBattery?: () => Promise<SimulatedBattery>;
+};
+
 export function applyEnv(e: EnvState) {
   // 离线
   try {
@@ -95,8 +116,9 @@ export function applyEnv(e: EnvState) {
   // 弱网 / 省流量
   try {
     const type = e.slow ? "2g" : "4g";
-    const conn: any = (navigator as any).connection;
-    const patch = (target: any) => {
+    const nav = navigator as NavigatorWithSimulation;
+    const conn = nav.connection;
+    const patch = (target: SimulatedConnection) => {
       Object.defineProperty(target, "effectiveType", { configurable: true, get: () => type });
       Object.defineProperty(target, "saveData", { configurable: true, get: () => e.slow });
       Object.defineProperty(target, "downlink", { configurable: true, get: () => (e.slow ? 0.3 : 10) });
@@ -106,7 +128,7 @@ export function applyEnv(e: EnvState) {
     if (conn) {
       patch(conn);
       try {
-        conn.dispatchEvent(new Event("change"));
+        conn.dispatchEvent?.(new Event("change"));
       } catch {
         /* ignore */
       }
@@ -128,7 +150,7 @@ export function applyEnv(e: EnvState) {
 
   // 低电量
   try {
-    (navigator as any).getBattery = () =>
+    (navigator as NavigatorWithSimulation).getBattery = () =>
       Promise.resolve({
         level: e.battery ? 0.08 : 0.92,
         charging: !e.battery,

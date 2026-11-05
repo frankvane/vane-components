@@ -22,7 +22,7 @@ const LOCALES = [
 function Card({ item }: { item: (typeof LOCALES)[number] }) {
   const Lazy = React.useMemo(
     () =>
-      withPlugins(LazyLoadImageCore as any, [
+      withPlugins(LazyLoadImageCore, [
         // localeMap 把语言映射到对应语言的图源（这里是同一张 SKU 底图）
         createLocalizationPlugin({
           localeMap: { "zh-CN": SRC, "en-US": SRC, "ja-JP": SRC, "de-DE": SRC },

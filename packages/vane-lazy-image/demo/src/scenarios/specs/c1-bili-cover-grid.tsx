@@ -41,7 +41,7 @@ const VIDEOS: VideoItem[] = [
 function Cover({ v }: { v: VideoItem }) {
   const Lazy = React.useMemo(
     () =>
-      withPlugins(LazyLoadImageCore as any, [
+      withPlugins(LazyLoadImageCore, [
         createAspectRatioSpacerPlugin({ ratio: 16 / 9 }),
         createBadgePlugin({
           text: v.dur,

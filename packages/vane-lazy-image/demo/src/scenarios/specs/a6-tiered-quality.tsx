@@ -9,7 +9,7 @@ import {
 } from "vane-lazy-image";
 import type { CSSProperties } from "react";
 
-const Lazy = withPlugins(LazyLoadImageCore as any, [
+const Lazy = withPlugins(LazyLoadImageCore, [
   // 2G/3G 给 40 质量、4G 给 80；开了省流量再降到 35
   createAdaptiveQualityPlugin({ lowQ: 40, highQ: 80, saveDataQuality: 35 }),
   // 图床按 /宽/高 出图，buildSrc 把变体宽度拼进路径（换成自家图床模板即可）

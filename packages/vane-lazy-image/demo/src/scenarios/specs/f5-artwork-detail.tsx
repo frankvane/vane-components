@@ -11,7 +11,7 @@ import {
 import React from "react";
 import type { CSSProperties } from "react";
 
-const Lazy = withPlugins(LazyLoadImageCore as any, [
+const Lazy = withPlugins(LazyLoadImageCore, [
   // 用作品主色铺容器底：图片还没到时也不会突兀地刷白
   createDominantColorPlugin({ color: "rgba(0,0,0,.06)" }),
   // 悬停时轻微上浮 + 提亮，作品墙用这种"手能摸到"的反馈最合适

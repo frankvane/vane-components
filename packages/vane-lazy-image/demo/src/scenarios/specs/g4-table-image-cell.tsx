@@ -9,7 +9,7 @@ import {
 } from "vane-lazy-image";
 import type { CSSProperties } from "react";
 
-const Lazy = withPlugins(LazyLoadImageCore as any, [
+const Lazy = withPlugins(LazyLoadImageCore, [
   // 固定 32px 高：骨架与最终图同尺寸，行高不会跳
   createSkeletonPlugin({ type: "pulse", backgroundColor: "#f2f3f5", highlightColor: "#fafbfc", borderRadius: 3 }),
   createFallbackImagePlugin({
