@@ -91,7 +91,10 @@ export function createColorExtractionPlugin(config: ColorExtractionConfig = {}):
             const tick = () => {
               if (!alive) return;
               const img = context.imageRef?.current as DominantColorImage | null;
-              const c = img?.__lliDominantColor || context.sharedData?.get("dominant-color") || null;
+              const c =
+                img?.__lliDominantColor ||
+                (context.sharedData?.get("dominant-color") as string | undefined) ||
+                null;
               setColor(c || null);
             };
             const raf = requestAnimationFrame(tick);

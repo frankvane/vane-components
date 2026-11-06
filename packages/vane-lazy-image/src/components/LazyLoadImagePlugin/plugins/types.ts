@@ -84,9 +84,8 @@ export interface LazyImageContext
   /** 网络信息（全局单例，见 utils/GlobalContext） */
   networkInfo?: NetworkInfo;
   /** 跨插件共享数据（内核 context.shared 的领域别名，由 withPlugins 注入）。
-   *  与旧版领域 API 一致保持 Map<string, any>：存量插件直接做算术/赋值，
-   *  新插件读写建议先断言类型（内核侧 shared 为 Map<string, unknown>） */
-  sharedData: Map<string, any>;
+   *  与内核侧一致为 Map<string, unknown>：读取后按预期形状断言（存量插件已如此） */
+  sharedData: Map<string, unknown>;
   /** 尺寸信息 */
   dimensions?: Dimensions;
   /** 性能计时数据 */
@@ -98,9 +97,9 @@ export interface LazyImageContext
   };
   /**
    * 插件自身配置（createXxxPlugin(config) 传入的那个对象）。
-   * 公共契约位：各插件 config 形状由各自工厂决定，这里保留 any 以便跨包复用。
+   * 各插件 config 形状由各自工厂决定，这里只约束「字符串键 → 任意值」的映射。
    */
-  config?: Record<string, any>;
+  config?: Record<string, unknown>;
   /** 重新加载：会先中止在途请求，再（若仍在视口）重新发起加载 */
   reload?(): void;
   /** 重置：回到初始 idle 状态，不重新发起加载（用于「离开即中止」等场景） */
@@ -212,9 +211,10 @@ export interface LazyImagePlugin
 
 /**
  * 领域插件工厂（可调用 + 挂 .meta，供文档生成与 demo 导航使用）。
- * 公共契约位：Config 默认值 any 保留（历史的无配置调用方依赖该默认值）。
+ * Config 为配置对象泛型：只出现在工厂入参位（逆变安全），
+ * 默认 unknown 即可兼容无配置的调用方。
  */
-export type LazyImagePluginCreator<Config = any> = PluginCreator<
+export type LazyImagePluginCreator<Config = unknown> = PluginCreator<
   Config,
   LazyLoadImageCoreProps,
   LazyImageData

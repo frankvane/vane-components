@@ -65,9 +65,9 @@ export interface GalleryPlugin extends Plugin<GalleryCoreProps, unknown> {
 
 /**
  * Gallery 域插件工厂（可调用 + 挂 .meta）。
- * 公共契约位：Config 默认值 any 保留（历史的无配置调用方依赖该默认值）。
+ * Config 为配置对象泛型：只出现在工厂入参位（逆变安全），默认 unknown 兼容无配置调用方。
  */
-export type GalleryPluginCreator<Config = any> = PluginCreator<
+export type GalleryPluginCreator<Config = unknown> = PluginCreator<
   Config,
   GalleryCoreProps,
   unknown

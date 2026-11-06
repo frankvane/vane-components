@@ -36,10 +36,9 @@ export interface PerformanceMetrics {
     ttfb?: number;
   };
   /**
-   * 自定义指标。
-   * 公共契约位：键值由宿主任意写入（setCustomMetric），保留 any 以免破坏读取方。
+   * 自定义指标。键值由宿主任意写入（setCustomMetric），读取方按预期形状断言。
    */
-  custom: Record<string, any>;
+  custom: Record<string, unknown>;
 }
 
 /**

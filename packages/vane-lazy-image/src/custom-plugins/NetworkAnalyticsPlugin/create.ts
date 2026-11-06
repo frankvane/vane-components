@@ -2,9 +2,8 @@ import type { LazyImagePlugin, LazyImageContext } from "../../components/LazyLoa
 
 export interface NetworkAnalyticsPluginConfig {
   reportEndpoint?: string;
-  /** 自定义上报函数（若提供则优先使用） */
-  // 公共契约位：宿主自定义上报回调，事件负载字段由宿主决定，保留 Record<string, any>。
-  report?: (event: string, data: Record<string, any>) => void;
+  /** 自定义上报函数（若提供则优先使用）；事件负载字段由宿主决定，以 unknown 传递 */
+  report?: (event: string, data: Record<string, unknown>) => void;
   trackCDN?: boolean;
 }
 

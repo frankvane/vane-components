@@ -175,7 +175,7 @@ export function createScrollIdlePlugin(config: ScrollIdleConfig = {}): LazyImage
         // P1-8：释放监听并删除单例 Map 条目，避免容器 DOM 与整棵子树被强引用
         let key: "window" | HTMLElement | undefined;
         try {
-          key = context.sharedData?.get("scroll-idle:target");
+          key = context.sharedData?.get("scroll-idle:target") as "window" | HTMLElement | undefined;
           context.sharedData?.delete("scroll-idle:target");
         } catch {}
         if (key) ScrollIdleWatcher.release(key);

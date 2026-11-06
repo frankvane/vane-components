@@ -116,8 +116,8 @@ export function createWebPPlugin(config: WebPPluginConfig = {}): LazyImagePlugin
 
       onLoadError: (context: LazyImageContext) => {
         // 如果是 webp 链接失败，回退到原始链接
-        const orig = context.sharedData?.get("webp:original");
-        const rewritten = context.sharedData?.get("webp:rewritten");
+        const orig = context.sharedData?.get("webp:original") as string | undefined;
+        const rewritten = context.sharedData?.get("webp:rewritten") as string | undefined;
         const img = context.imageRef?.current;
         if (img && orig && rewritten && img.src === rewritten) {
           try {

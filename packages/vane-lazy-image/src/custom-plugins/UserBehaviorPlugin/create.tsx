@@ -1,4 +1,4 @@
-import type { LazyImagePlugin, LazyImageContext } from "../../components/LazyLoadImagePlugin/plugins/types";
+﻿import type { LazyImagePlugin, LazyImageContext } from "../../components/LazyLoadImagePlugin/plugins/types";
 
 import React from "react";
 
@@ -22,6 +22,11 @@ export interface UserBehaviorConfig {
     enters: number;
     leaves: number;
   }) => void;
+}
+
+/** 从 sharedData 读取数值计数（sharedData 为 Map<string, unknown>，键缺失/非数值按 0 计） */
+function num(v: unknown): number {
+  return typeof v === "number" ? v : 0;
 }
 
 export function createUserBehaviorPlugin(config: UserBehaviorConfig = {}): LazyImagePlugin {
@@ -58,7 +63,7 @@ export function createUserBehaviorPlugin(config: UserBehaviorConfig = {}): LazyI
           img.__lliUBClicks = (img.__lliUBClicks || 0) + 1;
           // 同步点击次数到 sharedData，避免卸载时 img 为 null 导致统计丢失
           try {
-            const clicks = (context.sharedData?.get("ub:clicks") || 0) + 1;
+            const clicks = num(context.sharedData?.get("ub:clicks")) + 1;
             context.sharedData?.set("ub:clicks", clicks);
           } catch {}
         };
@@ -73,7 +78,7 @@ export function createUserBehaviorPlugin(config: UserBehaviorConfig = {}): LazyI
           img.__lliUBEnters = (img.__lliUBEnters || 0) + 1;
         }
         try {
-          const enters = (context.sharedData?.get("ub:enters") || 0) + 1;
+          const enters = num(context.sharedData?.get("ub:enters")) + 1;
           context.sharedData?.set("ub:enters", enters);
           context.sharedData?.set("ub:enterTs", Date.now());
         } catch {}
@@ -88,11 +93,11 @@ export function createUserBehaviorPlugin(config: UserBehaviorConfig = {}): LazyI
           img.__lliUBLeaves = (img.__lliUBLeaves || 0) + 1;
         }
         try {
-          const leaves = (context.sharedData?.get("ub:leaves") || 0) + 1;
+          const leaves = num(context.sharedData?.get("ub:leaves")) + 1;
           context.sharedData?.set("ub:leaves", leaves);
-          const sdEnterTs = context.sharedData?.get("ub:enterTs") || 0;
+          const sdEnterTs = num(context.sharedData?.get("ub:enterTs"));
           if (sdEnterTs) {
-            const dwell = (context.sharedData?.get("ub:dwell") || 0) + (Date.now() - sdEnterTs);
+            const dwell = num(context.sharedData?.get("ub:dwell")) + (Date.now() - sdEnterTs);
             context.sharedData?.set("ub:dwell", dwell);
             context.sharedData?.set("ub:enterTs", 0);
           }
@@ -108,14 +113,14 @@ export function createUserBehaviorPlugin(config: UserBehaviorConfig = {}): LazyI
         }
 
         // 计算驻留：优先使用 img 上的最新数据，其次使用 sharedData 兜底
-        const sdEnterTs = context.sharedData?.get("ub:enterTs") || 0;
-        const dwellShared = (context.sharedData?.get("ub:dwell") || 0) + (sdEnterTs ? Date.now() - sdEnterTs : 0);
+        const sdEnterTs = num(context.sharedData?.get("ub:enterTs"));
+        const dwellShared = num(context.sharedData?.get("ub:dwell")) + (sdEnterTs ? Date.now() - sdEnterTs : 0);
         const dwellImg = img
           ? (img.__lliUBDwell || 0) + (img.__lliUBEnterTs ? Date.now() - img.__lliUBEnterTs : 0)
           : 0;
-        const clicks = img?.__lliUBClicks ?? (context.sharedData?.get("ub:clicks") || 0);
-        const enters = img?.__lliUBEnters ?? (context.sharedData?.get("ub:enters") || 0);
-        const leaves = img?.__lliUBLeaves ?? (context.sharedData?.get("ub:leaves") || 0);
+        const clicks = img?.__lliUBClicks ?? num(context.sharedData?.get("ub:clicks"));
+        const enters = img?.__lliUBEnters ?? num(context.sharedData?.get("ub:enters"));
+        const leaves = img?.__lliUBLeaves ?? num(context.sharedData?.get("ub:leaves"));
 
         const data = {
           src: context.src,
@@ -166,14 +171,14 @@ export function createUserBehaviorPlugin(config: UserBehaviorConfig = {}): LazyI
               const img = context.imageRef?.current as UserBehaviorImageElement | null;
               const enterTs = img?.__lliUBEnterTs || 0;
               const dwellImg = (img?.__lliUBDwell || 0) + (enterTs ? Date.now() - enterTs : 0);
-              const sdEnterTs = context.sharedData?.get("ub:enterTs") || 0;
-              const dwellShared = (context.sharedData?.get("ub:dwell") || 0) + (sdEnterTs ? Date.now() - sdEnterTs : 0);
+              const sdEnterTs = num(context.sharedData?.get("ub:enterTs"));
+              const dwellShared = num(context.sharedData?.get("ub:dwell")) + (sdEnterTs ? Date.now() - sdEnterTs : 0);
               const dwell = dwellImg || dwellShared || 0;
               setState({
                 dwellMs: dwell,
-                clicks: img?.__lliUBClicks ?? (context.sharedData?.get("ub:clicks") || 0),
-                enters: img?.__lliUBEnters ?? (context.sharedData?.get("ub:enters") || 0),
-                leaves: img?.__lliUBLeaves ?? (context.sharedData?.get("ub:leaves") || 0),
+                clicks: img?.__lliUBClicks ?? num(context.sharedData?.get("ub:clicks")),
+                enters: img?.__lliUBEnters ?? num(context.sharedData?.get("ub:enters")),
+                leaves: img?.__lliUBLeaves ?? num(context.sharedData?.get("ub:leaves")),
                 inView: context.isIntersecting,
               });
               raf = requestAnimationFrame(tick);
