@@ -1,4 +1,4 @@
-import type React from "react";
+﻿import type React from "react";
 import type {
   SignInPlugin,
   SignInPluginContext,
@@ -21,8 +21,8 @@ export interface RewardClaimConfig {
  * 找到「已达天数可领但尚未领取」的第一个奖励（data.rewards 中 day<=streak 且 !claimed），
  * 提供领取按钮；点按经 ctx.callbacks.claim(day) 下发。无待领时显示终态文案。
  */
-// 泛型默认值 any：公共契约位（同 types.ts 顶部约定），收紧为 unknown 会让不写 T 的调用方 tsc 失败。
-export function createRewardClaimPlugin<T = any>(
+// 泛型默认值 unknown：T 不参与类型结构（data 恒为 SignInData），默认值不影响调用方。
+export function createRewardClaimPlugin<T = unknown>(
   config: RewardClaimConfig = {}
 ): SignInPlugin<T> {
   const { pendingText = "领取中…", errorText = "领取失败，请重试" } = config;

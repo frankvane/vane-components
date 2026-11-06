@@ -1,4 +1,4 @@
-import type React from "react";
+﻿import type React from "react";
 import type {
   SignInPlugin,
   SignInPluginContext,
@@ -17,8 +17,8 @@ export interface RewardHistoryConfig {
  * RewardHistoryPlugin - 领取记录（底部区）。
  * 展示 data.history（领取记录），按时间倒序取前 limit 条；无记录显示终态文案。
  */
-// 泛型默认值 any：公共契约位（同 types.ts 顶部约定），收紧为 unknown 会让不写 T 的调用方 tsc 失败。
-export function createRewardHistoryPlugin<T = any>(
+// 泛型默认值 unknown：T 不参与类型结构（data 恒为 SignInData），默认值不影响调用方。
+export function createRewardHistoryPlugin<T = unknown>(
   config: RewardHistoryConfig = {}
 ): SignInPlugin<T> {
   const { limit = 5 } = config;

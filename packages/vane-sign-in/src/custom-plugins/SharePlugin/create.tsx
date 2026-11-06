@@ -1,4 +1,4 @@
-import type React from "react";
+﻿import type React from "react";
 import type {
   SignInPlugin,
   SignInPluginContext,
@@ -18,8 +18,8 @@ export interface ShareConfig {
  * 触发 ctx.callbacks.share()，由消费方决定分享渠道（海报 / 链接 / 卡片）。
  * 纯无状态按钮，归属各平台运营位的社交扩散位。
  */
-// 泛型默认值 any：公共契约位（同 types.ts 顶部约定），收紧为 unknown 会让不写 T 的调用方 tsc 失败。
-export function createSharePlugin<T = any>(
+// 泛型默认值 unknown：T 不参与类型结构（data 恒为 SignInData），默认值不影响调用方。
+export function createSharePlugin<T = unknown>(
   config: ShareConfig = {}
 ): SignInPlugin<T> {
   const { text = "分享成就" } = config;

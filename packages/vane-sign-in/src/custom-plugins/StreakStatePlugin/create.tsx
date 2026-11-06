@@ -1,4 +1,4 @@
-import type React from "react";
+﻿import type React from "react";
 import type {
   SignInPlugin,
   SignInPluginContext,
@@ -16,8 +16,8 @@ export interface StreakStateConfig {
  * StreakStatePlugin - 连签状态（头部区）。
  * 展示当前连签天数与历史最高连签；可关掉最高天数只留当前连签。
  */
-// 泛型默认值 any：公共契约位（同 types.ts 顶部约定），收紧为 unknown 会让不写 T 的调用方 tsc 失败。
-export function createStreakStatePlugin<T = any>(
+// 泛型默认值 unknown：T 不参与类型结构（data 恒为 SignInData），默认值不影响调用方。
+export function createStreakStatePlugin<T = unknown>(
   config: StreakStateConfig = {}
 ): SignInPlugin<T> {
   const { showMax = true } = config;

@@ -1,4 +1,4 @@
-import type React from "react";
+﻿import type React from "react";
 import type {
   SignInPlugin,
   SignInPluginContext,
@@ -17,8 +17,8 @@ export interface RuleExpandConfig {
  * 将 data.rules 折叠为可展开列表，避免长规则文案常驻占用空间。
  * 无 rules 数据时静默返回 null。
  */
-// 泛型默认值 any：公共契约位（同 types.ts 顶部约定），收紧为 unknown 会让不写 T 的调用方 tsc 失败。
-export function createRuleExpandPlugin<T = any>(
+// 泛型默认值 unknown：T 不参与类型结构（data 恒为 SignInData），默认值不影响调用方。
+export function createRuleExpandPlugin<T = unknown>(
   config: RuleExpandConfig = {}
 ): SignInPlugin<T> {
   const { defaultOpen = false } = config;

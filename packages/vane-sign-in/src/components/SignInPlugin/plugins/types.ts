@@ -1,4 +1,4 @@
-import type React from "react";
+﻿import type React from "react";
 import type {
   PluginContext,
   PluginHooks,
@@ -158,12 +158,11 @@ export interface SignInCoreRef {
 
 /**
  * 泛型默认值约定：本文件 SignInPluginContext / SignInPluginHooks / SignInPlugin /
- * SignInPluginCreator 的 T（以及后者的 Config）默认值保持 any。
- * 这些都是对外导出的公共契约位——消费方常以「不写全泛型」的形式使用（直接声明
- * SignInPlugin 数组、调用 useSignInContext() 等）；收紧为 unknown 会让其 data /
- * props 属性访问与赋值直接 tsc 失败。实现内部（slots.tsx / withPlugins.tsx）已收敛为
- * unknown。SignInPluginContext 的 T 不参与 data 形态（data 恒为 SignInData），
- * 以下划线前缀标注保留的泛型位，避免被 no-unused-vars 误判为死代码。
+ * SignInPluginCreator 的 T（以及后者的 Config）默认值均为 unknown。
+ * T / Config 均不参与类型结构或仅出现在入参位（逆变安全），data 恒为 SignInData，
+ * 默认值变化不影响消费方（声明 SignInPlugin 数组、调用 useSignInContext() 等）。
+ * SignInPluginContext 的泛型位以 _T 保留并标注「有意不使用」，
+ * 避免被 no-unused-vars 误判为死代码。
  */
 
 /**
@@ -172,7 +171,7 @@ export interface SignInCoreRef {
  * SignInData（基类 data 为可选泛型，领域覆盖为必填 SignInData），并补充 callbacks
  * （业务动作入口）。保持 data 必填，插件内 `ctx.data.streak` 等访问无需可空判断。
  */
-export interface SignInPluginContext<_T = any>
+export interface SignInPluginContext<_T = unknown>
   extends PluginContext<SignInCoreProps, SignInData> {
   /** 签到数据（与 props.data 同源，必填） */
   data: SignInData;
@@ -188,7 +187,7 @@ export interface SignInPluginContext<_T = any>
  * 钩子一律用「方法语法」声明，使内核把 context 收窄为领域上下文时通过 bivariance 校验
  * （strictFunctionTypes 下参数逆变会拒绝领域钩子赋值，见 vane-profile 同款约定）。
  */
-export interface SignInPluginHooks<T = any>
+export interface SignInPluginHooks<T = unknown>
   extends PluginHooks<SignInCoreProps, SignInData> {
   /** 头部区：连签数 / 积分 / 等级 / 倒计时 */
   renderHeader?(context: SignInPluginContext<T>): React.ReactNode;
@@ -204,12 +203,12 @@ export interface SignInPluginHooks<T = any>
 
 // ============ 插件定义 ============
 
-export interface SignInPlugin<T = any>
+export interface SignInPlugin<T = unknown>
   extends Plugin<SignInCoreProps, SignInData> {
   hooks: SignInPluginHooks<T>;
 }
 
-export type SignInPluginCreator<Config = any> = PluginCreator<
+export type SignInPluginCreator<Config = unknown> = PluginCreator<
   Config,
   SignInCoreProps,
   SignInData

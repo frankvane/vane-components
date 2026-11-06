@@ -1,4 +1,4 @@
-import type React from "react";
+﻿import type React from "react";
 import type {
   SignInPlugin,
   SignInPluginContext,
@@ -14,8 +14,8 @@ export type CountdownConfig = Record<string, never>;
  * 依据 data.nextResetAt（绝对 epoch 毫秒）计算距下次可签到的剩余时间；
  * 已过期显示「现在可签到」。`now` 由 SignInCore 的时钟下发给消费者，每秒自动刷新。
  */
-// 泛型默认值 any：公共契约位（同 types.ts 顶部约定），收紧为 unknown 会让不写 T 的调用方 tsc 失败。
-export function createCountdownPlugin<T = any>(
+// 泛型默认值 unknown：T 不参与类型结构（data 恒为 SignInData），默认值不影响调用方。
+export function createCountdownPlugin<T = unknown>(
   _config: CountdownConfig = {}
 ): SignInPlugin<T> {
   return {

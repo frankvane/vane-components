@@ -1,4 +1,4 @@
-import type React from "react";
+﻿import type React from "react";
 import type {
   SignInPlugin,
   SignInPluginContext,
@@ -19,8 +19,8 @@ export interface RemindConfig {
  * 本地维护开关态，切换即经 ctx.callbacks.remind(enabled) 下发给消费方持久化；
  * 失败时回滚并展示错误（不再静默停在「已开启」）。
  */
-// 泛型默认值 any：公共契约位（同 types.ts 顶部约定），收紧为 unknown 会让不写 T 的调用方 tsc 失败。
-export function createRemindPlugin<T = any>(
+// 泛型默认值 unknown：T 不参与类型结构（data 恒为 SignInData），默认值不影响调用方。
+export function createRemindPlugin<T = unknown>(
   config: RemindConfig = {}
 ): SignInPlugin<T> {
   const { defaultOn = false, errorText = "提醒设置失败，请重试" } = config;

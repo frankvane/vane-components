@@ -1,4 +1,4 @@
-import type React from "react";
+﻿import type React from "react";
 import type {
   SignInPlugin,
   SignInPluginContext,
@@ -13,8 +13,8 @@ export type PointsBalanceConfig = Record<string, never>;
  * PointsBalancePlugin - 累计积分（头部区）。
  * 展示当前累计积分总额（data.points），与连签数并排作为头部资产概览。
  */
-// 泛型默认值 any：公共契约位（同 types.ts 顶部约定），收紧为 unknown 会让不写 T 的调用方 tsc 失败。
-export function createPointsBalancePlugin<T = any>(
+// 泛型默认值 unknown：T 不参与类型结构（data 恒为 SignInData），默认值不影响调用方。
+export function createPointsBalancePlugin<T = unknown>(
   _config: PointsBalanceConfig = {}
 ): SignInPlugin<T> {
   return {

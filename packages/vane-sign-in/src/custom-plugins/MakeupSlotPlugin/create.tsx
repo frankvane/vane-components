@@ -1,4 +1,4 @@
-import type React from "react";
+﻿import type React from "react";
 import type {
   SignInPlugin,
   SignInPluginContext,
@@ -23,8 +23,8 @@ export interface MakeupSlotConfig {
  * 选「不晚于业务日、日期最早」的可补签格；配额耗尽 / 无可补目标分别提示，
  * 不再把两种状态混成「补签次数已用完」。
  */
-// 泛型默认值 any：公共契约位（同 types.ts 顶部约定），收紧为 unknown 会让不写 T 的调用方 tsc 失败。
-export function createMakeupSlotPlugin<T = any>(
+// 泛型默认值 unknown：T 不参与类型结构（data 恒为 SignInData），默认值不影响调用方。
+export function createMakeupSlotPlugin<T = unknown>(
   config: MakeupSlotConfig = {}
 ): SignInPlugin<T> {
   const {

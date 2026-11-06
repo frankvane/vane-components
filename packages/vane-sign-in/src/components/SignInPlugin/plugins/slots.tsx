@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 领域槽位（仿 vane-profile 包内 renderProfileSlot）。
  *
  * 签到的「头部 / 日历 / 奖励 / 操作 / 底部」是结构化段落，内核 header / overlay /
@@ -137,10 +137,9 @@ export function useSignInSlot(slot: SignInSlotName): React.ReactNode[] {
 /**
  * 子组件读取领域上下文（含 data / callbacks）。
  *
- * 泛型默认值保留 any（跨包契约位：与 SignInPluginContext 的泛型位一致，第三方
- * 插件以自定义 T 调用时不做约束；收紧为 unknown 会让既有调用方的属性访问 tsc 失败）。
+ * 泛型默认值 unknown：T 不参与类型结构（data 恒为 SignInData），默认值不影响调用方。
  */
-export function useSignInContext<T = any>(): SignInPluginContext<T> | null {
+export function useSignInContext<T = unknown>(): SignInPluginContext<T> | null {
   const ctx = useContext(SlotContext);
   return (ctx?.context as unknown as SignInPluginContext<T>) ?? null;
 }
