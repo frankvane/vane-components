@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+﻿import React, { useMemo, useState } from "react";
 import { CommentCore, withCommentPlugins } from "vane-comment";
 import { createModerationPlugin } from "vane-comment/custom-plugins/ModerationPlugin";
 import type { Comment, CommentNode } from "vane-comment";
@@ -43,7 +43,7 @@ export const meta: DemoMeta = {
 };
 
 export default function Stage({ cfg, log }: DemoStageProps) {
-  const [comments, setComments] = useState<Comment[]>(() =>
+  const [comments] = useState<Comment[]>(() =>
     freshComments().map((c) =>
       c.id === "c-1"
         ? { ...c, content: [{ type: "text", value: "这期广告太多，加微信领福利的私我" }] }

@@ -1,7 +1,7 @@
-import React, { useMemo } from "react";
+﻿import React, { useMemo } from "react";
 import { ProfileCore, withPlugins } from "vane-profile";
 import { createContactCardPlugin } from "vane-profile/custom-plugins";
-import type { DemoMeta, DemoStageProps } from "./types";
+import type { DemoMeta } from "./types";
 import { SAMPLE_CONTACT } from "../data/sample";
 
 /**
@@ -27,7 +27,7 @@ export const meta: DemoMeta = {
   stageHeight: 120,
 };
 
-export default function Stage({ cfg }: DemoStageProps) {
+export default function Stage() {
   const Profile = useMemo(
     () => withPlugins(ProfileCore, [createContactCardPlugin(SAMPLE_CONTACT)]),
     []

@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+﻿import React, { useCallback, useState } from "react";
 import { Link } from "react-router-dom";
 import { CommentCore, withCommentPlugins } from "vane-comment";
 import { createLikePlugin } from "vane-comment/custom-plugins/LikePlugin";
@@ -7,7 +7,7 @@ import { createThreadPlugin } from "vane-comment/custom-plugins/ThreadPlugin";
 import { createRichComposerPlugin } from "vane-comment/custom-plugins/RichComposerPlugin";
 import type { Comment, CommentNode } from "vane-comment";
 import { CodeBlock } from "../components/CodeBlock";
-import { COMMENTS, MENTIONS, freshComments } from "../data/sample";
+import { MENTIONS, freshComments } from "../data/sample";
 import { SCENARIOS } from "../scenarios/catalog";
 import { PLUGINS } from "../data/plugins";
 import { DEMOS } from "../demos/registry";

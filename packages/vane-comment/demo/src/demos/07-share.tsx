@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+﻿import React, { useMemo, useState } from "react";
 import { CommentCore, withCommentPlugins } from "vane-comment";
 import { createSharePlugin } from "vane-comment/custom-plugins/SharePlugin";
 import type { Comment, CommentNode } from "vane-comment";
@@ -33,7 +33,7 @@ export const meta: DemoMeta = {
 };
 
 export default function Stage({ log }: DemoStageProps) {
-  const [comments, setComments] = useState<Comment[]>(() => freshComments());
+  const [comments] = useState<Comment[]>(() => freshComments());
   const Comment = useMemo(
     () => withCommentPlugins(CommentCore, [createSharePlugin()]),
     []

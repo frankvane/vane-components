@@ -50,16 +50,17 @@ export const meta: DemoMeta = {
 };
 
 export default function Stage({ cfg, log }: DemoStageProps) {
+  const size = cfg.size as "sm" | "md";
   const Profile = useMemo(
     () =>
       withPlugins(ProfileCore, [
         createFollowEchoPlugin({
-          size: cfg.size as "sm" | "md",
+          size,
           onFollow: (next) => log(`点击 → ${next}`),
           onMutual: () => log("关系变为 mutual", "info"),
         }),
       ]),
-    [cfg.size]
+    [size, log]
   );
 
   return (

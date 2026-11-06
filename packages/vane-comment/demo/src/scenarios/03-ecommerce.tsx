@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+﻿import React, { useCallback, useState } from "react";
 import { createEcommerceComment } from "vane-comment/presets/ecommerce";
 import type { Comment, CommentNode } from "vane-comment";
 import type { ScenarioMeta } from "./types";

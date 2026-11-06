@@ -63,6 +63,7 @@ const TABS = [
 export default function Stage({ cfg, log }: DemoStageProps) {
   const columns = Number(cfg.columns);
   const withTab = Boolean(cfg.withTab);
+  const showTitle = Boolean(cfg.showTitle);
   const Profile = useMemo(
     () =>
       withPlugins(ProfileCore, [
@@ -77,13 +78,13 @@ export default function Stage({ cfg, log }: DemoStageProps) {
         createWorksGridPlugin({
           items: SAMPLE_WORKS,
           columns,
-          title: cfg.showTitle ? "精选作品" : undefined,
+          title: showTitle ? "精选作品" : undefined,
           // 勾选「随页签联动」时只在 works 页显示，配合 TabSync；
           // 否则始终显示（适合没有页签、以作品为主页内容的主页）
           tab: withTab ? "works" : undefined,
         }),
       ]),
-    [withTab, columns, cfg.showTitle]
+    [withTab, columns, showTitle, log]
   );
 
   return (

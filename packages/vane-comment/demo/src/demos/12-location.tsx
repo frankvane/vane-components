@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+﻿import React, { useMemo, useState } from "react";
 import { CommentCore, withCommentPlugins } from "vane-comment";
 import { createLocationPlugin } from "vane-comment/custom-plugins/LocationPlugin";
 import type { Comment, CommentNode } from "vane-comment";
@@ -33,7 +33,7 @@ export const meta: DemoMeta = {
 };
 
 export default function Stage({ log }: DemoStageProps) {
-  const [comments, setComments] = useState<Comment[]>(() =>
+  const [comments] = useState<Comment[]>(() =>
     freshComments().map((c, i) => (i === 1 ? { ...c, location: "上海·静安" } : c))
   );
   const Comment = useMemo(

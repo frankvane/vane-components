@@ -13,7 +13,7 @@ import {
   PLUGINS,
   type PluginInfo,
 } from "../data/plugins";
-import { AVATAR, SAMPLE_USER } from "../data/sample";
+import { SAMPLE_USER } from "../data/sample";
 
 function ProfileContent() {
   const ctx = useProfileContext();

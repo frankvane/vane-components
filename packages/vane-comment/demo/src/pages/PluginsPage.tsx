@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 插件工坊：勾选即装配
  *
  * 装配结果用 `useMemo` 按「勾选集合」缓存成组件类型 —— 每次渲染都调
@@ -16,7 +16,7 @@ import {
   PLUGINS,
   type PluginInfo,
 } from "../data/plugins";
-import { COMMENTS, MENTIONS, freshComments } from "../data/sample";
+import { MENTIONS, freshComments } from "../data/sample";
 
 const byDir = new Map(PLUGINS.map((p) => [p.dir, p]));
 

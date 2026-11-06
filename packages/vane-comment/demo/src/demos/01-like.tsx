@@ -1,9 +1,9 @@
-import React, { useCallback, useMemo, useState } from "react";
+﻿import React, { useCallback, useMemo, useState } from "react";
 import { CommentCore, withCommentPlugins } from "vane-comment";
 import { createLikePlugin } from "vane-comment/custom-plugins/LikePlugin";
 import type { Comment, CommentNode } from "vane-comment";
 import type { DemoMeta, DemoStageProps } from "./types";
-import { COMMENTS, MENTIONS, freshComments } from "../data/sample";
+import { MENTIONS, freshComments } from "../data/sample";
 
 const CARD: React.CSSProperties = {
   background: "#fff",

@@ -62,18 +62,22 @@ const TABS = [
 ];
 
 export default function Stage({ cfg, log }: DemoStageProps) {
+  // 成员提取后进依赖（依赖数组不允许成员表达式）；log 为 DemoPage 的稳定 useCallback
+  const variant = cfg.variant as "underline" | "pill" | "segmented";
+  const sticky = Boolean(cfg.sticky);
+  const scrollTopOnChange = Boolean(cfg.scrollTop);
   const Profile = useMemo(
     () =>
       withPlugins(ProfileCore, [
         createTabSyncPlugin({
           tabs: TABS,
-          variant: cfg.variant as "underline" | "pill" | "segmented",
-          sticky: Boolean(cfg.sticky),
-          scrollTopOnChange: Boolean(cfg.scrollTop),
+          variant,
+          sticky,
+          scrollTopOnChange,
           onChange: (id) => log(`切换到 ${id}`),
         }),
       ]),
-    [cfg.variant, cfg.sticky, cfg.scrollTop]
+    [variant, sticky, scrollTopOnChange, log]
   );
 
   return (

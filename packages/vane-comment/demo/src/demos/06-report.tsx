@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+﻿import React, { useMemo, useState } from "react";
 import { CommentCore, withCommentPlugins } from "vane-comment";
 import { createReportPlugin } from "vane-comment/custom-plugins/ReportPlugin";
 import type { Comment, CommentNode } from "vane-comment";
@@ -35,7 +35,7 @@ export const meta: DemoMeta = {
 };
 
 export default function Stage({ log }: DemoStageProps) {
-  const [comments, setComments] = useState<Comment[]>(() => freshComments());
+  const [comments] = useState<Comment[]>(() => freshComments());
   const Comment = useMemo(
     () => withCommentPlugins(CommentCore, [createReportPlugin()]),
     []

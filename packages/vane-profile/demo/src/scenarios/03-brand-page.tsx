@@ -15,8 +15,6 @@ import type { ScenarioMeta } from "./types";
 import {
   AVATAR,
   TAB_CONTENT,
-  SAMPLE_LINKS,
-  SAMPLE_TAGS,
   SAMPLE_WORKS,
 } from "../data/sample";
 

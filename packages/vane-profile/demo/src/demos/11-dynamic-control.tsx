@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from "react";
+﻿import React, { useMemo, useRef, useState } from "react";
 import { ProfileCore, withPlugins } from "vane-profile";
 import type { ProfileCoreRef, FollowState } from "vane-profile";
 import { createBannerSlotPlugin, createStatRowPlugin, createFollowEchoPlugin } from "vane-profile/custom-plugins";
@@ -28,7 +28,7 @@ export const meta: DemoMeta = {
 const STATES: FollowState[] = ["none", "following", "mutual"];
 const LABEL: Record<FollowState, string> = { none: "未关注", following: "已关注", mutual: "互相关注" };
 
-export default function Stage({ cfg, log }: DemoStageProps) {
+export default function Stage({ log }: DemoStageProps) {
   const [state, setState] = useState<FollowState>("none");
   const coreRef = useRef<ProfileCoreRef>(null);
 
@@ -52,7 +52,8 @@ export default function Stage({ cfg, log }: DemoStageProps) {
           onMutual: (next) => log(`onMutual → ${next}（关系变为互相关注）`, "info"),
         }),
       ]),
-    []
+    // log 为 DemoPage 的稳定 useCallback，setState 稳定豁免
+    [log]
   );
 
   return (

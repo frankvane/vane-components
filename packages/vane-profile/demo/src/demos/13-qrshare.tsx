@@ -1,7 +1,7 @@
-import React, { useMemo } from "react";
+﻿import React, { useMemo } from "react";
 import { ProfileCore, withPlugins } from "vane-profile";
 import { createBannerSlotPlugin, createQRSharePlugin } from "vane-profile/custom-plugins";
-import type { DemoMeta, DemoStageProps } from "./types";
+import type { DemoMeta } from "./types";
 import { AVATAR, SAMPLE_USER } from "../data/sample";
 
 /**
@@ -33,7 +33,7 @@ export const meta: DemoMeta = {
   note: "点击右上角「分享」按钮查看二维码占位面板（装饰性点阵，非真实可扫码）。",
 };
 
-export default function Stage({ cfg }: DemoStageProps) {
+export default function Stage() {
   const Profile = useMemo(
     () =>
       withPlugins(ProfileCore, [
