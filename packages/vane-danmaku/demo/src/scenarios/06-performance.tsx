@@ -117,7 +117,6 @@ export default function Scenario() {
       spawn(Math.min(20000, Math.floor(n)), loopSec);
     }
     // 只在挂载时读一次 URL，之后由按钮控制
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const clear = () => {

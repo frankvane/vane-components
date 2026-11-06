@@ -35,6 +35,36 @@ const POSE_MODEL =
 const VISION_URL =
   "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
 
+/**
+ * MediaPipe 视觉模块（CDN 动态加载，本地无 @mediapipe/tasks-vision 依赖）：
+ * 按本场景实际用到的面声明结构，运行时由 CDN 模块满足。
+ */
+interface PosePoint {
+  x: number;
+  y: number;
+}
+interface PoseLandmarkerLike {
+  detectForVideo(
+    source: HTMLCanvasElement,
+    timestampMs: number
+  ): { landmarks?: PosePoint[][] };
+}
+interface VisionModuleLike {
+  FilesetResolver: {
+    forVisionTasks(wasmPath: string): Promise<unknown>;
+  };
+  PoseLandmarker: {
+    createFromOptions(
+      fileset: unknown,
+      options: {
+        baseOptions: { modelAssetPath: string; delegate: string };
+        runningMode: string;
+        numPoses: number;
+      }
+    ): Promise<PoseLandmarkerLike>;
+  };
+}
+
 // 离线示例视频（demo/public/samples，构建后由 build-demos 平铺到产物根）
 // 用 720p / 12s 轻量转码版（原 4K 太大、加载慢），MediaPipe 检测本就降采样到 480px。
 const SAMPLE_VIDEOS: { label: string; url: string }[] = [
@@ -96,9 +126,8 @@ function MediaPipeOcclusion() {
   const overlayRef = useRef<HTMLCanvasElement | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
   const zonesRef = useRef<Rect[]>([]);
-  const visionRef = useRef<any>(null);
-  const landmarkerRef = useRef<any>(null);
-  const rafRef = useRef<number>(0);
+  const visionRef = useRef<VisionModuleLike | null>(null);
+  const landmarkerRef = useRef<PoseLandmarkerLike | null>(null);
   const startRef = useRef(performance.now());
   const detCanvasRef = useRef<HTMLCanvasElement | null>(null);
   /** 最近一次检测到人的时间（秒），用于避让区过期 */
@@ -192,7 +221,7 @@ function MediaPipeOcclusion() {
     () => async () => {
       if (visionRef.current) return visionRef.current;
       const url = VISION_URL;
-      const vision: any = await import(/* @vite-ignore */ url);
+      const vision: VisionModuleLike = await import(/* @vite-ignore */ url);
       const fileset = await vision.FilesetResolver.forVisionTasks(POSE_WASM);
       const landmarker = await vision.PoseLandmarker.createFromOptions(fileset, {
         baseOptions: { modelAssetPath: POSE_MODEL, delegate: "GPU" },
@@ -209,6 +238,9 @@ function MediaPipeOcclusion() {
   // 摄像头：取真实人物视频流
   useEffect(() => {
     if (mode !== "camera") return;
+    // <video> 元素常驻渲染（不随 mode 条件卸载），进 effect 时已挂载，
+    // 按 lint 建议捕获一次，清理函数与装配使用同一元素
+    const videoEl = videoRef.current;
     let stream: MediaStream | null = null;
     let cancelled = false;
     (async () => {
@@ -222,10 +254,9 @@ function MediaPipeOcclusion() {
           stream.getTracks().forEach((t) => t.stop());
           return;
         }
-        const v = videoRef.current;
-        if (!v) return;
-        v.srcObject = stream;
-        await v.play();
+        if (!videoEl) return;
+        videoEl.srcObject = stream;
+        await videoEl.play();
         setStatus("加载 MediaPipe PoseLandmarker…");
         await loadVision();
         if (cancelled) return;
@@ -240,8 +271,7 @@ function MediaPipeOcclusion() {
     return () => {
       cancelled = true;
       stream?.getTracks().forEach((t) => t.stop());
-      const v = videoRef.current;
-      if (v) v.srcObject = null;
+      if (videoEl) videoEl.srcObject = null;
     };
   }, [mode, loadVision]);
 

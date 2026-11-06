@@ -5,7 +5,6 @@
  * withDanmakuPlugins 会造出新组件类型，React 直接卸载重建，等于每勾一下就整块重挂载。
  */
 import React, { useMemo, useState } from "react";
-import { DanmakuCore, withDanmakuPlugins } from "vane-danmaku";
 import { CodeBlock } from "../components/CodeBlock";
 import {
   GROUP_LABEL,
