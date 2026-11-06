@@ -67,9 +67,9 @@ export function useDanmakuSlot(slot: SlotHook): React.ReactNode[] {
 
 /**
  * 子组件读取领域上下文（含 data / bus / state）。
- * 公共契约位：泛型默认值 any 保留，调用方不传 T 时沿用旧签名。
+ * T 为历史兼容占位（不参与结构，data 固定为 DanmakuData），默认 unknown。
  */
-export function useDanmakuContext<T = any>(): DanmakuPluginContext<T> | null {
+export function useDanmakuContext<T = unknown>(): DanmakuPluginContext<T> | null {
   const ctx = useContext(SlotContext);
   return (ctx?.context as DanmakuPluginContext<T>) ?? null;
 }

@@ -175,10 +175,10 @@ export interface DanmakuCoreRef {
  * DanmakuData（基类 data 为可选泛型，领域覆盖为必填），保持 data 必填。
  *
  * 公共契约位：泛型名保留 `_` 前缀以标注「有意不使用」。
- * 历史上 `T` 未参与类型结构，但外部可能已写 `DanmakuPluginContext<Foo>`；
- * 保留该参数（默认值 any）以免破坏既有类型签名，内部不消费它。
+ * T 为历史兼容占位：外部可能已写 `DanmakuPluginContext<Foo>`，保留该参数
+ * （默认值 unknown）以免破坏既有类型签名，内部不消费它。
  */
-export interface DanmakuPluginContext<_T = any>
+export interface DanmakuPluginContext<_T = unknown>
   extends PluginContext<DanmakuCoreProps, DanmakuData> {
   data: DanmakuData;
 }
@@ -191,8 +191,8 @@ export interface DanmakuPluginContext<_T = any>
  * 操作弹幕流（过滤 / 富化 / 重排 / 拦截指令），绝不触碰 canvas。
  * 钩子一律用「方法语法」声明（bivariance，见 vane-profile / vane-sign-in 同款约定）。
  */
-/** 公共契约位：钩子泛型默认值 any 保留（不写 T 的插件定义依赖默认值） */
-export interface DanmakuPluginHooks<T = any>
+/** 钩子泛型默认 unknown（T 仅出现在入参位且不参与结构，不写 T 的插件定义兼容） */
+export interface DanmakuPluginHooks<T = unknown>
   extends PluginHooks<DanmakuCoreProps, DanmakuData> {
   renderOverlay?(context: DanmakuPluginContext<T>): React.ReactNode;
   renderHeader?(context: DanmakuPluginContext<T>): React.ReactNode;
@@ -201,14 +201,14 @@ export interface DanmakuPluginHooks<T = any>
 
 // ============ 插件定义 ============
 
-/** 公共契约位：插件泛型默认值 any 保留（`Plugin[]` 这类写法依赖默认值） */
-export interface DanmakuPlugin<T = any>
+/** 插件泛型默认 unknown（`Plugin[]` 这类历史写法兼容；T 不参与结构） */
+export interface DanmakuPlugin<T = unknown>
   extends Plugin<DanmakuCoreProps, DanmakuData> {
   hooks: DanmakuPluginHooks<T>;
 }
 
-/** 公共契约位：工厂泛型默认值 any 保留（不传配置的调用方依赖默认值） */
-export type DanmakuPluginCreator<Config = any> = PluginCreator<
+/** 工厂泛型默认 unknown（Config 仅出现在入参位，逆变安全，无配置调用方兼容） */
+export type DanmakuPluginCreator<Config = unknown> = PluginCreator<
   Config,
   DanmakuCoreProps,
   DanmakuData

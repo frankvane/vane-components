@@ -23,8 +23,8 @@ import { DanmakuSlotProvider } from "./plugins/DanmakuSlotProvider";
  *  3. DOM 插槽：overlay / header / footer 经 DanmakuSlotProvider 下发给 Core。
  *  4. 生命周期：onMount / onUnmount 钩子链由 HOC 转发（Core 仅调用 props.onMount）。
  */
-/** 公共契约位：HOC 泛型默认值 any 保留（不写 T 的调用方依赖默认值） */
-export function withDanmakuPlugins<T = any>(
+/** HOC 泛型 T 为历史兼容占位（仅出现在插件数组入参位，逆变安全），默认 unknown */
+export function withDanmakuPlugins<T = unknown>(
   WrappedComponent: React.ForwardRefExoticComponent<
     React.PropsWithoutRef<DanmakuCoreProps> & React.RefAttributes<DanmakuCoreRef>
   >,
