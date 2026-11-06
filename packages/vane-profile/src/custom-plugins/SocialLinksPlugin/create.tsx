@@ -1,4 +1,4 @@
-import type React from "react";
+﻿import type React from "react";
 import type {
   ProfilePlugin,
   ProfilePluginContext,
@@ -45,8 +45,8 @@ const PRESET: Record<string, { glyph: string; label: string }> = {
  * 走领域槽 `renderBioArea`（与 BioSlot / TagList 同区，按 priority 串联）。
  * 图标用单/双字占位（无图片资源），链接新窗口打开并带 rel 防钓鱼。
  */
-// 泛型默认值 any：公共契约位（同 types.ts 顶部约定），收紧为 unknown 会让不写 T 的调用方 tsc 失败。
-export function createSocialLinksPlugin<T = any>(
+// 泛型默认值 unknown：T 仅出现在入参位（逆变安全），不写 T 的调用方不受影响。
+export function createSocialLinksPlugin<T = unknown>(
   config: SocialLinksConfig = { links: [] }
 ): ProfilePlugin<T> {
   const { links, showLabel = true, align = "left" } = config;

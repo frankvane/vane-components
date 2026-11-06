@@ -1,4 +1,4 @@
-/**
+﻿/**
  * withPlugins - HOC 组合器（接 vane-plugin-core）
  *
  * 领域适配在此补齐，对齐 vane-card / vane-waterfall 的 withPlugins 约定：
@@ -42,11 +42,10 @@ import type {
 import { ProfileSlotProvider } from "./plugins/ProfileSlotProvider";
 
 /**
- * 泛型默认值保留 any（公共契约位）：宿主以 withPlugins<MyData>(ProfileCore, [...])
- * 显式指定 data 形态；不写泛型时历史上保持「未约束」语义，收紧为 unknown 会让
- * 既有调用方的 props.data 属性访问 tsc 失败。
+ * 泛型默认值 unknown：T 仅出现在入参位（逆变安全），不写 T 的调用方不受影响。
+ * 宿主以 withPlugins<MyData>(ProfileCore, [...]) 显式指定 data 形态即可。
  */
-export function withPlugins<T = any>(
+export function withPlugins<T = unknown>(
   WrappedComponent: React.ForwardRefExoticComponent<
     React.PropsWithoutRef<ProfileCoreProps<T>> & React.RefAttributes<ProfileCoreRef>
   >,

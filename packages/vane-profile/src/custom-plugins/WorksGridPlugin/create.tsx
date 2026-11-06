@@ -1,4 +1,4 @@
-import type React from "react";
+﻿import type React from "react";
 import type {
   ProfilePlugin,
   ProfilePluginContext,
@@ -52,8 +52,8 @@ const FALLBACK_COLORS = [
  * 当 `config.tab` 有值时，只在对应页签激活时才渲染，实现「切到作品 tab 才出网格」。
  * 没有内容插件时 Core 会回退到 children，因此本插件与 TabSync 文本区可二选一。
  */
-// 泛型默认值 any：公共契约位（同 types.ts 顶部约定），收紧为 unknown 会让不写 T 的调用方 tsc 失败。
-export function createWorksGridPlugin<T = any>(
+// 泛型默认值 unknown：T 仅出现在入参位（逆变安全），不写 T 的调用方不受影响。
+export function createWorksGridPlugin<T = unknown>(
   config: WorksGridConfig = { items: [] }
 ): ProfilePlugin<T> {
   const { items, columns = 3, gap = 10, tab, title, empty = "暂无作品" } = config;

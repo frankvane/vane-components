@@ -1,4 +1,4 @@
-import type React from "react";
+﻿import type React from "react";
 import type {
   ProfilePlugin,
   ProfilePluginContext,
@@ -25,8 +25,8 @@ const PALETTE: Record<number, { bg: string; fg: string }> = {
  * 走领域槽 `renderBadgeArea`（与 VerifyBadge / QRShare 同区，浮于头图右上，
  * 按 priority 与它们横向并排）。verified=false 时不渲染（无会员不占位置）。
  */
-// 泛型默认值 any：公共契约位（同 types.ts 顶部约定），收紧为 unknown 会让不写 T 的调用方 tsc 失败。
-export function createMembershipBadgePlugin<T = any>(
+// 泛型默认值 unknown：T 仅出现在入参位（逆变安全），不写 T 的调用方不受影响。
+export function createMembershipBadgePlugin<T = unknown>(
   config: MembershipBadgeConfig = {}
 ): ProfilePlugin<T> {
   const { level = 1, label, showLabel = true } = config;

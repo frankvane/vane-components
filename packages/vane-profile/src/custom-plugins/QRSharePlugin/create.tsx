@@ -1,4 +1,4 @@
-import type React from "react";
+﻿import type React from "react";
 import type {
   ProfilePlugin,
   ProfilePluginContext,
@@ -23,8 +23,8 @@ export interface QRShareConfig {
  * 分享地址取自 config.url ?? props.data.homeUrl，二者都无则不渲染——
  * 不再回退到示例站点默认值（避免接入方忘传 url 时把用户指向 vane.dev）。
  */
-// 泛型默认值 any：公共契约位（同 types.ts 顶部约定），收紧为 unknown 会让不写 T 的调用方 tsc 失败。
-export function createQRSharePlugin<T = any>(
+// 泛型默认值 unknown：T 仅出现在入参位（逆变安全），不写 T 的调用方不受影响。
+export function createQRSharePlugin<T = unknown>(
   config: QRShareConfig = {}
 ): ProfilePlugin<T> {
   const { url, buttonLabel = "分享", size = 96 } = config;

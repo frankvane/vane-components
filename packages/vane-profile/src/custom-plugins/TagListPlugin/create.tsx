@@ -1,4 +1,4 @@
-import type React from "react";
+﻿import type React from "react";
 import type {
   ProfilePlugin,
   ProfilePluginContext,
@@ -17,8 +17,8 @@ export interface TagListConfig {
  * 走领域槽 `renderBioArea`（与 BioSlot / SocialLinks 同区，按 priority 串联）。
  * tags 为空时整体返回 null。
  */
-// 泛型默认值 any：公共契约位（同 types.ts 顶部约定），收紧为 unknown 会让不写 T 的调用方 tsc 失败。
-export function createTagListPlugin<T = any>(
+// 泛型默认值 unknown：T 仅出现在入参位（逆变安全），不写 T 的调用方不受影响。
+export function createTagListPlugin<T = unknown>(
   config: TagListConfig = { tags: [] }
 ): ProfilePlugin<T> {
   const { tags, align = "left" } = config;

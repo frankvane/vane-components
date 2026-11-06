@@ -1,4 +1,4 @@
-import type React from "react";
+﻿import type React from "react";
 import type {
   ProfilePlugin,
   ProfilePluginContext,
@@ -38,8 +38,8 @@ export interface AchievementWallConfig {
  * 走领域槽 `renderContentArea`（Core 有内容插件时以它替代 children）。
  * config.tab 与 context.activeTab 联动：切到对应页签才出墙。
  */
-// 泛型默认值 any：公共契约位（同 types.ts 顶部约定），收紧为 unknown 会让不写 T 的调用方 tsc 失败。
-export function createAchievementWallPlugin<T = any>(
+// 泛型默认值 unknown：T 仅出现在入参位（逆变安全），不写 T 的调用方不受影响。
+export function createAchievementWallPlugin<T = unknown>(
   config: AchievementWallConfig = {}
 ): ProfilePlugin<T> {
   const {

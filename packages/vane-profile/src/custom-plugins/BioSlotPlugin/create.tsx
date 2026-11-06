@@ -1,4 +1,4 @@
-import type React from "react";
+﻿import type React from "react";
 import type {
   ProfilePlugin,
   ProfilePluginContext,
@@ -23,8 +23,8 @@ export interface BioSlotConfig {
  * 走领域槽 `renderBioArea`（由 ProfileCore 的 `vp-bio-area` 消费，排在头图与数据行之间）。
  * 内容全空时整体返回 null，不占空间。
  */
-// 泛型默认值 any：公共契约位（同 types.ts 顶部约定），收紧为 unknown 会让不写 T 的调用方 tsc 失败。
-export function createBioSlotPlugin<T = any>(
+// 泛型默认值 unknown：T 仅出现在入参位（逆变安全），不写 T 的调用方不受影响。
+export function createBioSlotPlugin<T = unknown>(
   config: BioSlotConfig = {}
 ): ProfilePlugin<T> {
   const { name, bio, location, joinDate, subtitle } = config;

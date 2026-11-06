@@ -1,4 +1,4 @@
-import type React from "react";
+﻿import type React from "react";
 import type {
   ProfilePlugin,
   ProfilePluginContext,
@@ -37,8 +37,8 @@ export interface TabSyncConfig {
  * 内容区子节点经 `useProfileContext().activeTab` 订阅，实现「页签切换 → 内容区
  * 重渲染」——无需本插件关心内容怎么渲染。
  */
-// 泛型默认值 any：公共契约位（同 types.ts 顶部约定），收紧为 unknown 会让不写 T 的调用方 tsc 失败。
-export function createTabSyncPlugin<T = any>(
+// 泛型默认值 unknown：T 仅出现在入参位（逆变安全），不写 T 的调用方不受影响。
+export function createTabSyncPlugin<T = unknown>(
   config: TabSyncConfig
 ): ProfilePlugin<T> {
   const {

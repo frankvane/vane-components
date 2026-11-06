@@ -1,4 +1,4 @@
-import type React from "react";
+﻿import type React from "react";
 import type {
   ProfilePlugin,
   ProfilePluginContext,
@@ -31,8 +31,8 @@ interface Row {
  * 走领域槽 `renderBioArea`（与 BioSlot / SocialLinks / TagList 同区，按 priority 串联）。
  * 全部为空时不渲染。外链一律带 `rel="noreferrer noopener"`，电话 / 邮箱走 tel:/mailto:。
  */
-// 泛型默认值 any：公共契约位（同 types.ts 顶部约定），收紧为 unknown 会让不写 T 的调用方 tsc 失败。
-export function createContactCardPlugin<T = any>(
+// 泛型默认值 unknown：T 仅出现在入参位（逆变安全），不写 T 的调用方不受影响。
+export function createContactCardPlugin<T = unknown>(
   config: ContactCardConfig = {}
 ): ProfilePlugin<T> {
   const { email, phone, site, address, showIcon = true } = config;

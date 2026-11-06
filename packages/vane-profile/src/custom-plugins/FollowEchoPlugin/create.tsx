@@ -1,4 +1,4 @@
-import type React from "react";
+﻿import type React from "react";
 import type {
   ProfilePlugin,
   ProfilePluginContext,
@@ -41,8 +41,8 @@ const DEFAULT_LABELS: Record<FollowState, React.ReactNode> = {
  * 回调失败必须回滚并提示，避免 UI 停在「已关注」而服务端其实没成功。
  * `onPropsChange` 在关系变为 mutual 时触发 onMutual 回调。
  */
-// 泛型默认值 any：公共契约位（同 types.ts 顶部约定），收紧为 unknown 会让不写 T 的调用方 tsc 失败。
-export function createFollowEchoPlugin<T = any>(
+// 泛型默认值 unknown：T 仅出现在入参位（逆变安全），不写 T 的调用方不受影响。
+export function createFollowEchoPlugin<T = unknown>(
   config: FollowEchoConfig = {}
 ): ProfilePlugin<T> {
   const { labels, size = "md", onFollow, onMutual } = config;

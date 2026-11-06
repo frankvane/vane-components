@@ -1,4 +1,4 @@
-import type React from "react";
+﻿import type React from "react";
 import type {
   PluginContext,
   PluginHooks,
@@ -23,10 +23,10 @@ import type {
  * 参数逆变会拒绝领域钩子赋值）。
  *
  * 泛型默认值约定：本文件 ProfileCoreProps / ProfilePluginContext / ProfilePluginHooks /
- * ProfilePlugin / ProfilePluginCreator 的 T（以及后者的 Config）默认值保持 any。
- * 这些都是对外导出的公共契约位——消费方常以「不写全泛型」的形式使用（withPlugins 不传 T、
- * 直接声明 ProfilePlugin 数组等），收紧为 unknown 会让其 props/data 属性访问与赋值
- * 直接 tsc 失败。实现内部（slots.tsx / withPlugins.tsx 的存取与渲染）已全部收敛为 unknown。
+ * ProfilePlugin / ProfilePluginCreator 的 T（以及后者的 Config）默认值均为 unknown。
+ * 这些都是对外导出的公共契约位；T 仅出现在入参位（逆变安全）、data 形态由业务决定，
+ * 默认值变化不影响消费方（withPlugins 不传 T、直接声明 ProfilePlugin 数组等均兼容）。
+ * 自定义 data 形态的调用方可显式写泛型参数（如 withPlugins<MyData>(ProfileCore, [...])）。
  */
 
 // ============ 领域数据 ============
@@ -49,7 +49,7 @@ export type BadgeType = "personal" | "institution";
 
 // ============ 核心组件 props / ref ============
 
-export interface ProfileCoreProps<T = any> {
+export interface ProfileCoreProps<T = unknown> {
   /** 内容子节点（内容区，随 activeTab 重渲染） */
   children?: React.ReactNode;
   /**
@@ -104,7 +104,7 @@ export interface ProfileCoreRef {
  * setState / shared / deviceInfo / forceUpdate / getSize / logger；这里补充主页
  * 专属字段，供插件按语义访问。插件代码里拿到的就是这个完整类型。
  */
-export interface ProfilePluginContext<T = any>
+export interface ProfilePluginContext<T = unknown>
   extends PluginContext<ProfileCoreProps<T>, T> {
   /** 当前激活页签 id（TabSync 写入；内容区订阅以联动重渲染） */
   activeTab: string | null;
@@ -135,7 +135,7 @@ export interface ProfilePluginContext<T = any>
  * 主页的「头图区 / 数据行 / 页签栏」是结构化段落，因此走包内领域槽（见 slots.tsx），
  * 内核三槽仅兜底叠加类（如 VerifyBadge 想绝对定位浮在头图右上角可改走 renderOverlay）。
  */
-export interface ProfilePluginHooks<T = any>
+export interface ProfilePluginHooks<T = unknown>
   extends PluginHooks<ProfileCoreProps<T>, T> {
   /** 头图区：封面图 / 渐变背景 / 头像浮层位 */
   renderBannerArea?: (context: ProfilePluginContext<T>) => React.ReactNode;
@@ -162,12 +162,12 @@ export interface ProfilePluginHooks<T = any>
 // ============ 插件定义 ============
 
 /** 主页插件：在内核 Plugin 基础上把 hooks 收窄为领域钩子 */
-export interface ProfilePlugin<T = any> extends Plugin<ProfileCoreProps<T>, T> {
+export interface ProfilePlugin<T = unknown> extends Plugin<ProfileCoreProps<T>, T> {
   hooks: ProfilePluginHooks<T>;
 }
 
 /** 插件工厂：可调用 + 挂载 meta，供文档生成与 demo 导航使用 */
-export type ProfilePluginCreator<Config = any, T = any> = PluginCreator<
+export type ProfilePluginCreator<Config = unknown, T = unknown> = PluginCreator<
   Config,
   ProfileCoreProps<T>,
   T

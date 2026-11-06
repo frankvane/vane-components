@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 领域槽位（仿 vane-card D3-A · 包内 renderProfileSlot）
  *
  * 主页的「头图区 / 数据行 / 页签栏 / 认证区 / 关注区」是结构化段落，内核的
@@ -138,10 +138,10 @@ export function useProfileSlot(slot: ProfileSlotName): React.ReactNode[] {
  * 读取领域上下文（含 activeTab / stats / followState / verified 等）。
  * 内容区子组件通过它订阅 activeTab，以实现 TabSync 的「页签切换 → 内容区联动重渲染」。
  *
- * 泛型默认值保留 any（跨包契约位：第三方插件传入自定义 data 形态时
- * 不指定泛型不做约束，收紧为 unknown 会让既有调用方的属性访问 tsc 失败）。
+ * 泛型默认值 unknown：T 不参与类型结构，默认值变化不影响调用方；
+ * 自定义 data 形态的调用方可显式写泛型参数（useProfileContext<MyData>()）。
  */
-export function useProfileContext<T = any>(): ProfilePluginContext<T> | null {
+export function useProfileContext<T = unknown>(): ProfilePluginContext<T> | null {
   const ctx = useContext(SlotContext);
   return (ctx?.context as unknown as ProfilePluginContext<T>) ?? null;
 }

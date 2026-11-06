@@ -1,4 +1,4 @@
-import type React from "react";
+﻿import type React from "react";
 import type {
   ProfilePlugin,
   ProfilePluginContext,
@@ -23,8 +23,8 @@ export interface VerifyBadgeConfig {
  * 走领域槽 `renderBadgeArea`（由 ProfileCore 的 `vp-badge-area` 消费，绝对定位
  * 于头图右上）。`verified` 为 false（config 或 context）时不渲染。
  */
-// 泛型默认值 any：公共契约位（同 types.ts 顶部约定），收紧为 unknown 会让不写 T 的调用方 tsc 失败。
-export function createVerifyBadgePlugin<T = any>(
+// 泛型默认值 unknown：T 仅出现在入参位（逆变安全），不写 T 的调用方不受影响。
+export function createVerifyBadgePlugin<T = unknown>(
   config: VerifyBadgeConfig = {}
 ): ProfilePlugin<T> {
   const { showLabel = true } = config;

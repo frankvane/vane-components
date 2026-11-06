@@ -1,4 +1,4 @@
-import type React from "react";
+﻿import type React from "react";
 import type {
   ProfilePlugin,
   ProfilePluginContext,
@@ -35,8 +35,8 @@ export interface BannerSlotConfig {
  * `overlay` 优先于 `context.banner`；两者皆无则不渲染叠加文案。
  * 头图 / 头像 URL 都来自用户可编辑资料，统一走协议白名单（http/https）。
  */
-// 泛型默认值 any：公共契约位（同 types.ts 顶部约定），收紧为 unknown 会让不写 T 的调用方 tsc 失败。
-export function createBannerSlotPlugin<T = any>(
+// 泛型默认值 unknown：T 仅出现在入参位（逆变安全），不写 T 的调用方不受影响。
+export function createBannerSlotPlugin<T = unknown>(
   config: BannerSlotConfig = {}
 ): ProfilePlugin<T> {
   const {

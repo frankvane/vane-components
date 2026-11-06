@@ -348,8 +348,10 @@ describe("PF-P2-5 transformData 契约接线", () => {
     const reader: ProfilePlugin = {
       name: "DataReader",
       hooks: {
-        renderBioArea: (ctx: { data?: { tag?: string } }) => (
-          <div data-testid="data">{String(ctx.data?.tag)}</div>
+        renderBioArea: (ctx) => (
+          <div data-testid="data">
+            {String((ctx.data as { tag?: string } | undefined)?.tag)}
+          </div>
         ),
       },
     };
