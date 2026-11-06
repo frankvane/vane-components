@@ -127,9 +127,12 @@ export function makeStage(dir: string) {
   const maker = MAKERS[dir];
   if (!maker) throw new Error(`未注册的示例插件：${dir}`);
   return function Stage({ cfg }: DemoStageProps) {
+    // cfg 是 DemoPage 的 state（变更即新对象、其余时刻引用稳定），
+    // 依赖 cfg 即可：控制条改值才重建插件，无关重渲染（如日志）不会触发。
+    // maker 来自 makeStage 闭包（每个 Stage 实例固定），属外层作用域值，不入依赖
     const Resume = useMemo(
       () => withResumePlugins(ResumeCore, [maker(cfg)]),
-      [JSON.stringify(cfg)]
+      [cfg]
     );
     return (
       <Resume data={SAMPLE_RESUME} containerStyle={{ maxWidth: 560, margin: "0 auto" }} />

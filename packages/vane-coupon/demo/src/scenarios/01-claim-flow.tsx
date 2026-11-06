@@ -51,7 +51,7 @@ const Coupon = createCouponCard([
 ]);
 
 export default function Stage() {
-  const [claimed, setClaimed] = useState(0);
+  const [claimed] = useState(0);
   const coupon = {
     id: "c-claim",
     title: "家电焕新专享券",

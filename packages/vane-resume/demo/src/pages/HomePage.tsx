@@ -13,7 +13,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { DEMOS } from "../demos/registry";
 import { GROUP_META, type DemoGroup } from "../demos/types";
-import { PLUGINS, GROUP_ORDER, GROUP_LABEL } from "../data/plugins";
+import { PLUGINS, GROUP_ORDER } from "../data/plugins";
 import { SCENARIOS } from "../scenarios/catalog";
 
 const FEATURES = [

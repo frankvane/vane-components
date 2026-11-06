@@ -6,7 +6,7 @@
  *  2. `create.ts(x)` —— 用 `?raw` 读源码，正则取 priority（工坊要按真实执行顺序展示）；
  *  3. 本文件的 `make` —— 唯一手写部分：给每个工厂一份「演示用配置」。
  */
-import type { CouponPlugin } from "vane-coupon";
+import type { CouponData, CouponPlugin } from "vane-coupon";
 import {
   createAnalyticsPlugin,
   createChannelPlugin,
@@ -162,7 +162,7 @@ export const DEFAULT_ON = [
 ];
 
 /** 工坊预览用样本券（字段齐全，时基在使用时取，避免模块顶层被耗尽） */
-export function buildSampleCoupon(): any {
+export function buildSampleCoupon(): CouponData {
   const now = Date.now();
   return {
     id: "c-demo-full",
