@@ -48,15 +48,20 @@ import { computeVisibleRange, resolveEstimateHeight, type VirtualizeOptions } fr
 // ============ Props ============
 
 /**
- * T 默认 any：与 plugins/types.ts 的「泛型默认值说明」同因。
- * 大量消费方以 `WaterfallCoreProps`（不写泛型）标注 props，默认值收紧成 unknown
- * 会让 renderItem / keyExtractor 的参数退化为 unknown。
+ * T 默认 unknown：与 plugins/types.ts 的「泛型默认值说明」同源。
+ * 不写泛型的消费方拿到 unknown 形态，需要具体项类型时显式写泛型参数；
+ * renderItem / keyExtractor 等回调里读取项成员的位置按预期形状断言。
+ *
+ * 引用 T 的回调成员用「方法语法」声明（而非箭头函数属性）：方法参数按
+ * bivariance 比较，使 `WaterfallCoreProps<TestItem>` 能流向 `WaterfallCoreProps<unknown>`
+ * （`items` 是协变值位，回调参数若写成函数属性会被 strictFunctionTypes 判为逆变失败，
+ * 插件 hooks / HOC 透传 props 的位置会全部报错）。
  */
-export interface WaterfallCoreProps<T = any> {
+export interface WaterfallCoreProps<T = unknown> {
   // ---- 数据 ----
   items: T[];
-  renderItem: (item: T, index: number) => React.ReactNode;
-  keyExtractor?: (item: T, index: number) => React.Key;
+  renderItem(item: T, index: number): React.ReactNode;
+  keyExtractor?(item: T, index: number): React.Key;
 
   // ---- 布局 ----
   /** 列数，默认 3；插件可通过 `calculateColumns` 覆盖 */
@@ -116,9 +121,9 @@ export interface WaterfallCoreProps<T = any> {
 
   // ---- 数据管线（插件读取；Core 自己不消费，但放在 props 上才可被 transformProps 链传递）----
   /** FilterPlugin 读取；优先级高于工厂里的 predicate */
-  filterFn?: (item: T, index: number) => boolean;
+  filterFn?(item: T, index: number): boolean;
   /** SortPlugin 读取；优先级高于工厂里的 comparator */
-  sortComparator?: (a: T, b: T) => number;
+  sortComparator?(a: T, b: T): number;
   /** SearchPlugin 读取 */
   searchQuery?: string;
   /** PaginationPlugin 读取，1 基 */
@@ -152,7 +157,7 @@ export interface WaterfallCoreProps<T = any> {
   onScroll?: (scrollTop: number, scrollLeft: number) => void;
   onResize?: (width: number, height: number) => void;
   onReachBottom?: (distance: number) => void;
-  onItemClick?: (index: number, item: T, event: React.MouseEvent) => void;
+  onItemClick?(index: number, item: T, event: React.MouseEvent): void;
 
   // ---- 扩展 ----
   /** 插件覆盖层等（由 composeSlots 组装，渲染在滚动容器内部） */

@@ -172,6 +172,8 @@ afterEach(() => {
   host.remove();
 });
 
+type TestItem = { id: string; h: number; price: number; name: string };
+
 const ITEMS = Array.from({ length: 10 }, (_v, index) => ({
   id: `item-${index}`,
   h: 100 + index * 10,
@@ -191,10 +193,10 @@ async function mount(pluginList: WaterfallPlugin[], extra: Record<string, unknow
         gap={10}
         debounceDelay={0}
         renderItem={(item) => {
-          rendered.push(item.id);
-          return <div data-h={item.h}>{item.id}</div>;
+          rendered.push((item as TestItem).id);
+          return <div data-h={(item as TestItem).h}>{(item as TestItem).id}</div>;
         }}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => (item as TestItem).id}
         {...extra}
       />
     );
@@ -209,8 +211,8 @@ describe("端到端", () => {
   it("数据管线：Filter → Sort → Pagination 组合结果正确", async () => {
     const rendered = await mount(
       [
-        plugins.createFilterPlugin({ predicate: (item) => item.price >= 30 }),
-        plugins.createSortPlugin({ comparator: (a, b) => b.price - a.price }),
+        plugins.createFilterPlugin<TestItem>({ predicate: (item) => item.price >= 30 }),
+        plugins.createSortPlugin<TestItem>({ comparator: (a, b) => b.price - a.price }),
         plugins.createPaginationPlugin({ pageSize: 3 }),
       ],
       { pageIndex: 1 }
@@ -278,7 +280,7 @@ describe("端到端", () => {
 
   it("覆盖层渲染在滚动容器内部且可被 StickyHeader 用 sticky 定位", async () => {
     await mount([
-      plugins.createGroupingPlugin({ groupBy: (item) => item.name }),
+      plugins.createGroupingPlugin<TestItem>({ groupBy: (item) => item.name }),
       plugins.createStickyHeaderPlugin({ title: "今日推荐" }),
     ]);
 

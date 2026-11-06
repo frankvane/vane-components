@@ -20,8 +20,8 @@ type ResponsiveColumnsConfig = {
  * 所以同一个组件嵌在侧边栏或全宽区域里都能算对。旧版走 transformProps + window 宽度，
  * 在「窄容器 + 宽视口」的组合下会给出偏大的列数。
  */
-// T 默认 any：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
-export function createResponsiveColumnsPlugin<T = any>(
+// T 默认 unknown：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
+export function createResponsiveColumnsPlugin<T = unknown>(
   config: ResponsiveColumnsConfig
 ): WaterfallPlugin<T> {
   const list = Object.values(config.breakpoints).sort((a, b) => a.width - b.width);

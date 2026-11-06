@@ -45,11 +45,10 @@ import type {
 import type { WaterfallCoreProps, WaterfallCoreRef } from "./WaterfallCore";
 
 /**
- * 泛型默认值说明：与 plugins/types.ts 同因——调用方大量以 `withPlugins(WaterfallCore, ...)`
- * 或 `WithPluginsConfig` 的简写形态使用；默认值改 unknown 会让 T 推断成 unknown，
- * demo 的 `renderItem` / `keyExtractor` 参数随之失去具体类型。保留 any 作为「未指定」占位。
+ * 泛型默认值说明：与 plugins/types.ts 同源——不写 T 的调用（`withPlugins(WaterfallCore, ...)`
+ * 或 `WithPluginsConfig` 简写）拿到 unknown 形态；需要具体项类型时显式写泛型参数。
  */
-export interface WithPluginsConfig<T = any> {
+export interface WithPluginsConfig<T = unknown> {
   plugins: WaterfallPlugin<T>[];
   enableDebug?: boolean;
 }
@@ -157,12 +156,16 @@ function scanVisible(
   return { set, range: end < 0 ? { start: 0, end: 0 } : { start, end } };
 }
 
-// T 默认 any：与 plugins/types.ts 的「泛型默认值说明」同因（HOC 常被简写调用）
-export function withPlugins<T = any>(
-  WrappedComponent: React.ForwardRefExoticComponent<
-    React.PropsWithoutRef<WaterfallCoreProps<T>> &
+// T 默认 unknown：与 plugins/types.ts 的「泛型默认值说明」同源（HOC 常被简写调用）
+// WrappedComponent 用纯调用签名而非 ForwardRefExoticComponent：exotic 组件类型自带
+// defaultProps / propTypes 成员（Partial<WaterfallCoreProps<T>> 在 items 位逆变不兼容），
+// 会让 `WaterfallCore`（T=unknown 形态）无法传给 `withPlugins<具体T>`；纯签名只校验
+// 调用位（配合 WaterfallCoreProps 的方法语法 bivariance），返回类型仍是完整 exotic 组件。
+export function withPlugins<T = unknown>(
+  WrappedComponent: (
+    props: React.PropsWithoutRef<WaterfallCoreProps<T>> &
       React.RefAttributes<WaterfallCoreRef>
-  >,
+  ) => React.ReactNode,
   config: WithPluginsConfig<T> | WaterfallPlugin<T>[]
 ) {
   const normalized: WithPluginsConfig<T> = Array.isArray(config)

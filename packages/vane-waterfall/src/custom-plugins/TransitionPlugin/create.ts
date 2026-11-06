@@ -11,8 +11,8 @@ export type TransitionConfig = {
  * TransitionPlugin - 布局变化过渡
  * - 为项元素应用 transform/opacity 的过渡，提升布局更新的视觉平滑度
  */
-// T 默认 any：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
-export function createTransitionPlugin<T = any>(
+// T 默认 unknown：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
+export function createTransitionPlugin<T = unknown>(
   config: TransitionConfig = {}
 ): WaterfallPlugin<T> {
   const duration = config.duration ?? 300;

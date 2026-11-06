@@ -1,7 +1,7 @@
 import type { WaterfallPlugin } from "../../components/WaterfallPlugin/plugins/types";
 
-/** T 默认 any：与 plugins/types.ts 的泛型默认值说明同因（配置类型常被简写引用） */
-export type SortConfig<T = any> = {
+/** T 默认 unknown：与 plugins/types.ts 的泛型默认值说明同源（配置类型常被简写引用） */
+export type SortConfig<T = unknown> = {
   /** 初始比较函数，可被 props.sortComparator 覆盖 */
   comparator?: (a: T, b: T) => number;
   /** 条件变化后自动滚动到顶部 */
@@ -14,8 +14,8 @@ export type SortConfig<T = any> = {
  * SortPlugin - 基于比较函数对 items 排序
  * 优先使用 props.sortComparator，其次使用创建插件时传入的 comparator
  */
-// T 默认 any：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
-export function createSortPlugin<T = any>(config: SortConfig<T> = {}): WaterfallPlugin<T> {
+// T 默认 unknown：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
+export function createSortPlugin<T = unknown>(config: SortConfig<T> = {}): WaterfallPlugin<T> {
   return {
     name: "SortPlugin",
     priority: 30,

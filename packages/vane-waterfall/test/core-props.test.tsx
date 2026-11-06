@@ -123,8 +123,8 @@ async function render(props: { columns: number; padding?: number }) {
         padding={props.padding ?? 0}
         gap={GAP}
         debounceDelay={0}
-        renderItem={(item) => <div data-h={item.h}>item</div>}
-        keyExtractor={(item) => item.id}
+        renderItem={(item) => <div data-h={(item as { h: number }).h}>item</div>}
+        keyExtractor={(item) => (item as { id: string }).id}
       />
     );
   });
@@ -178,8 +178,8 @@ describe("布局 props 变化", () => {
           columns={2}
           gap={GAP}
           debounceDelay={0}
-          renderItem={(item) => <div data-h={item.h}>item</div>}
-          keyExtractor={(item) => item.id}
+          renderItem={(item) => <div data-h={(item as { h: number }).h}>item</div>}
+          keyExtractor={(item) => (item as { id: string }).id}
         />
       );
     });

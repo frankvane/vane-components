@@ -9,7 +9,6 @@
  */
 import { createHeatmapAnalyticsPlugin } from "vane-waterfall/custom-plugins";
 import { createFeedStage } from "./stages/feed";
-import { FeedCard } from "../components/FeedCard";
 import type { SeedCard } from "../data/seed";
 import type { DemoMeta } from "./types";
 

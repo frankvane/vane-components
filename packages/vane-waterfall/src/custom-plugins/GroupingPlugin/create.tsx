@@ -3,8 +3,8 @@ import type {
   WaterfallPluginContext,
 } from "../../components/WaterfallPlugin/plugins/types";
 
-/** T 默认 any：与 plugins/types.ts 的泛型默认值说明同因（配置类型常被简写引用） */
-export type GroupingConfig<T = any> = {
+/** T 默认 unknown：与 plugins/types.ts 的泛型默认值说明同源（配置类型常被简写引用） */
+export type GroupingConfig<T = unknown> = {
   /** 分组函数，返回组键（默认取 item.category） */
   groupBy?: (item: T, index: number) => string | number;
   /** 是否显示分组统计角标（默认 false） */
@@ -22,8 +22,8 @@ const INDEX_KEY = "GROUP_INDEX";
  * 吸顶条只能显示写死的标题。这里改成挂载即算，并在 items 变化与布局完成时重算，
  * 同时把结果 emit 出去（`grouping:change`），页面不用轮询 sharedData。
  */
-// T 默认 any：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
-export function createGroupingPlugin<T = any>(
+// T 默认 unknown：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
+export function createGroupingPlugin<T = unknown>(
   config: GroupingConfig<T> = {}
 ): WaterfallPlugin<T> {
   const groupBy: (item: T, index: number) => string | number =
@@ -85,8 +85,10 @@ export function createGroupingPlugin<T = any>(
       },
       renderOverlay: (context) => {
         if (!showOverlay) return null;
+        // value 形状由本插件的 key 约定决定（compute 写入），读取处断言
         const groups: Map<string | number, number[]> =
-          context.sharedData.get(KEY) ?? new Map();
+          (context.sharedData.get(KEY) as Map<string | number, number[]> | undefined) ??
+          new Map();
         if (groups.size === 0) return null;
         const entries = Array.from(groups.entries()).slice(0, 3);
         return (

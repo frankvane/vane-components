@@ -11,8 +11,8 @@ export type StickyHeaderConfig = {
  * StickyHeaderPlugin - 吸顶标题（实验版）
  * - 简化实现：始终显示一个吸顶条，可与 GroupingPlugin 联动
  */
-// T 默认 any：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
-export function createStickyHeaderPlugin<T = any>(config: StickyHeaderConfig = {}): WaterfallPlugin<T> {
+// T 默认 unknown：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
+export function createStickyHeaderPlugin<T = unknown>(config: StickyHeaderConfig = {}): WaterfallPlugin<T> {
   const title = config.title || "分组标题";
   const showHint = config.showHint ?? false;
   return {
@@ -20,10 +20,12 @@ export function createStickyHeaderPlugin<T = any>(config: StickyHeaderConfig = {
     enabled: true,
     hooks: {
       renderOverlay: (context) => {
+        // value 形状由 GroupingPlugin 的 key 约定决定（GROUPS / GROUP_INDEX），读取处断言
         const groups: Map<string | number, number[]> =
-          context.sharedData?.get("GROUPS") || new Map();
+          (context.sharedData?.get("GROUPS") as Map<string | number, number[]> | undefined) ||
+          new Map();
         const indexMap: Map<number, string | number> | undefined =
-          context.sharedData?.get("GROUP_INDEX");
+          context.sharedData?.get("GROUP_INDEX") as Map<number, string | number> | undefined;
         // 吸顶条跟着「当前可见的第一个项」所属分组走；旧实现恒取第一个组，
         // 滚到后面的分组时标题一直不变（P2-7）
         const start = context.visibleRange?.start ?? 0;

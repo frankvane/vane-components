@@ -10,8 +10,8 @@ export type ThrottleConfig = {
 /**
  * ThrottlePlugin - 通过 transformProps 调整核心的滚动节流与尺寸变化防抖
  */
-// T 默认 any：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
-export function createThrottlePlugin<T = any>(config: ThrottleConfig): WaterfallPlugin<T> {
+// T 默认 unknown：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
+export function createThrottlePlugin<T = unknown>(config: ThrottleConfig): WaterfallPlugin<T> {
   return {
     name: "ThrottlePlugin",
     priority: 80,

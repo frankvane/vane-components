@@ -11,8 +11,8 @@ export type AlignmentConfig = {
  * AlignmentPlugin - 控制瀑布流列分配策略
  * 通过设置 props.alignmentMode 来影响核心布局算法的列选择逻辑
  */
-// T 默认 any：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
-export function createAlignmentPlugin<T = any>(config: AlignmentConfig): WaterfallPlugin<T> {
+// T 默认 unknown：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
+export function createAlignmentPlugin<T = unknown>(config: AlignmentConfig): WaterfallPlugin<T> {
   return {
     name: "AlignmentPlugin",
     priority: 60,

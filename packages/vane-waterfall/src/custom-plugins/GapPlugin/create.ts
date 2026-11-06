@@ -41,8 +41,8 @@ function pickResponsive(
 /**
  * GapPlugin - 控制瀑布流的列间距和行间距，支持响应式
  */
-// T 默认 any：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
-export function createGapPlugin<T = any>(config: GapConfig): WaterfallPlugin<T> {
+// T 默认 unknown：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
+export function createGapPlugin<T = unknown>(config: GapConfig): WaterfallPlugin<T> {
   // transformProps 拿不到 context，容器宽度只能由钩子写进来
   let containerWidth = 0;
   let tierSignature = "";

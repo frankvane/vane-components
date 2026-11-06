@@ -322,8 +322,9 @@ describe("P2-7 分组与吸顶", () => {
 
     plugin.hooks.onMount!(ctx);
     expect(events).toEqual(["grouping:change"]);
-    expect(sharedData.get("GROUPS").get("a")).toEqual([0]);
-    expect(sharedData.get("GROUP_INDEX").get(1)).toBe("b");
+    // value 形状由 GroupingPlugin 的 key 约定决定，读取处断言
+    expect((sharedData.get("GROUPS") as Map<string | number, number[]>).get("a")).toEqual([0]);
+    expect((sharedData.get("GROUP_INDEX") as Map<number, string | number>).get(1)).toBe("b");
 
     // 同一份 items：布局完成 / props 变化都不应再广播
     plugin.hooks.onLayoutComplete!(ctx);
@@ -509,7 +510,7 @@ describe("P2-1 插件上下文的数据集合", () => {
       { id: "b", price: 30, h: 100 },
       { id: "c", price: 50, h: 100 },
     ];
-    const Wrapped = withPlugins(WaterfallCore, [
+    const Wrapped = withPlugins<TestItem>(WaterfallCore, [
       plugins.createFilterPlugin<TestItem>({ predicate: (item) => (item.price ?? 0) >= 30 }),
       probe,
     ]);
@@ -541,7 +542,7 @@ describe("P2-1 插件上下文的数据集合", () => {
 
   it("P2-3 Pagination 与 InfiniteScroll 同时启用时给出互斥告警", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    const Wrapped = withPlugins(WaterfallCore, [
+    const Wrapped = withPlugins<TestItem>(WaterfallCore, [
       plugins.createPaginationPlugin({ pageSize: 2 }),
       plugins.createInfiniteScrollPlugin({}),
     ]);
@@ -584,7 +585,7 @@ describe("P2-11 项单元 memo", () => {
         gap={10}
         debounceDelay={0}
         renderItem={renderItem}
-        keyExtractor={(item) => item.id ?? ""}
+        keyExtractor={(item) => (item as TestItem).id ?? ""}
       />
     );
 

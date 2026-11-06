@@ -13,8 +13,8 @@ export type PaginationConfig = {
  * PaginationPlugin - 基于 props 中的 pageIndex/pageSize 对 items 进行分页切片
  * 支持通过 config.pageSize 设定默认每页数量
  */
-// T 默认 any：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
-export function createPaginationPlugin<T = any>(config: PaginationConfig = {}): WaterfallPlugin<T> {
+// T 默认 unknown：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
+export function createPaginationPlugin<T = unknown>(config: PaginationConfig = {}): WaterfallPlugin<T> {
   return {
     name: "PaginationPlugin",
     priority: 10,

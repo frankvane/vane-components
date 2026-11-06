@@ -21,8 +21,8 @@ export type InfiniteScrollConfig = {
  *  2. 自带并发锁：上一次 onLoadMore 没 resolve 前不会重复触发（旧版每次滚动事件都会调）；
  *  3. `context.hasMore === false` 时直接停（配合页面 setState({ hasMore: false })）。
  */
-// T 默认 any：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
-export function createInfiniteScrollPlugin<T = any>(
+// T 默认 unknown：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
+export function createInfiniteScrollPlugin<T = unknown>(
   config: InfiniteScrollConfig = {}
 ): WaterfallPlugin<T> {
   const threshold = Math.max(1, config.threshold ?? 300);

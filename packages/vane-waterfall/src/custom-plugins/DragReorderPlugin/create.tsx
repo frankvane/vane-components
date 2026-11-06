@@ -3,7 +3,7 @@ import type {
   WaterfallPluginContext,
 } from "../../components/WaterfallPlugin/plugins/types";
 
-export type DragReorderConfig<T = any> = {
+export type DragReorderConfig<T = unknown> = {
   /** 是否启用（默认 true） */
   enabled?: boolean;
   /**
@@ -47,8 +47,8 @@ function indexAtPoint(x: number, y: number): number | null {
  * 旧版还有个大坑：只把 from/to 写进 sharedData 就结束了，`onReorder` 不存在，
  * 页面拿不到任何回调（注释里写着"占位：仅记录"）。这里补上真回调。
  */
-// T 默认 any：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
-export function createDragReorderPlugin<T = any>(
+// T 默认 unknown：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
+export function createDragReorderPlugin<T = unknown>(
   config: DragReorderConfig<T> = {}
 ): WaterfallPlugin<T> {
   const enabled = config.enabled ?? true;

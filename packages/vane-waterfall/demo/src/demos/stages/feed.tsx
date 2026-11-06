@@ -100,9 +100,10 @@ export function createFeedStage(spec: FeedStageSpec) {
       return JSON.stringify(keys.map((k) => [k, cfg[k]]));
     }, [cfg]);
 
-    // 只按 memoKey 重建组件类型：见文件头约定 1（搜索框那类高频输入不能进 key）
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // 只按 memoKey 重建组件类型：见文件头约定 1（搜索框那类高频输入不能进 key）。
+    // memoKey 是刻意的依赖（不进回调体），用 void 显式消费避免 exhaustive-deps 误报
     const Waterfall = useMemo(() => {
+      void memoKey;
       const list = spec.plugins?.(apiRef.current) ?? [];
       return list.length ? withPlugins<SeedCard>(WaterfallCore, list) : WaterfallCore;
     }, [memoKey]);
@@ -151,7 +152,6 @@ export function createFeedStage(spec: FeedStageSpec) {
         }
         void scrollTop;
       },
-      // eslint-disable-next-line react-hooks/exhaustive-deps
       []
     );
 
@@ -177,7 +177,6 @@ export function createFeedStage(spec: FeedStageSpec) {
       const cleanup = spec.effect?.(apiRef.current);
       return typeof cleanup === "function" ? cleanup : undefined;
       // 只在挂载时跑一次：effect 通常用来模拟「图片加载后高度变化」这类一次性时序
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const renderItem = useCallback(

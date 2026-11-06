@@ -8,8 +8,8 @@ export type DebounceConfig = {
 /**
  * DebounceLayoutPlugin - 调整核心布局的防抖延迟
  */
-// T 默认 any：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
-export function createDebounceLayoutPlugin<T = any>(config: DebounceConfig): WaterfallPlugin<T> {
+// T 默认 unknown：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
+export function createDebounceLayoutPlugin<T = unknown>(config: DebounceConfig): WaterfallPlugin<T> {
   return {
     name: "DebounceLayoutPlugin",
     priority: 75,

@@ -12,8 +12,8 @@ export type URLSyncConfig = {
  * - 监听 props 变化，更新 URL
  * - 初次挂载时读取 URL 并向 bus 广播（页面可据此设置状态）
  */
-// T 默认 any：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
-export function createURLSyncPlugin<T = any>(config: URLSyncConfig = {}): WaterfallPlugin<T> {
+// T 默认 unknown：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
+export function createURLSyncPlugin<T = unknown>(config: URLSyncConfig = {}): WaterfallPlugin<T> {
   const mode = config.mode || "hash";
   const keys = config.keys || ["pageIndex", "pageSize", "searchQuery"];
   /** 首次读到的 URL 快照：既用于注入 props，也用于判断「这次 props 变化要不要写 URL」 */

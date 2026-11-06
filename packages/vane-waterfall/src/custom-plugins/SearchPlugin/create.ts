@@ -1,7 +1,7 @@
 import type { WaterfallPlugin } from "../../components/WaterfallPlugin/plugins/types";
 
-/** T 默认 any：与 plugins/types.ts 的泛型默认值说明同因（配置类型常被简写引用） */
-export type SearchConfig<T = any> = {
+/** T 默认 unknown：与 plugins/types.ts 的泛型默认值说明同源（配置类型常被简写引用） */
+export type SearchConfig<T = unknown> = {
   /** 要搜索的字段名列表（仅用于对象项） */
   fields?: (keyof T)[];
   /** 条件变化后自动滚动到顶部 */
@@ -14,8 +14,8 @@ export type SearchConfig<T = any> = {
  * SearchPlugin - 基于 props.searchQuery 对 items 执行包含匹配过滤
  * 仅在对象项中按指定字段进行大小写不敏感的包含匹配
  */
-// T 默认 any：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
-export function createSearchPlugin<T = any>(config: SearchConfig<T> = {}): WaterfallPlugin<T> {
+// T 默认 unknown：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
+export function createSearchPlugin<T = unknown>(config: SearchConfig<T> = {}): WaterfallPlugin<T> {
   const fields = config.fields ?? [];
   return {
     name: "SearchPlugin",

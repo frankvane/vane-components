@@ -26,8 +26,8 @@ const QUERY = "(prefers-reduced-motion: reduce)";
  * 定位方式（`useTransform`）是 props 层的，运行时切换要等下一次重渲染才生效；
  * 过渡效果则是即时生效的。
  */
-// T 默认 any：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
-export function createReducedMotionPlugin<T = any>(
+// T 默认 unknown：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
+export function createReducedMotionPlugin<T = unknown>(
   config: ReducedMotionConfig = {}
 ): WaterfallPlugin<T> {
   const mq =

@@ -13,8 +13,8 @@ export type BookmarkConfig = {
  * - 按下 'r' 恢复到保存位置
  * - 忽略输入框/可编辑元素中的按键
  */
-// T 默认 any：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
-export function createBookmarkPlugin<T = any>(config: BookmarkConfig = {}): WaterfallPlugin<T> {
+// T 默认 unknown：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
+export function createBookmarkPlugin<T = unknown>(config: BookmarkConfig = {}): WaterfallPlugin<T> {
   const storageKey = config.storageKey || "waterfall-bookmark";
   const behavior: "auto" | "smooth" = config.scrollBehavior || "smooth";
 

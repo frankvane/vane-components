@@ -86,8 +86,8 @@ const renderItems = (items: Item[]) => (
     columns={1}
     gap={10}
     debounceDelay={0}
-    renderItem={(item) => <div data-h={item.h}>item</div>}
-    keyExtractor={(item) => item.id}
+    renderItem={(item) => <div data-h={(item as Item).h}>item</div>}
+    keyExtractor={(item) => (item as Item).id}
   />
 );
 

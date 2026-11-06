@@ -23,8 +23,8 @@ export type ClickAnalyticsStats = {
  * - 可选控制台输出日志
  * - `getStats()` 把内存里的计数吐出来，方便接到自己的上报通道
  */
-// T 默认 any：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
-export function createClickAnalyticsPlugin<T = any>(
+// T 默认 unknown：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
+export function createClickAnalyticsPlugin<T = unknown>(
   config: ClickAnalyticsConfig = {}
 ): WaterfallPlugin<T> & { getStats: () => ClickAnalyticsStats } {
   const { log = false, showOverlay = false } = config;
@@ -100,7 +100,8 @@ export function createClickAnalyticsPlugin<T = any>(
       },
       renderOverlay: (context) => {
         if (!showOverlay) return null;
-        const total = context.sharedData?.get("click-count") || 0;
+        // value 形状由本插件的 key 约定决定（数字计数），读取处断言
+        const total = (context.sharedData?.get("click-count") as number | undefined) || 0;
         return (
           <div
             style={{

@@ -109,8 +109,8 @@ function renderCore(
       columns={1}
       gap={10}
       debounceDelay={0}
-      renderItem={(item) => <div data-h={item.h}>{item.id}</div>}
-      keyExtractor={(item) => item.id}
+      renderItem={(item) => <div data-h={(item as Item).h}>{(item as Item).id}</div>}
+      keyExtractor={(item) => (item as Item).id}
       {...extra}
     />
   );

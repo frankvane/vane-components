@@ -57,7 +57,7 @@ const DATA: SeedCard[] = makeCards({ count: 30, seed: 12101, heightRange: [150, 
  * 自定义插件：window.addEventListener('wf:anchor', …) → bus.emit('anchor:scrollToId')
  * 要点：onMount 返回的函数就是清理函数（旧版 withPlugins 从不执行它，会漏监听）。
  */
-function createAnchorBridgePlugin<T = any>(): WaterfallPlugin<T> {
+function createAnchorBridgePlugin<T = unknown>(): WaterfallPlugin<T> {
   return {
     name: "AnchorBridgePlugin",
     enabled: true,

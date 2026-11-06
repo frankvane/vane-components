@@ -17,8 +17,8 @@ export type StatePersistenceConfig = {
  * - 挂载时尝试恢复快照；卸载时写入快照
  * - 快照包含：scrollTop（可选）与部分 props 键
  */
-// T 默认 any：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
-export function createStatePersistencePlugin<T = any>(config: StatePersistenceConfig = {}): WaterfallPlugin<T> {
+// T 默认 unknown：见 components/WaterfallPlugin/plugins/types.ts 的「泛型默认值说明」
+export function createStatePersistencePlugin<T = unknown>(config: StatePersistenceConfig = {}): WaterfallPlugin<T> {
   const key = config.storageKey || "waterfall-state";
   const persistScroll = config.persistScroll ?? true;
   const persistKeys = config.persistKeys || ["pageIndex", "pageSize", "searchQuery"];

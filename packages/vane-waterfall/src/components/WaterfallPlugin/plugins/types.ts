@@ -99,12 +99,13 @@ export interface ScrollToItemOptions extends ScrollToOptions {
 
 /**
  * 泛型默认值说明（context / hooks / plugin / creator 共用）：
- * 本领域有大量 `WaterfallPlugin`、`WaterfallPluginContext`、`WaterfallPluginCreator<Config>`
- * 这类「不写全泛型」的声明与调用（含 demo 的 `withPlugins<SeedCard>`）。实测把默认值
- * 改成 unknown 后，属性逆变会让这些调用点 tsc 失败（插件 <unknown> 不能赋给具体 T）。
- * 这里的 any 是「未指定」的占位默认值，不是实现内部偷懒；实现层类型已尽量收敛。
+ * 默认值统一收敛为 unknown——「未指定」的声明与调用（`WaterfallPlugin` /
+ * `WaterfallPluginContext` / `WaterfallPluginCreator<Config>` 及简写的工厂调用）
+ * 拿到的是无具体项类型的形态；需要具体项类型时显式写泛型参数（如 demo 的
+ * `withPlugins<SeedCard>`、`createFilterPlugin<SeedCard>`）。T 经 items / renderItem
+ * 参与结构，unknown 形态下读取项成员的位置按预期形状断言。
  */
-export interface WaterfallPluginContext<T = any>
+export interface WaterfallPluginContext<T = unknown>
   extends PluginContext<WaterfallCoreProps<T>, WaterfallData> {
   // --- 数据 ---
   /** 当前**渲染集合**：数据插件（Filter / Sort / Search / Pagination）改写后的结果 */
@@ -137,8 +138,8 @@ export interface WaterfallPluginContext<T = any>
   error: Error | null;
 
   // --- 扩展信息 ---
-  /** 内核 shared（Map）的领域别名，旧插件用它做跨插件通信；value 由各插件的 key 约定决定 */
-  sharedData: Map<string, any>;
+  /** 内核 shared（Map）的领域别名，旧插件用它做跨插件通信；value 由各插件的 key 约定决定，读取处断言 */
+  sharedData: Map<string, unknown>;
   networkInfo?: NetworkInfo;
   dragInfo?: DragInfo;
 
@@ -160,7 +161,7 @@ export interface WaterfallPluginContext<T = any>
 
 // ============ 领域钩子（20 个，D3 收口） ============
 
-export interface WaterfallPluginHooks<T = any> {
+export interface WaterfallPluginHooks<T = unknown> {
   // ---- 生命周期（4）----
   /** 可返回清理函数；`manager.clear()` 时逆序执行一次 */
   onMount?(context: WaterfallPluginContext<T>): unknown;
@@ -249,14 +250,14 @@ export interface WaterfallPluginHooks<T = any> {
  * TS 推断钩子参数时会取两边的并集，插件里的 context 就变成
  * `PluginContext | WaterfallPluginContext`，拿不到领域字段。
  *
- * T 的默认值保持 any（理由见文件顶部「泛型默认值说明」）。
+ * T 的默认值为 unknown（理由见文件顶部「泛型默认值说明」）。
  */
-export type WaterfallPlugin<T = any> = Omit<Plugin<WaterfallCoreProps<T>>, "hooks"> & {
+export type WaterfallPlugin<T = unknown> = Omit<Plugin<WaterfallCoreProps<T>>, "hooks"> & {
   hooks: WaterfallPluginHooks<T>;
 };
 
 /** Config 与 T 的默认值同理：调用方常只写 Config，见文件顶部说明 */
-export type WaterfallPluginCreator<Config = any, T = any> = ((
+export type WaterfallPluginCreator<Config = unknown, T = unknown> = ((
   config?: Config
 ) => WaterfallPlugin<T>) & {
   meta: import("vane-plugin-core").PluginDoc;
