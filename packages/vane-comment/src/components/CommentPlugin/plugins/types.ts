@@ -211,11 +211,9 @@ export interface CommentPlugin<T = CommentData>
 
 /**
  * 插件工厂：可调用 + 挂载 meta，供文档生成与 demo 导航使用。
- *
- * Config 默认 any 与内核 PluginCreator<Config = any, ...> 对齐（跨包契约位）：
- * 各插件配置形状不同，未传泛型时不做约束；收紧会让既有插件工厂无法赋值。
  */
-export type CommentPluginCreator<Config = any, T = CommentData> = PluginCreator<
+/** 工厂泛型：Config 默认 unknown（仅入参位，逆变安全）；T 为领域数据类型 */
+export type CommentPluginCreator<Config = unknown, T = CommentData> = PluginCreator<
   Config,
   CommentCoreProps<T>,
   T

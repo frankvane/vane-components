@@ -33,11 +33,11 @@ import { CommentSlotProvider } from "./plugins/slots";
 import { sortComments } from "./sort";
 
 /**
- * 泛型默认值保留 any：跨包契约位。第三方以 `withCommentPlugins(Core, plugins)`
- * 直接使用时由 Core 的 props 推断 T；不指定泛型时不做约束，收紧为 CommentData
- * 会让既有调用方（自定义 data 形态）的 tsc 失败。
+ * 泛型默认值收敛为 CommentData（真实领域数据类型）。第三方以
+ * `withCommentPlugins(Core, plugins)` 直接使用时仍由 Core 的 props 推断 T；
+ * 自定义 data 形态的调用方请显式写泛型参数。
  */
-export function withCommentPlugins<T = any>(
+export function withCommentPlugins<T = CommentData>(
   WrappedComponent: React.ForwardRefExoticComponent<
     React.PropsWithoutRef<CommentCoreProps<T>> & React.RefAttributes<CommentCoreRef>
   >,

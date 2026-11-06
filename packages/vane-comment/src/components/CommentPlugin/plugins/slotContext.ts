@@ -113,10 +113,10 @@ export function useCommentSlot(
  * 读取领域上下文（含 comments / sortMode / setSortMode 等）。
  * 评论子组件通过它订阅 comments，以实现排序变化后的列表重渲染。
  *
- * 泛型默认值保留 any（跨包契约位：第三方插件传入自定义 data 形态时
- * 不指定泛型不做约束，收紧为 CommentData 会让既有调用方 tsc 失败）。
+ * 泛型默认值收敛为 CommentData（真实领域数据类型）；自定义 data 形态的
+ * 调用方请显式写泛型参数（如 useCommentContext<MyData>()）。
  */
-export function useCommentContext<T = any>(): CommentPluginContext<T> | null {
+export function useCommentContext<T = CommentData>(): CommentPluginContext<T> | null {
   const ctx = useContext(SlotContext);
   return (ctx?.context as unknown as CommentPluginContext<T>) ?? null;
 }

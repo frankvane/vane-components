@@ -1,5 +1,6 @@
-import React from "react";
+﻿import React from "react";
 import type {
+  CommentData,
   CommentPlugin,
   CommentPluginContext,
   Comment,
@@ -17,9 +18,9 @@ const DEFAULT_REASONS = ["垃圾广告", "辱骂攻击", "色情低俗", "诈骗
 /**
  * ReportPlugin - 举报：每条评论操作行渲染举报按钮，弹出理由浮层，提交回调 onReport。
  *
- * 泛型默认值保留 any：跨包契约位（第三方可传自定义 data 形态，收紧会让既有调用方 tsc 失败）。
+ * 泛型默认值收敛为 CommentData（真实领域数据类型）；自定义 data 形态的调用方请显式写泛型参数。
  */
-export function createReportPlugin<T = any>(
+export function createReportPlugin<T = CommentData>(
   config: ReportPluginConfig = {}
 ): CommentPlugin<T> {
   const reasons = config.reasons ?? DEFAULT_REASONS;

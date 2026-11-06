@@ -1,5 +1,6 @@
-import React from "react";
+﻿import React from "react";
 import type {
+  CommentData,
   CommentPlugin,
   CommentPluginContext,
   Comment,
@@ -16,9 +17,9 @@ export interface LikePluginConfig {
  * LikePlugin - 点赞：渲染于每条评论的 `renderCommentActions` 槽。
  * 读取 comment.liked / likeCount，点击回调 context.props.onLike（乐观更新由 consumer 完成）。
  *
- * 泛型默认值保留 any：跨包契约位（第三方可传自定义 data 形态，收紧会让既有调用方 tsc 失败）。
+ * 泛型默认值收敛为 CommentData（真实领域数据类型）；自定义 data 形态的调用方请显式写泛型参数。
  */
-export function createLikePlugin<T = any>(
+export function createLikePlugin<T = CommentData>(
   config: LikePluginConfig = {}
 ): CommentPlugin<T> {
   return {

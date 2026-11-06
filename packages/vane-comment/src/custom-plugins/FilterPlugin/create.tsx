@@ -1,5 +1,6 @@
-import React from "react";
+﻿import React from "react";
 import type {
+  CommentData,
   CommentPlugin,
   CommentPluginContext,
   Comment,
@@ -15,9 +16,9 @@ export interface FilterPluginConfig {
 /**
  * FilterPlugin - 筛选：顶栏「全部/有图/有回复」筛选，经 transformData 过滤评论列表。
  *
- * 泛型默认值保留 any：跨包契约位（第三方可传自定义 data 形态，收紧会让既有调用方 tsc 失败）。
+ * 泛型默认值收敛为 CommentData（真实领域数据类型）；自定义 data 形态的调用方请显式写泛型参数。
  */
-export function createFilterPlugin<T = any>(
+export function createFilterPlugin<T = CommentData>(
   config: FilterPluginConfig = {}
 ): CommentPlugin<T> {
   const options = config.options ?? ["all", "image", "replies"];

@@ -1,5 +1,6 @@
-import React from "react";
+﻿import React from "react";
 import type {
+  CommentData,
   CommentPlugin,
   CommentPluginContext,
   Comment,
@@ -21,9 +22,9 @@ export interface ThreadPluginConfig {
  * 操作行的"回复"经 `renderCommentActions` 唤起内联回复框。
  * 嵌套回复同样走同一组槽 → 子回复也能点赞 / 继续回复。
  *
- * 泛型默认值保留 any：跨包契约位（第三方可传自定义 data 形态，收紧会让既有调用方 tsc 失败）。
+ * 泛型默认值收敛为 CommentData（真实领域数据类型）；自定义 data 形态的调用方请显式写泛型参数。
  */
-export function createThreadPlugin<T = any>(
+export function createThreadPlugin<T = CommentData>(
   config: ThreadPluginConfig = {}
 ): CommentPlugin<T> {
   const maxDepth = config.maxDepth ?? 3;

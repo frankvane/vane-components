@@ -1,5 +1,6 @@
-import React from "react";
+﻿import React from "react";
 import type {
+  CommentData,
   CommentPlugin,
   CommentPluginContext,
 } from "../../components/CommentPlugin/plugins/types";
@@ -8,9 +9,9 @@ import doc from "./doc.json";
 /**
  * LoginPromptPlugin - 未登录引导：底部渲染登录引导条，回调 onLogin。
  *
- * 泛型默认值保留 any：跨包契约位（第三方可传自定义 data 形态，收紧会让既有调用方 tsc 失败）。
+ * 泛型默认值收敛为 CommentData（真实领域数据类型）；自定义 data 形态的调用方请显式写泛型参数。
  */
-export function createLoginPromptPlugin<T = any>(): CommentPlugin<T> {
+export function createLoginPromptPlugin<T = CommentData>(): CommentPlugin<T> {
   return {
     name: "LoginPromptPlugin",
     version: "0.1.0",

@@ -1,5 +1,6 @@
-import React from "react";
+﻿import React from "react";
 import type {
+  CommentData,
   CommentPlugin,
   CommentPluginContext,
 } from "../../components/CommentPlugin/plugins/types";
@@ -33,9 +34,9 @@ const DEFAULT_FEATURES = { emoji: true, image: true, mention: true };
  * RichComposerPlugin - 富编辑：底部 `renderFooter` 渲染根评论框。
  * 支持 emoji / 图片（DataURL）/ @提及，输出结构化 CommentNode[] 回调 onSubmit。
  *
- * 泛型默认值保留 any：跨包契约位（第三方可传自定义 data 形态，收紧会让既有调用方 tsc 失败）。
+ * 泛型默认值收敛为 CommentData（真实领域数据类型）；自定义 data 形态的调用方请显式写泛型参数。
  */
-export function createRichComposerPlugin<T = any>(
+export function createRichComposerPlugin<T = CommentData>(
   config: RichComposerConfig = {}
 ): CommentPlugin<T> {
   const features = { ...DEFAULT_FEATURES, ...(config.features ?? {}) };

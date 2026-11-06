@@ -1,5 +1,6 @@
-import React from "react";
+﻿import React from "react";
 import type {
+  CommentData,
   CommentPlugin,
   CommentPluginContext,
   SortMode,
@@ -18,9 +19,9 @@ export interface SortPluginConfig {
  * SortPlugin - 排序：顶栏渲染排序栏，切换经内核 state 驱动 CommentCore 列表重排。
  * 实际重排由 withCommentPlugins 的 extendContext（sortComments）完成，本插件仅提供控制面。
  *
- * 泛型默认值保留 any：跨包契约位（第三方可传自定义 data 形态，收紧会让既有调用方 tsc 失败）。
+ * 泛型默认值收敛为 CommentData（真实领域数据类型）；自定义 data 形态的调用方请显式写泛型参数。
  */
-export function createSortPlugin<T = any>(
+export function createSortPlugin<T = CommentData>(
   config: SortPluginConfig = {}
 ): CommentPlugin<T> {
   const modes = config.modes ?? ["newest", "hottest", "mostLiked"];
