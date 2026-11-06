@@ -14,10 +14,10 @@ import type { CardPlugin, CardPluginContext } from "../../components/CardPlugin/
 import React from "react";
 
 export interface AnalyticsPluginConfig {
-  // 公共契约位：上报载荷由宿主自定义，保持 any。
-  transport?: (event: string, payload: any) => void; // 自定义上报管道
-  // 公共契约位：第三方 SDK 的载荷同样由宿主定义，保持 any。
-  sdk?: { track?: (event: string, payload: any) => void }; // 第三方 SDK
+  // 上报载荷由宿主自定义，按 unknown 传递；宿主在 transport 内自行断言形状。
+  transport?: (event: string, payload: unknown) => void; // 自定义上报管道
+  // 第三方 SDK 的载荷同样由宿主定义，按 unknown 传递。
+  sdk?: { track?: (event: string, payload: unknown) => void }; // 第三方 SDK
   minExposureMs?: number; // 最小曝光时长阈值，短于此不记入曝光退出
 }
 

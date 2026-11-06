@@ -31,8 +31,8 @@ function formatCurrency(value: number, currency?: string, locale?: string) {
   }
 }
 
-// 公共契约位：工厂泛型默认值 any 保留（不写 T 的调用方依赖默认值）。
-export const createOrderSummaryPlugin: PluginCreator<any, OrderSummaryPluginConfig> = (
+// 工厂返回 T 收敛为 unknown：T 仅经 data 透传，自定义 data 形态的调用方请显式写泛型参数。
+export const createOrderSummaryPlugin: PluginCreator<unknown, OrderSummaryPluginConfig> = (
   config = {}
 ) => {
   const cfg = applyDefaults<OrderSummaryPluginConfig>(config, {

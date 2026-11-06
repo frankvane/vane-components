@@ -19,8 +19,8 @@ describe("CardCore 渲染契约", () => {
   it("data + renderContent 渲染主体内容", () => {
     const { container } = renderCore({
       data: { title: "商品A" },
-      renderContent: (d: { title: string }) =>
-        React.createElement("div", { id: "rc" }, d.title),
+      renderContent: (d) =>
+        React.createElement("div", { id: "rc" }, (d as { title: string }).title),
     });
     expect(container.querySelector("#rc")?.textContent).toBe("商品A");
   });

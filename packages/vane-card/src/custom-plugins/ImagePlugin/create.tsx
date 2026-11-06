@@ -29,8 +29,8 @@ export interface ImagePluginConfig {
   errorFallback?: React.ReactNode;
 }
 
-// 公共契约位：工厂泛型默认值 any 保留（不写 T 的调用方依赖默认值）。
-export const createImagePlugin: PluginCreator<any, ImagePluginConfig> = (
+// 工厂返回 T 收敛为 unknown：T 仅经 data 透传，自定义 data 形态的调用方请显式写泛型参数。
+export const createImagePlugin: PluginCreator<unknown, ImagePluginConfig> = (
   config = {}
 ) => {
   const plugin: CardPlugin = {
@@ -46,13 +46,14 @@ export const createImagePlugin: PluginCreator<any, ImagePluginConfig> = (
 
       renderHeader: (context) => {
         // 优先 config，其次变体图，最后 data.image
+        const data = context.data as { image?: string; name?: string } | undefined;
         const variantImage = (
           context.bus?.getData?.(BusKeys.skuVariant) as
             | { image?: string }
             | undefined
         )?.image;
-        const src = config.src || variantImage || context.data?.image;
-        const alt = config.alt || context.data?.name || "商品图片";
+        const src = config.src || variantImage || data?.image;
+        const alt = config.alt || data?.name || "商品图片";
 
         if (!src) return null;
 

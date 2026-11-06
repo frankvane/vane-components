@@ -253,19 +253,31 @@ describe("CARD-P2-1 transformData 真正接入渲染链", () => {
       version: "1.0.0",
       priority: 10,
       hooks: {
-        transformData: (_context, data: { price?: number }) => ({
-          ...data,
-          price: (data?.price ?? 0) * 2,
-        }),
+        transformData: (_context, data) => {
+          const d = data as { price?: number };
+          return {
+            ...d,
+            price: (d?.price ?? 0) * 2,
+          };
+        },
         renderFooter: (context) =>
-          React.createElement("span", { id: "plugin-data" }, String(context.data?.price)),
+          React.createElement(
+            "span",
+            { id: "plugin-data" },
+            String((context.data as { price?: number } | undefined)?.price)
+          ),
       },
       config: {},
     };
 
     const { container } = renderCard([doubling], {
       data: { price: 100 },
-      renderContent: (data: { price?: number }) => React.createElement("span", { id: "core-data" }, String(data.price)),
+      renderContent: (data) =>
+        React.createElement(
+          "span",
+          { id: "core-data" },
+          String((data as { price?: number }).price)
+        ),
     });
     await flush();
 

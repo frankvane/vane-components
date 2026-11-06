@@ -44,8 +44,8 @@ function matchVariant(
   return variants.find((v) => attributesMatchExactly(v.attrs, selection));
 }
 
-// 公共契约位：工厂泛型默认值 any 保留（不写 T 的调用方依赖默认值）。
-export const createSKUPlugin: PluginCreator<any, SKUPluginConfig> = (config) => {
+// 工厂返回 T 收敛为 unknown：T 仅经 data 透传，自定义 data 形态的调用方请显式写泛型参数。
+export const createSKUPlugin: PluginCreator<unknown, SKUPluginConfig> = (config) => {
   const attributes = config?.attributes || [];
   const variants = config?.variants || [];
   const renderIn = config?.renderIn || "footer";

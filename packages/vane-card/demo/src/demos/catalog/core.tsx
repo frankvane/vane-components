@@ -46,9 +46,12 @@ const propsPage: DemoEntry = {
       data={TEE}
       layout={cfg.layout as "vertical" | "horizontal"}
       padding={Number(cfg.padding)}
-      renderContent={(data: { title?: string; subtitle?: string }) => (
-        <Content title={data.title} subtitle={data.subtitle} note="这段内容来自 renderContent" />
-      )}
+      renderContent={(data) => {
+        const d = data as { title?: string; subtitle?: string };
+        return (
+          <Content title={d.title} subtitle={d.subtitle} note="这段内容来自 renderContent" />
+        );
+      }}
     />
   ),
 };

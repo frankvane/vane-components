@@ -15,11 +15,14 @@ export interface GalleryHeaderProps {
   showThumbnails: boolean;
   errorFallbackSrc?: string;
   context: {
-    data?: { name?: string; poster?: string };
+    data?: unknown;
     bus?: PluginBus;
     forceUpdate?: () => void;
   };
 }
+
+/** 从 data 读取画廊需要的字段（data 形态由宿主决定，读取处断言） */
+type GalleryDataFields = { name?: string; poster?: string };
 
 export const GalleryHeaderComp: React.FC<GalleryHeaderProps> = ({
   slides,
@@ -56,6 +59,7 @@ export const GalleryHeaderComp: React.FC<GalleryHeaderProps> = ({
 
   const safeIndex = slides.length ? Math.min(index, slides.length - 1) : 0;
   const current = slides[safeIndex];
+  const data = context.data as GalleryDataFields | undefined;
 
   // 让视频插件避让的处理标记：只能在提交后的 effect 里写总线（渲染期写会触发
   // 兄弟插件的状态更新警告，且 VideoPlugin 读的是上一帧的值）（P2-6）。
@@ -105,7 +109,7 @@ export const GalleryHeaderComp: React.FC<GalleryHeaderProps> = ({
       {current.type === "image" ? (
         <img
           src={current.src}
-          alt={context.data?.name || "商品图片"}
+          alt={data?.name || "商品图片"}
           style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", cursor: enableZoom ? "zoom-in" : "default" }}
           onClick={() => {
             if (!enableZoom) return;
@@ -122,8 +126,8 @@ export const GalleryHeaderComp: React.FC<GalleryHeaderProps> = ({
           ) : (
             <>
               <img
-                src={current.thumb || context.data?.poster || ""}
-                alt={context.data?.name || "商品视频预览"}
+                src={current.thumb || data?.poster || ""}
+                alt={data?.name || "商品视频预览"}
                 style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                 onError={handleImgError}
               />

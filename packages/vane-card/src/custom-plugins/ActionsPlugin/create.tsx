@@ -3,7 +3,7 @@
  * 负责渲染购物车、心愿单等操作按钮
  */
 
-import type { CardPlugin, PluginCreator } from "../../components/CardPlugin/plugins/types";
+import type { CardPlugin, CardPluginContext, PluginCreator } from "../../components/CardPlugin/plugins/types";
 
 import React from "react";
 
@@ -12,12 +12,12 @@ export interface ActionsPluginConfig {
   showWishlistButton?: boolean;
   cartButtonText?: { add: string; remove: string };
   wishlistButtonText?: { add: string; remove: string };
-  // 公共契约位：自定义操作渲染函数由宿主实现，上下文按 any 开放。
-  renderCustomActions?: (context: any) => React.ReactNode;
+  // 自定义操作渲染函数由宿主实现，上下文为完整插件上下文（T=unknown，读取 data 时自行断言）。
+  renderCustomActions?: (context: CardPluginContext) => React.ReactNode;
 }
 
-// 公共契约位：工厂泛型默认值 any 保留（不写 T 的调用方依赖默认值）。
-export const createActionsPlugin: PluginCreator<any, ActionsPluginConfig> = (
+// 工厂返回 T 收敛为 unknown：T 仅经 data 透传，自定义 data 形态的调用方请显式写泛型参数。
+export const createActionsPlugin: PluginCreator<unknown, ActionsPluginConfig> = (
   config = {}
 ) => {
   const {

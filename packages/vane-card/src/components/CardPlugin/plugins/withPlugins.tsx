@@ -55,8 +55,9 @@ const INITIAL_STATE: CardState = {
   wishlist: false,
 };
 
-// 公共契约位：泛型默认值 any 保留（withPlugins 对外导出，不写 T 的调用方依赖默认值）。
-export function withPlugins<T = any>(
+// 泛型默认值收敛为 unknown：T 仅经 data / props 透传，
+// 自定义 data 形态的调用方请显式写泛型参数。
+export function withPlugins<T = unknown>(
   WrappedComponent: React.ForwardRefExoticComponent<
     React.PropsWithoutRef<CardCoreProps<T>> & React.RefAttributes<CardCoreRef>
   >,

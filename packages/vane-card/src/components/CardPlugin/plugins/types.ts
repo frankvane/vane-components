@@ -9,12 +9,13 @@
  *    onBeforeDataChange / onDataChange / renderContainer / renderContentWrapper /
  *    renderBadge / renderActions），其能力由 setState 差分 / renderOverlay 替代。
  *
- * 保留 any 的位置（均为公共契约位，收紧会破坏调用方编译）：
- *  - CardPluginContext<T = any> / CardPluginHooks<T = any> / CardPlugin<T = any> /
- *    WithPluginsConfig<T = any>：泛型默认值，不写 T 的调用方依赖它成立；
- *  - sharedData: Map<string, any>：跨插件共享数据位，插件作者按自身约定读取；
- *  - config?: Record<string, any>：插件配置是开放结构（headerPosition / order 等各异）；
- *  - PluginCreator<T = any, Config = any>：工厂签名，与上面三个泛型默认值同源。
+ * 泛型默认值统一收敛为 unknown（T 仅经 data / props 透传，插件内按预期形状断言）：
+ *  - CardPluginContext<T = unknown> / CardPluginHooks<T = unknown> / CardPlugin<T = unknown> /
+ *    WithPluginsConfig<T = unknown>：不写 T 的调用方拿到 unknown，自定义 data 形态的
+ *    调用方请显式写泛型参数；
+ *  - sharedData: Map<string, unknown>：跨插件共享数据位，插件作者按自身约定断言读取；
+ *  - config?: Record<string, unknown>：插件配置是开放结构（headerPosition / order 等各异）；
+ *  - PluginCreator<T = unknown, Config = unknown>：工厂签名，与上面几个泛型默认值同源。
  */
 
 import type React from "react";
@@ -96,13 +97,13 @@ export interface AnimationConfig {
  * setState / shared / deviceInfo / forceUpdate / getSize / logger；这里补充卡片
  * 专属字段，供插件按语义访问。插件代码里拿到的就是这个完整类型。
  */
-export interface CardPluginContext<T = any> {
+export interface CardPluginContext<T = unknown> {
   // —— 内核已有字段（保持同名，便于 plugin-core 内部透传）——
   props: CardCoreProps<T>;
   data?: T;
   bus: PluginBus;
-  /** 跨插件共享数据（走 React 渲染之外，plugin-core 的 shared） */
-  sharedData: Map<string, any>;
+  /** 跨插件共享数据（走 React 渲染之外，plugin-core 的 shared）；形状由插件作者约定，读取处断言 */
+  sharedData: Map<string, unknown>;
   /** 领域字段：setState 差分会触发 onStateChange */
   state: CardState;
   setState: (updates: Partial<CardState>) => void;
@@ -130,7 +131,7 @@ export interface CardPluginContext<T = any> {
  * 注意：用「方法语法」声明参数（context: CardPluginContext<T>），以便 plugin-core
  * 把 context 收窄为领域上下文时通过 bivariance 校验。
  */
-export interface CardPluginHooks<T = any> {
+export interface CardPluginHooks<T = unknown> {
   // ========== 内核 · 生命周期 ==========
   onMount?: (context: CardPluginContext<T>) => void | (() => void);
   onUnmount?: (context: CardPluginContext<T>) => void;
@@ -191,7 +192,7 @@ export interface CardPluginHooks<T = any> {
 
 // ============ 插件定义 ============
 
-export interface CardPlugin<T = any> {
+export interface CardPlugin<T = unknown> {
   /** 插件名称（唯一标识） */
   name: string;
   /** 插件版本 */
@@ -200,8 +201,8 @@ export interface CardPlugin<T = any> {
   description?: string;
   /** 插件钩子 */
   hooks: CardPluginHooks<T>;
-  /** 插件配置（order / priority / 渲染位置等都挂在 config 上） */
-  config?: Record<string, any>;
+  /** 插件配置（order / priority / 渲染位置等都挂在 config 上）；开放结构，读取处按形状断言 */
+  config?: object;
   /** 插件依赖（需要先加载的插件名称） */
   dependencies?: string[];
   /** 越大越先执行；渲染插槽内越大越靠后（用 config.order 控制位置） */
@@ -213,12 +214,12 @@ export interface CardPlugin<T = any> {
 // ============ 工具类型 ============
 
 /** 插件工厂：可调用 + 挂载 meta，供文档生成与 demo 导航使用 */
-export type PluginCreator<T = any, Config = any> = (
+export type PluginCreator<T = unknown, Config = unknown> = (
   config?: Config
 ) => CardPlugin<T>;
 
 /** WithPlugins 配置 */
-export interface WithPluginsConfig<T = any> {
+export interface WithPluginsConfig<T = unknown> {
   plugins: CardPlugin<T>[];
   enableDebug?: boolean;
 }

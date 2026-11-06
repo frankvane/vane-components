@@ -30,13 +30,13 @@
   "config": [
     {
       "name": "transport",
-      "type": "(event: string, payload: any) => void",
+      "type": "(event: string, payload: unknown) => void",
       "default": "-",
       "description": "自定义上报管道，优先级高于 sdk"
     },
     {
       "name": "sdk",
-      "type": "{ track?: (event: string, payload: any) => void }",
+      "type": "{ track?: (event: string, payload: unknown) => void }",
       "default": "-",
       "description": "第三方 SDK 适配；transport 未提供时才用"
     },

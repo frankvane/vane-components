@@ -20,6 +20,10 @@ import type { ProductAttributes } from "../types/product";
 
 export type PluginSlotName = "priceArea";
 
+/** config.order 读取：config 是开放结构，按形状断言取排序权重 */
+const orderOf = (p: CardPlugin<unknown>): number =>
+  (p.config as { order?: number } | undefined)?.order ?? 0;
+
 export interface SlotContextValue {
   orderedPlugins: CardPlugin<unknown>[];
   context: CardPluginContext<unknown>;
@@ -44,7 +48,7 @@ export function renderDomainSlot(
     )
     .sort(
       (a, b) =>
-        (a.config?.order ?? 0) - (b.config?.order ?? 0) ||
+        orderOf(a) - orderOf(b) ||
         (b.priority ?? 0) - (a.priority ?? 0)
     )
     .map((plugin) => {
