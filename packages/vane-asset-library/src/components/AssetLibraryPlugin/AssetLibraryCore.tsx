@@ -53,12 +53,14 @@ function AssetCard({ card, slots, tabIndex, onToggle, onActivate, onFocus }: Ass
     <div
       role="option"
       aria-selected={card.selected}
-      aria-disabled={card.blocked || undefined}
+      /* 不可选（未就绪）与「已达上限」都算 disabled：读屏用户点之前就该知道选不中 */
+      aria-disabled={!card.selectable || card.blocked || undefined}
       aria-label={title}
       tabIndex={tabIndex}
       data-asset-id={item.id}
       data-active={card.active ? "true" : "false"}
       data-selected={card.selected ? "true" : "false"}
+      data-selectable={card.selectable ? "true" : "false"}
       data-blocked={card.blocked ? "true" : "false"}
       data-kind={item.kind}
       data-status={item.status ?? "ready"}

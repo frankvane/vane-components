@@ -129,6 +129,25 @@ describe("选择语义", () => {
     await click(cards(el)[3]); // failed
     expect(onChange).not.toHaveBeenCalled();
     expect(spy.ctx?.selectedIds).toEqual([]);
+
+    // 读屏用户点之前就该知道选不中：不可选项标 aria-disabled + data-selectable=false
+    expect(cards(el)[2].getAttribute("aria-disabled")).toBe("true");
+    expect(cards(el)[2].getAttribute("data-selectable")).toBe("false");
+    expect(cards(el)[0].hasAttribute("aria-disabled")).toBe(false);
+    expect(cards(el)[0].getAttribute("data-selectable")).toBe("true");
+  });
+
+  it("双击卡片触发 onItemActivate（激活与选中是两件事）", async () => {
+    const Lib = createAssetLibrary([]);
+    const onItemActivate = vi.fn();
+    const el = await mount(<Lib items={items} onItemActivate={onItemActivate} />);
+
+    await act(async () => {
+      cards(el)[0].dispatchEvent(new MouseEvent("dblclick", { bubbles: true }));
+    });
+    expect(onItemActivate).toHaveBeenCalledWith(expect.objectContaining({ id: "a" }));
+    // 双击不该顺手把它选中
+    expect(cards(el)[0].getAttribute("data-selected")).toBe("false");
   });
 
   it("maxSelected：达上限后未选项 blocked，已选项仍可取消", async () => {

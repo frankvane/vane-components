@@ -232,7 +232,8 @@
 
 | 事件 | 触发时机 | 说明 |
 | --- | --- | --- |
-| `renderOverlay` | 每次渲染 | 大图 / 视频预览浮层：Esc 或点遮罩关闭，左右方向键在当…… |
+| `onAssetActivate` | 双击卡片 / 按 Enter | 打开当前素材的预览浮层（宿主若自己接了 onItemActivate 不冲突，两者都执行） |
+| `renderOverlay` | previewId 非空时 | 渲染 dialog 浮层：Esc 或点遮罩关闭，← → 在筛选结果里切换 |
 
 **方法 Methods**
 

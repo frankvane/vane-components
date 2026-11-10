@@ -20,7 +20,12 @@ import doc from "./doc.json";
 export interface FavoriteConfig {
   /** 回调动作名，默认 favorite */
   action?: string;
-  /** 已收藏填充色，默认 #f5a524 */
+  /**
+   * 已收藏填充色，默认 #9a5b00。
+   *
+   * 不用更亮的琥珀：#f5a524 压在同色系淡底上只有 1.91:1，视觉上像没点亮，
+   * 对比度体检也会判不合格。这个值 = --vane-asset-warn，与淡底搭配能到 4.9:1。
+   */
   activeColor?: string;
 }
 
@@ -61,7 +66,7 @@ function FavoriteView({
 
 export const createFavoritePlugin: AssetPluginCreator<FavoriteConfig> = (config = {}) => {
   const action = config.action ?? "favorite";
-  const activeColor = config.activeColor ?? "#f5a524";
+  const activeColor = config.activeColor ?? "#9a5b00";
 
   return {
     name: "favorite",

@@ -236,8 +236,10 @@
 }
 
 .vc-asset-btn[data-tone="accent"] {
-  border-color: var(--vane-asset-accent);
-  background: var(--vane-asset-accent);
+  border-color: var(--vane-asset-accent-strong);
+  /* 底色用 accent-strong 而不是 accent：白字压在 #2b7de9 上只有 4.03:1，
+     差一点点就是「看不见」；#1c5fbe 能到 6.1:1 */
+  background: var(--vane-asset-accent-strong);
   color: var(--vane-asset-ink-invert);
 }
 
@@ -401,7 +403,8 @@
   padding: 0;
   border: 1px solid var(--vane-asset-border-strong);
   border-radius: var(--vane-asset-radius-sm);
-  background: #ffffff;
+  /* 卡片媒体区是图片，这里必须是不透明底，否则图标会跟照片糊在一起 */
+  background: var(--vane-asset-bg);
   color: var(--vane-asset-ink);
   font-family: inherit;
   font-size: 11px;
@@ -418,8 +421,9 @@
 }
 
 .vc-asset-icon[data-active="true"] {
-  border-color: #e0a94b;
-  background: #fff7e6;
+  border-color: var(--vane-asset-warn);
+  /* 底色与描边都走 warn 令牌：写死 #fff7e6 时，换肤之后这里会变成一块孤岛 */
+  background: var(--vane-asset-warn-wash);
 }
 
 .vc-asset-actions {

@@ -36,6 +36,22 @@
 | `getSelection()` | 当前选中 id（有序） |
 | `getVisibleIds()` | 当前页可见 id |
 
+## 卡片 DOM 契约
+
+宿主写样式、写 e2e 时依赖这几个稳定标记（改它们算破坏性变更）：
+
+| 属性 | 取值 | 说明 |
+| --- | --- | --- |
+| `role` | `listbox`（网格）/ `option`（卡片） | 与 `aria-multiselectable` 配合 |
+| `aria-selected` | `"true" \| "false"` | 选中态。**不要**用 `data-selected` 反推可访问性 |
+| `aria-disabled` | 存在即为禁用 | 未就绪（`processing` / `failed`）或已达 `maxSelected` |
+| `data-asset-id` | 素材 id | 定位单张卡 |
+| `data-selected` / `data-selectable` / `data-blocked` | `"true" \| "false"` | 三种状态的机器可读副本 |
+| `data-kind` / `data-status` | `image`/`video`、`ready`/`processing`/`failed` | 便于按类型或状态做样式与断言 |
+| `data-active` | `"true" \| "false"` | 键盘焦点所在卡（roving tabindex，只有一张 `tabIndex=0`） |
+
+空态的 `.vc-asset__empty` 带 `data-reason="empty" \| "filtered"`：库本身为空 / 被当前筛选清空，两种情况的出口文案不一样。
+
 ## 数据类型
 
 ```ts

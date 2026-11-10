@@ -13,7 +13,10 @@ const demo = createDemoConfig({
 
 /**
  * 消费者视角别名：demo 代码里 `from "vane-asset-library/custom-plugins/XxxPlugin"` 直接指回 src，
- * 场景卡展示的源码可以原样复制到真实项目。**通配在前、裸名在后**，反了会 ENOENT。
+ * 场景卡展示的源码可以原样复制到真实项目。
+ *
+ * 顺序要紧：先精确匹配 barrel（`/custom-plugins`，尾部没有斜杠），再匹配子路径通配，
+ * 最后才是裸包名。反了会把 `vane-asset-library/custom-plugins` 拼成 `src/index.ts/custom-plugins`。
  */
 export default {
   ...demo,
@@ -21,6 +24,10 @@ export default {
     ...demo.resolve,
     alias: [
       { find: /^@\//, replacement: path.resolve(root, "src") + "/" },
+      {
+        find: /^vane-asset-library\/custom-plugins$/,
+        replacement: path.resolve(root, "src/custom-plugins/index.ts"),
+      },
       {
         find: new RegExp(`^vane-asset-library\\/custom-plugins\\/(.+)$`),
         replacement: path.resolve(root, "src/custom-plugins/$1"),

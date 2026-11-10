@@ -9,9 +9,14 @@
   ],
   "events": [
     {
+      "name": "onAssetActivate",
+      "when": "双击卡片 / 按 Enter",
+      "description": "打开当前素材的预览浮层（宿主若自己接了 onItemActivate 不冲突，两者都执行）"
+    },
+    {
       "name": "renderOverlay",
-      "when": "每次渲染",
-      "description": "大图 / 视频预览浮层：Esc 或点遮罩关闭，左右方向键在当……"
+      "when": "previewId 非空时",
+      "description": "渲染 dialog 浮层：Esc 或点遮罩关闭，← → 在筛选结果里切换"
     }
   ],
   "methods": [],
@@ -31,7 +36,8 @@
   ],
   "example": "createLightBoxPlugin({ arrows: false })",
   "features": [
-    "打开态存内核 state，卡片按钮可远程打开",
+    "双击卡片 / Enter 即可打开，卡片上的预览按钮也能远程打开",
+    "打开态存内核 state，任何插件都能 openPreview / closePreview",
     "翻页范围是筛选结果而非当前页",
     "dialog 语义 + aria-modal"
   ],

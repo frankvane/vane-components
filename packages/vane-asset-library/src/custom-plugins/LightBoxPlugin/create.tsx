@@ -108,6 +108,17 @@ export const createLightBoxPlugin: AssetPluginCreator<LightBoxConfig> = (config 
     priority: 45,
     config,
     hooks: {
+      /**
+       * 双击 / Enter 直接打开预览。
+       *
+       * `onItemActivate` 在内核里默认什么也不做（宿主可以自己接「打开详情页」），
+       * 而素材库最常见的激活语义就是「看大图」—— 不接这一步，用户双击卡片会觉得坏了。
+       * 宿主同时传了自己的 onItemActivate 也不会冲突：两个都执行。
+       */
+      onAssetActivate: (context, item) => {
+        if (context.previewId) return;
+        context.openPreview(item.id);
+      },
       renderOverlay: (context) => {
         if (!context.previewId) return null;
         const item = context.items.find((entry) => entry.id === context.previewId);
