@@ -1,0 +1,41 @@
+{
+  "name": "FolderFilter",
+  "description": "分组筛选：按宿主传入的 folders 平铺切换（不做文件树），chip 上显示该组真实数量。",
+  "since": "0.1.0",
+  "tags": [
+    "filter",
+    "folder",
+    "group"
+  ],
+  "events": [
+    {
+      "name": "renderToolbar",
+      "when": "每次渲染",
+      "description": "分组筛选：按宿主传入的 folders 平铺切换（不做文件树……"
+    }
+  ],
+  "methods": [],
+  "config": [
+    {
+      "name": "allLabel",
+      "type": "string",
+      "default": "全部分组",
+      "description": "「全部」chip 文案"
+    },
+    {
+      "name": "hideEmpty",
+      "type": "boolean",
+      "default": "false",
+      "description": "是否隐藏 0 项的分组"
+    }
+  ],
+  "example": "createFolderFilterPlugin({ hideEmpty: true })",
+  "features": [
+    "计数按 items 现算，folder.count 只作兜底",
+    "与类型 / 标签 / 搜索可叠加",
+    "无 folders 时整块不渲染"
+  ],
+  "useCases": [
+    "按项目 / 栏目分组管理素材"
+  ]
+}

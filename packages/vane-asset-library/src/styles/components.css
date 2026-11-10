@@ -1,0 +1,552 @@
+/**
+ * vane-asset-library 组件样式。
+ *
+ * 约定（ADR-13）：
+ *  - 容器自带 color + background，不靠继承（宿主深色壳里不能白底白字）；
+ *  - 任何内联了 background 的元素也必须带 color —— 插件侧同理；
+ *  - 禁用态用实色灰，不叠 opacity（opacity 会被体检脚本逐层相乘，直接掉到 3:1 以下）。
+ */
+
+.vc-asset {
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  color: var(--vane-asset-ink);
+  background: var(--vane-asset-bg);
+  font-family: var(--vane-asset-font);
+  font-size: 13px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.vc-asset *,
+.vc-asset *::before,
+.vc-asset *::after {
+  box-sizing: border-box;
+}
+
+/* ---------------- 网格 ---------------- */
+
+.vc-asset__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--vc-asset-col, 176px), 1fr));
+  align-content: start;
+  outline: none;
+}
+
+.vc-asset__grid[data-view="list"] {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.vc-asset-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 0;
+  border: 1px solid var(--vane-asset-border);
+  border-radius: var(--vane-asset-radius);
+  background: var(--vane-asset-bg);
+  color: var(--vane-asset-ink);
+  box-shadow: var(--vane-asset-shadow-card);
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color var(--vane-asset-dur) ease, box-shadow var(--vane-asset-dur) ease;
+}
+
+.vc-asset-card:hover {
+  border-color: var(--vane-asset-border-strong);
+  box-shadow: var(--vane-asset-shadow);
+}
+
+.vc-asset-card:focus-visible {
+  outline: 2px solid var(--vane-asset-accent);
+  outline-offset: 2px;
+}
+
+.vc-asset-card[data-selected="true"] {
+  border-color: var(--vane-asset-accent);
+  box-shadow: 0 0 0 2px var(--vane-asset-accent-wash);
+}
+
+.vc-asset-card[data-blocked="true"] {
+  cursor: not-allowed;
+}
+
+.vc-asset-card[data-blocked="true"] .vc-asset-card__media {
+  filter: grayscale(0.15);
+}
+
+.vc-asset-card__media {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  background: var(--vane-asset-surface);
+  overflow: hidden;
+}
+
+.vc-asset-card__media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.vc-asset-card__ph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: var(--vane-asset-ink-faint);
+  font-family: var(--vane-asset-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.vc-asset-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px 10px;
+  min-width: 0;
+}
+
+.vc-asset-card__title {
+  overflow: hidden;
+  color: var(--vane-asset-ink);
+  font-size: 12px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 列表视图：横向排布，媒体区固定窄条 */
+.vc-asset__grid[data-view="list"] .vc-asset-card {
+  flex-direction: row;
+  align-items: center;
+}
+
+.vc-asset__grid[data-view="list"] .vc-asset-card__media {
+  width: 92px;
+  flex: 0 0 92px;
+  aspect-ratio: 16 / 10;
+  border-radius: 0;
+}
+
+.vc-asset__grid[data-view="list"] .vc-asset-card__body {
+  flex: 1 1 auto;
+  padding: 6px 12px;
+}
+
+/* ---------------- 空态 ---------------- */
+
+.vc-asset__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 44px 16px;
+  border: 1px dashed var(--vane-asset-border-strong);
+  border-radius: var(--vane-asset-radius);
+  color: var(--vane-asset-ink-muted);
+  text-align: center;
+}
+
+.vc-asset__empty p {
+  margin: 0;
+  font-size: 13px;
+}
+
+/* ---------------- 共用控件（插件复用，避免每个插件自带一套 inline 样式） ---------------- */
+
+.vc-asset-toolbar,
+.vc-asset-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.vc-asset-footer {
+  padding-top: 10px;
+  border-top: 1px solid var(--vane-asset-border);
+}
+
+.vc-asset-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px;
+  border: 1px solid var(--vane-asset-border);
+  border-radius: var(--vane-asset-radius-pill);
+  background: var(--vane-asset-bg);
+  color: var(--vane-asset-ink-muted);
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: background var(--vane-asset-dur) ease, border-color var(--vane-asset-dur) ease;
+}
+
+.vc-asset-chip:hover {
+  background: var(--vane-asset-surface-hover);
+  color: var(--vane-asset-ink);
+}
+
+.vc-asset-chip[aria-pressed="true"],
+.vc-asset-chip[data-active="true"] {
+  border-color: var(--vane-asset-accent);
+  background: var(--vane-asset-accent-wash);
+  color: var(--vane-asset-accent-strong);
+  font-weight: 600;
+}
+
+.vc-asset-chip:focus-visible,
+.vc-asset-btn:focus-visible,
+.vc-asset-input:focus-visible,
+.vc-asset-badge:focus-visible {
+  outline: 2px solid var(--vane-asset-accent);
+  outline-offset: 2px;
+}
+
+.vc-asset-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border: 1px solid var(--vane-asset-border-strong);
+  border-radius: var(--vane-asset-radius-sm);
+  background: var(--vane-asset-bg);
+  color: var(--vane-asset-ink);
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: background var(--vane-asset-dur) ease;
+}
+
+.vc-asset-btn:hover {
+  background: var(--vane-asset-surface-hover);
+}
+
+.vc-asset-btn[data-tone="accent"] {
+  border-color: var(--vane-asset-accent);
+  background: var(--vane-asset-accent);
+  color: var(--vane-asset-ink-invert);
+}
+
+.vc-asset-btn[data-tone="danger"] {
+  border-color: var(--vane-asset-danger);
+  background: var(--vane-asset-danger-wash);
+  color: var(--vane-asset-danger);
+}
+
+.vc-asset-btn:disabled {
+  border-color: var(--vane-asset-border);
+  background: var(--vane-asset-surface);
+  color: var(--vane-asset-ink-faint);
+  cursor: not-allowed;
+}
+
+.vc-asset-input {
+  min-width: 0;
+  padding: 5px 9px;
+  border: 1px solid var(--vane-asset-border-strong);
+  border-radius: var(--vane-asset-radius-sm);
+  background: var(--vane-asset-bg);
+  color: var(--vane-asset-ink);
+  font-family: inherit;
+  font-size: 12px;
+}
+
+.vc-asset-input::placeholder {
+  color: var(--vane-asset-ink-faint);
+}
+
+.vc-asset-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  border-radius: var(--vane-asset-radius-sm);
+  background: rgba(17, 21, 28, 0.82);
+  color: #ffffff;
+  font-family: var(--vane-asset-font-mono);
+  font-size: 10px;
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.vc-asset-badge[data-tone="warn"] {
+  background: var(--vane-asset-warn-wash);
+  color: var(--vane-asset-warn);
+}
+
+.vc-asset-badge[data-tone="danger"] {
+  background: var(--vane-asset-danger-wash);
+  color: var(--vane-asset-danger);
+}
+
+.vc-asset-badge[data-tone="good"] {
+  background: var(--vane-asset-good-wash);
+  color: var(--vane-asset-good);
+}
+
+.vc-asset-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  color: var(--vane-asset-ink-faint);
+  font-family: var(--vane-asset-font-mono);
+  font-size: 10.5px;
+}
+
+.vc-asset-meta__dot::before {
+  content: "·";
+  margin-right: 6px;
+}
+
+.vc-asset-count {
+  color: var(--vane-asset-ink-muted);
+  font-family: var(--vane-asset-font-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.02em;
+}
+
+/* ---------------- 卡片覆盖层容器（插件往这层塞角标/按钮） ---------------- */
+
+.vc-asset-card__overlay {
+  position: absolute;
+  inset: 6px 6px auto auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  pointer-events: none;
+}
+
+.vc-asset-card__overlay > * {
+  pointer-events: auto;
+}
+
+.vc-asset-card__overlay[data-align="start"] {
+  inset: 6px auto auto 6px;
+}
+
+.vc-asset-card__overlay[data-align="end"] {
+  inset: 6px 6px auto auto;
+}
+
+.vc-asset-card__overlay[data-align="bottom"] {
+  inset: auto 6px 6px auto;
+}
+
+.vc-asset-card__overlay[data-align="bottom-start"] {
+  inset: auto auto 6px 6px;
+}
+
+/* ---------------- 卡片上的实心小控件 ----------------
+ * 全部用实色而不是半透明：这些控件压在图片上，半透明底会把对比度算成「未知」，
+ * 也就等于放弃了可读性保证。实色底 + 高对比字是唯一稳的写法。
+ */
+
+.vc-asset-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1.5px solid #ffffff;
+  border-radius: 50%;
+  background: #1f2328;
+  color: #ffffff;
+  font-family: var(--vane-asset-font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+
+.vc-asset-mark[data-selected="true"] {
+  background: var(--vane-asset-accent-strong);
+}
+
+.vc-asset-mark:disabled {
+  background: #6b7280;
+  color: #f3f4f6;
+  cursor: not-allowed;
+}
+
+.vc-asset-mark:focus-visible,
+.vc-asset-icon:focus-visible {
+  outline: 2px solid var(--vane-asset-accent);
+  outline-offset: 2px;
+}
+
+.vc-asset-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--vane-asset-border-strong);
+  border-radius: var(--vane-asset-radius-sm);
+  background: #ffffff;
+  color: var(--vane-asset-ink);
+  font-family: inherit;
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.vc-asset-icon:hover {
+  background: var(--vane-asset-surface-hover);
+}
+
+.vc-asset-icon[data-tone="danger"] {
+  color: var(--vane-asset-danger);
+}
+
+.vc-asset-icon[data-active="true"] {
+  border-color: #e0a94b;
+  background: #fff7e6;
+}
+
+.vc-asset-actions {
+  position: absolute;
+  left: 50%;
+  bottom: 6px;
+  display: flex;
+  gap: 4px;
+  transform: translateX(-50%);
+}
+
+.vc-asset-status {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f6f8;
+  color: var(--vane-asset-ink-muted);
+}
+
+.vc-asset-status__text {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.vc-asset-status__text[data-tone="warn"] {
+  color: var(--vane-asset-warn);
+}
+
+.vc-asset-status__text[data-tone="danger"] {
+  color: var(--vane-asset-danger);
+}
+
+.vc-asset-pager {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+/* ---------------- 拖拽区 ---------------- */
+
+.vc-asset-dropzone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 16px;
+  border: 1px dashed var(--vane-asset-border-strong);
+  border-radius: var(--vane-asset-radius);
+  background: var(--vane-asset-surface);
+  color: var(--vane-asset-ink-muted);
+  font-size: 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color var(--vane-asset-dur) ease, background var(--vane-asset-dur) ease;
+}
+
+.vc-asset-dropzone[data-dragging="true"] {
+  border-color: var(--vane-asset-accent);
+  background: var(--vane-asset-accent-wash);
+  color: var(--vane-asset-accent-strong);
+}
+
+.vc-asset-dropzone strong {
+  color: var(--vane-asset-ink);
+  font-weight: 600;
+}
+
+/* ---------------- 浮层（大图预览） ---------------- */
+
+.vc-asset-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px;
+  background: rgba(12, 15, 20, 0.86);
+  color: #ffffff;
+}
+
+.vc-asset-lightbox__body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: min(1100px, 100%);
+  max-height: 78vh;
+}
+
+.vc-asset-lightbox__body img,
+.vc-asset-lightbox__body video {
+  max-width: 100%;
+  max-height: 78vh;
+  border-radius: var(--vane-asset-radius);
+  background: #000000;
+}
+
+.vc-asset-lightbox__bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 12px;
+}
+
+.vc-asset-lightbox__close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  padding: 6px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: var(--vane-asset-radius-sm);
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.vc-asset-lightbox__close:hover {
+  background: rgba(255, 255, 255, 0.22);
+}

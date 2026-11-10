@@ -1,0 +1,40 @@
+{
+  "name": "Pagination",
+  "description": "分页器：页码窗口 5 个 + 每页条数；pageCount 由纯函数算，越界自动夹紧。",
+  "since": "0.1.0",
+  "tags": [
+    "pagination",
+    "footer"
+  ],
+  "events": [
+    {
+      "name": "renderFooter",
+      "when": "每次渲染",
+      "description": "分页器：页码窗口 5 个 + 每页条数；pageCount ……"
+    }
+  ],
+  "methods": [],
+  "config": [
+    {
+      "name": "pageSizes",
+      "type": "number[]",
+      "default": "[12,24,48]",
+      "description": "可选每页条数，[] 隐藏下拉"
+    },
+    {
+      "name": "window",
+      "type": "number",
+      "default": "5",
+      "description": "页码窗口大小"
+    }
+  ],
+  "example": "createPaginationPlugin({ pageSizes: [24, 48, 96] })",
+  "features": [
+    "只有一页时不渲染",
+    "aria-current 标注当前页",
+    "改每页条数回到第 1 页"
+  ],
+  "useCases": [
+    "大库分页浏览"
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "name": "Search",
+  "description": "关键词搜索：按标题 / 文件名 / 标签 / 分组 / MIME 过滤，200ms 防抖并使用 ⌘K 聚焦。",
+  "since": "0.1.0",
+  "tags": [
+    "search",
+    "filter",
+    "debounce"
+  ],
+  "events": [
+    {
+      "name": "renderToolbar",
+      "when": "每次渲染",
+      "description": "关键词搜索：按标题 / 文件名 / 标签 / 分组 / MI……"
+    }
+  ],
+  "methods": [],
+  "config": [
+    {
+      "name": "placeholder",
+      "type": "string",
+      "default": "搜索名称 / 标签 / 分组",
+      "description": "占位文案"
+    },
+    {
+      "name": "debounce",
+      "type": "number",
+      "default": "200",
+      "description": "写回筛选条件的防抖毫秒"
+    },
+    {
+      "name": "hotkey",
+      "type": "boolean",
+      "default": "true",
+      "description": "⌘K / Ctrl+K 聚焦输入框"
+    },
+    {
+      "name": "width",
+      "type": "number",
+      "default": "200",
+      "description": "输入框宽度（px）"
+    }
+  ],
+  "example": "createSearchPlugin({ debounce: 300, placeholder: \"搜素材\" })",
+  "features": [
+    "外部清空筛选后输入框自动同步",
+    "Esc 清空关键词",
+    "防抖期间不触发整墙重排"
+  ],
+  "useCases": [
+    "素材检索",
+    "按文件名定位素材"
+  ]
+}

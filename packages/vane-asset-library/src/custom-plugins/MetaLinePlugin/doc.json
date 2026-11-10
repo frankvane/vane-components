@@ -1,0 +1,41 @@
+{
+  "name": "MetaLine",
+  "description": "卡片元信息行：体积 / 分辨率 / 分组 / 标签 / 日期，缺字段就少一段，绝不编造。",
+  "since": "0.1.0",
+  "tags": [
+    "overlay",
+    "meta"
+  ],
+  "events": [
+    {
+      "name": "renderCardMeta",
+      "when": "每次渲染，逐张卡片调用",
+      "description": "卡片元信息行：体积 / 分辨率 / 分组 / 标签 / 日期……"
+    }
+  ],
+  "methods": [],
+  "config": [
+    {
+      "name": "show",
+      "type": "MetaField[]",
+      "default": "[\"size\",\"dimension\"]",
+      "description": "展示哪些字段"
+    },
+    {
+      "name": "maxTags",
+      "type": "number",
+      "default": "2",
+      "description": "标签最多显示几个"
+    }
+  ],
+  "example": "createMetaLinePlugin({ show: [\"size\", \"dimension\", \"date\"] })",
+  "features": [
+    "分隔点由 CSS 伪元素生成，首尾不多点",
+    "体积 / 日期格式化走 domain 纯函数",
+    "无效值自动跳过"
+  ],
+  "useCases": [
+    "素材规格速览",
+    "找超标大图"
+  ]
+}

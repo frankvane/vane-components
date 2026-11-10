@@ -1,0 +1,42 @@
+{
+  "name": "Favorite",
+  "description": "收藏星标：点击抛 onAssetAction(\"favorite\")，亮灭取决于宿主回写的 item.favorite。",
+  "since": "0.1.0",
+  "tags": [
+    "overlay",
+    "favorite",
+    "action"
+  ],
+  "events": [
+    {
+      "name": "renderCardOverlay",
+      "when": "每次渲染，逐张卡片调用",
+      "description": "收藏星标：点击抛 onAssetAction(\"favori……"
+    }
+  ],
+  "methods": [],
+  "config": [
+    {
+      "name": "action",
+      "type": "string",
+      "default": "favorite",
+      "description": "回调动作名"
+    },
+    {
+      "name": "activeColor",
+      "type": "string",
+      "default": "#f5a524",
+      "description": "已收藏颜色"
+    }
+  ],
+  "example": "createFavoritePlugin({ action: \"star\" })",
+  "features": [
+    "不做乐观更新，避免与宿主数据打架",
+    "aria-pressed 表达状态",
+    "点击阻断卡片选中"
+  ],
+  "useCases": [
+    "素材收藏",
+    "常用图标记"
+  ]
+}

@@ -1,0 +1,184 @@
+{
+  "name": "vane-asset-library",
+  "version": "0.1.0",
+  "description": "插件式 React 素材网格墙",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./entries/core": {
+      "types": "./dist/entries/core.d.ts",
+      "import": "./dist/entries/core.js"
+    },
+    "./entries/plugins": {
+      "types": "./dist/entries/plugins.d.ts",
+      "import": "./dist/entries/plugins.js"
+    },
+    "./custom-plugins/BulkBarPlugin": {
+      "types": "./dist/custom-plugins/BulkBarPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/BulkBarPlugin/index.js"
+    },
+    "./custom-plugins/CardActionsPlugin": {
+      "types": "./dist/custom-plugins/CardActionsPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/CardActionsPlugin/index.js"
+    },
+    "./custom-plugins/CountPlugin": {
+      "types": "./dist/custom-plugins/CountPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/CountPlugin/index.js"
+    },
+    "./custom-plugins/DropzonePlugin": {
+      "types": "./dist/custom-plugins/DropzonePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/DropzonePlugin/index.js"
+    },
+    "./custom-plugins/DurationPlugin": {
+      "types": "./dist/custom-plugins/DurationPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/DurationPlugin/index.js"
+    },
+    "./custom-plugins/EmptyStatePlugin": {
+      "types": "./dist/custom-plugins/EmptyStatePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/EmptyStatePlugin/index.js"
+    },
+    "./custom-plugins/FavoritePlugin": {
+      "types": "./dist/custom-plugins/FavoritePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/FavoritePlugin/index.js"
+    },
+    "./custom-plugins/FolderFilterPlugin": {
+      "types": "./dist/custom-plugins/FolderFilterPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/FolderFilterPlugin/index.js"
+    },
+    "./custom-plugins/KindBadgePlugin": {
+      "types": "./dist/custom-plugins/KindBadgePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/KindBadgePlugin/index.js"
+    },
+    "./custom-plugins/KindFilterPlugin": {
+      "types": "./dist/custom-plugins/KindFilterPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/KindFilterPlugin/index.js"
+    },
+    "./custom-plugins/LightBoxPlugin": {
+      "types": "./dist/custom-plugins/LightBoxPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/LightBoxPlugin/index.js"
+    },
+    "./custom-plugins/MetaLinePlugin": {
+      "types": "./dist/custom-plugins/MetaLinePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/MetaLinePlugin/index.js"
+    },
+    "./custom-plugins/PaginationPlugin": {
+      "types": "./dist/custom-plugins/PaginationPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/PaginationPlugin/index.js"
+    },
+    "./custom-plugins/SearchPlugin": {
+      "types": "./dist/custom-plugins/SearchPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/SearchPlugin/index.js"
+    },
+    "./custom-plugins/SelectAllPlugin": {
+      "types": "./dist/custom-plugins/SelectAllPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/SelectAllPlugin/index.js"
+    },
+    "./custom-plugins/SelectMarkPlugin": {
+      "types": "./dist/custom-plugins/SelectMarkPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/SelectMarkPlugin/index.js"
+    },
+    "./custom-plugins/SortPlugin": {
+      "types": "./dist/custom-plugins/SortPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/SortPlugin/index.js"
+    },
+    "./custom-plugins/StatusBadgePlugin": {
+      "types": "./dist/custom-plugins/StatusBadgePlugin/index.d.ts",
+      "import": "./dist/custom-plugins/StatusBadgePlugin/index.js"
+    },
+    "./custom-plugins/TagFilterPlugin": {
+      "types": "./dist/custom-plugins/TagFilterPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/TagFilterPlugin/index.js"
+    },
+    "./custom-plugins/ViewSwitchPlugin": {
+      "types": "./dist/custom-plugins/ViewSwitchPlugin/index.d.ts",
+      "import": "./dist/custom-plugins/ViewSwitchPlugin/index.js"
+    },
+    "./custom-plugins": {
+      "types": "./dist/custom-plugins/index.d.ts",
+      "import": "./dist/custom-plugins/index.js"
+    },
+    "./custom-plugins/*": {
+      "types": "./dist/custom-plugins/*/index.d.ts",
+      "import": "./dist/custom-plugins/*/index.js"
+    },
+    "./style.css": "./dist/style.css"
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "react",
+    "plugin",
+    "asset-library",
+    "media",
+    "gallery",
+    "media-picker",
+    "typescript"
+  ],
+  "author": "Frank Vane",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/frankvane/vane-components.git",
+    "directory": "packages/vane-asset-library"
+  },
+  "scripts": {
+    "dev": "vite --config demo/vite.config.ts",
+    "build": "vite build --mode lib",
+    "build:demo": "vite build --config demo/vite.config.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "lint": "eslint .",
+    "sync:exports": "node ../../scripts/sync-exports.mjs",
+    "prepublishOnly": "npm run build"
+  },
+  "vane": {
+    "demo": {
+      "brand": "A",
+      "subtitle": "素材库 / plugin index",
+      "title": "素材库 演示台",
+      "accent": "#ff7a29",
+      "bg": "#0b0a09"
+    },
+    "sizeBudgetKb": 12,
+    "coreSizeBudgetKb": 8,
+    "fullSizeBudgetKb": 70,
+    "sizeBudgetNote": "【首发基线：入口闸门口径实测 11.6KB，预算定 12（余量 ~350B）】两套口径别混用：① 闸门口径（scripts/check-packages.mjs）＝入口 + 其静态引用 chunk 逐个 gzip 相加，实测 11.6KB —— 该数按未压缩的 lib 产物计算，注释与可读命名都会计入；② 消费方口径（esbuild dist/index.js --bundle --minify --packages=external 后 gzip）实测 9.07KB，这才是 import { AssetLibraryCore } 真正加进用户 bundle 的字节数。构成：createAssetLibrary 闭包 9.31KB（Core 网格/键盘导航 + withPlugins 状态机 + 槽位组装）+ domain 纯函数 2.15KB + index 0.15KB。是否可裁：否 —— dist 内 0 重复内容、全部符号可达；要压到 10KB 只能砍 domain 的对外纯函数导出（宿主复用口径）或核心方向键导航（无障碍），属砍功能。core 子路径（entries/core）独立预算 8KB，实测 8.6KB 消费方口径 / 闸门未超；全量并集 24.7/70。"
+  },
+  "peerDependencies": {
+    "react": ">=16.8.0",
+    "react-dom": ">=16.8.0",
+    "vane-plugin-core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vane/build-config": "workspace:*",
+    "vane-plugin-core": "workspace:*",
+    "@vane/tsconfig": "workspace:*",
+    "@vitejs/plugin-react": "^4.3.1",
+    "happy-dom": "^15.11.7",
+    "react": "^18.3.1",
+    "react-router-dom": "^6.26.2",
+    "react-dom": "^18.3.1",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.1",
+    "vite-plugin-dts": "^4.5.4",
+    "vitest": "^2.1.8",
+    "@vane/vitest-config": "workspace:*",
+    "@vane/eslint-config": "workspace:*"
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "name": "TagFilter",
+  "description": "标签面筛选：从素材汇总标签并按出现次数排序，支持多选（OR），已选标签永不被截断。",
+  "since": "0.1.0",
+  "tags": [
+    "filter",
+    "tag",
+    "facet"
+  ],
+  "events": [
+    {
+      "name": "renderToolbar",
+      "when": "每次渲染",
+      "description": "标签面筛选：从素材汇总标签并按出现次数排序，支持多选（OR）……"
+    }
+  ],
+  "methods": [],
+  "config": [
+    {
+      "name": "max",
+      "type": "number",
+      "default": "8",
+      "description": "最多展示几个标签，0 = 不限"
+    },
+    {
+      "name": "sort",
+      "type": "\"count\" | \"name\"",
+      "default": "\"count\"",
+      "description": "标签排序方式"
+    }
+  ],
+  "example": "createTagFilterPlugin({ max: 12 })",
+  "features": [
+    "facet 从全量素材现算，选中后其它标签不消失",
+    "已选标签始终可见，可再次点掉",
+    "一键清除标签"
+  ],
+  "useCases": [
+    "按业务标签筛素材",
+    "运营选图"
+  ]
+}

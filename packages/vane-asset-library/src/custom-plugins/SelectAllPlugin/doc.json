@@ -1,0 +1,41 @@
+{
+  "name": "SelectAll",
+  "description": "全选本页 / 取消选择：只作用于当前页可见且就绪的素材，达上限时按钮如实禁用。",
+  "since": "0.1.0",
+  "tags": [
+    "select",
+    "batch"
+  ],
+  "events": [
+    {
+      "name": "renderToolbar",
+      "when": "每次渲染",
+      "description": "全选本页 / 取消选择：只作用于当前页可见且就绪的素材，达上……"
+    }
+  ],
+  "methods": [],
+  "config": [
+    {
+      "name": "selectLabel",
+      "type": "string",
+      "default": "全选本页",
+      "description": "全选按钮文案"
+    },
+    {
+      "name": "clearLabel",
+      "type": "string",
+      "default": "取消选择",
+      "description": "清空按钮文案"
+    }
+  ],
+  "example": "createSelectAllPlugin()",
+  "features": [
+    "排除未就绪素材",
+    "不跨页全选（避免误删）",
+    "达到 maxSelected 时禁用并说明"
+  ],
+  "useCases": [
+    "批量删除前的快速选择",
+    "批量下载当前页"
+  ]
+}

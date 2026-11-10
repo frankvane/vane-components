@@ -1,0 +1,41 @@
+{
+  "name": "BulkBar",
+  "description": "批量操作条：已选数量 + 批量下载 / 删除 / 清空，动作名统一带 bulk: 前缀。",
+  "since": "0.1.0",
+  "tags": [
+    "batch",
+    "footer"
+  ],
+  "events": [
+    {
+      "name": "renderFooter",
+      "when": "每次渲染",
+      "description": "批量操作条：已选数量 + 批量下载 / 删除 / 清空，动作……"
+    }
+  ],
+  "methods": [],
+  "config": [
+    {
+      "name": "actions",
+      "type": "BulkAction[]",
+      "default": "批量下载/批量删除",
+      "description": "批量动作项"
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "已选 {n} 项",
+      "description": "已选文案，{n} 会替换成数量"
+    }
+  ],
+  "example": "createBulkBarPlugin({ label: \"已选 {n} 个素材\" })",
+  "features": [
+    "未选择时整块不渲染，页脚不占位",
+    "动作带 bulk: 前缀便于宿主分流",
+    "内置清空选择"
+  ],
+  "useCases": [
+    "批量删除素材",
+    "批量导出"
+  ]
+}

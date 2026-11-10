@@ -1,0 +1,42 @@
+{
+  "name": "LightBox",
+  "description": "大图 / 视频预览浮层：Esc 或点遮罩关闭，左右方向键在当前筛选结果里切换。",
+  "since": "0.1.0",
+  "tags": [
+    "preview",
+    "overlay",
+    "keyboard"
+  ],
+  "events": [
+    {
+      "name": "renderOverlay",
+      "when": "每次渲染",
+      "description": "大图 / 视频预览浮层：Esc 或点遮罩关闭，左右方向键在当……"
+    }
+  ],
+  "methods": [],
+  "config": [
+    {
+      "name": "arrows",
+      "type": "boolean",
+      "default": "true",
+      "description": "支持 ← → 在筛选结果里切换"
+    },
+    {
+      "name": "restoreFocus",
+      "type": "boolean",
+      "default": "true",
+      "description": "关闭后恢复焦点（由宿主焦点管理兜底）"
+    }
+  ],
+  "example": "createLightBoxPlugin({ arrows: false })",
+  "features": [
+    "打开态存内核 state，卡片按钮可远程打开",
+    "翻页范围是筛选结果而非当前页",
+    "dialog 语义 + aria-modal"
+  ],
+  "useCases": [
+    "素材大图预览",
+    "视频抽查"
+  ]
+}

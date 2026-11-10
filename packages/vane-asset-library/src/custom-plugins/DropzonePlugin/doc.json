@@ -1,0 +1,48 @@
+{
+  "name": "Dropzone",
+  "description": "拖拽上传占位：接收拖入或点击选择的文件，按 accept 过滤后交回宿主，组件不发起任何请求。",
+  "since": "0.1.0",
+  "tags": [
+    "upload",
+    "dropzone",
+    "dnd"
+  ],
+  "events": [
+    {
+      "name": "renderDropzone",
+      "when": "每次渲染",
+      "description": "拖拽上传占位：接收拖入或点击选择的文件，按 accept 过……"
+    }
+  ],
+  "methods": [],
+  "config": [
+    {
+      "name": "accept",
+      "type": "string[]",
+      "default": "[\"image/*\",\"video/*\"]",
+      "description": "允许的文件类型，支持 image/* 前缀与 .png 扩展名"
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "default": "拖拽素材到此处",
+      "description": "主文案"
+    },
+    {
+      "name": "multiple",
+      "type": "boolean",
+      "default": "true",
+      "description": "是否允许一次多选"
+    }
+  ],
+  "example": "createDropzonePlugin({ accept: [\"image/*\"], label: \"拖入图片\" })",
+  "features": [
+    "dragover 必 preventDefault，否则 drop 永远不触发",
+    "过滤不匹配类型后才上抛 File[]",
+    "点击 / Enter 空格均可唤起文件选择"
+  ],
+  "useCases": [
+    "后台素材库上传入口",
+    "批量导入素材"
+  ]
+}

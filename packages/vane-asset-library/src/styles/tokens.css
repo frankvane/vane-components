@@ -1,0 +1,46 @@
+/**
+ * vane-asset-library 设计令牌。
+ *
+ * 全部走 CSS 变量：宿主换肤只需在任意祖先节点覆盖这些变量，
+ * 不用碰组件内部样式，也不用给组件传 style。
+ *
+ * 对比度基线（白底）：ink 14.7:1 / ink-muted 6.2:1 / ink-faint 4.8:1 / 边框 1.6:1（仅装饰）。
+ */
+:root {
+  /* 表面 */
+  --vane-asset-bg: #ffffff;
+  --vane-asset-surface: #f5f6f8;
+  --vane-asset-surface-hover: #eef1f5;
+  --vane-asset-border: #dfe3e8;
+  --vane-asset-border-strong: #c3c9d2;
+
+  /* 文字 */
+  --vane-asset-ink: #1f2328;
+  --vane-asset-ink-muted: #4f5663;
+  --vane-asset-ink-faint: #656c78;
+  --vane-asset-ink-invert: #ffffff;
+
+  /* 品牌与语义 */
+  --vane-asset-accent: #2b7de9;
+  --vane-asset-accent-strong: #1c5fbe;
+  --vane-asset-accent-wash: #e8f0fe;
+  --vane-asset-danger: #b42318;
+  --vane-asset-danger-wash: #fdeceb;
+  --vane-asset-warn: #9a5b00;
+  --vane-asset-warn-wash: #fdf3e2;
+  --vane-asset-good: #17663a;
+  --vane-asset-good-wash: #e8f5ee;
+
+  /* 形状与动效 */
+  --vane-asset-radius: 10px;
+  --vane-asset-radius-sm: 6px;
+  --vane-asset-radius-pill: 999px;
+  --vane-asset-shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 10px 28px -14px rgba(16, 24, 40, 0.24);
+  --vane-asset-shadow-card: 0 1px 2px rgba(16, 24, 40, 0.05);
+  --vane-asset-dur: 160ms;
+
+  /* 排版 */
+  --vane-asset-font: "Inter", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui,
+    sans-serif;
+  --vane-asset-font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}

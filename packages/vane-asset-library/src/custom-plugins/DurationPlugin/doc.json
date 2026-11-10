@@ -1,0 +1,36 @@
+{
+  "name": "Duration",
+  "description": "视频时长角标：只读 item.duration，不在组件里加载媒体元数据。",
+  "since": "0.1.0",
+  "tags": [
+    "overlay",
+    "video",
+    "duration"
+  ],
+  "events": [
+    {
+      "name": "renderCardOverlay",
+      "when": "每次渲染，逐张卡片调用",
+      "description": "视频时长角标：只读 item.duration，不在组件里加……"
+    }
+  ],
+  "methods": [],
+  "config": [
+    {
+      "name": "fallback",
+      "type": "boolean",
+      "default": "false",
+      "description": "无时长时是否显示 --:--"
+    }
+  ],
+  "example": "createDurationPlugin({ fallback: true })",
+  "features": [
+    "mm:ss / h:mm:ss 自动切换",
+    "非视频不渲染",
+    "缺失时长不编造"
+  ],
+  "useCases": [
+    "视频素材墙",
+    "影视素材管理"
+  ]
+}

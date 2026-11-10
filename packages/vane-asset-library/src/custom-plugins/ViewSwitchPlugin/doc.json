@@ -1,0 +1,40 @@
+{
+  "name": "ViewSwitch",
+  "description": "网格 / 列表视图切换；布局由 CSS 的 data-view 选择器负责，插件不复制渲染逻辑。",
+  "since": "0.1.0",
+  "tags": [
+    "view",
+    "layout"
+  ],
+  "events": [
+    {
+      "name": "renderToolbar",
+      "when": "每次渲染",
+      "description": "网格 / 列表视图切换；布局由 CSS 的 data-vie……"
+    }
+  ],
+  "methods": [],
+  "config": [
+    {
+      "name": "views",
+      "type": "AssetView[]",
+      "default": "[\"grid\",\"list\"]",
+      "description": "可切换的视图"
+    },
+    {
+      "name": "labels",
+      "type": "Partial<Record<AssetView,string>>",
+      "default": "网格/列表",
+      "description": "视图文案"
+    }
+  ],
+  "example": "createViewSwitchPlugin({ views: [\"grid\"] })",
+  "features": [
+    "切换只写内核 state.view",
+    "列表视图媒体区固定窄条",
+    "ARIA group 标注"
+  ],
+  "useCases": [
+    "后台素材浏览密度切换"
+  ]
+}

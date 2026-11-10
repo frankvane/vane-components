@@ -1,0 +1,35 @@
+{
+  "name": "SelectMark",
+  "description": "卡片选择标记：左上角勾选圈，多选时显示选择序号；点标记不会触发卡片其它行为。",
+  "since": "0.1.0",
+  "tags": [
+    "select",
+    "overlay"
+  ],
+  "events": [
+    {
+      "name": "renderCardOverlay",
+      "when": "每次渲染，逐张卡片调用",
+      "description": "卡片选择标记：左上角勾选圈，多选时显示选择序号；点标记不会触……"
+    }
+  ],
+  "methods": [],
+  "config": [
+    {
+      "name": "showIndex",
+      "type": "boolean",
+      "default": "true",
+      "description": "多选时显示第几个被选中"
+    }
+  ],
+  "example": "createSelectMarkPlugin({ showIndex: false })",
+  "features": [
+    "stopPropagation 避免双触发",
+    "未就绪素材不渲染标记",
+    "达上限的卡片禁用并给出 aria-label"
+  ],
+  "useCases": [
+    "多选素材",
+    "选图器"
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "name": "KindFilter",
+  "description": "按素材类型筛选（图片 / 视频），chip 上带各类型总数；「全部」只清类型，不动关键词与标签。",
+  "since": "0.1.0",
+  "tags": [
+    "filter",
+    "kind"
+  ],
+  "events": [
+    {
+      "name": "renderToolbar",
+      "when": "每次渲染",
+      "description": "按素材类型筛选（图片 / 视频），chip 上带各类型总数；……"
+    }
+  ],
+  "methods": [],
+  "config": [
+    {
+      "name": "kinds",
+      "type": "Array<{kind,label}>",
+      "default": "图片/视频",
+      "description": "参与筛选的类型与文案"
+    },
+    {
+      "name": "allLabel",
+      "type": "string",
+      "default": "全部",
+      "description": "「全部」chip 文案"
+    }
+  ],
+  "example": "createKindFilterPlugin({ allLabel: \"所有类型\" })",
+  "features": [
+    "计数取归一化全量，不随筛选变化",
+    "多选 OR 语义",
+    "「全部」不清空其它筛选条件"
+  ],
+  "useCases": [
+    "图库 / 视频混排",
+    "只看视频素材"
+  ]
+}

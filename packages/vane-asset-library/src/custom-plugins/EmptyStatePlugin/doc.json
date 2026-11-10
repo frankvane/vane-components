@@ -1,0 +1,53 @@
+{
+  "name": "EmptyState",
+  "description": "空态：区分「库为空」与「筛选无结果」，后者给一键清空筛选，避免用户误以为素材被删。",
+  "since": "0.1.0",
+  "tags": [
+    "empty",
+    "a11y"
+  ],
+  "events": [
+    {
+      "name": "renderEmpty",
+      "when": "每次渲染",
+      "description": "空态：区分「库为空」与「筛选无结果」，后者给一键清空筛选，避……"
+    }
+  ],
+  "methods": [],
+  "config": [
+    {
+      "name": "emptyText",
+      "type": "string",
+      "default": "素材库还是空的",
+      "description": "无素材文案"
+    },
+    {
+      "name": "emptyHint",
+      "type": "string",
+      "default": "拖拽图片或视频到上方区域即可开始",
+      "description": "无素材补充说明"
+    },
+    {
+      "name": "filteredText",
+      "type": "string",
+      "default": "没有符合当前条件的素材",
+      "description": "筛选无结果文案"
+    },
+    {
+      "name": "clearLabel",
+      "type": "string",
+      "default": "清空筛选条件",
+      "description": "清空按钮文案"
+    }
+  ],
+  "example": "createEmptyStatePlugin({ emptyText: \"还没有素材\" })",
+  "features": [
+    "两种原因文案分叉",
+    "筛选无结果时给恢复入口",
+    "单值槽：最高 priority 胜出"
+  ],
+  "useCases": [
+    "空库引导",
+    "筛选无结果兜底"
+  ]
+}

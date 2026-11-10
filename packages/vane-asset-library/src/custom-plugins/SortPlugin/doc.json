@@ -1,0 +1,34 @@
+{
+  "name": "Sort",
+  "description": "排序：名称 / 时间 / 体积 / 时长，点同一字段反转方向，缺值恒沉底。",
+  "since": "0.1.0",
+  "tags": [
+    "sort"
+  ],
+  "events": [
+    {
+      "name": "renderToolbar",
+      "when": "每次渲染",
+      "description": "排序：名称 / 时间 / 体积 / 时长，点同一字段反转方向……"
+    }
+  ],
+  "methods": [],
+  "config": [
+    {
+      "name": "options",
+      "type": "SortOption[]",
+      "default": "时间/名称/体积/时长",
+      "description": "可选排序项"
+    }
+  ],
+  "example": "createSortPlugin({ options: [{ key: \"size\", label: \"体积\" }] })",
+  "features": [
+    "稳定排序，同值保持入参顺序",
+    "缺值不随方向翻转（永远排末尾）",
+    "中文按 localeCompare 排序"
+  ],
+  "useCases": [
+    "按最新上传排序",
+    "找大文件"
+  ]
+}

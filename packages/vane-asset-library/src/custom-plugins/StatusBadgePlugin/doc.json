@@ -1,0 +1,36 @@
+{
+  "name": "StatusBadge",
+  "description": "素材状态遮罩：processing / failed 时在卡片中央标注，说明为什么这张卡点不动。",
+  "since": "0.1.0",
+  "tags": [
+    "overlay",
+    "status",
+    "a11y"
+  ],
+  "events": [
+    {
+      "name": "renderCardOverlay",
+      "when": "每次渲染，逐张卡片调用",
+      "description": "素材状态遮罩：processing / failed 时在卡……"
+    }
+  ],
+  "methods": [],
+  "config": [
+    {
+      "name": "labels",
+      "type": "Partial<Record<AssetStatus,string>>",
+      "default": "转码中/处理失败",
+      "description": "状态文案"
+    }
+  ],
+  "example": "createStatusBadgePlugin({ labels: { processing: \"上传中\" } })",
+  "features": [
+    "ready 不渲染任何节点",
+    "半透明遮罩，仍可看见缩略图",
+    "aria-label 说明不可选原因"
+  ],
+  "useCases": [
+    "上传后转码占位",
+    "失败文件提示"
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "name": "CardActions",
+  "description": "卡片操作：预览 / 下载 / 删除，预览走内置浮层，其余动作交回宿主（onAssetAction）。",
+  "since": "0.1.0",
+  "tags": [
+    "action",
+    "overlay"
+  ],
+  "events": [
+    {
+      "name": "renderCardActions",
+      "when": "每次渲染，逐张卡片调用",
+      "description": "卡片操作：预览 / 下载 / 删除，预览走内置浮层，其余动作……"
+    }
+  ],
+  "methods": [],
+  "config": [
+    {
+      "name": "actions",
+      "type": "CardAction[]",
+      "default": "预览/下载/删除",
+      "description": "操作项，preview 为内置动作"
+    }
+  ],
+  "example": "createCardActionsPlugin({ actions: [{ action: \"download\", label: \"下载\" }] })",
+  "features": [
+    "按钮常驻可见，不依赖 hover",
+    "preview 与 LightBox 联动",
+    "危险动作单独 tone"
+  ],
+  "useCases": [
+    "素材单卡操作",
+    "下载 / 删除入口"
+  ]
+}

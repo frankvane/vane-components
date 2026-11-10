@@ -1,0 +1,40 @@
+{
+  "name": "KindBadge",
+  "description": "类型角标：默认只给视频显示 VID，用来区分「静帧缩略图」与「真图片」。",
+  "since": "0.1.0",
+  "tags": [
+    "overlay",
+    "kind"
+  ],
+  "events": [
+    {
+      "name": "renderCardOverlay",
+      "when": "每次渲染，逐张卡片调用",
+      "description": "类型角标：默认只给视频显示 VID，用来区分「静帧缩略图」与……"
+    }
+  ],
+  "methods": [],
+  "config": [
+    {
+      "name": "labels",
+      "type": "Partial<Record<AssetKind,string>>",
+      "default": "PIC/VID",
+      "description": "角标文案"
+    },
+    {
+      "name": "showFor",
+      "type": "AssetKind[]",
+      "default": "[\"video\"]",
+      "description": "在哪些类型上显示"
+    }
+  ],
+  "example": "createKindBadgePlugin({ showFor: [\"image\", \"video\"] })",
+  "features": [
+    "只读归一化后的 kind",
+    "可图文混排时同时标注",
+    "角标可被屏幕阅读器忽略（纯装饰）"
+  ],
+  "useCases": [
+    "图视频混排的素材墙"
+  ]
+}
